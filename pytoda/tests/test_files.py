@@ -23,10 +23,10 @@ class TestFiles(unittest.TestCase):
         """Test read_smi."""
         content = os.linesep.join(
             [
-                'CN(C)CCNC(=O)c1cc2CSc3cc(Cl)ccc3-c2s1   drug_0',
-                'CC(C)N1C(=O)S\C(=C\c2ccc(Sc3nc4ccccc4[nH]3)o2)C1=O      drug_1',
-                'C(Cn1c2ccccc2c2ccccc12)c1nc2ccccc2[nH]1 drug_2',
-                'C1CN(CCO1)c1nnc(-c2ccccc2)c(n1)-c1ccccc1        drug_3'
+                'CN(C)CCNC(=O)c1cc2CSc3cc(Cl)ccc3-c2s1\tdrug_0',
+                'CC(C)N1C(=O)S\C(=C\c2ccc(Sc3nc4ccccc4[nH]3)o2)C1=O\tdrug_1',
+                'C(Cn1c2ccccc2c2ccccc12)c1nc2ccccc2[nH]1\tdrug_2',
+                'C1CN(CCO1)c1nnc(-c2ccccc2)c(n1)-c1ccccc1\tdrug_3'
             ]
         )
         indexes = ['drug_0', 'drug_1', 'drug_2', 'drug_3']
