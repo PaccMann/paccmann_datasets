@@ -22,7 +22,7 @@ parser.add_argument(
     '-o',
     '--output_path',
     type=str,
-    help='path to a input .smi file',
+    help='output path where to store the splits',
     required=True
 )
 parser.add_argument(
