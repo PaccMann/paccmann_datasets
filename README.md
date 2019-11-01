@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/PaccMann/paccmann_datasets.svg?branch=master)](https://travis-ci.org/PaccMann/paccmann_datasets)
 # pytoda
 
 ## Overview
