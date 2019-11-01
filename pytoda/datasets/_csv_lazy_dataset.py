@@ -1,6 +1,7 @@
 """Implementation of _CsvLazyDataset."""
 import numpy as np
 import pandas as pd
+from collections import OrderedDict
 from ._cache_dataset import _CacheDataset
 from ._csv_dataset import _CsvDataset
 from ..types import FeatureList
@@ -64,6 +65,17 @@ class _CsvLazyDataset(_CacheDataset, _CsvDataset):
             for sample, index in self.sample_to_index_mapping.items()
         }
         self.number_of_samples = index * 1
+        self.feature_list = chunk.columns.tolist()
+        self.feature_mapping = pd.Series(
+            OrderedDict(
+                [
+                    (feature, index)
+                    for index, feature in enumerate(self.feature_list)
+                ]
+            )
+        )
+        self.feature_fn = lambda sample: sample[self.feature_mapping[
+            self.feature_list].values]
 
     def __len__(self) -> int:
         """Total number of samples."""

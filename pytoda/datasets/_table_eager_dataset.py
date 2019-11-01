@@ -63,5 +63,6 @@ class _TableEagerDataset(_TableDataset):
 
     def _preprocess_dataset(self) -> None:
         """Preprocess the dataset."""
+        self.feature_fn = lambda sample: sample[self.feature_list]
         for dataset in self._dataset.datasets:
             dataset.df = self.transform_fn(self.feature_fn(dataset.df))

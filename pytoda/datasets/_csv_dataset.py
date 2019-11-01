@@ -1,8 +1,6 @@
 """Abstract implementation of _CsvDataset."""
 import copy
 import numpy as np
-import pandas as pd
-from collections import OrderedDict
 from functools import reduce
 from torch.utils.data import Dataset
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
@@ -32,31 +30,13 @@ class _CsvDataset(Dataset):
         self.min_max_scaler = MinMaxScaler()
         self.standardizer = StandardScaler()
         self.kwargs = copy.deepcopy(kwargs)
-        # NOTE: discard nrows
-        _ = self.kwargs.pop('nrows', None)
-        columns = pd.read_csv(self.filepath, nrows=0,
-                              **kwargs).columns.tolist()
         if self.feature_list is not None:
-            feature_ordering = {
-                feature: index
-                for index, feature in enumerate(self.feature_list)
-            }
-            self.feature_list = sorted(
-                list(set(self.feature_list) & set(columns)),
-                key=lambda feature: feature_ordering[feature]
-            )
-            self.feature_fn = lambda df: df[self.feature_list]
+            # NOTE: zeros denote missing value
+            self.feature_fn = lambda df: df.T.reindex(
+                self.feature_list
+            ).T.fillna(0.0)
         else:
-            self.feature_list = columns
             self.feature_fn = lambda df: df
-        self.feature_mapping = pd.Series(
-            OrderedDict(
-                [
-                    (feature, index)
-                    for index, feature in enumerate(self.feature_list)
-                ]
-            )
-        )
         self.setup_dataset()
         self.max = self.min_max_scaler.data_max_
         self.min = self.min_max_scaler.data_min_

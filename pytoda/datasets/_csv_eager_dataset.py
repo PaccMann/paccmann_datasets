@@ -1,6 +1,7 @@
 """Implementation of _CsvEagerDataset."""
 import numpy as np
 import pandas as pd
+from collections import OrderedDict
 from ._csv_dataset import _CsvDataset
 from ..types import FeatureList
 
@@ -42,6 +43,16 @@ class _CsvEagerDataset(_CsvDataset):
             index: sample
             for sample, index in self.sample_to_index_mapping.items()
         }
+        self.feature_list = self.df.columns.tolist()
+        self.feature_mapping = pd.Series(
+            OrderedDict(
+                [
+                    (feature, index)
+                    for index, feature in enumerate(self.feature_list)
+                ]
+            )
+        )
+        self.feature_fn = lambda df: df[self.feature_list]
 
     def __len__(self) -> int:
         """Total number of samples."""
