@@ -6,9 +6,10 @@ Example data can be downloaded [here](https://ibm.box.com/v/paccmann-pytoda-data
 
 ## Create a SMILES language object
 
-The example [smiles_language_creator.py](./smiles_language_creator.py) creates and export a [`SMILESLanguage`](../pytoda/simles/../smiles/smiles_language.py) object.
+The example [smiles_language_creator.py](./smiles_language_creator.py) creates and export a [`SMILESLanguage`](../pytoda/simles/smiles_language.py) object.
 
 ```console
+(pytoda) $ python examples/smiles_language_creator.py -h
 usage: smiles_language_creator.py [-h]
                                   [--add_start_and_stop | --no_start_and_stop]
                                   smi_path output_filepath
@@ -28,6 +29,7 @@ optional arguments:
 The example [smiles_to_fingerprints.py](./smiles_to_fingerprints.py) converts a .smi file into a .csv containing Morgan fingerprints with tunable radius and bits.
 
 ```console
+(pytoda) $ python examples/smiles_to_fingerprints.py -h
 usage: smiles_to_fingerprints.py [-h] [-r RADIUS] [-b BITS]
                                  smi_filepath output_filepath
 
@@ -48,6 +50,7 @@ optional arguments:
 The example [split_csv_data.py](./split_csv_data.py) split `.csv` data in train and test with different configurations.
 
 ```console
+(pytoda) $ python examples/split_csv_data.py -h
 usage: split_csv_data.py [-h] -f FILEPATHS [FILEPATHS ...] -o OUTPUT_PATH -d
                          DATA_TYPE -m {random,file} [-s SEED]
                          [-t TEST_FRACTION] [-n NUMBER_OF_COLUMNS]
@@ -78,3 +81,4 @@ optional arguments:
 ```
 
 For more examples see other repositories in the [PaccMann organization](https://github.com/PaccMann).
+
