@@ -1,0 +1,11 @@
+dist: trusty
+
+services:
+  - docker
+
+before_script:
+  - docker pull drugilsberg/rdkit-ubuntu:latest
+  - docker build -f .travis/Dockerfile -t pytoda_tests .
+
+script:
+  - docker run -it pytoda_tests python3 -m unittest discover -t . -p "test_*py" pytoda
