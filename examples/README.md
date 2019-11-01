@@ -6,7 +6,7 @@ Example data can be downloaded [here](https://ibm.box.com/v/paccmann-pytoda-data
 
 ## Create a SMILES language object
 
-The example [smiles_language_creator.py](./smiles_language_creator.py) creates and export a [`SMILESLanguage`](../pytoda/simles/smiles_language.py) object.
+The example [smiles_language_creator.py](./smiles_language_creator.py) creates and export a [`SMILESLanguage`](../pytoda/smiles/smiles_language.py) object.
 
 ```console
 (pytoda) $ python examples/smiles_language_creator.py -h
