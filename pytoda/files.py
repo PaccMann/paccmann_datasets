@@ -46,7 +46,7 @@ def read_smi(filepath: str, chunk_size: int = None) -> pd.DataFrame:
             where the index is the compound name.
     """
     return pd.read_csv(
-        filepath, sep='\s+',
+        filepath, sep='\t',
         header=None, index_col=1, names=['SMILES'],
         chunksize=chunk_size
     )

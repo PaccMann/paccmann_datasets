@@ -20,7 +20,7 @@ conda env create -f conda.yml
 Activate the environment:
 
 ```sh
-conda activate pytoda-env
+conda activate pytoda
 ```
 
 Install:
