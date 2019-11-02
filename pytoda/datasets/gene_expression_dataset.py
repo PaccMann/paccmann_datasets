@@ -72,6 +72,7 @@ class GeneExpressionDataset:
         self.mean = self._dataset.mean
         self.std = self._dataset.std
         self.sample_to_index_mapping = self._dataset.sample_to_index_mapping
+        self.processing = self._dataset.processing
 
     def __len__(self) -> int:
         """Total number of samples."""
