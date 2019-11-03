@@ -59,7 +59,7 @@ class _CsvLazyDataset(_CacheDataset, _CsvDataset):
             index: sample
             for sample, index in self.sample_to_index_mapping.items()
         }
-        self.number_of_samples = index * 1
+        self.number_of_samples = len(self.sample_to_index_mapping)
         self.feature_list = chunk.columns.tolist()
         self.feature_mapping = pd.Series(
             OrderedDict(

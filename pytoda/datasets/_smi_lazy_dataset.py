@@ -34,7 +34,7 @@ class _SmiLazyDataset(_CacheDataset):
             index: sample
             for sample, index in self.sample_to_index_mapping.items()
         }
-        self.number_of_samples = index * 1
+        self.number_of_samples = len(self.sample_to_index_mapping)
 
     def __len__(self) -> int:
         """Total number of samples."""
