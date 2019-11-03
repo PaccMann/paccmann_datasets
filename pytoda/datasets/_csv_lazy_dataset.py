@@ -51,15 +51,10 @@ class _CsvLazyDataset(_CacheDataset, _CsvDataset):
             chunk = self.feature_fn(chunk)
             self.min_max_scaler.partial_fit(chunk.values)
             self.standardizer.partial_fit(chunk.values)
-            for example in chunk.values:
-                self.cache[index] = example
+            for row_index, row in chunk.iterrows():
+                self.cache[index] = row.values
+                self.sample_to_index_mapping[row_index] = index
                 index += 1
-            self.sample_to_index_mapping.update(
-                {
-                    sample: index
-                    for index, sample in enumerate(chunk.index.tolist())
-                }
-            )
         self.index_to_sample_mapping = {
             index: sample
             for sample, index in self.sample_to_index_mapping.items()

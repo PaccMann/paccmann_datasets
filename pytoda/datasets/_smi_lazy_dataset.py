@@ -26,15 +26,10 @@ class _SmiLazyDataset(_CacheDataset):
         self.sample_to_index_mapping = {}
         index = 0
         for chunk in read_smi(self.smi_filepath, chunk_size=self.chunk_size):
-            for smiles in chunk['SMILES']:
-                self.cache[index] = smiles
+            for row_index, row in chunk.iterrows():
+                self.cache[index] = row['SMILES']
+                self.sample_to_index_mapping[row_index] = index
                 index += 1
-            self.sample_to_index_mapping.update(
-                {
-                    sample: index
-                    for index, sample in enumerate(chunk.index.tolist())
-                }
-            )
         self.index_to_sample_mapping = {
             index: sample
             for sample, index in self.sample_to_index_mapping.items()
