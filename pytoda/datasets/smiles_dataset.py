@@ -7,8 +7,8 @@ from ._smiles_lazy_dataset import _SMILESLazyDataset
 from ..types import FileList
 
 SMILES_DATASET_IMPLEMENTATIONS = {
-    'eager': _SMILESLazyDataset,
-    'lazy': _SMILESEagerDataset
+    'eager': _SMILESEagerDataset,
+    'lazy': _SMILESLazyDataset
 }
 
 
