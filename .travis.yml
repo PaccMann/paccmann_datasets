@@ -1,14 +1,13 @@
 dist: trusty
 services:
-- docker
+  - docker
 before_script:
-- docker pull drugilsberg/rdkit-ubuntu:latest
-- docker build -f .travis/Dockerfile -t pytoda_tests .
+  - docker pull drugilsberg/rdkit-ubuntu:latest
+  - docker build -f .travis/Dockerfile -t pytoda_tests .
 script:
-- docker run -it pytoda_tests python3 -m unittest discover -t . -p "test_*py" pytoda
+  - docker run -it pytoda_tests python3 -m unittest discover -t . -p "test_*py" pytoda
 notifications:
   slack:
-    secure:
-    gZmeoA6DjgmEnL9tPImfatqn9YkIA4TZU48HlJdi0mrvKOij8QPsaUpa0H/N91ZcVHr/b1kZNdj/ZfUJgUpScmoDg+DtKZG92G7aqJRk2W8ENtqFG/n4waFIGtA/8aSeSjjosAvvV9JvdYI8OzaGnomJw1uItq7P4cSQujHp0MnuQyOcRO8bN8FpdQO6ccldYrKViJT+bZB/OfDKMjdm4FxTpwf41U/hSAbmhV/77OLICED9sZht30TwABGUQMhKpDB0pYxXRkF/70/Yl/reOrIZShkwawD3HPjEurUNzKPQkoR3PviyaLqNDqLiYhiKRXZlv2GHuDwfcOeeGCrXF78VOuC+s7XCbEXyr4CSDZ7DpT0cXCZLYuiRZ9BZXc/QWe0NZwnFhdG5j8Hu8fbU4+UAH9UGY3nEElCedzWo/hIWAY9VeGun5Sj2wtyMsKhLLGymCHLfsRTuU1B8RjHE2LA9wds44mAqwivCUF8yffcrHDsDQKkleIkvXzb8ApT+73hkTUwYRtgZbVGbRdYqsqKvA+6pCuAayhsqL4t8cF17b8yYSpJuW2tG8HitfoAfnmMzpgXamY+gFmA8DjMyc7VfLeFB4FqRi6xybwNIXnH53TyQTkpniThaC7YoJJ05o4DIfiZ5qnAd++GhGhz4Na0Zn7RlgcFML9TB6KKXpdM=
+    secure: gZmeoA6DjgmEnL9tPImfatqn9YkIA4TZU48HlJdi0mrvKOij8QPsaUpa0H/N91ZcVHr/b1kZNdj/ZfUJgUpScmoDg+DtKZG92G7aqJRk2W8ENtqFG/n4waFIGtA/8aSeSjjosAvvV9JvdYI8OzaGnomJw1uItq7P4cSQujHp0MnuQyOcRO8bN8FpdQO6ccldYrKViJT+bZB/OfDKMjdm4FxTpwf41U/hSAbmhV/77OLICED9sZht30TwABGUQMhKpDB0pYxXRkF/70/Yl/reOrIZShkwawD3HPjEurUNzKPQkoR3PviyaLqNDqLiYhiKRXZlv2GHuDwfcOeeGCrXF78VOuC+s7XCbEXyr4CSDZ7DpT0cXCZLYuiRZ9BZXc/QWe0NZwnFhdG5j8Hu8fbU4+UAH9UGY3nEElCedzWo/hIWAY9VeGun5Sj2wtyMsKhLLGymCHLfsRTuU1B8RjHE2LA9wds44mAqwivCUF8yffcrHDsDQKkleIkvXzb8ApT+73hkTUwYRtgZbVGbRdYqsqKvA+6pCuAayhsqL4t8cF17b8yYSpJuW2tG8HitfoAfnmMzpgXamY+gFmA8DjMyc7VfLeFB4FqRi6xybwNIXnH53TyQTkpniThaC7YoJJ05o4DIfiZ5qnAd++GhGhz4Na0Zn7RlgcFML9TB6KKXpdM=
     on_success: always
     on_failure: always
