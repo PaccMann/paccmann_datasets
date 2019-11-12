@@ -21,15 +21,15 @@ class AnnotatedDataset(Dataset):
     ) -> None:
         """
         Initialize an annotated dataset.
-        E.g. the  samples could be SMILES and the annotations a single or
-        multiple labels.
+        E.g. the  input_data could be SMILES and the annotations could be
+        single or multi task labels.
 
         Args:
             annotations_filepath (str): path to the annotations of a dataset
-                .csv file. Currently, the only supported format is .csv,
-                with an index and three header columns named: "drug",
-                "cell_line", "IC50".
-            data (Dataset): path to .smi file.
+                .csv file. Currently, the only supported format is .csv, the
+                last column should point to an ID that is also contained in
+                input_data.
+            input_data (Dataset): path to .smi file.
             smiles_langśage (SMILESLanguage): a smiles language.
                 Defaults to None.
             device (torch.device): device where the tensors are stored.
@@ -56,6 +56,7 @@ class AnnotatedDataset(Dataset):
 
         # Multilabel classification case
         self.num_tasks = len(self.annotated_data_df.columns) - 1
+        self.id_column_name = self.annotated_data_df.columns[-1]
 
     def __len__(self) -> int:
         "Total number of samples."
@@ -82,6 +83,8 @@ class AnnotatedDataset(Dataset):
         )
         # e.g. SMILES
         token_indexes_tensor = self.input_data[
-            self.input_data.sample_to_index_mapping[selected_sample['mol_id']]
+            self.input_data.sample_to_index_mapping[
+                selected_sample[self.id_column_name]
+            ]
         ]   # yapf: disable
         return token_indexes_tensor, labels_tensor
