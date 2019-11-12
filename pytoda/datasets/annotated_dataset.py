@@ -50,10 +50,6 @@ class AnnotatedDataset(Dataset):
         # e.g. SMILES
         self.input_data = input_data
 
-        # TODO: This is not so great since it does not catch cases with
-        # conflicts/missing values in between of input_data and annotations.
-        self.number_of_samples = self.input_data.__len__()
-
         self.annotated_data_df = pd.read_csv(
             self.annotations_filepath, index_col=0, **kwargs
         )
@@ -63,7 +59,7 @@ class AnnotatedDataset(Dataset):
 
     def __len__(self) -> int:
         "Total number of samples."
-        return self.number_of_samples
+        return len(self.annotated_data_df)
 
     def __getitem__(self, index: int) -> DrugSensitivityData:
         """
@@ -80,7 +76,7 @@ class AnnotatedDataset(Dataset):
         # Labels
         selected_sample = self.annotated_data_df.iloc[index]
         labels_tensor = torch.tensor(
-            list(selected_sample[:self.num_tasks - 1].values),
+            list(selected_sample[:self.num_tasks].values),
             dtype=torch.float,
             device=self.device
         )
