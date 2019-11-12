@@ -14,6 +14,7 @@ class AnnotatedDataset(Dataset):
         self,
         annotations_filepath: str,
         input_data: Dataset,
+        index_col: int,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
         backend: str = 'eager',
@@ -30,6 +31,7 @@ class AnnotatedDataset(Dataset):
                 last column should point to an ID that is also contained in
                 input_data.
             input_data (Dataset): path to .smi file.
+            index_col (int): index column of annotations_filepath csv file
             smiles_langśage (SMILESLanguage): a smiles language.
                 Defaults to None.
             device (torch.device): device where the tensors are stored.
@@ -51,7 +53,7 @@ class AnnotatedDataset(Dataset):
         self.input_data = input_data
 
         self.annotated_data_df = pd.read_csv(
-            self.annotations_filepath, index_col=0, **kwargs
+            self.annotations_filepath, index_col=index_col, **kwargs
         )
 
         # Multilabel classification case
