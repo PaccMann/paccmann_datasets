@@ -13,47 +13,37 @@ class AnnotatedDataset(Dataset):
     def __init__(
         self,
         annotations_filepath: str,
-        input_data: Dataset,
-        index_col: int,
+        dataset: Dataset,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
-        backend: str = 'eager',
         **kwargs
     ) -> None:
         """
         Initialize an annotated dataset.
-        E.g. the  input_data could be SMILES and the annotations could be
+        E.g. the  dataset could be SMILES and the annotations could be
         single or multi task labels.
 
         Args:
             annotations_filepath (str): path to the annotations of a dataset
                 .csv file. Currently, the only supported format is .csv, the
                 last column should point to an ID that is also contained in
-                input_data.
-            input_data (Dataset): path to .smi file.
-            index_col (int): index column of annotations_filepath csv file
-            smiles_langśage (SMILESLanguage): a smiles language.
-                Defaults to None.
+                dataset.
+            dataset (Dataset): path to .smi file.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            backend (str): memeory management backend.
-                Defaults to eager, prefer speed over memory consumption.
-                Note that at the moment only the gene expression and the
-                smiles datasets implement both backends. The drug sensitivity
-                data are loaded in memory.
-            kwargs (dict): additional parameters for pd.read_csv.
+            kwargs (dict): additional parameter for pd.read_csv. E.g. index_col
+                defaults to 0 (set in the constructor).
         """
         Dataset.__init__(self)
-        self.annotations_filepath = annotations_filepath
-        # device
+
         self.device = device
-        # backend
-        self.backend = backend
-        # e.g. SMILES
-        self.input_data = input_data
+        kwargs['index_col'] = kwargs.get('index_col', 0)
+
+        self.annotations_filepath = annotations_filepath
+        self.dataset = dataset
 
         self.annotated_data_df = pd.read_csv(
-            self.annotations_filepath, index_col=index_col, **kwargs
+            self.annotations_filepath, **kwargs
         )
 
         # Multilabel classification case
@@ -84,8 +74,8 @@ class AnnotatedDataset(Dataset):
             device=self.device
         )
         # e.g. SMILES
-        token_indexes_tensor = self.input_data[
-            self.input_data.sample_to_index_mapping[
+        token_indexes_tensor = self.dataset[
+            self.dataset.sample_to_index_mapping[
                 selected_sample[self.id_column_name]
             ]
         ]   # yapf: disable
