@@ -10,9 +10,14 @@ from .types import FileList
 
 
 def csv_data_splitter(
-    data_filepaths: FileList, save_path: str, data_type: str,
-    mode: str, seed: int = 42, test_fraction: float = 0.1,
-    number_of_columns: int = 12, **kwargs
+    data_filepaths: FileList,
+    save_path: str,
+    data_type: str,
+    mode: str,
+    seed: int = 42,
+    test_fraction: float = 0.1,
+    number_of_columns: int = 12,
+    **kwargs
 ) -> Tuple[str, str]:
     """
     Function for generic splitting into train and test data in csv format..
@@ -36,7 +41,9 @@ def csv_data_splitter(
     """
     # preparation
     random.seed(seed)
-    data_filepaths = [data_filepaths] if isinstance(data_filepaths, str) else data_filepaths
+    data_filepaths = [data_filepaths] if isinstance(
+        data_filepaths, str
+    ) else data_filepaths   # yapf:disable
     file_suffix = '{}_{}_fraction_{}_id_{}_seed_{}.csv'
     hash_fn = hashlib.md5()
     if not ('index_col' in kwargs):
@@ -46,9 +53,11 @@ def csv_data_splitter(
     # but only consider first number_of_columns columns (slow otherwise)
     def _hash_from_df_columns(df, number_of_columns):
         return (
-            df.reindex(sorted(df.columns), axis=1).
-            to_string(columns=sorted(df.columns)[:number_of_columns])
+            df.reindex(sorted(df.columns), axis=1).to_string(
+                columns=sorted(df.columns)[:number_of_columns]
+            )
         )
+
     # NOTE: if all *.csv files contain a single sample only
     # the splitting modes collapse
     # file splitting mode
@@ -60,24 +69,28 @@ def csv_data_splitter(
         file_indexes = np.arange(len(data_filepaths))
         random.shuffle(file_indexes)
         # compile splits (ceil ensures test_df is not empty)
-        test_df = pd.concat([
-            pd.read_csv(data_filepaths[index], **kwargs)
-            for index in file_indexes[:ceil(test_fraction*len(data_filepaths))]
-        ])
-        train_df = pd.concat([
-            pd.read_csv(data_filepaths[index], **kwargs)
-            for index in file_indexes[ceil(test_fraction*len(data_filepaths)):]
-        ])
+        test_df = pd.concat(
+            [
+                pd.read_csv(data_filepaths[index], **kwargs) for index in
+                file_indexes[:ceil(test_fraction * len(data_filepaths))]
+            ]
+        )
+        train_df = pd.concat(
+            [
+                pd.read_csv(data_filepaths[index], **kwargs) for index in
+                file_indexes[ceil(test_fraction * len(data_filepaths)):]
+            ]
+        )
     # random splitting mode:
     # build a joint df from all samples, then split
     elif mode == 'random':
-        df = pd.concat([
-            pd.read_csv(data_path, **kwargs)
-            for data_path in data_filepaths
-        ], sort=False)
+        df = pd.concat(
+            [pd.read_csv(data_path, **kwargs) for data_path in data_filepaths],
+            sort=False
+        )
         sample_indexes = np.arange(df.shape[0])
         random.shuffle(sample_indexes)
-        splitting_index = ceil(test_fraction*df.shape[0])
+        splitting_index = ceil(test_fraction * df.shape[0])
         test_df = df.iloc[sample_indexes[:splitting_index]]
         train_df = df.iloc[sample_indexes[splitting_index:]]
     else:
@@ -98,16 +111,12 @@ def csv_data_splitter(
     train_filepath = os.path.join(
         save_path,
         file_suffix.format(
-            data_type, 'train', 1 - test_fraction,
-            hash_id, seed
+            data_type, 'train', 1 - test_fraction, hash_id, seed
         )
     )
     test_filepath = os.path.join(
         save_path,
-        file_suffix.format(
-            data_type, 'test', test_fraction,
-            hash_id, seed
-        )
+        file_suffix.format(data_type, 'test', test_fraction, hash_id, seed)
     )
     # write the dataset
     for path, df in zip([train_filepath, test_filepath], [train_df, test_df]):
