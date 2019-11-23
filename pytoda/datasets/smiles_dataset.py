@@ -25,6 +25,12 @@ class SMILESDataset(Dataset):
         padding_length: int = None,
         add_start_and_stop: bool = False,
         augment: bool = False,
+        kekulize: bool = False,
+        allBondsExplicit: bool = False,
+        allHsExplicit: bool = False,
+        randomize: bool = False,
+        remove_bonddir: bool = False,
+        remove_chirality: bool = False,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
         backend: str = 'eager'
@@ -43,6 +49,18 @@ class SMILESDataset(Dataset):
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
             augment (bool): perform SMILES augmentation. Defaults to False.
+            kekulize (bool): kekulizes SMILES (implicit aromaticity only).
+                Defaults to False.
+            allBondsExplicit (bool): Makes all bonds explicit. Defaults to
+                False, only applies if kekulize = True.
+            allHsExplicit (bool): Makes all hydrogens explicit. Defaults to
+                False, only applies if kekulize = True.
+            randomize (bool): perform a true randomization of SMILES tokens.
+                Defaults to False.
+            remove_bonddir (bool): Remove directional info of bonds.
+                Defaults to False.
+            remove_chirality (bool): Remove chirality information.
+                Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
             backend (str): memeory management backend.
@@ -61,6 +79,12 @@ class SMILESDataset(Dataset):
             padding=padding,
             add_start_and_stop=add_start_and_stop,
             augment=augment,
+            kekulize=kekulize,
+            allBondsExplicit=allBondsExplicit,
+            allHsExplicit=allHsExplicit,
+            randomize=randomize,
+            remove_bonddir=remove_bonddir,
+            remove_chirality=remove_chirality,
             device=device
         )
         self.smiles_language = self._dataset.smiles_language

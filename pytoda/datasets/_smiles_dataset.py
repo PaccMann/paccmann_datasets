@@ -4,7 +4,8 @@ from torch.utils.data import Dataset
 from ..types import FileList
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
-    SMILESToTokenIndexes, LeftPadding, ToTensor, SMILESRandomization
+    SMILESToTokenIndexes, LeftPadding, ToTensor, Augment, Randomize,
+    RemoveIsomery, Kekulize
 )
 from ..transforms import Compose
 
@@ -25,6 +26,12 @@ class _SMILESDataset(Dataset):
         padding_length: int = None,
         add_start_and_stop: bool = False,
         augment: bool = False,
+        kekulize: bool = False,
+        allBondsExplicit: bool = False,
+        allHsExplicit: bool = False,
+        randomize: bool = False,
+        remove_bonddir: bool = False,
+        remove_chirality: bool = False,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu')
     ) -> None:
@@ -42,10 +49,23 @@ class _SMILESDataset(Dataset):
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
             augment (bool): perform SMILES augmentation. Defaults to False.
+            kekulize (bool): kekulizes SMILES (implicit aromaticity only).
+                Defaults to False.
+            allBondsExplicit (bool): Makes all bonds explicit. Defaults to
+                False, only applies if kekulize = True.
+            allHsExplicit (bool): Makes all hydrogens explicit. Defaults to
+                False, only applies if kekulize = True.
+            randomize (bool): perform a true randomization of SMILES tokens.
+                Defaults to False.
+            remove_bonddir (bool): Remove directional info of bonds.
+                Defaults to False.
+            remove_chirality (bool): Remove chirality information.
+                Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
         """
         Dataset.__init__(self)
+        # Parse language object and data paths
         self.smi_filepaths = smi_filepaths
         if smiles_language is None:
             self.smiles_language = SMILESLanguage(
@@ -54,30 +74,66 @@ class _SMILESDataset(Dataset):
             self.smiles_language.add_smis(self.smi_filepaths)
         else:
             self.smiles_language = smiles_language
+
+        # Set up transformation paramater
         self.padding = padding
         self.augment = augment
         self.padding_length = self.padding_length = (
             self.smiles_language.max_token_sequence_length
             if padding_length is None else padding_length
         )
+        self.kekulize = kekulize
+        self.allBondsExplicit = allBondsExplicit
+        self.allHsExplicit = allHsExplicit
+        self.randomize = randomize
+        self.remove_bonddir = remove_bonddir
+        self.remove_chirality = remove_chirality
         self.device = device
-        transforms = [
+
+        # Build up cascade of SMILES transformations
+        # Below transformations are optional
+        _transforms = []
+        if self.remove_bonddir or self.remove_chirality:
+            _transforms += [
+                RemoveIsomery(
+                    bonddir=self.remove_bonddir,
+                    chirality=self.remove_chirality
+                )
+            ]
+        if self.kekulize:
+            _transforms += [
+                Kekulize(
+                    allBondsExplicit=self.allBondsExplicit,
+                    allHsExplicit=self.allHsExplicit
+                )
+            ]
+        if self.augment:
+            _transforms += [
+                Augment(
+                    kekuleSmiles=self.kekulize,
+                    allBondsExplicit=self.allBondsExplicit,
+                    allHsExplicit=self.allHsExplicit
+                )
+            ]
+        self.smiles_transforms = Compose(_transforms)
+        transforms = _transforms.copy()
+        transforms += [
             SMILESToTokenIndexes(smiles_language=self.smiles_language)
         ]
-        if self.augment:
-            transforms = [SMILESRandomization()] + transforms
+        if self.randomize:
+            transforms += [Randomize()]
         if self.padding:
-            transforms.append(
+            transforms += [
                 LeftPadding(
                     padding_length=self.padding_length,
                     padding_index=self.smiles_language.padding_index
                 )
-            )
-        transforms.append(ToTensor(device=self.device))
+            ]
+        transforms += [ToTensor(device=self.device)]
         self.transform = Compose(transforms)
         self._dataset = None
-        # NOTE: the dataset will be initialized and
-        # designed to return SMILES strings
+        # NOTE: the dataset will be initialized and designed to return SMILES
+        #       strings
         self._setup_dataset()
         # NOTE: recover sample and index mappings
         self.sample_to_index_mapping = {}

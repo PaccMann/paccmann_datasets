@@ -11,7 +11,7 @@ SMILES_TOKENIZER = re.compile(
 SMILES_NORMALIZER = re.compile(r'-(\w)')
 # smiles normalization dictionary
 
-# TODO: To be replaced by explicitly encoding aromatic structures
+# TODO: This does not seem right
 SMILES_NORMALIZATION_DICTIONARY = str.maketrans(
     {
         'c': 'C',

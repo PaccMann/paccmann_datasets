@@ -1,12 +1,15 @@
 """SMILES transforms."""
-import torch
+import re
+import warnings
+
 import numpy as np
-from rdkit import Chem
-from rdkit import DataStructs
+import torch
+from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
+
 from ..transforms import Transform
-from .smiles_language import SMILESLanguage
 from ..types import Indexes
+from .smiles_language import SMILESLanguage
 
 
 class SMILESToTokenIndexes(Transform):
@@ -23,7 +26,7 @@ class SMILESToTokenIndexes(Transform):
 
     def __call__(self, smiles: str) -> Indexes:
         """
-        Apply the transform.
+        Apply the SMILES tokenization transformation
 
         Args:
             smiles (str): a SMILES representation.
@@ -71,7 +74,8 @@ class ToTensor(Transform):
 
         Args:
             dtype (torch.dtype): data type. Defaults to torch.short.
-            device (torch.device): device where the tensors are stored. Defaults to gpu, if available.
+            device (torch.device): device where the tensors are stored.
+            Defaults to gpu, if available.
         """
         self.dtype = torch.short
         self.device = device
@@ -91,8 +95,116 @@ class ToTensor(Transform):
         ).view(-1, 1)
 
 
-class SMILESRandomization(Transform):
-    """Randomize a SMILES."""
+class RemoveIsomery(Transform):
+    """ Remove isomery (isotopic and chiral specifications) from SMILES """
+
+    def __init__(self, bonddir=True, chirality=True) -> None:
+        """
+        Keyword Arguments:
+            bonddir (bool): whether bond direction information should be
+                removed or not (default: {True})
+            chirality (bool): whether chirality information should be removed
+                (default: {True}).
+        """
+
+        self.chirality_dict = {'[': '', ']': '', '@': '', 'H': ''}
+        self.bond_dict = {'/': '', '\\': ''}
+        self.charge = re.compile(r'\[\w+[\+\-]\d?\]')
+        self.bonddir = bonddir
+        self.chirality = chirality
+
+    def __call__(self, smiles: str) -> str:
+        """
+        Remove the stereoinfo of the SMILES. That can either be the removal of
+        only the chirality information (at tetrahedral carbons with four
+        different substituents) and/or the removal of the bond direction
+        information (either the highest CIP-rated substituents on the same side
+        of the two carbons of the double bond (Z) or on differnet sides (E)).
+
+        NOTE: If bonddir=True and chirality=True, no transformation is applied.
+
+        Args:
+            smiles (str): a SMILES representation.
+
+        Returns:
+            str: SMILES representation of original smiles string with removed
+                stereoinfo checked for validity
+
+        """
+
+        if not self.bonddir and not self.chirality:
+            return smiles
+        elif self.bonddir and not self.chirality:
+            update_dict = self.bond_dict
+        elif self.chirality and not self.bonddir:
+            update_dict = self.chirality_dict
+        else:
+            mol = Chem.MolFromSmiles(smiles)
+            return Chem.MolToSmiles(mol, isomericSmiles=False)
+
+        updates = str.maketrans(update_dict)
+
+        charg = []
+        for m in self.charge.finditer(smiles):
+            list_charg = [m.start(), (m.end() - 1)]
+            charg += list_charg
+
+        new_str = []
+
+        for index, i in enumerate(smiles):
+            new = i.translate(updates) if index not in charg else i
+            new_str += list(new)
+
+        smiles = ''.join(new_str).replace('[n]', '[nH]').replace('[N]', '[NH]')
+
+        try:
+            Chem.SanitizeMol(Chem.MolFromSmiles(smiles, sanitize=False))
+            return smiles
+        except TypeError:
+            warnings.warn(f'Invalid SMILES {smiles}')
+
+
+class Kekulize(Transform):
+    """ Transform SMILES to Kekule version """
+
+    def __init__(self, allBondsExplicit=False, allHsExplicit=False):
+
+        # NOTE: Explicit bonds or Hs without Kekulization is not supported
+        self.allBondsExplicit = allBondsExplicit
+        self.allHsExplicit = allHsExplicit
+
+    def __call__(self, smiles: str) -> str:
+        """
+        Apply the kekulization transform.
+
+        Args:
+            smiles (str): a SMILES representation.
+            allBondsExplicit (bool): whether bonds are explicitly encoded.
+
+        Returns:
+            str: Kekulized SMILES of same molecule.
+        """
+        molecule = Chem.MolFromSmiles(smiles)
+        Chem.Kekulize(molecule)
+        return Chem.MolToSmiles(
+            molecule,
+            kekuleSmiles=True,
+            allBondsExplicit=self.allBondsExplicit,
+            allHsExplicit=self.allHsExplicit
+        )
+
+
+class Augment(Transform):
+    """Augment a SMILES string, according to Bjerrum (2017)."""
+
+    def __init__(
+        self, kekuleSmiles=False, allBondsExplicit=False, allHsExplicit=False
+    ) -> None:
+        """ NOTE:  These parameter need to be passed down to the enumerator."""
+
+        self.kekuleSmiles = kekuleSmiles
+        self.allBondsExplicit = allBondsExplicit
+        self.allHsExplicit = allHsExplicit
 
     def __call__(self, smiles: str) -> str:
         """
@@ -108,7 +220,33 @@ class SMILESRandomization(Transform):
         atom_indexes = list(range(molecule.GetNumAtoms()))
         np.random.shuffle(atom_indexes)
         renumbered_molecule = Chem.RenumberAtoms(molecule, atom_indexes)
-        return Chem.MolToSmiles(renumbered_molecule, canonical=False)
+        if self.kekuleSmiles:
+            Chem.Kekulize(renumbered_molecule)
+
+        return Chem.MolToSmiles(
+            renumbered_molecule,
+            canonical=False,
+            kekuleSmiles=self.kekuleSmiles,
+            allBondsExplicit=self.allBondsExplicit,
+            allHsExplicit=self.allHsExplicit
+        )
+
+
+class Randomize(Transform):
+    """ Randomize a molecule by truly shuffling all tokens. """
+
+    def __call__(self, tokens: Indexes) -> Indexes:
+        """
+        NOTE: Must not apply this transformation on SMILES string, only on the
+            tokenized, numerical vectors (i.e. after SMILESToTokenIndexes)
+
+        Arguments:
+            Tokens: indexes representation for the SMILES to be randomized.
+        Returns:
+           Indexes: shuffled indexes representation of the molecule
+        """
+        np.random.shuffle(tokens)
+        return tokens
 
 
 class SMILESToMorganFingerprints(Transform):

@@ -197,7 +197,7 @@ class SMILESLanguage(object):
 
     def smiles_to_token_indexes(self, smiles: str) -> Indexes:
         """
-        Transform SMILES into a sequence of token indexes.
+        Transform character-level SMILES into a sequence of token indexes.
 
         Args:
             smiles (str): a SMILES representation.
