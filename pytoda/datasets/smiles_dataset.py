@@ -31,6 +31,7 @@ class SMILESDataset(Dataset):
         randomize: bool = False,
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
+        selfies: bool = False,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
         backend: str = 'eager'
@@ -61,6 +62,8 @@ class SMILESDataset(Dataset):
                 Defaults to False.
             remove_chirality (bool): Remove chirality information.
                 Defaults to False.
+            selfies (bool): Whether selfies is used instead of smiles, defaults
+                to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
             backend (str): memeory management backend.
@@ -85,6 +88,7 @@ class SMILESDataset(Dataset):
             randomize=randomize,
             remove_bonddir=remove_bonddir,
             remove_chirality=remove_chirality,
+            selfies=selfies,
             device=device
         )
         self.smiles_language = self._dataset.smiles_language

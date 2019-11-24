@@ -25,7 +25,7 @@ class TestSmilesLanguage(unittest.TestCase):
         smiles = 'CCO'
         smiles_language = SMILESLanguage()
         smiles_language._update_language_dictionaries_with_tokens(
-            smiles_language.smiles_tokenizer(smiles)
+            smiles_language.tokenizer(smiles)
         )
         self.assertTrue(
             'C' in smiles_language.token_to_index

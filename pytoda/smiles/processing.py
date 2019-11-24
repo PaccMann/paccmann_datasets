@@ -55,3 +55,24 @@ def tokenize_smiles(smiles: str, normalize=False) -> Tokens:
         split(apply_normalization_dictionary(smiles) if normalize else smiles)
         if token
     ]
+
+
+def tokenize_selfies(selfies: str) -> Tokens:
+    """Tokenize SELFIES.
+
+    NOTE: Code adapted from selfies package (`def selfies_to_hot`):
+        https://github.com/aspuru-guzik-group/selfies
+
+    Args:
+        selfies (str): a SELFIES representation (character-level).
+
+    Returns:
+        Tokens: the tokenized SELFIES.
+    """
+
+    selfies = selfies.replace('.', '[.]')  # to allow parsing unbound atoms
+    selfies_char_list_pre = selfies[1:-1].split('][')
+    return [
+        '[' + selfies_element + ']'
+        for selfies_element in selfies_char_list_pre
+    ]

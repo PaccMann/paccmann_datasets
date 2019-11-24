@@ -24,12 +24,8 @@ setup(
     url='https://github.com/PaccMann/paccmann_datasets',
     license='MIT',
     install_requires=[
-        'numpy',
-        'scikit-learn',
-        'pandas',
-        'torch>=1.0.0',
-        'diskcache',
-        'dill'
+        'numpy', 'scikit-learn', 'pandas', 'torch>=1.0.0', 'diskcache', 'dill',
+        'selfies'
     ],
     classifiers=[
         'Intended Audience :: Developers',

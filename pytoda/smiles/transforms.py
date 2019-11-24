@@ -6,6 +6,7 @@ import numpy as np
 import torch
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
+from selfies import encoder
 
 from ..transforms import Transform
 from ..types import Indexes
@@ -110,6 +111,7 @@ class RemoveIsomery(Transform):
         self.chirality_dict = {'[': '', ']': '', '@': '', 'H': ''}
         self.bond_dict = {'/': '', '\\': ''}
         self.charge = re.compile(r'\[\w+[\+\-]\d?\]')
+        self.multichar_atom = re.compile(r'\[[A-Z][a-z]\w?[0-9]?\]')
         self.bonddir = bonddir
         self.chirality = chirality
 
@@ -144,24 +146,27 @@ class RemoveIsomery(Transform):
 
         updates = str.maketrans(update_dict)
 
-        charg = []
+        protect = []
         for m in self.charge.finditer(smiles):
-            list_charg = [m.start(), (m.end() - 1)]
-            charg += list_charg
+            list_charg = list(range(m.start(), m.end()))
+            protect += list_charg
+
+        for m in self.multichar_atom.finditer(smiles):
+            list_mc = list(range(m.start(), m.end()))
+            protect += list_mc
 
         new_str = []
-
+        smiles = smiles.replace('[nH]', 'N')
         for index, i in enumerate(smiles):
-            new = i.translate(updates) if index not in charg else i
+            new = i.translate(updates) if index not in protect else i
             new_str += list(new)
-
         smiles = ''.join(new_str).replace('[n]', '[nH]').replace('[N]', '[NH]')
-
         try:
             Chem.SanitizeMol(Chem.MolFromSmiles(smiles, sanitize=False))
             return smiles
         except TypeError:
             warnings.warn(f'Invalid SMILES {smiles}')
+            return ''
 
 
 class Kekulize(Transform):
@@ -218,6 +223,8 @@ class Augment(Transform):
         """
         molecule = Chem.MolFromSmiles(smiles)
         atom_indexes = list(range(molecule.GetNumAtoms()))
+        if len(atom_indexes) == 0:  # RDkit error handling
+            return smiles
         np.random.shuffle(atom_indexes)
         renumbered_molecule = Chem.RenumberAtoms(molecule, atom_indexes)
         if self.kekuleSmiles:
@@ -249,6 +256,13 @@ class Randomize(Transform):
         return tokens
 
 
+class Selfies(Transform):
+    """ Convert a molecule from SMILES to SELFIES. """
+
+    def __call__(self, smiles: str) -> str:
+        return encoder(smiles)
+
+
 class SMILESToMorganFingerprints(Transform):
     """Get fingerprints starting from SMILES."""
 
@@ -275,14 +289,15 @@ class SMILESToMorganFingerprints(Transform):
         """
         try:
             molecule = Chem.MolFromSmiles(smiles)
-            fingeprints = AllChem.GetMorganFingerprintAsBitVect(
+            fingerprint = AllChem.GetMorganFingerprintAsBitVect(
                 molecule, self.radius, nBits=self.bits
             )
         except Exception:
+            warnings.warn(f'Invalid SMILES {smiles}')
             molecule = Chem.MolFromSmiles('')
-            fingeprints = AllChem.GetMorganFingerprintAsBitVect(
+            fingerprint = AllChem.GetMorganFingerprintAsBitVect(
                 molecule, self.radius, nBits=self.bits
             )
         array = np.zeros((1, ))
-        DataStructs.ConvertToNumpyArray(fingeprints, array)
+        DataStructs.ConvertToNumpyArray(fingerprint, array)
         return array

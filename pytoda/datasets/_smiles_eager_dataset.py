@@ -29,6 +29,7 @@ class _SMILESEagerDataset(_SMILESDataset):
         randomize: bool = False,
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
+        selfies: bool = False,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu')
     ) -> None:
@@ -58,6 +59,8 @@ class _SMILESEagerDataset(_SMILESDataset):
                 Defaults to False.
             remove_chirality (bool): Remove chirality information.
                 Defaults to False.
+            selfies (bool): Whether selfies is used instead of smiles, defaults
+                to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
         """
@@ -73,6 +76,7 @@ class _SMILESEagerDataset(_SMILESDataset):
             randomize=randomize,
             remove_bonddir=remove_bonddir,
             remove_chirality=remove_chirality,
+            selfies=selfies,
             device=device
         )
 
@@ -84,5 +88,5 @@ class _SMILESEagerDataset(_SMILESDataset):
         # Run once over dataset to add missing tokens to smiles language
         for index in range(len(self._dataset)):
             self.smiles_language.add_smiles(
-                self.smiles_transforms(self._dataset[index])
+                self.language_transforms(self._dataset[index])
             )

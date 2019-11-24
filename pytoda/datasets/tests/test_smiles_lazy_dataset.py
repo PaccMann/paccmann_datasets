@@ -101,7 +101,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                 )
                 np.random.seed(0)
                 for randomized_smiles in [
-                    'CSCN', 'NCCS', 'SCCN', 'CNCS', 'CCSN'
+                    'C(S)CN', 'NCCS', 'SCCN', 'C(N)CS', 'C(CS)N'
                 ]:
                     token_indexes = (
                         smiles_dataset[3].numpy().flatten().tolist()

@@ -18,7 +18,7 @@ class SMILESLanguage(object):
         self,
         name: str = 'smiles-language',
         smiles_tokenizer: SMILESTokenizer = (
-            lambda smiles: tokenize_smiles(smiles, normalize=False)
+            lambda smiles: tokenize_smiles(smiles)
         ),
         add_start_and_stop: bool = False
     ) -> None:
@@ -200,10 +200,10 @@ class SMILESLanguage(object):
         Transform character-level SMILES into a sequence of token indexes.
 
         Args:
-            smiles (str): a SMILES representation.
+            smiles (str): a SMILES (or SELFIES) representation.
 
         Returns:
-            Indexes: indexes representation for the SMILES provided.
+            Indexes: indexes representation for the SMILES/SELFIES provided.
         """
         return self._finalize_token_indexes_fn(
             [
