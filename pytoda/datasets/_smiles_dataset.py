@@ -135,6 +135,7 @@ class _SMILESDataset(Dataset):
             _transforms += [Selfies()]
 
         self.language_transforms = Compose(_transforms)
+        self._setup_dataset()
         transforms = _transforms.copy()
         transforms += [
             SMILESToTokenIndexes(smiles_language=self.smiles_language)
@@ -142,6 +143,8 @@ class _SMILESDataset(Dataset):
         if self.randomize:
             transforms += [Randomize()]
         if self.padding:
+            if padding_length is None:
+                self.padding_length = self.smiles_language.max_token_sequence_length
             transforms += [
                 LeftPadding(
                     padding_length=self.padding_length,
@@ -150,10 +153,7 @@ class _SMILESDataset(Dataset):
             ]
         transforms += [ToTensor(device=self.device)]
         self.transform = Compose(transforms)
-        self._dataset = None
-        # NOTE: the dataset will be initialized and designed to return SMILES
-        #       strings
-        self._setup_dataset()
+
         # NOTE: recover sample and index mappings
         self.sample_to_index_mapping = {}
         self.index_to_sample_mapping = {}
