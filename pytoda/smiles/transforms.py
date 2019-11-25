@@ -119,16 +119,15 @@ class RemoveIsomery(Transform):
         if not self.bonddir and not self.chirality:
             self._call_fn = lambda smiles: smiles
         elif self.bonddir and not self.chirality:
-            self.update_dict = self.bond_dict
+            self.updates = str.maketrans(self.bond_dict)
             self._call_fn = self._isomery_call_fn
         elif self.chirality and not self.bonddir:
-            self.update_dict = self.chirality_dict
-            self.call_fn = self._isomery_call_fn
+            self.updates = str.maketrans(self.chirality_dict)
+            self._call_fn = self._isomery_call_fn
         else:
             self._call_fn = lambda smiles: Chem.MolToSmiles(
                 Chem.MolFromSmiles(smiles), isomericSmiles=False
             )
-        self.updates = str.maketrans(self.update_dict)
 
     def _isomery_call_fn(self, smiles: str) -> str:
         """

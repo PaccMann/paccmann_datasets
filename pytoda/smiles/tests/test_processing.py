@@ -51,31 +51,6 @@ class TestProcessing(unittest.TestCase):
             selfies = transform(smiles)
             self.assertListEqual(tokenize_selfies(selfies), ground_truth)
 
-    def test_tokenize_selfies(self) -> None:
-        """Test tokenize_selfies."""
-        for smiles, ground_truth in [
-            (
-                'c1cnoc1',
-                ['[c]', '[c]', '[n]', '[o]', '[c]', '[Ring1]', '[Ring2]']
-            ),
-            (
-                '[O-][n+]1ccccc1S', [
-                    '[O-expl]', '[n+expl]', '[c]', '[c]', '[c]', '[c]', '[c]',
-                    '[Ring1]', '[Branch1_1]', '[S]'
-                ]
-            ),
-            (
-                'c1snnc1-c1ccccn1', [
-                    '[c]', '[s]', '[n]', '[n]', '[c]', '[Ring1]', '[Ring2]',
-                    '[-c]', '[c]', '[c]', '[c]', '[c]', '[n]', '[Ring1]',
-                    '[Branch1_1]'
-                ]
-            )
-        ]:
-            transform = Selfies()
-            selfies = transform(smiles)
-            self.assertListEqual(tokenize_selfies(selfies), ground_truth)
-
 
 if __name__ == '__main__':
     unittest.main()
