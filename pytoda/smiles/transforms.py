@@ -1,6 +1,7 @@
 """SMILES transforms."""
 import re
 import warnings
+from copy import deepcopy
 
 import numpy as np
 import torch
@@ -115,7 +116,21 @@ class RemoveIsomery(Transform):
         self.bonddir = bonddir
         self.chirality = chirality
 
-    def __call__(self, smiles: str) -> str:
+        if not self.bonddir and not self.chirality:
+            self._call_fn = lambda smiles: smiles
+        elif self.bonddir and not self.chirality:
+            self.update_dict = self.bond_dict
+            self._call_fn = self._isomery_call_fn
+        elif self.chirality and not self.bonddir:
+            self.update_dict = self.chirality_dict
+            self.call_fn = self._isomery_call_fn
+        else:
+            self._call_fn = lambda smiles: Chem.MolToSmiles(
+                Chem.MolFromSmiles(smiles), isomericSmiles=False
+            )
+        self.updates = str.maketrans(self.update_dict)
+
+    def _isomery_call_fn(self, smiles: str) -> str:
         """
         Remove the stereoinfo of the SMILES. That can either be the removal of
         only the chirality information (at tetrahedral carbons with four
@@ -131,20 +146,7 @@ class RemoveIsomery(Transform):
         Returns:
             str: SMILES representation of original smiles string with removed
                 stereoinfo checked for validity
-
         """
-
-        if not self.bonddir and not self.chirality:
-            return smiles
-        elif self.bonddir and not self.chirality:
-            update_dict = self.bond_dict
-        elif self.chirality and not self.bonddir:
-            update_dict = self.chirality_dict
-        else:
-            mol = Chem.MolFromSmiles(smiles)
-            return Chem.MolToSmiles(mol, isomericSmiles=False)
-
-        updates = str.maketrans(update_dict)
 
         protect = []
         for m in self.charge.finditer(smiles):
@@ -158,7 +160,7 @@ class RemoveIsomery(Transform):
         new_str = []
         smiles = smiles.replace('[nH]', 'N')
         for index, i in enumerate(smiles):
-            new = i.translate(updates) if index not in protect else i
+            new = i.translate(self.updates) if index not in protect else i
             new_str += list(new)
         smiles = ''.join(new_str).replace('[n]', '[nH]').replace('[N]', '[NH]')
         try:
@@ -167,6 +169,20 @@ class RemoveIsomery(Transform):
         except TypeError:
             warnings.warn(f'Invalid SMILES {smiles}')
             return ''
+
+    def __call__(self, smiles: str) -> str:
+        """
+        Executable of RemoveIsomery class. The _call_fn is determined in
+        the constructor based on the bonddir and chirality parameter.
+
+        Arguments:
+            smiles {str} -- [A SMILES sequence]
+
+        Returns:
+            str -- [SMILES after the _call_fn was applied]
+        """
+
+        return self._call_fn(smiles)
 
 
 class Kekulize(Transform):
@@ -252,8 +268,9 @@ class Randomize(Transform):
         Returns:
            Indexes: shuffled indexes representation of the molecule
         """
-        np.random.shuffle(tokens)
-        return tokens
+        smiles_tokens = deepcopy(tokens)
+        np.random.shuffle(smiles_tokens)
+        return smiles_tokens
 
 
 class Selfies(Transform):

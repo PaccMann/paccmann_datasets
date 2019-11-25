@@ -11,50 +11,22 @@ SMILES_TOKENIZER = re.compile(
 SMILES_NORMALIZER = re.compile(r'-(\w)')
 # smiles normalization dictionary
 
-# TODO: This does not seem right
-SMILES_NORMALIZATION_DICTIONARY = str.maketrans(
-    {
-        'c': 'C',
-        'n': 'N',
-        'h': 'H',
-        's': 'S',
-        'o': 'O'
-    }
-)
-
-
-def apply_normalization_dictionary(smiles: str) -> str:
-    """
-    Apply a SMILES normalization dictionary. If applied, the SMILES is
-    not case-sensitive (blind to aromatic vs. aliphatic structures)
-
-    Args:
-        smiles (str): a SMILES representation.
-
-    Returns:
-        str: SMILES normalized using `SMILES_NORMALIZATION_DICTIONARY`.
-    """
-    return SMILES_NORMALIZER.sub(
-        r'\1', smiles.translate(SMILES_NORMALIZATION_DICTIONARY)
-    )
-
 
 def tokenize_smiles(smiles: str, normalize=False) -> Tokens:
     """
-    Tokenize SMILES after (optionally) normalizing it.
+    Tokenize a character-level SMILES string.
 
     Args:
         smiles (str): a SMILES representation.
         normalize (bool): whether normalization is done.
+        
+        NOTE: The `normalize` argument is deprecated and will be removed in a
+        future release.
 
     Returns:
-        Tokens: the tokenized SMILES after an optional normalization.
+        Tokens: the tokenized SMILES.
     """
-    return [
-        token for token in SMILES_TOKENIZER.
-        split(apply_normalization_dictionary(smiles) if normalize else smiles)
-        if token
-    ]
+    return [token for token in SMILES_TOKENIZER.split(smiles) if token]
 
 
 def tokenize_selfies(selfies: str) -> Tokens:

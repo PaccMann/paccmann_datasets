@@ -1,4 +1,6 @@
 """Implementation of _SMILESDataset."""
+from copy import deepcopy
+
 import torch
 from torch.utils.data import Dataset
 
@@ -136,7 +138,7 @@ class _SMILESDataset(Dataset):
 
         self.language_transforms = Compose(_transforms)
         self._setup_dataset()
-        transforms = _transforms.copy()
+        transforms = deepcopy(_transforms)
         transforms += [
             SMILESToTokenIndexes(smiles_language=self.smiles_language)
         ]
