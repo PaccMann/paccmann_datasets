@@ -111,8 +111,8 @@ class RemoveIsomery(Transform):
 
         self.chirality_dict = {'[': '', ']': '', '@': '', 'H': ''}
         self.bond_dict = {'/': '', '\\': ''}
-        self.charge = re.compile(r'\[\w+[\+\-]\d?\]')
-        self.multichar_atom = re.compile(r'\[[A-Z][a-z]\w?[0-9]?\]')
+        self.charge = re.compile(r'\[\w+\@?\@?[\+\-]\d?\]')
+        self.multichar_atom = re.compile(r'\[[0-9]?[A-Za-z][a-z]?\w?[2-8]?\]')
         self.bonddir = bonddir
         self.chirality = chirality
 
@@ -146,7 +146,7 @@ class RemoveIsomery(Transform):
             str: SMILES representation of original smiles string with removed
                 stereoinfo checked for validity
         """
-
+        smiles = smiles.replace('[nH]', 'N')
         protect = []
         for m in self.charge.finditer(smiles):
             list_charg = list(range(m.start(), m.end()))
@@ -157,11 +157,11 @@ class RemoveIsomery(Transform):
             protect += list_mc
 
         new_str = []
-        smiles = smiles.replace('[nH]', 'N')
         for index, i in enumerate(smiles):
             new = i.translate(self.updates) if index not in protect else i
             new_str += list(new)
-        smiles = ''.join(new_str).replace('[n]', '[nH]').replace('[N]', '[NH]')
+        smiles = ''.join(new_str).replace('N@@', 'N').replace('N@', 'N')
+
         try:
             Chem.SanitizeMol(Chem.MolFromSmiles(smiles, sanitize=False))
             return smiles
