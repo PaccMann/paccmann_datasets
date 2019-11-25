@@ -44,22 +44,33 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
+                    padding=True,
+                    augment=False,
+                    kekulize=True,
+                    allBondsExplicit=True,
+                    remove_chirality=True,
                     backend='lazy'
                 )
-                padding_index = smiles_dataset.smiles_language.padding_index
+                pad_index = smiles_dataset.smiles_language.padding_index
                 start_index = smiles_dataset.smiles_language.start_index
                 stop_index = smiles_dataset.smiles_language.stop_index
                 c_index = smiles_dataset.smiles_language.token_to_index['C']
                 o_index = smiles_dataset.smiles_language.token_to_index['O']
                 n_index = smiles_dataset.smiles_language.token_to_index['N']
                 s_index = smiles_dataset.smiles_language.token_to_index['S']
+                d_index = smiles_dataset.smiles_language.token_to_index['-']
+
                 self.assertListEqual(
-                    smiles_dataset[0].numpy().flatten().tolist(),
-                    [padding_index, c_index, c_index, o_index]
+                    smiles_dataset[0].numpy().flatten().tolist(), [
+                        pad_index, pad_index, c_index, d_index, c_index,
+                        d_index, o_index
+                    ]
                 )
                 self.assertListEqual(
-                    smiles_dataset[7].numpy().flatten().tolist(),
-                    [n_index, c_index, c_index, s_index]
+                    smiles_dataset[7].numpy().flatten().tolist(), [
+                        n_index, d_index, c_index, d_index, c_index, d_index,
+                        s_index
+                    ]
                 )
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
@@ -83,7 +94,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                 )
                 self.assertListEqual(
                     smiles_dataset[0].numpy().flatten().tolist(), [
-                        padding_index, start_index, c_index, c_index, o_index,
+                        pad_index, start_index, c_index, c_index, o_index,
                         stop_index
                     ]
                 )
@@ -111,6 +122,31 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                         token_indexes_to_smiles(token_indexes)
                     )
                     self.assertEqual(smiles, randomized_smiles)
+
+                smiles_dataset = SMILESDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    padding=False,
+                    add_start_and_stop=True,
+                    remove_bonddir=True,
+                    selfies=True,
+                    backend='lazy'
+                )
+                c_index = smiles_dataset.smiles_language.token_to_index['[C]']
+                o_index = smiles_dataset.smiles_language.token_to_index['[O]']
+                n_index = smiles_dataset.smiles_language.token_to_index['[N]']
+                s_index = smiles_dataset.smiles_language.token_to_index['[S]']
+
+                self.assertListEqual(
+                    smiles_dataset[0].numpy().flatten().tolist(),
+                    [start_index, c_index, c_index, o_index, stop_index]
+                )
+                self.assertListEqual(
+                    smiles_dataset[7].numpy().flatten().tolist(), [
+                        start_index, n_index, c_index, c_index, s_index,
+                        stop_index
+                    ]
+                )
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
