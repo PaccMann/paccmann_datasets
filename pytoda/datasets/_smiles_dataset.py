@@ -29,8 +29,8 @@ class _SMILESDataset(Dataset):
         add_start_and_stop: bool = False,
         augment: bool = False,
         kekulize: bool = False,
-        allBondsExplicit: bool = False,
-        allHsExplicit: bool = False,
+        all_bonds_explicit: bool = False,
+        all_hs_explicit: bool = False,
         randomize: bool = False,
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
@@ -54,9 +54,9 @@ class _SMILESDataset(Dataset):
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.
-            allBondsExplicit (bool): Makes all bonds explicit. Defaults to
+            all_bonds_explicit (bool): Makes all bonds explicit. Defaults to
                 False, only applies if kekulize = True.
-            allHsExplicit (bool): Makes all hydrogens explicit. Defaults to
+            all_hs_explicit (bool): Makes all hydrogens explicit. Defaults to
                 False, only applies if kekulize = True.
             randomize (bool): perform a true randomization of SMILES tokens.
                 Defaults to False.
@@ -98,8 +98,8 @@ class _SMILESDataset(Dataset):
             if padding_length is None else padding_length
         )
         self.kekulize = kekulize
-        self.allBondsExplicit = allBondsExplicit
-        self.allHsExplicit = allHsExplicit
+        self.all_bonds_explicit = all_bonds_explicit
+        self.all_hs_explicit = all_hs_explicit
         self.randomize = randomize
         self.remove_bonddir = remove_bonddir
         self.remove_chirality = remove_chirality
@@ -119,16 +119,16 @@ class _SMILESDataset(Dataset):
         if self.kekulize:
             _transforms += [
                 Kekulize(
-                    allBondsExplicit=self.allBondsExplicit,
-                    allHsExplicit=self.allHsExplicit
+                    all_bonds_explicit=self.all_bonds_explicit,
+                    all_hs_explicit=self.all_hs_explicit
                 )
             ]
         if self.augment:
             _transforms += [
                 Augment(
-                    kekuleSmiles=self.kekulize,
-                    allBondsExplicit=self.allBondsExplicit,
-                    allHsExplicit=self.allHsExplicit
+                    kekule_smiles=self.kekulize,
+                    all_bonds_explicit=self.all_bonds_explicit,
+                    all_hs_explicit=self.all_hs_explicit
                 )
             ]
         if self.selfies:
@@ -136,6 +136,11 @@ class _SMILESDataset(Dataset):
 
         self.language_transforms = Compose(_transforms)
         self._setup_dataset()
+        # Run once over dataset to add missing tokens to smiles language
+        for index in range(len(self._dataset)):
+            self.smiles_language.add_smiles(
+                self.language_transforms(self._dataset[index])
+            )
         transforms = _transforms.copy()
         transforms += [
             SMILESToTokenIndexes(smiles_language=self.smiles_language)

@@ -187,11 +187,11 @@ class RemoveIsomery(Transform):
 class Kekulize(Transform):
     """ Transform SMILES to Kekule version """
 
-    def __init__(self, allBondsExplicit=False, allHsExplicit=False):
+    def __init__(self, all_bonds_explicit=False, all_hs_explicit=False):
 
         # NOTE: Explicit bonds or Hs without Kekulization is not supported
-        self.allBondsExplicit = allBondsExplicit
-        self.allHsExplicit = allHsExplicit
+        self.all_bonds_explicit = all_bonds_explicit
+        self.all_hs_explicit = all_hs_explicit
 
     def __call__(self, smiles: str) -> str:
         """
@@ -199,7 +199,7 @@ class Kekulize(Transform):
 
         Args:
             smiles (str): a SMILES representation.
-            allBondsExplicit (bool): whether bonds are explicitly encoded.
+            all_bonds_explicit (bool): whether bonds are explicitly encoded.
 
         Returns:
             str: Kekulized SMILES of same molecule.
@@ -209,8 +209,8 @@ class Kekulize(Transform):
         return Chem.MolToSmiles(
             molecule,
             kekuleSmiles=True,
-            allBondsExplicit=self.allBondsExplicit,
-            allHsExplicit=self.allHsExplicit
+            allBondsExplicit=self.all_bonds_explicit,
+            allHsExplicit=self.all_hs_explicit
         )
 
 
@@ -218,13 +218,16 @@ class Augment(Transform):
     """Augment a SMILES string, according to Bjerrum (2017)."""
 
     def __init__(
-        self, kekuleSmiles=False, allBondsExplicit=False, allHsExplicit=False
+        self,
+        kekule_smiles=False,
+        all_bonds_explicit=False,
+        all_hs_explicit=False
     ) -> None:
         """ NOTE:  These parameter need to be passed down to the enumerator."""
 
-        self.kekuleSmiles = kekuleSmiles
-        self.allBondsExplicit = allBondsExplicit
-        self.allHsExplicit = allHsExplicit
+        self.kekule_smiles = kekule_smiles
+        self.all_bonds_explicit = all_bonds_explicit
+        self.all_hs_explicit = all_hs_explicit
 
     def __call__(self, smiles: str) -> str:
         """
@@ -242,15 +245,15 @@ class Augment(Transform):
             return smiles
         np.random.shuffle(atom_indexes)
         renumbered_molecule = Chem.RenumberAtoms(molecule, atom_indexes)
-        if self.kekuleSmiles:
+        if self.kekule_smiles:
             Chem.Kekulize(renumbered_molecule)
 
         return Chem.MolToSmiles(
             renumbered_molecule,
             canonical=False,
-            kekuleSmiles=self.kekuleSmiles,
-            allBondsExplicit=self.allBondsExplicit,
-            allHsExplicit=self.allHsExplicit
+            kekuleSmiles=self.kekule_smiles,
+            allBondsExplicit=self.all_bonds_explicit,
+            allHsExplicit=self.all_hs_explicit
         )
 
 

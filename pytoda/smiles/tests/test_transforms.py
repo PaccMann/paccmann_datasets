@@ -14,7 +14,9 @@ class TestTransforms(unittest.TestCase):
             ('[O-][n+]1ccccc1S', '[O-][N+]1=CC=CC=C1S'),
             ('c1snnc1-c1ccccn1', 'C1=CC=C(C2=CSN=N2)N=C1')
         ]:
-            transform = Kekulize(allBondsExplicit=False, allHsExplicit=False)
+            transform = Kekulize(
+                all_bonds_explicit=False, all_hs_explicit=False
+            )
             self.assertEqual(transform(smiles), ground_truth)
 
         for smiles, ground_truth in [
@@ -22,7 +24,9 @@ class TestTransforms(unittest.TestCase):
             ('[O-][n+]1ccccc1S', '[O-]-[N+]1=C-C=C-C=C-1-S'),
             ('c1snnc1-c1ccccn1', 'C1=C-C=C(-C2=C-S-N=N-2)-N=C-1')
         ]:
-            transform = Kekulize(allBondsExplicit=True, allHsExplicit=False)
+            transform = Kekulize(
+                all_bonds_explicit=True, all_hs_explicit=False
+            )
             self.assertEqual(transform(smiles), ground_truth)
 
         for smiles, ground_truth in [
@@ -33,7 +37,9 @@ class TestTransforms(unittest.TestCase):
                 '[CH]1=[CH][CH]=[C]([C]2=[CH][S][N]=[N]2)[N]=[CH]1'
             )
         ]:
-            transform = Kekulize(allBondsExplicit=False, allHsExplicit=True)
+            transform = Kekulize(
+                all_bonds_explicit=False, all_hs_explicit=True
+            )
             self.assertEqual(transform(smiles), ground_truth)
 
         for smiles, ground_truth in [
@@ -44,7 +50,7 @@ class TestTransforms(unittest.TestCase):
                 '[CH]1=[CH]-[CH]=[C](-[C]2=[CH]-[S]-[N]=[N]-2)-[N]=[CH]-1'
             )
         ]:
-            transform = Kekulize(allBondsExplicit=True, allHsExplicit=True)
+            transform = Kekulize(all_bonds_explicit=True, all_hs_explicit=True)
             self.assertEqual(transform(smiles), ground_truth)
 
     def test_remove_isomery(self) -> None:

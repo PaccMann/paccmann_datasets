@@ -47,7 +47,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
                     padding=True,
                     augment=False,
                     kekulize=True,
-                    allBondsExplicit=True,
+                    all_bonds_explicit=True,
                     remove_chirality=True,
                     backend='eager'
                 )

@@ -24,8 +24,8 @@ class _SMILESEagerDataset(_SMILESDataset):
         add_start_and_stop: bool = False,
         augment: bool = False,
         kekulize: bool = False,
-        allBondsExplicit: bool = False,
-        allHsExplicit: bool = False,
+        all_bonds_explicit: bool = False,
+        all_hs_explicit: bool = False,
         randomize: bool = False,
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
@@ -49,9 +49,9 @@ class _SMILESEagerDataset(_SMILESDataset):
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.
-            allBondsExplicit (bool): Makes all bonds explicit. Defaults to
+            all_bonds_explicit (bool): Makes all bonds explicit. Defaults to
                 False, only applies if kekulize = True.
-            allHsExplicit (bool): Makes all hydrogens explicit. Defaults to
+            all_hs_explicit (bool): Makes all hydrogens explicit. Defaults to
                 False, only applies if kekulize = True.
             randomize (bool): perform a true randomization of SMILES tokens.
                 Defaults to False.
@@ -71,8 +71,8 @@ class _SMILESEagerDataset(_SMILESDataset):
             add_start_and_stop=add_start_and_stop,
             augment=augment,
             kekulize=kekulize,
-            allBondsExplicit=allBondsExplicit,
-            allHsExplicit=allHsExplicit,
+            all_bonds_explicit=all_bonds_explicit,
+            all_hs_explicit=all_hs_explicit,
             randomize=randomize,
             remove_bonddir=remove_bonddir,
             remove_chirality=remove_chirality,
@@ -85,8 +85,3 @@ class _SMILESEagerDataset(_SMILESDataset):
         self._dataset = concatenate_file_based_datasets(
             filepaths=self.smi_filepaths, dataset_class=_SmiEagerDataset
         )
-        # Run once over dataset to add missing tokens to smiles language
-        for index in range(len(self._dataset)):
-            self.smiles_language.add_smiles(
-                self.language_transforms(self._dataset[index])
-            )
