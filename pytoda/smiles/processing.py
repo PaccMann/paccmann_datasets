@@ -9,7 +9,6 @@ SMILES_TOKENIZER = re.compile(
 )
 # handle "-" character
 SMILES_NORMALIZER = re.compile(r'-(\w)')
-# smiles normalization dictionary
 
 
 def tokenize_smiles(smiles: str, normalize=False) -> Tokens:
