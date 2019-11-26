@@ -33,7 +33,7 @@ class TestSmilesLanguage(unittest.TestCase):
             'C' in smiles_language.token_to_index
             and 'O' in smiles_language.token_to_index
         )
-        self.assertEqual(smiles_language.number_of_tokens, 6)
+        self.assertEqual(smiles_language.number_of_tokens, 37)
 
     def test_add_smis(self) -> None:
         """Test add_smis."""
@@ -51,7 +51,7 @@ class TestSmilesLanguage(unittest.TestCase):
                 smiles_language.add_smis(
                     [a_test_file.filename, another_test_file.filename]
                 )
-                self.assertEqual(smiles_language.number_of_tokens, 8)
+                self.assertEqual(smiles_language.number_of_tokens, 39)
 
     def test_add_smi(self) -> None:
         """Test add_smi."""
@@ -66,21 +66,21 @@ class TestSmilesLanguage(unittest.TestCase):
         with TestFileContent(content) as test_file:
             smiles_language = SMILESLanguage()
             smiles_language.add_smi(test_file.filename)
-            self.assertEqual(smiles_language.number_of_tokens, 8)
+            self.assertEqual(smiles_language.number_of_tokens, 39)
 
     def test_add_smiles(self) -> None:
         """Test add_smiles."""
         smiles = 'CCO'
         smiles_language = SMILESLanguage()
         smiles_language.add_smiles(smiles)
-        self.assertEqual(smiles_language.number_of_tokens, 6)
+        self.assertEqual(smiles_language.number_of_tokens, 37)
 
     def test_add_token(self) -> None:
         """Test add_token."""
         token = 'token'
         smiles_language = SMILESLanguage()
         smiles_language.add_token(token)
-        self.assertEqual(smiles_language.number_of_tokens, 5)
+        self.assertEqual(smiles_language.number_of_tokens, 36)
 
     def test_smiles_to_token_indexes(self) -> None:
         """Test smiles_to_token_indexes."""
