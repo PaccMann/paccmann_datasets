@@ -3,6 +3,8 @@ import unittest
 import os
 from pytoda.smiles.smiles_language import SMILESLanguage
 from pytoda.tests.utils import TestFileContent
+from pytoda.smiles.processing import tokenize_selfies
+from pytoda.smiles.transforms import Selfies
 
 
 class TestSmilesLanguage(unittest.TestCase):
@@ -95,6 +97,31 @@ class TestSmilesLanguage(unittest.TestCase):
         smiles_language.add_smiles(smiles)
         self.assertListEqual(
             smiles_language.smiles_to_token_indexes(smiles),
+            [smiles_language.start_index] + token_indexes +
+            [smiles_language.stop_index]
+        )
+
+        # SELFIES
+        smiles_language = SMILESLanguage(
+            smiles_tokenizer=lambda selfies: tokenize_selfies(selfies)
+        )
+        transform = Selfies()
+        selfies = transform(smiles)
+        smiles_language.add_smiles(selfies)
+        token_indexes = [
+            smiles_language.token_to_index[token]
+            for token in ['[C]', '[C]', '[O]']
+        ]
+        self.assertListEqual(
+            smiles_language.smiles_to_token_indexes(selfies), token_indexes
+        )
+        smiles_language = SMILESLanguage(
+            add_start_and_stop=True,
+            smiles_tokenizer=lambda selfies: tokenize_selfies(selfies)
+        )
+        smiles_language.add_smiles(selfies)
+        self.assertListEqual(
+            smiles_language.smiles_to_token_indexes(selfies),
             [smiles_language.start_index] + token_indexes +
             [smiles_language.stop_index]
         )

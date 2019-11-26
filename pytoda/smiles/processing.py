@@ -9,49 +9,41 @@ SMILES_TOKENIZER = re.compile(
 )
 # handle "-" character
 SMILES_NORMALIZER = re.compile(r'-(\w)')
-# smiles normalization dictionary
-
-# TODO: To be replaced by explicitly encoding aromatic structures
-SMILES_NORMALIZATION_DICTIONARY = str.maketrans(
-    {
-        'c': 'C',
-        'n': 'N',
-        'h': 'H',
-        's': 'S',
-        'o': 'O'
-    }
-)
-
-
-def apply_normalization_dictionary(smiles: str) -> str:
-    """
-    Apply a SMILES normalization dictionary. If applied, the SMILES is
-    not case-sensitive (blind to aromatic vs. aliphatic structures)
-
-    Args:
-        smiles (str): a SMILES representation.
-
-    Returns:
-        str: SMILES normalized using `SMILES_NORMALIZATION_DICTIONARY`.
-    """
-    return SMILES_NORMALIZER.sub(
-        r'\1', smiles.translate(SMILES_NORMALIZATION_DICTIONARY)
-    )
 
 
 def tokenize_smiles(smiles: str, normalize=False) -> Tokens:
     """
-    Tokenize SMILES after (optionally) normalizing it.
+    Tokenize a character-level SMILES string.
 
     Args:
         smiles (str): a SMILES representation.
         normalize (bool): whether normalization is done.
+        
+        NOTE: The `normalize` argument is deprecated and will be removed in a
+        future release.
 
     Returns:
-        Tokens: the tokenized SMILES after an optional normalization.
+        Tokens: the tokenized SMILES.
     """
+    return [token for token in SMILES_TOKENIZER.split(smiles) if token]
+
+
+def tokenize_selfies(selfies: str) -> Tokens:
+    """Tokenize SELFIES.
+
+    NOTE: Code adapted from selfies package (`def selfies_to_hot`):
+        https://github.com/aspuru-guzik-group/selfies
+
+    Args:
+        selfies (str): a SELFIES representation (character-level).
+
+    Returns:
+        Tokens: the tokenized SELFIES.
+    """
+
+    selfies = selfies.replace('.', '[.]')  # to allow parsing unbound atoms
+    selfies_char_list_pre = selfies[1:-1].split('][')
     return [
-        token for token in SMILES_TOKENIZER.
-        split(apply_normalization_dictionary(smiles) if normalize else smiles)
-        if token
+        '[' + selfies_element + ']'
+        for selfies_element in selfies_char_list_pre
     ]

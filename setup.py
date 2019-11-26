@@ -12,7 +12,7 @@ scripts = []
 
 setup(
     name='pytoda',
-    version='0.0.1',
+    version='0.0.2',
     description='pytoda: PaccMann PyTorch Dataset Classes.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
@@ -24,12 +24,8 @@ setup(
     url='https://github.com/PaccMann/paccmann_datasets',
     license='MIT',
     install_requires=[
-        'numpy',
-        'scikit-learn',
-        'pandas',
-        'torch>=1.0.0',
-        'diskcache',
-        'dill'
+        'numpy', 'scikit-learn', 'pandas', 'torch>=1.0.0', 'diskcache', 'dill',
+        'selfies'
     ],
     classifiers=[
         'Intended Audience :: Developers',
