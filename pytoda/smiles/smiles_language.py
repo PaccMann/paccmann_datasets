@@ -51,17 +51,19 @@ class SMILESLanguage(object):
         }
         # NOTE: include augmentation characters, paranthesis and numbers for
         #    rings
-        self.index_to_token.update(
-            dict(
-                enumerate(
-                    list('()') + list(map(str, range(1, 10))) +
-                    list('%{}'.format(index) for index in range(10, 30)),
-                    start=len(self.index_to_token)
-                )
+        additional_indexes_to_token = dict(
+            enumerate(
+                list('()') + list(map(str, range(1, 10))) +
+                list('%{}'.format(index) for index in range(10, 30)),
+                start=len(self.index_to_token)
             )
         )
+        self.index_to_token.update(additional_indexes_to_token)
         self.number_of_tokens = len(self.index_to_token)
-        self.token_to_index = {}
+        self.token_to_index = {
+            token: index
+            for index, token in additional_indexes_to_token.items()
+        }
         self.add_start_and_stop = add_start_and_stop
         if self.add_start_and_stop:
             self.max_token_sequence_length = 2
