@@ -67,6 +67,7 @@ class _SMILESEagerDataset(_SMILESDataset):
         super(_SMILESEagerDataset, self).__init__(
             smi_filepaths=smi_filepaths,
             smiles_language=smiles_language,
+            padding_length=padding_length,
             padding=padding,
             add_start_and_stop=add_start_and_stop,
             augment=augment,

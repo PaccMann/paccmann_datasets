@@ -80,6 +80,7 @@ class SMILESDataset(Dataset):
             smi_filepaths=smi_filepaths,
             smiles_language=smiles_language,
             padding=padding,
+            padding_length=padding_length,
             add_start_and_stop=add_start_and_stop,
             augment=augment,
             kekulize=kekulize,

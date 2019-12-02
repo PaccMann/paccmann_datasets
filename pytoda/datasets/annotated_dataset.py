@@ -62,9 +62,9 @@ class AnnotatedDataset(Dataset):
             index (int): index of the sample to fetch.
 
         Returns:
-            DrugSensitivityData: a tuple containing three torch.tensors,
-                representing respetively: compound token indexes,
-                gene expression values and IC50 for the current sample.
+            AnnotatedData: a tuple containing two torch.tensors,
+                representing respetively: compound token indexes and labels for
+                the current sample.
         """
         # Labels
         selected_sample = self.annotated_data_df.iloc[index]
