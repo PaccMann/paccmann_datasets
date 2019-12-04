@@ -280,7 +280,17 @@ class Selfies(Transform):
 
     def __call__(self, smiles: str) -> str:
         return encoder(smiles)
+    
 
+class Canonicalization(Transform): #gre
+    """ Convert any SMILES to RDKit-canonical SMILES
+        example: 
+            input: 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
+            output: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
+    """
+
+    def __call__(self, smiles: str) -> str:
+        return Chem.MolToSmiles(Chem.MolFromSmiles(smiles), canonical=True)
 
 class SMILESToMorganFingerprints(Transform):
     """Get fingerprints starting from SMILES."""

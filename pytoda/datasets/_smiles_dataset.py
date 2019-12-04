@@ -6,7 +6,7 @@ from ..smiles.processing import tokenize_selfies, tokenize_smiles
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
     Augment, Kekulize, LeftPadding, Randomize, RemoveIsomery, Selfies,
-    SMILESToTokenIndexes, ToTensor
+    SMILESToTokenIndexes, ToTensor, Canonicalization #gre
 )
 from ..transforms import Compose
 from ..types import FileList
@@ -29,6 +29,7 @@ class _SMILESDataset(Dataset):
         add_start_and_stop: bool = False,
         augment: bool = False,
         kekulize: bool = False,
+        canonical: bool = False, #gre
         all_bonds_explicit: bool = False,
         all_hs_explicit: bool = False,
         randomize: bool = False,
@@ -98,6 +99,7 @@ class _SMILESDataset(Dataset):
             if padding_length is None else padding_length
         )
         self.kekulize = kekulize
+        self.canonical = canonical #gre
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
         self.randomize = randomize
@@ -109,30 +111,37 @@ class _SMILESDataset(Dataset):
         # Build up cascade of SMILES transformations
         # Below transformations are optional
         _transforms = []
-        if self.remove_bonddir or self.remove_chirality:
+        if self.canonical: #gre
             _transforms += [
-                RemoveIsomery(
-                    bonddir=self.remove_bonddir,
-                    chirality=self.remove_chirality
+                Canonicalization(
+                    canonical=self.canonical
                 )
             ]
-        if self.kekulize:
-            _transforms += [
-                Kekulize(
-                    all_bonds_explicit=self.all_bonds_explicit,
-                    all_hs_explicit=self.all_hs_explicit
-                )
-            ]
-        if self.augment:
-            _transforms += [
-                Augment(
-                    kekule_smiles=self.kekulize,
-                    all_bonds_explicit=self.all_bonds_explicit,
-                    all_hs_explicit=self.all_hs_explicit
-                )
-            ]
-        if self.selfies:
-            _transforms += [Selfies()]
+        else: #gre
+            if self.remove_bonddir or self.remove_chirality:
+                _transforms += [
+                    RemoveIsomery(
+                        bonddir=self.remove_bonddir,
+                        chirality=self.remove_chirality
+                    )
+                ]
+            if self.kekulize:
+                _transforms += [
+                    Kekulize(
+                        all_bonds_explicit=self.all_bonds_explicit,
+                        all_hs_explicit=self.all_hs_explicit
+                    )
+                ]
+            if self.augment:
+                _transforms += [
+                    Augment(
+                        kekule_smiles=self.kekulize,
+                        all_bonds_explicit=self.all_bonds_explicit,
+                        all_hs_explicit=self.all_hs_explicit
+                    )
+                ]
+            if self.selfies:
+                _transforms += [Selfies()]
 
         self.language_transforms = Compose(_transforms)
         self._setup_dataset()
