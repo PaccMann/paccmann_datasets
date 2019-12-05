@@ -22,6 +22,7 @@ class _SMILESEagerDataset(_SMILESDataset):
         padding: bool = True,
         padding_length: int = None,
         add_start_and_stop: bool = False,
+        canonical: bool = False,
         augment: bool = False,
         kekulize: bool = False,
         all_bonds_explicit: bool = False,
@@ -46,6 +47,8 @@ class _SMILESEagerDataset(_SMILESDataset):
                 applies only if padding is True. Defaults to None.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
+            canonical (bool): performs canonicalization of SMILES (one original string for one molecule),
+                if canonical=True, then other transformations (augment etc, see below) do not apply
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.
@@ -70,6 +73,7 @@ class _SMILESEagerDataset(_SMILESDataset):
             padding_length=padding_length,
             padding=padding,
             add_start_and_stop=add_start_and_stop,
+            canonical=canonical,
             augment=augment,
             kekulize=kekulize,
             all_bonds_explicit=all_bonds_explicit,
