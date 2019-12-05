@@ -6,7 +6,7 @@ from ..smiles.processing import tokenize_selfies, tokenize_smiles
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
     Augment, Kekulize, LeftPadding, Randomize, RemoveIsomery, Selfies,
-    SMILESToTokenIndexes, ToTensor, Canonicalization #gre
+    SMILESToTokenIndexes, ToTensor, Canonicalization 
 )
 from ..transforms import Compose
 from ..types import FileList
@@ -27,9 +27,9 @@ class _SMILESDataset(Dataset):
         padding: bool = True,
         padding_length: int = None,
         add_start_and_stop: bool = False,
+        canonical: bool = False,
         augment: bool = False,
         kekulize: bool = False,
-        canonical: bool = False, #gre
         all_bonds_explicit: bool = False,
         all_hs_explicit: bool = False,
         randomize: bool = False,
@@ -52,6 +52,8 @@ class _SMILESDataset(Dataset):
                 applies only if padding is True. Defaults to None.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
+            canonical (bool): performs canonicalization of SMILES (one original string for one molecule),
+                if canonical=True, then other transformations (augment etc, see below) do not apply
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.
@@ -99,7 +101,7 @@ class _SMILESDataset(Dataset):
             if padding_length is None else padding_length
         )
         self.kekulize = kekulize
-        self.canonical = canonical #gre
+        self.canonical = canonical 
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
         self.randomize = randomize
@@ -111,13 +113,13 @@ class _SMILESDataset(Dataset):
         # Build up cascade of SMILES transformations
         # Below transformations are optional
         _transforms = []
-        if self.canonical: #gre
+        if self.canonical: 
             _transforms += [
                 Canonicalization(
                     canonical=self.canonical
                 )
             ]
-        else: #gre
+        else: 
             if self.remove_bonddir or self.remove_chirality:
                 _transforms += [
                     RemoveIsomery(

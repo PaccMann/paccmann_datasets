@@ -23,6 +23,7 @@ class _SMILESLazyDataset(_SMILESDataset):
         padding: bool = True,
         padding_length: int = None,
         add_start_and_stop: bool = False,
+        canonical: bool = False,
         augment: bool = False,
         kekulize: bool = False,
         all_bonds_explicit: bool = False,
@@ -48,6 +49,8 @@ class _SMILESLazyDataset(_SMILESDataset):
                 applies only if padding is True. Defaults to None.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
+            canonical (bool): performs canonicalization of SMILES (one original string for one molecule),
+                if canonical=True, then other transformations (augment etc, see below) do not apply
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.

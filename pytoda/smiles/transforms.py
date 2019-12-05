@@ -282,7 +282,7 @@ class Selfies(Transform):
         return encoder(smiles)
     
 
-class Canonicalization(Transform): #gre
+class Canonicalization(Transform): 
     """ Convert any SMILES to RDKit-canonical SMILES
         example: 
             input: 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
