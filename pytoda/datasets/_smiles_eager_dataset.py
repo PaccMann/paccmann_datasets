@@ -73,6 +73,7 @@ class _SMILESEagerDataset(_SMILESDataset):
             padding_length=padding_length,
             padding=padding,
             add_start_and_stop=add_start_and_stop,
+            canonical=canonical,
             augment=augment,
             kekulize=kekulize,
             all_bonds_explicit=all_bonds_explicit,
