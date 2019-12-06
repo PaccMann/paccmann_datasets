@@ -6,7 +6,7 @@ from ..smiles.processing import tokenize_selfies, tokenize_smiles
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
     Augment, Kekulize, LeftPadding, Randomize, RemoveIsomery, Selfies,
-    SMILESToTokenIndexes, ToTensor
+    SMILESToTokenIndexes, ToTensor, Canonicalization 
 )
 from ..transforms import Compose
 from ..types import FileList
@@ -27,6 +27,7 @@ class _SMILESDataset(Dataset):
         padding: bool = True,
         padding_length: int = None,
         add_start_and_stop: bool = False,
+        canonical: bool = False,
         augment: bool = False,
         kekulize: bool = False,
         all_bonds_explicit: bool = False,
@@ -51,6 +52,8 @@ class _SMILESDataset(Dataset):
                 applies only if padding is True. Defaults to None.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
+            canonical (bool): performs canonicalization of SMILES (one original string for one molecule),
+                if canonical=True, then other transformations (augment etc, see below) do not apply
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.
@@ -98,6 +101,7 @@ class _SMILESDataset(Dataset):
             if padding_length is None else padding_length
         )
         self.kekulize = kekulize
+        self.canonical = canonical 
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
         self.randomize = randomize
@@ -109,30 +113,37 @@ class _SMILESDataset(Dataset):
         # Build up cascade of SMILES transformations
         # Below transformations are optional
         _transforms = []
-        if self.remove_bonddir or self.remove_chirality:
+        if self.canonical: 
             _transforms += [
-                RemoveIsomery(
-                    bonddir=self.remove_bonddir,
-                    chirality=self.remove_chirality
+                Canonicalization(
+                    canonical=self.canonical
                 )
             ]
-        if self.kekulize:
-            _transforms += [
-                Kekulize(
-                    all_bonds_explicit=self.all_bonds_explicit,
-                    all_hs_explicit=self.all_hs_explicit
-                )
-            ]
-        if self.augment:
-            _transforms += [
-                Augment(
-                    kekule_smiles=self.kekulize,
-                    all_bonds_explicit=self.all_bonds_explicit,
-                    all_hs_explicit=self.all_hs_explicit
-                )
-            ]
-        if self.selfies:
-            _transforms += [Selfies()]
+        else: 
+            if self.remove_bonddir or self.remove_chirality:
+                _transforms += [
+                    RemoveIsomery(
+                        bonddir=self.remove_bonddir,
+                        chirality=self.remove_chirality
+                    )
+                ]
+            if self.kekulize:
+                _transforms += [
+                    Kekulize(
+                        all_bonds_explicit=self.all_bonds_explicit,
+                        all_hs_explicit=self.all_hs_explicit
+                    )
+                ]
+            if self.augment:
+                _transforms += [
+                    Augment(
+                        kekule_smiles=self.kekulize,
+                        all_bonds_explicit=self.all_bonds_explicit,
+                        all_hs_explicit=self.all_hs_explicit
+                    )
+                ]
+            if self.selfies:
+                _transforms += [Selfies()]
 
         self.language_transforms = Compose(_transforms)
         self._setup_dataset()
