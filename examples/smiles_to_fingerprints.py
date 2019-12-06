@@ -30,7 +30,8 @@ parser.add_argument(
 
 
 def convert_smi_to_fingerprints(
-    smi_filepath: str, output_filepath: str, radius: int, bits: int
+    smi_filepath: str, output_filepath: str, radius: int, bits: int,
+    chirality: bool
 ) -> None:
     """
     Convert a .smi in .csv containing Morgan fingerprints.
@@ -42,7 +43,9 @@ def convert_smi_to_fingerprints(
         bits (int): number of bits composing the fingerprint.
     """
     smiles_df = read_smi(smi_filepath)
-    converter = SMILESToMorganFingerprints(radius=radius, bits=bits)
+    converter = SMILESToMorganFingerprints(
+        radius=radius, bits=bits, chirality=chirality
+    )
     fingerprints_df = pd.DataFrame(
         [converter(smiles) for smiles in smiles_df['SMILES']],
         index=smiles_df.index,
