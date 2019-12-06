@@ -285,7 +285,9 @@ class Selfies(Transform):
 class SMILESToMorganFingerprints(Transform):
     """Get fingerprints starting from SMILES."""
 
-    def __init__(self, radius: int = 2, bits: int = 512) -> None:
+    def __init__(
+        self, radius: int = 2, bits: int = 512, chirality=True
+    ) -> None:
         """
         Initialize a SMILES to fingerprints object.
 
@@ -295,6 +297,7 @@ class SMILESToMorganFingerprints(Transform):
         """
         self.radius = radius
         self.bits = bits
+        self.chirality = chirality
 
     def __call__(self, smiles: str) -> np.array:
         """
@@ -309,7 +312,10 @@ class SMILESToMorganFingerprints(Transform):
         try:
             molecule = Chem.MolFromSmiles(smiles)
             fingerprint = AllChem.GetMorganFingerprintAsBitVect(
-                molecule, self.radius, nBits=self.bits
+                molecule,
+                self.radius,
+                nBits=self.bits,
+                useChirality=self.chirality
             )
         except Exception:
             warnings.warn(f'Invalid SMILES {smiles}')
