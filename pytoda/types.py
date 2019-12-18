@@ -1,6 +1,6 @@
 """Type definitions."""
 import torch
-from typing import List, Callable, Any, Tuple
+from typing import List, Callable, Any, Tuple, Union  # noqa
 
 Tokens = List[str]
 Indexes = List[int]
@@ -10,3 +10,4 @@ GeneList = List[str]
 FeatureList = List[str]
 TransformList = List[Callable[[Any], Any]]
 DrugSensitivityData = Tuple[torch.tensor, torch.tensor, torch.tensor]
+AnnotatedData = Tuple[torch.tensor, torch.tensor]
