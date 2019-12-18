@@ -12,7 +12,7 @@ class TestTransforms(unittest.TestCase):
         for smiles, ground_truth in [
             ('c1cnoc1', 'C1=CON=C1'),
             ('[O-][n+]1ccccc1S', '[O-][N+]1=CC=CC=C1S'),
-            ('c1snnc1-c1ccccn1', 'C1=CC=C(C2=CSN=N2)N=C1')
+            ('c1snnc1-c1ccccn1', 'C1=C(C2=CC=CC=N2)N=NS1')
         ]:
             transform = Kekulize(
                 all_bonds_explicit=False, all_hs_explicit=False
@@ -22,7 +22,7 @@ class TestTransforms(unittest.TestCase):
         for smiles, ground_truth in [
             ('c1cnoc1', 'C1=C-O-N=C-1'),
             ('[O-][n+]1ccccc1S', '[O-]-[N+]1=C-C=C-C=C-1-S'),
-            ('c1snnc1-c1ccccn1', 'C1=C-C=C(-C2=C-S-N=N-2)-N=C-1')
+            ('c1snnc1-c1ccccn1', 'C1=C(-C2=C-C=C-C=N-2)-N=N-S-1')
         ]:
             transform = Kekulize(
                 all_bonds_explicit=True, all_hs_explicit=False
@@ -34,7 +34,7 @@ class TestTransforms(unittest.TestCase):
             ('[O-][n+]1ccccc1S', '[O-][N+]1=[CH][CH]=[CH][CH]=[C]1[SH]'),
             (
                 'c1snnc1-c1ccccn1',
-                '[CH]1=[CH][CH]=[C]([C]2=[CH][S][N]=[N]2)[N]=[CH]1'
+                '[CH]1=[C]([C]2=[CH][CH]=[CH][CH]=[N]2)[N]=[N][S]1'
             )
         ]:
             transform = Kekulize(
@@ -47,7 +47,7 @@ class TestTransforms(unittest.TestCase):
             ('[O-][n+]1ccccc1S', '[O-]-[N+]1=[CH]-[CH]=[CH]-[CH]=[C]-1-[SH]'),
             (
                 'c1snnc1-c1ccccn1',
-                '[CH]1=[CH]-[CH]=[C](-[C]2=[CH]-[S]-[N]=[N]-2)-[N]=[CH]-1'
+                '[CH]1=[C](-[C]2=[CH]-[CH]=[CH]-[CH]=[N]-2)-[N]=[N]-[S]-1'
             )
         ]:
             transform = Kekulize(all_bonds_explicit=True, all_hs_explicit=True)
