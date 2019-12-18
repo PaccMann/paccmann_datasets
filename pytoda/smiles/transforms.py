@@ -210,7 +210,8 @@ class Kekulize(Transform):
             molecule,
             kekuleSmiles=True,
             allBondsExplicit=self.all_bonds_explicit,
-            allHsExplicit=self.all_hs_explicit
+            allHsExplicit=self.all_hs_explicit,
+            canonical=False
         )
 
 
@@ -280,9 +281,9 @@ class Selfies(Transform):
 
     def __call__(self, smiles: str) -> str:
         return encoder(smiles)
-    
 
-class Canonicalization(Transform): 
+
+class Canonicalization(Transform):
     """ Convert any SMILES to RDKit-canonical SMILES
         example: 
             input: 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
@@ -291,6 +292,7 @@ class Canonicalization(Transform):
 
     def __call__(self, smiles: str) -> str:
         return Chem.MolToSmiles(Chem.MolFromSmiles(smiles), canonical=True)
+
 
 class SMILESToMorganFingerprints(Transform):
     """Get fingerprints starting from SMILES."""

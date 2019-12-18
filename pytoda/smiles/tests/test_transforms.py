@@ -12,7 +12,7 @@ class TestTransforms(unittest.TestCase):
         for smiles, ground_truth in [
             ('c1cnoc1', 'C1=CON=C1'),
             ('[O-][n+]1ccccc1S', '[O-][N+]1=CC=CC=C1S'),
-            ('c1snnc1-c1ccccn1', 'C1=CC=C(C2=CSN=N2)N=C1')
+            ('c1snnc1-c1ccccn1', 'C1=C(C2=CC=CC=N2)N=NS1')
         ]:
             transform = Kekulize(
                 all_bonds_explicit=False, all_hs_explicit=False
