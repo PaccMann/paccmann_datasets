@@ -27,10 +27,10 @@ class AnnotatedDataset(Dataset):
         single or multi task labels.
 
         Args:
-            annotations_filepath (str): path to the annotations of a dataset
-                .csv file. Currently, the only supported format is .csv, the
-                last column should point to an ID that is also contained in
-                dataset.
+            annotations_filepath (str): path to the annotations of a dataset.
+                Currently, the supported formats are column separated files.
+                The default structure assumes that the last column contains an
+                id that is also used in the dataset provided.
             dataset (Dataset): path to .smi file.
             annotation_index (Union[int, str]): positional or string for the
                 column containing the annotation index. Defaults to -1, a.k.a.
@@ -42,16 +42,13 @@ class AnnotatedDataset(Dataset):
             dtype (torch.dtype): data type. Defaults to torch.float.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            kwargs (dict): additional parameter for pd.read_csv. E.g. index_col
-                defaults to 0 (set in the constructor).
+            kwargs (dict): additional parameter for pd.read_csv.
         """
         Dataset.__init__(self)
 
         self.device = device
         self.annotations_filepath = annotations_filepath
         self.dataset = dataset
-        # NOTE: ensuring the desired default
-        kwargs['index_col'] = kwargs.get('index_col', 0)
         self.annotated_data_df = pd.read_csv(
             self.annotations_filepath, **kwargs
         )
