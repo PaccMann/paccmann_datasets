@@ -213,6 +213,33 @@ class Kekulize(Transform):
             allHsExplicit=self.all_hs_explicit,
             canonical=False
         )
+        
+class NotKekulize(Transform):
+    """ Transform SMILES to Kekule version """
+
+    def __init__(self, all_bonds_explicit=False, all_hs_explicit=False):
+
+        self.all_bonds_explicit = all_bonds_explicit
+        self.all_hs_explicit = all_hs_explicit
+
+    def __call__(self, smiles: str) -> str:
+        """
+        Apply the kekulization transform.
+
+        Args:
+            smiles (str): a SMILES representation.
+            all_bonds_explicit (bool): whether bonds are explicitly encoded.
+
+        Returns:
+            str: Kekulized SMILES of same molecule.
+        """
+        molecule = Chem.MolFromSmiles(smiles)
+        return Chem.MolToSmiles(
+            molecule,
+            allBondsExplicit=self.all_bonds_explicit,
+            allHsExplicit=self.all_hs_explicit,
+            canonical=False
+        )
 
 
 class Augment(Transform):

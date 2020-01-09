@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from ..smiles.processing import tokenize_selfies, tokenize_smiles
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
-    Augment, Kekulize, LeftPadding, Randomize, RemoveIsomery, Selfies,
+    Augment, Kekulize, NotKekulize, LeftPadding, Randomize, RemoveIsomery, Selfies,
     SMILESToTokenIndexes, ToTensor, Canonicalization 
 )
 from ..transforms import Compose
@@ -114,11 +114,7 @@ class _SMILESDataset(Dataset):
         # Below transformations are optional
         _transforms = []
         if self.canonical: 
-            _transforms += [
-                Canonicalization(
-                    canonical=self.canonical
-                )
-            ]
+            _transforms += [Canonicalization()]
         else: 
             if self.remove_bonddir or self.remove_chirality:
                 _transforms += [
@@ -130,6 +126,13 @@ class _SMILESDataset(Dataset):
             if self.kekulize:
                 _transforms += [
                     Kekulize(
+                        all_bonds_explicit=self.all_bonds_explicit,
+                        all_hs_explicit=self.all_hs_explicit
+                    )
+                ]
+            else:
+                _transforms += [
+                    NotKekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
                         all_hs_explicit=self.all_hs_explicit
                     )
