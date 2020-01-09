@@ -114,11 +114,7 @@ class _SMILESDataset(Dataset):
         # Below transformations are optional
         _transforms = []
         if self.canonical: 
-            _transforms += [
-                Canonicalization(
-                    canonical=self.canonical
-                )
-            ]
+            _transforms += [Canonicalization()]
         else: 
             if self.remove_bonddir or self.remove_chirality:
                 _transforms += [

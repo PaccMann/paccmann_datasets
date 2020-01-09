@@ -1,6 +1,6 @@
 """Testing SMILES transforms."""
 import unittest
-from pytoda.smiles.transforms import RemoveIsomery, Kekulize
+from pytoda.smiles.transforms import RemoveIsomery, Kekulize, NotKekulize
 from pytoda.smiles.transforms import Selfies
 
 
