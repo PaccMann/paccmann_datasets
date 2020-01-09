@@ -52,6 +52,47 @@ class TestTransforms(unittest.TestCase):
         ]:
             transform = Kekulize(all_bonds_explicit=True, all_hs_explicit=True)
             self.assertEqual(transform(smiles), ground_truth)
+            
+    def test_non_kekulize(self) -> None:
+        """Test NotKekulize."""
+        for smiles, ground_truth in [
+            ('c1cnoc1', 'c1cnoc1'),
+            ('[O-][n+]1ccccc1S', '[O-][n+]1ccccc1S'),
+            ('c1snnc1-c1ccccn1', 'c1snnc1-c1ccccn1')
+        ]:
+            transform = NotKekulize(
+                all_bonds_explicit=False, all_hs_explicit=False
+            )
+            self.assertEqual(transform(smiles), ground_truth)
+
+        for smiles, ground_truth in [
+            ('c1cnoc1', 'c1:c:n:o:c:1'),
+            ('[O-][n+]1ccccc1S', '[O-]-[n+]1:c:c:c:c:c:1-S'),
+            ('c1snnc1-c1ccccn1', 'c1:s:n:n:c:1-c1:c:c:c:c:n:1')
+        ]:
+            transform = NotKekulize(
+                all_bonds_explicit=True, all_hs_explicit=False
+            )
+            self.assertEqual(transform(smiles), ground_truth)
+
+        for smiles, ground_truth in [
+            ('c1cnoc1', '[cH]1[cH][n][o][cH]1'),
+            ('[O-][n+]1ccccc1S', '[O-][n+]1[cH][cH][cH][cH][c]1[SH]'),
+            ('c1snnc1-c1ccccn1', '[cH]1[s][n][n][c]1-[c]1[cH][cH][cH][cH][n]1')
+        ]:
+            transform = NotKekulize(
+                all_bonds_explicit=False, all_hs_explicit=True
+            )
+            self.assertEqual(transform(smiles), ground_truth)
+
+        for smiles, ground_truth in [
+            ('c1cnoc1', '[cH]1:[cH]:[n]:[o]:[cH]:1'),
+            ('[O-][n+]1ccccc1S', '[O-]-[n+]1:[cH]:[cH]:[cH]:[cH]:[c]:1-[SH]'),
+            ('c1snnc1-c1ccccn1','[cH]1:[s]:[n]:[n]:[c]:1-[c]1:[cH]:[cH]:[cH]:[cH]:[n]:1')
+        ]:
+            transform = NotKekulize(all_bonds_explicit=True, all_hs_explicit=True)
+            self.assertEqual(transform(smiles), ground_truth)
+
 
     def test_remove_isomery(self) -> None:
         """Test RemoveIsomery."""
