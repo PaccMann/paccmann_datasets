@@ -3,7 +3,7 @@ import dill
 from collections import Counter
 from ..files import read_smi
 from ..types import FileList, Indexes, SMILESTokenizer, Tokens
-from .processing import tokenize_smiles
+from .processing import tokenize_smiles, SMILES_TOKENIZER
 
 
 class SMILESLanguage(object):
@@ -18,7 +18,7 @@ class SMILESLanguage(object):
         self,
         name: str = 'smiles-language',
         smiles_tokenizer: SMILESTokenizer = (
-            lambda smiles: tokenize_smiles(smiles)
+            lambda smiles: tokenize_smiles(smiles, regexp=SMILES_TOKENIZER)
         ),
         add_start_and_stop: bool = False
     ) -> None:
@@ -65,6 +65,7 @@ class SMILESLanguage(object):
             for index, token in additional_indexes_to_token.items()
         }
         self.add_start_and_stop = add_start_and_stop
+        self._smiles_tokenizer_regexp = SMILES_TOKENIZER
         if self.add_start_and_stop:
             self.max_token_sequence_length = 2
             self._get_total_number_of_tokens_fn = (

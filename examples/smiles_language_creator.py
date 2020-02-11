@@ -6,7 +6,9 @@ from pytoda.smiles.smiles_language import SMILESLanguage
 
 # define the parser arguments
 parser = argparse.ArgumentParser()
-parser.add_argument('smi_path', type=str, help='path to a input .smi file')
+parser.add_argument(
+    'smi_path', type=str, help='path to a folder with .smi files'
+)
 parser.add_argument(
     'output_filepath', type=str, help='path to a output .csv file'
 )

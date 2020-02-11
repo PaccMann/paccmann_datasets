@@ -1,12 +1,13 @@
 """Implementation of _SMILESDataset."""
 import torch
 from torch.utils.data import Dataset
-
-from ..smiles.processing import tokenize_selfies, tokenize_smiles
+from ..smiles.processing import (
+    tokenize_selfies, tokenize_smiles, SMILES_TOKENIZER
+)
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
-    Augment, Kekulize, NotKekulize, LeftPadding, Randomize, RemoveIsomery, Selfies,
-    SMILESToTokenIndexes, ToTensor, Canonicalization 
+    Augment, Kekulize, NotKekulize, LeftPadding, Randomize, RemoveIsomery,
+    Selfies, SMILESToTokenIndexes, ToTensor, Canonicalization
 )
 from ..transforms import Compose
 from ..types import FileList
@@ -81,7 +82,7 @@ class _SMILESDataset(Dataset):
                 name='selfies-language' if selfies else 'smiles_language',
                 smiles_tokenizer=(
                     (lambda selfies: tokenize_selfies(selfies)) if selfies else
-                    (lambda smiles: tokenize_smiles(smiles))
+                    (lambda smiles: tokenize_smiles(smiles, SMILES_TOKENIZER))
                 ),
                 add_start_and_stop=add_start_and_stop
             )
@@ -101,7 +102,7 @@ class _SMILESDataset(Dataset):
             if padding_length is None else padding_length
         )
         self.kekulize = kekulize
-        self.canonical = canonical 
+        self.canonical = canonical
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
         self.randomize = randomize
@@ -113,9 +114,9 @@ class _SMILESDataset(Dataset):
         # Build up cascade of SMILES transformations
         # Below transformations are optional
         _transforms = []
-        if self.canonical: 
+        if self.canonical:
             _transforms += [Canonicalization()]
-        else: 
+        else:
             if self.remove_bonddir or self.remove_chirality:
                 _transforms += [
                     RemoveIsomery(
