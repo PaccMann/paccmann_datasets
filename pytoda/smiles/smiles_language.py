@@ -18,7 +18,7 @@ class SMILESLanguage(object):
         self,
         name: str = 'smiles-language',
         smiles_tokenizer: SMILESTokenizer = (
-            lambda smiles: tokenize_smiles(smiles)
+            lambda smiles: tokenize_smiles(smiles, regexp=SMILES_TOKENIZER)
         ),
         add_start_and_stop: bool = False
     ) -> None:

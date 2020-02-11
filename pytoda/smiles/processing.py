@@ -11,21 +11,22 @@ SMILES_TOKENIZER = re.compile(
 SMILES_NORMALIZER = re.compile(r'-(\w)')
 
 
-def tokenize_smiles(smiles: str, normalize=False) -> Tokens:
+def tokenize_smiles(smiles: str, normalize=False, regexp=None) -> Tokens:
     """
     Tokenize a character-level SMILES string.
 
     Args:
         smiles (str): a SMILES representation.
         normalize (bool): whether normalization is done.
-        
-        NOTE: The `normalize` argument is deprecated and will be removed in a
-        future release.
-
+            NOTE: This argument is deprecated and will be removed in a future
+            release.
+        regexp (None, re.Pattern): optionally pass a regexp for the
+            tokenization. If none is passed, SMILES_TOKENIZER is used.
     Returns:
         Tokens: the tokenized SMILES.
     """
-    return [token for token in SMILES_TOKENIZER.split(smiles) if token]
+    smiles_tokenizer = SMILES_TOKENIZER if regexp is None else regexp
+    return [token for token in smiles_tokenizer.split(smiles) if token]
 
 
 def tokenize_selfies(selfies: str) -> Tokens:
