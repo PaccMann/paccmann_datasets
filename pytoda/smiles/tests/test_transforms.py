@@ -1,9 +1,12 @@
 """Testing SMILES transforms."""
 import unittest
+
 import numpy as np
+import torch
+
 from pytoda.smiles.smiles_language import SMILESLanguage
 from pytoda.smiles.transforms import (
-    RemoveIsomery, Kekulize, NotKekulize, AugmentTensor
+    AugmentTensor, Kekulize, NotKekulize, RemoveIsomery
 )
 
 
@@ -127,13 +130,35 @@ class TestTransforms(unittest.TestCase):
 
         np.random.seed(0)
         transform = AugmentTensor(smiles_language)
-        tensor = smiles_language.smiles_to_token_indexes(smiles)
+        smiles_num_list = smiles_language.smiles_to_token_indexes(smiles)
 
         for augmented_smile in ['C(S)CN', 'NCCS', 'SCCN', 'C(N)CS', 'C(CS)N']:
             ground_truth = smiles_language.smiles_to_token_indexes(
                 augmented_smile
             )
-            self.assertEqual(transform(tensor), ground_truth)
+            self.assertEqual(transform(smiles_num_list), ground_truth)
+
+        # Now test calling with a tensor of several SMILES
+        # Include the padding of the sequence (right padding)
+        pl = 5  # padding_length
+        single_smiles_tensor = torch.unsqueeze(
+            torch.
+            Tensor(smiles_num_list + [smiles_language.padding_index] * pl), 0
+        )
+        seq_len = single_smiles_tensor.shape[1]  # sequence_length
+        multi_smiles_tensor = torch.cat([single_smiles_tensor] * 5)
+        np.random.seed(0)
+        augmented = transform(multi_smiles_tensor)
+
+        for ind, augmented_smile in enumerate(
+            ['C(S)CN', 'NCCS', 'SCCN', 'C(N)CS', 'C(CS)N']
+        ):
+            ground_truth = smiles_language.smiles_to_token_indexes(
+                augmented_smile
+            )
+            ground_truth += [smiles_language.padding_index
+                             ] * (seq_len - len(ground_truth))
+            self.assertEqual(augmented[ind].tolist(), ground_truth)
 
 
 if __name__ == '__main__':
