@@ -317,11 +317,11 @@ class AugmentTensor(Transform):
         Apply the transform.
 
         Args:
-            smiles_numerical (list, torch.Tensor): either a SMILES represented
-            as list of ints or a Tensor.
+            smiles_numerical (Union[list, torch.Tensor]): either a SMILES
+                represented as list of ints or a Tensor.
 
         Returns:
-            str: randomized SMILES representation.
+            torch.Tensor: randomized SMILES representation.
         """
 
         if type(smiles_numerical) == list:
@@ -368,14 +368,13 @@ class AugmentTensor(Transform):
         if self.smiles_language.padding_index in smiles_numerical.flatten():
 
             padding = True
-
             left_padding = any([
-                self.smiles_language.padding_index in smiles_numerical[ind, 0]
-                for ind in range(smiles_numerical.shape[0])
+                self.smiles_language.padding_index == row[0]
+                for row in smiles_numerical
             ])  # yapf: disable
             right_padding = any([
-                self.smiles_language.padding_index in smiles_numerical[ind, -1]
-                for ind in range(smiles_numerical.shape[0])
+                self.smiles_language.padding_index == row[-1]
+                for row in smiles_numerical
             ])  # yapf: disable
             if (
                 (left_padding and right_padding)
