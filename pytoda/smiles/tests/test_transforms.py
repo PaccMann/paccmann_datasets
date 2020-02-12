@@ -124,6 +124,8 @@ class TestTransforms(unittest.TestCase):
     def test_augment_tensor(self) -> None:
         """Test AugmentTensor."""
 
+        print(torch.__version__)
+
         smiles = 'NCCS'
         smiles_language = SMILESLanguage(add_start_and_stop=True)
         smiles_language.add_smiles(smiles)
@@ -148,6 +150,8 @@ class TestTransforms(unittest.TestCase):
         seq_len = single_smiles_tensor.shape[1]  # sequence_length
         multi_smiles_tensor = torch.cat([single_smiles_tensor] * 5)
         np.random.seed(0)
+        print(multi_smiles_tensor.shape)
+        print(type(multi_smiles_tensor))
         augmented = transform(multi_smiles_tensor)
 
         for ind, augmented_smile in enumerate(
