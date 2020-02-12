@@ -370,12 +370,12 @@ class AugmentTensor(Transform):
             padding = True
 
             left_padding = any([
-                self.smiles_language.padding_index in t[0]
-                for t in smiles_numerical
+                self.smiles_language.padding_index in smiles_numerical[ind, 0]
+                for ind in range(smiles_numerical.shape[0])
             ])  # yapf: disable
             right_padding = any([
-                self.smiles_language.padding_index in t[-1]
-                for t in smiles_numerical
+                self.smiles_language.padding_index in smiles_numerical[ind, -1]
+                for ind in range(smiles_numerical.shape[0])
             ])  # yapf: disable
             if (
                 (left_padding and right_padding)
