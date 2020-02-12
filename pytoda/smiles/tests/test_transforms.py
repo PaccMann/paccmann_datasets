@@ -1,7 +1,10 @@
 """Testing SMILES transforms."""
 import unittest
-from pytoda.smiles.transforms import RemoveIsomery, Kekulize, NotKekulize
-from pytoda.smiles.transforms import Selfies
+import numpy as np
+from pytoda.smiles.smiles_language import SMILESLanguage
+from pytoda.smiles.transforms import (
+    RemoveIsomery, Kekulize, NotKekulize, AugmentTensor
+)
 
 
 class TestTransforms(unittest.TestCase):
@@ -52,12 +55,11 @@ class TestTransforms(unittest.TestCase):
         ]:
             transform = Kekulize(all_bonds_explicit=True, all_hs_explicit=True)
             self.assertEqual(transform(smiles), ground_truth)
-            
+
     def test_non_kekulize(self) -> None:
         """Test NotKekulize."""
         for smiles, ground_truth in [
-            ('c1cnoc1', 'c1cnoc1'),
-            ('[O-][n+]1ccccc1S', '[O-][n+]1ccccc1S'),
+            ('c1cnoc1', 'c1cnoc1'), ('[O-][n+]1ccccc1S', '[O-][n+]1ccccc1S'),
             ('c1snnc1-c1ccccn1', 'c1snnc1-c1ccccn1')
         ]:
             transform = NotKekulize(
@@ -78,7 +80,10 @@ class TestTransforms(unittest.TestCase):
         for smiles, ground_truth in [
             ('c1cnoc1', '[cH]1[cH][n][o][cH]1'),
             ('[O-][n+]1ccccc1S', '[O-][n+]1[cH][cH][cH][cH][c]1[SH]'),
-            ('c1snnc1-c1ccccn1', '[cH]1[s][n][n][c]1-[c]1[cH][cH][cH][cH][n]1')
+            (
+                'c1snnc1-c1ccccn1',
+                '[cH]1[s][n][n][c]1-[c]1[cH][cH][cH][cH][n]1'
+            )
         ]:
             transform = NotKekulize(
                 all_bonds_explicit=False, all_hs_explicit=True
@@ -88,11 +93,15 @@ class TestTransforms(unittest.TestCase):
         for smiles, ground_truth in [
             ('c1cnoc1', '[cH]1:[cH]:[n]:[o]:[cH]:1'),
             ('[O-][n+]1ccccc1S', '[O-]-[n+]1:[cH]:[cH]:[cH]:[cH]:[c]:1-[SH]'),
-            ('c1snnc1-c1ccccn1','[cH]1:[s]:[n]:[n]:[c]:1-[c]1:[cH]:[cH]:[cH]:[cH]:[n]:1')
+            (
+                'c1snnc1-c1ccccn1',
+                '[cH]1:[s]:[n]:[n]:[c]:1-[c]1:[cH]:[cH]:[cH]:[cH]:[n]:1'
+            )
         ]:
-            transform = NotKekulize(all_bonds_explicit=True, all_hs_explicit=True)
+            transform = NotKekulize(
+                all_bonds_explicit=True, all_hs_explicit=True
+            )
             self.assertEqual(transform(smiles), ground_truth)
-
 
     def test_remove_isomery(self) -> None:
         """Test RemoveIsomery."""
@@ -108,6 +117,23 @@ class TestTransforms(unittest.TestCase):
         ):  # yapf: disable
             transform = RemoveIsomery(bonddir=bonddir, chirality=chirality)
             self.assertEqual(transform(smiles), ground_truth)
+
+    def test_augment_tensor(self) -> None:
+        """Test AugmentTensor."""
+
+        smiles = 'NCCS'
+        smiles_language = SMILESLanguage(add_start_and_stop=True)
+        smiles_language.add_smiles(smiles)
+
+        np.random.seed(0)
+        transform = AugmentTensor(smiles_language)
+        tensor = smiles_language.smiles_to_token_indexes(smiles)
+
+        for augmented_smile in ['C(S)CN', 'NCCS', 'SCCN', 'C(N)CS', 'C(CS)N']:
+            ground_truth = smiles_language.smiles_to_token_indexes(
+                augmented_smile
+            )
+            self.assertEqual(transform(tensor), ground_truth)
 
 
 if __name__ == '__main__':

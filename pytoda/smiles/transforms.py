@@ -5,6 +5,7 @@ from copy import deepcopy
 
 import numpy as np
 import torch
+import pytoda
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from selfies import encoder
@@ -213,7 +214,8 @@ class Kekulize(Transform):
             allHsExplicit=self.all_hs_explicit,
             canonical=False
         )
-        
+
+
 class NotKekulize(Transform):
     """ Transform SMILES to Kekule version """
 
@@ -283,6 +285,61 @@ class Augment(Transform):
             allBondsExplicit=self.all_bonds_explicit,
             allHsExplicit=self.all_hs_explicit
         )
+
+
+class AugmentTensor(Transform):
+    """
+    Augment a SMILES (represented as a Tensor) according to Bjerrum (2017).
+    """
+
+    def __init__(
+        self,
+        smiles_language,
+        kekule_smiles=False,
+        all_bonds_explicit=False,
+        all_hs_explicit=False
+    ) -> None:
+        """ NOTE:  These parameter need to be passed down to the enumerator."""
+        self.smiles_language = smiles_language
+        self.kekule_smiles = kekule_smiles
+        self.all_bonds_explicit = all_bonds_explicit
+        self.all_hs_explicit = all_hs_explicit
+
+    def update_smiles_language(self, smiles_language):
+        if not isinstance(
+            smiles_language, pytoda.smiles.smiles_language.SMILESLanguage
+        ):
+            raise ValueError('Please pass a SMILES language object')
+        self.smiles_language = smiles_language
+
+    def __call__(self, smiles_numerical: list) -> str:
+        """
+        Apply the transform.
+
+        Args:
+            smiles_numerical (list): a SMILES represented as list of ints
+
+        Returns:
+            str: randomized SMILES representation.
+        """
+        smiles = self.smiles_language.token_indexes_to_smiles(smiles_numerical)
+        molecule = Chem.MolFromSmiles(smiles)
+        atom_indexes = list(range(molecule.GetNumAtoms()))
+        if len(atom_indexes) == 0:  # RDkit error handling
+            return smiles
+        np.random.shuffle(atom_indexes)
+        renumbered_molecule = Chem.RenumberAtoms(molecule, atom_indexes)
+        if self.kekule_smiles:
+            Chem.Kekulize(renumbered_molecule)
+
+        augmented_smiles = Chem.MolToSmiles(
+            renumbered_molecule,
+            canonical=False,
+            kekuleSmiles=self.kekule_smiles,
+            allBondsExplicit=self.all_bonds_explicit,
+            allHsExplicit=self.all_hs_explicit
+        )
+        return self.smiles_language.smiles_to_token_indexes(augmented_smiles)
 
 
 class Randomize(Transform):
