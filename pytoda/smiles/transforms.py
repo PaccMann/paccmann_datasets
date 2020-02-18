@@ -5,6 +5,7 @@ from copy import deepcopy
 
 import numpy as np
 import torch
+import pytoda
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from selfies import encoder
@@ -213,7 +214,8 @@ class Kekulize(Transform):
             allHsExplicit=self.all_hs_explicit,
             canonical=False
         )
-        
+
+
 class NotKekulize(Transform):
     """ Transform SMILES to Kekule version """
 
@@ -283,6 +285,135 @@ class Augment(Transform):
             allBondsExplicit=self.all_bonds_explicit,
             allHsExplicit=self.all_hs_explicit
         )
+
+
+class AugmentTensor(Transform):
+    """
+    Augment a SMILES (represented as a Tensor) according to Bjerrum (2017).
+    """
+
+    def __init__(
+        self,
+        smiles_language,
+        kekule_smiles=False,
+        all_bonds_explicit=False,
+        all_hs_explicit=False
+    ) -> None:
+        """ NOTE:  These parameter need to be passed down to the enumerator."""
+        self.smiles_language = smiles_language
+        self.kekule_smiles = kekule_smiles
+        self.all_bonds_explicit = all_bonds_explicit
+        self.all_hs_explicit = all_hs_explicit
+
+    def update_smiles_language(self, smiles_language):
+        if not isinstance(
+            smiles_language, pytoda.smiles.smiles_language.SMILESLanguage
+        ):
+            raise ValueError('Please pass a SMILES language object')
+        self.smiles_language = smiles_language
+
+    def __call__(self, smiles_numerical: list) -> str:
+        """
+        Apply the transform.
+
+        Args:
+            smiles_numerical (Union[list, torch.Tensor]): either a SMILES
+                represented as list of ints or a Tensor.
+
+        Returns:
+            torch.Tensor: randomized SMILES representation.
+        """
+
+        if type(smiles_numerical) == list:
+            smiles = self.smiles_language.token_indexes_to_smiles(
+                smiles_numerical
+            )
+            molecule = Chem.MolFromSmiles(smiles)
+            atom_indexes = list(range(molecule.GetNumAtoms()))
+            if len(atom_indexes) == 0:  # RDkit error handling
+                return smiles
+            np.random.shuffle(atom_indexes)
+            renumbered_molecule = Chem.RenumberAtoms(molecule, atom_indexes)
+            if self.kekule_smiles:
+                Chem.Kekulize(renumbered_molecule)
+
+            augmented_smiles = Chem.MolToSmiles(
+                renumbered_molecule,
+                canonical=False,
+                kekuleSmiles=self.kekule_smiles,
+                allBondsExplicit=self.all_bonds_explicit,
+                allHsExplicit=self.all_hs_explicit
+            )
+            return self.smiles_language.smiles_to_token_indexes(
+                augmented_smiles
+            )
+        elif type(smiles_numerical) == torch.Tensor:
+            return self.__call__tensor(smiles_numerical)
+
+        else:
+            raise TypeError('Please pass either a torch.Tensor or a list.')
+
+    def __call__tensor(self, smiles_numerical: torch.Tensor) -> str:
+        """
+        Wrapper of the transform for torch.Tensor.
+
+        Args:
+            smiles_numerical (torch.Tensor): a Tensor with SMILES represented
+                as ints. Needs to have shape batch_size x sequence_length.
+        Returns:
+            str: randomized SMILES representation.
+        """
+
+        # Infer the padding type to ensure returning tensor of same shape.
+        if self.smiles_language.padding_index in smiles_numerical.flatten():
+
+            padding = True
+            left_padding = any([
+                self.smiles_language.padding_index == row[0]
+                for row in smiles_numerical
+            ])  # yapf: disable
+            right_padding = any([
+                self.smiles_language.padding_index == row[-1]
+                for row in smiles_numerical
+            ])  # yapf: disable
+            if (
+                (left_padding and right_padding)
+                or (not left_padding and not right_padding)
+            ):
+                raise ValueError(
+                    'Could not uniqely infer padding type. Leftpadding was '
+                    f'{left_padding}, right_padding was {right_padding}.'
+                )
+        else:
+            padding = False
+
+        seq_len = smiles_numerical.shape[1]
+
+        # Loop over tensor (SMILES by SMILES) and augment. Exclude augmentation
+        # if it violates the padding
+        augmented = []
+        for smiles in smiles_numerical:
+
+            lenx = seq_len + 1
+            while lenx > seq_len:
+                augmented_smiles = self.__call__(smiles.tolist())
+                lenx = len(augmented_smiles)
+            if padding:
+                pads = (
+                    [self.smiles_language.padding_index] *
+                    (seq_len - len(augmented_smiles))
+                )
+                if right_padding:
+                    augmented_smiles = augmented_smiles + pads
+                if left_padding:
+                    augmented_smiles = pads + augmented_smiles
+
+            augmented.append(
+                torch.unsqueeze(torch.Tensor(augmented_smiles), 0)
+            )
+
+        augmented = torch.cat(augmented, dim=0)
+        return augmented
 
 
 class Randomize(Transform):
