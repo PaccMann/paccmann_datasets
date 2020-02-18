@@ -20,6 +20,7 @@ class DrugSensitivityDataset(Dataset):
         gene_expression_filepath: str,
         drug_sensitivity_dtype: torch.dtype = torch.float,
         drug_sensitivity_min_max: bool = True,
+        drug_sensitivity_processing_parameters: dict = {},
         smiles_language: SMILESLanguage = None,
         padding: bool = True,
         padding_length: int = None,
@@ -27,6 +28,8 @@ class DrugSensitivityDataset(Dataset):
         augment: bool = False,
         gene_list: GeneList = None,
         gene_expression_standardize: bool = True,
+        gene_expression_min_max: bool = False,
+        gene_expression_processing_parameters: dict = {},
         gene_expression_dtype: torch.dtype = torch.float,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
@@ -48,6 +51,9 @@ class DrugSensitivityDataset(Dataset):
                 Defaults to torch.float.
             drug_sensitivity_min_max (bool): min-max scale drug sensitivity
                 data. Defaults to True.
+            drug_sensitivity_processing_parameters (dict): transformation
+                parameters for drug sensitivity data, e.g. for min-max scaling.
+                Defaults to {}.
             smiles_language (SMILESLanguage): a smiles language.
                 Defaults to None.
             padding (bool): pad sequences to longest in the smiles language.
@@ -60,6 +66,11 @@ class DrugSensitivityDataset(Dataset):
             gene_list (GeneList): a list of genes.
             gene_expression_standardize (bool): perform gene expression
                 data standardization. Defaults to True.
+            gene_expression_min_max (bool): perform min-max scaling on gene
+                expression data. Defaults to False.
+            gene_expression_processing_parameters (dict): transformation
+                parameters for gene expression, e.g. for min-max scaling.
+                Defaults to {}.
             gene_expression_dtype (torch.dtype): gene expression data type.
                 Defaults to torch.float.
             device (torch.device): device where the tensors are stored.
@@ -94,6 +105,8 @@ class DrugSensitivityDataset(Dataset):
             self.gene_expression_filepath,
             gene_list=gene_list,
             standardize=gene_expression_standardize,
+            min_max=gene_expression_min_max,
+            processing_parameters=gene_expression_processing_parameters,
             dtype=gene_expression_dtype,
             device=self.device,
             backend=self.backend,
@@ -102,6 +115,9 @@ class DrugSensitivityDataset(Dataset):
         # drug sensitivity
         self.drug_sensitivity_dtype = drug_sensitivity_dtype
         self.drug_sensitivity_min_max = drug_sensitivity_min_max
+        self.drug_sensitivity_processing_parameters = (
+            drug_sensitivity_processing_parameters
+        )
         self.drug_sensitivity_df = pd.read_csv(
             self.drug_sensitivity_filepath, index_col=0
         )
@@ -121,21 +137,27 @@ class DrugSensitivityDataset(Dataset):
         self.number_of_samples = self.drug_sensitivity_df.shape[0]
         # NOTE: optional min-max scaling
         if self.drug_sensitivity_min_max:
-            self.drug_sensitivity_minimum = (
-                self.drug_sensitivity_df['IC50'].min()
-            )
-            self.drug_sensitivity_maximum = (
-                self.drug_sensitivity_df['IC50'].max()
-            )
-            self.drug_sensitivity_df['IC50'] = (
-                (
-                    self.drug_sensitivity_df['IC50'] -
-                    self.drug_sensitivity_minimum
-                ) / (
-                    self.drug_sensitivity_maximum -
-                    self.drug_sensitivity_minimum
+            minimum = (
+                self.drug_sensitivity_processing_parameters.get(
+                    'min', self.drug_sensitivity_df['IC50'].min()
                 )
             )
+            maximum = (
+                self.drug_sensitivity_processing_parameters.get(
+                    'max', self.drug_sensitivity_df['IC50'].max()
+                )
+            )
+            self.drug_sensitivity_df['IC50'] = (
+                (self.drug_sensitivity_df['IC50'] - minimum) /
+                (maximum - minimum)
+            )
+            self.drug_sensitivity_processing_parameters = {
+                'processing': 'min_max',
+                'parameters': {
+                    'min': minimum,
+                    'max': maximum
+                }
+            }
 
     def __len__(self) -> int:
         "Total number of samples."
