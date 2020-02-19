@@ -95,7 +95,7 @@ class ToTensor(Transform):
         """
         return torch.tensor(
             token_indexes, dtype=self.dtype, device=self.device
-        ).view(-1, 1)
+        ).view(-1, 1).squeeze()
 
 
 class RemoveIsomery(Transform):
