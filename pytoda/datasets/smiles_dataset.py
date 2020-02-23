@@ -33,8 +33,9 @@ class SMILESDataset(Dataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
-        device: torch.device = torch.
-        device('cuda' if torch.cuda.is_available() else 'cpu'),
+        device: torch.device = (
+            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        ),
         backend: str = 'eager'
     ) -> None:
         """
@@ -50,8 +51,9 @@ class SMILESDataset(Dataset):
                 applies only if padding is True. Defaults to None.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
-            canonical (bool): performs canonicalization of SMILES (one original string for one molecule),
-                if canonical=True, then other transformations (augment etc, see below) do not apply
+            canonical (bool): performs canonicalization of SMILES (one
+                original string for one molecule), if True, then other
+                transformations (augment etc, see below) do not apply
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.
