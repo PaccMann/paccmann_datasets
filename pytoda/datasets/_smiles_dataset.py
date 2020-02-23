@@ -53,8 +53,9 @@ class _SMILESDataset(Dataset):
                 applies only if padding is True. Defaults to None.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
-            canonical (bool): performs canonicalization of SMILES (one original string for one molecule),
-                if canonical=True, then other transformations (augment etc, see below) do not apply
+            canonical (bool): performs canonicalization of SMILES (one original
+                string for one molecule). If True, then other transformations
+                (augment etc, see below) do not apply.
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.
@@ -164,7 +165,9 @@ class _SMILESDataset(Dataset):
             transforms += [Randomize()]
         if self.padding:
             if padding_length is None:
-                self.padding_length = self.smiles_language.max_token_sequence_length
+                self.padding_length = (
+                    self.smiles_language.max_token_sequence_length
+                )
             transforms += [
                 LeftPadding(
                     padding_length=self.padding_length,
@@ -177,10 +180,14 @@ class _SMILESDataset(Dataset):
         # NOTE: recover sample and index mappings
         self.sample_to_index_mapping = {}
         self.index_to_sample_mapping = {}
+
         for index in range(len(self._dataset)):
             dataset_index, sample_index = self._dataset.get_index_pair(index)
             dataset = self._dataset.datasets[dataset_index]
-            sample = dataset.index_to_sample_mapping[sample_index]
+            try:
+                sample = dataset.index_to_sample_mapping[sample_index]
+            except KeyError:
+                raise KeyError('Please remove duplicates from your .smi file.')
             self.sample_to_index_mapping[sample] = index
             self.index_to_sample_mapping[index] = sample
 
