@@ -28,7 +28,7 @@ def thumbnails_with_pubchem_reference(
     Args:
         smiles (Iterable[str]): Iterable with the SMILES
         drugs (Iterable[str]): Iterable with the drug names, if None it
-            will fill it with with N/A. Default to None.
+            will fill it with with 'N.A.'. Default to None.
         titles (Iterable[str]): list of titles. If None, the SMILES will
             be used as titles instead. Defaults to None.
 
@@ -41,17 +41,16 @@ def thumbnails_with_pubchem_reference(
         titles = smiles
 
     if drugs is None:
-        drugs = ['N/A' for _ in range(len(smiles))]
+        drugs = ['N.A.' for _ in range(len(smiles))]
 
     labels = []
     for ind, (smile, drug, title) in enumerate(zip(smiles, drugs, titles)):
         if drug != 'N.A.':
             labels.append(
-                title + '__<a href="' + root + drug + '">' + drug + '</a>' +
-                '__' + smile
+                f'{title}__<a href="{root}{drug}">{drug}</a>__{smile}'
             )
         else:
-            labels.append(smiles + '__No link available' + '__' + smiles)
+            labels.append(f'{title}__No link available__{smile}')
     return labels
 
 
@@ -63,8 +62,16 @@ def tm_morgan_vector(smiles):
     )
 
 
-def normalize_field(data):
-    return ss.rankdata(np.array(data) / max(data)) / len(data)
+def rank_and_normalize_field(data: list) -> np.ndarray:
+    """Ranks the data and normalizes it in [0, 1].
+
+    Args:
+        data (list): List of values
+
+    Returns:
+        np.array: [description]
+    """
+    return ss.rankdata(np.array(data)) / len(data)
 
 
 def tmap(
@@ -129,7 +136,9 @@ def tmap(
     categorical_values = [
         list(map(str, df[col])) for col in categorical_columns
     ]
-    continous_values = [normalize_field(df[col]) for col in continous_columns]
+    continous_values = [
+        rank_and_normalize_field(df[col]) for col in continous_columns
+    ]
 
     # Thubnails
     drugs = df.drugs if 'drugs' in df.columns else None
