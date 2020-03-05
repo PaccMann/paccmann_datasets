@@ -1,7 +1,6 @@
 """Testing PolymerLanguage."""
 import unittest
 import os
-from pytoda.smiles.smiles_language import SMILESLanguage
 from pytoda.smiles.polymer_language import PolymerLanguage
 from pytoda.tests.utils import TestFileContent
 from pytoda.smiles.processing import tokenize_selfies
@@ -87,14 +86,16 @@ class TestPolymerLanguage(unittest.TestCase):
         token_indexes = [
             polymer_language.token_to_index[token] for token in smiles
         ]
+        polymer_language.update_entity('monomer')
         self.assertListEqual(
-            polymer_language.smiles_to_token_indexes(smiles, 'Monomer'),
+            polymer_language.smiles_to_token_indexes(smiles),
             [polymer_language.token_to_index['<MONOMER_START>']] +
             token_indexes +
             [polymer_language.token_to_index['<MONOMER_STOP>']]
         )
+        polymer_language.update_entity('catalyst')
         self.assertListEqual(
-            polymer_language.smiles_to_token_indexes(smiles, 'catalyst'),
+            polymer_language.smiles_to_token_indexes(smiles),
             [polymer_language.token_to_index['<CATALYST_START>']] +
             token_indexes +
             [polymer_language.token_to_index['<CATALYST_STOP>']]
@@ -112,8 +113,9 @@ class TestPolymerLanguage(unittest.TestCase):
             polymer_language.token_to_index[token]
             for token in ['[C]', '[C]', '[O]']
         ]
+        polymer_language.update_entity('monomer')
         self.assertListEqual(
-            polymer_language.smiles_to_token_indexes(selfies, 'Monomer'),
+            polymer_language.smiles_to_token_indexes(selfies),
             [polymer_language.token_to_index['<MONOMER_START>']] +
             token_indexes +
             [polymer_language.token_to_index['<MONOMER_STOP>']]

@@ -36,6 +36,7 @@ class PolymerLanguage(SMILESLanguage):
         SMILESLanguage.__init__(self, add_start_and_stop=True)
 
         self.entities = list(map(lambda x: x.capitalize(), entity_names))
+        # self.current_entity = self.entities[0]
         self.start_entity_tokens, self.stop_entity_tokens = [
             list(map(lambda x: '<' + x.upper() + '_' + s + '>', entity_names))
             for s in ['START', 'STOP']
@@ -68,23 +69,40 @@ class PolymerLanguage(SMILESLanguage):
             for index, token in additional_indexes_to_token.items()
         }
 
-    def smiles_to_token_indexes(self, smiles: str, entity: str) -> Indexes:
+    def update_entity(self, entity: str) -> None:
+        """
+        Update the current entity of the Polymer language object
+
+        Args:
+            entity (str): a chemical entity (e.g. 'Monomer').
+
+        Returns:
+            None
+        """
+        assert (
+            entity.capitalize() in self.entities
+        ), f'Unknown entity was given ({entity})'
+        self.current_entity = entity.capitalize()
+
+    def smiles_to_token_indexes(self, smiles: str) -> Indexes:
         """
         Transform character-level SMILES into a sequence of token indexes.
 
         Args:
             smiles (str): a SMILES (or SELFIES) representation.
-            entity (str): a chemical entity (e.g. 'Monomer').
 
         Returns:
             Indexes: indexes representation for the SMILES/SELFIES provided.
         """
-        assert entity.capitalize() in self.entities
-        return [self.token_to_index['<' + entity.upper() + '_START>']] + [
+        return [
+            self.token_to_index['<' + self.current_entity.upper() + '_START>']
+        ] + [
             self.token_to_index[token]
             for token in self.smiles_tokenizer(smiles)
             if token in self.token_to_index
-        ] + [self.token_to_index['<' + entity.upper() + '_STOP>']]
+        ] + [
+            self.token_to_index['<' + self.current_entity.upper() + '_STOP>']
+        ]
 
     def token_indexes_to_smiles(self, token_indexes: Indexes) -> str:
         """
