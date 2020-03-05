@@ -179,9 +179,12 @@ class SMILESLanguage(object):
             chunk_size (int): number of rows to read in a chunk.
                 Defaults to 100000.
         """
-        for chunk in read_smi(smi_filepath, chunk_size=chunk_size):
-            for smiles in chunk['SMILES']:
-                self.add_smiles(smiles)
+        try:
+            for chunk in read_smi(smi_filepath, chunk_size=chunk_size):
+                for smiles in chunk['SMILES']:
+                    self.add_smiles(smiles)
+        except KeyError:
+            raise KeyError(".smi file needs to have 'SMILES' column")
 
     def add_smiles(self, smiles: str) -> None:
         """
