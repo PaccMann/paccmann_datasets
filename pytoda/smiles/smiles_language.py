@@ -16,7 +16,7 @@ class SMILESLanguage(object):
 
     def __init__(
         self,
-        name: str = 'smiles-language',
+        name: str = 'smilces-language',
         smiles_tokenizer: SMILESTokenizer = (
             lambda smiles: tokenize_smiles(smiles, regexp=SMILES_TOKENIZER)
         ),
@@ -183,8 +183,11 @@ class SMILESLanguage(object):
             for chunk in read_smi(smi_filepath, chunk_size=chunk_size):
                 for smiles in chunk['SMILES']:
                     self.add_smiles(smiles)
-        except KeyError:
-            raise KeyError(".smi file needs to have 'SMILES' column")
+        except Exception:
+            raise KeyError(
+                ".smi file needs to have 2 columns, first with IDs, second "
+                "with SMILES."
+            )
 
     def add_smiles(self, smiles: str) -> None:
         """
