@@ -1,6 +1,4 @@
 """Amino Acid sequence processing utilities."""
-import re
-from ..types import Tokens
 from collections import OrderedDict
 
 IUPAC_CODES = OrderedDict(
