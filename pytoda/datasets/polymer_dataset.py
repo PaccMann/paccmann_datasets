@@ -102,7 +102,10 @@ class PolymerDataset(SMILESDataset):
             len(entity_names) == len(smi_filepaths)
         ), 'Give 1 .smi file per entity'
 
-        self.smiles_language = PolymerLanguage(entity_names=entity_names)
+        if self.smiles_language is None:
+            self.smiles_language = PolymerLanguage(entity_names=entity_names)
+        else:
+            self.smiles_language = smiles_language
         self.entities = self.smiles_language.entities
 
         # Setup parameter
