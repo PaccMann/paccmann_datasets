@@ -137,14 +137,6 @@ class ProteinLanguage(object):
                 Defaults to 100000.
             index_col (int): Data column used for indexing, defaults to 1.
         """
-        for chunk in read_smi(
-            filepath,
-            chunk_size=chunk_size,
-            index_col=index_col,
-            names=['Sequence']
-        ):
-            for sequence in chunk['Sequence']:
-                self.add_sequence(sequence)
 
         try:
             for chunk in read_smi(
