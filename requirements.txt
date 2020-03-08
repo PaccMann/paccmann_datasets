@@ -1,7 +1,7 @@
 numpy==1.18.1
 scikit-learn==0.22.2.post1
 pandas==1.0.1
-torch==1.0.1
+torch==1.4.0
 diskcache==4.1.0
 dill==0.3.1.1
 selfies==0.2.4
