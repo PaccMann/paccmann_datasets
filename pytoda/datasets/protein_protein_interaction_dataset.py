@@ -7,8 +7,6 @@ from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
-from ..types import DrugSensitivityData, GeneList
-from .annotated_dataset import AnnotatedDataset
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
@@ -89,8 +87,13 @@ class ProteinProteinInteractionDataset(Dataset):
             self.paddings, self.padding_lengths, self.add_start_and_stop,
             self.augment_by_reverts, self.randomizes
         ) = map(
-            (lambda x: x if iterable(x) and len(x) == 2 else [x] * 2),
-            (paddings, padding_lengths, augment_by_reverts, randomizes)
+            (
+                lambda x: x if iterable(x) and len(x) == len(self.entities)
+                else [x] * len(self.entities)
+            ), (
+                paddings, padding_lengths, add_start_and_stops,
+                augment_by_reverts, randomizes
+            )
         )
 
         if protein_language is None:
@@ -113,7 +116,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 padding=self.paddings[index],
                 padding_length=self.padding_lengths[index],
                 add_start_and_stop=self.add_start_and_stop[index],
-                augment=self.augment_by_reverts[index],
+                augment_by_revert=self.augment_by_reverts[index],
                 randomize=self.randomizes[index],
                 device=self.device,
                 name=self.entities[index]
@@ -122,10 +125,10 @@ class ProteinProteinInteractionDataset(Dataset):
         # Labels
         self.labels_df = pd.read_csv(self.labels_filepath)
         # Cast the column names to uppercase
-        self.annotated_data_df.columns = map(
+        self.labels_df.columns = map(
             lambda x: str(x).capitalize(), self.labels_df.columns
         )
-        columns = self.annotated_data_df.columns
+        columns = self.labels_df.columns
 
         # handle labels
         if annotations_column_names is None:
@@ -150,13 +153,14 @@ class ProteinProteinInteractionDataset(Dataset):
         self.number_of_tasks = len(self.labels)
 
         # NOTE: filter data based on the availability
-        self.available_sequence_ids = [
-            set(dataset.sample_to_index_mapping.keys())
-            & set(self.labels_df[entity])
-            for entity, dataset in zip(self.entities, self._datasets)
-        ]
-
         available_sequence_ids = []
+        assert (
+            all(
+                list(
+                    map(lambda x: x in self.labels_df.columns, self.entities)
+                )
+            )
+        ), 'At least one given entity name was not found in labels_filepath.'
         for entity, dataset in zip(self.entities, self._datasets):
             available_sequence_ids.append(
                 set(dataset.sample_to_index_mapping.keys())
@@ -174,36 +178,35 @@ class ProteinProteinInteractionDataset(Dataset):
         "Total number of samples."
         return self.number_of_samples
 
-
-def __getitem__(self, index: int) -> Iterable[torch.tensor]:
-    """
-        Generates one sample of data.
-
-        Args:
-            index (int): index of the sample to fetch.
-
-        Returns:
-            Tuple: a tuple containing self.entities+1 torch.Tensors
-            representing respetively: compound token indexes for each protein
-            entity and the property labels (annotations)
+    def __getitem__(self, index: int) -> Iterable[torch.tensor]:
         """
+            Generates one sample of data.
 
-    # sample selection
-    selected_sample = self.annotated_data_df.iloc[index]
+            Args:
+                index (int): index of the sample to fetch.
 
-    # labels (annotations)
-    labels_tensor = torch.tensor(
-        list(selected_sample[self.labels].values),
-        dtype=torch.float,
-        device=self.device
-    )
-    # samples (Protein sequences)
-    proteins_tensors = tuple(
-        map(
-            lambda x: x[
-                x.sample_to_index_mapping[selected_sample[x.name]]
-            ],
-            self._datasets
+            Returns:
+                Tuple: a tuple containing self.entities+1 torch.Tensors
+                representing respetively: compound token indexes for each protein
+                entity and the property labels (annotations)
+            """
+
+        # sample selection
+        selected_sample = self.labels_df.iloc[index]
+
+        # labels (annotations)
+        labels_tensor = torch.tensor(
+            list(selected_sample[self.labels].values),
+            dtype=torch.float,
+            device=self.device
         )
-    )  # yapf: disable
-    return tuple([*proteins_tensors, labels_tensor])
+        # samples (Protein sequences)
+        proteins_tensors = tuple(
+            map(
+                lambda x: x[
+                    x.sample_to_index_mapping[selected_sample[x.name]]
+                ],
+                self._datasets
+            )
+        )  # yapf: disable
+        return tuple([*proteins_tensors, labels_tensor])
