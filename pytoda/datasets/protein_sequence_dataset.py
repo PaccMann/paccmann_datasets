@@ -29,7 +29,8 @@ class ProteinSequenceDataset(Dataset):
         randomize: bool = False,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        )
+        ),
+        name: str = 'protein-sequences'
     ) -> None:
         """
         Initialize a Protein Sequence dataset.
@@ -52,10 +53,12 @@ class ProteinSequenceDataset(Dataset):
                 Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
+            name (str): name of the ProteinSequenceDataset.                
         """
         Dataset.__init__(self)
         # Parse language object and data paths
         self.filepaths = filepaths
+        self.name = name
 
         if protein_language is None:
             self.protein_language = ProteinLanguage(
