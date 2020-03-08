@@ -102,7 +102,7 @@ class PolymerDataset(SMILESDataset):
             len(entity_names) == len(smi_filepaths)
         ), 'Give 1 .smi file per entity'
 
-        if self.smiles_language is None:
+        if smiles_language is None:
             self.smiles_language = PolymerLanguage(entity_names=entity_names)
         else:
             self.smiles_language = smiles_language
@@ -199,9 +199,23 @@ class PolymerDataset(SMILESDataset):
         # get the number of labels
         self.number_of_tasks = len(self.labels)
 
+        # NOTE: filter data based on the availability
+        available_entity_ids = []
+        for entity, dataset in zip(self.entities, self._datasets):
+            available_entity_ids.append(
+                set(dataset.sample_to_index_mapping.keys())
+                & set(self.annotated_data_df[entity])
+            )
+
+            self.annotated_data_df = self.annotated_data_df.loc[
+                self.annotated_data_df[entity].isin(available_entity_ids[-1])]
+
+        self.available_entity_ids = available_entity_ids
+        self.number_of_samples = self.annotated_data_df.shape[0]
+
     def __len__(self) -> Iterable[int]:
         """Total number of samples."""
-        return self.annotated_data_df.shape[0]
+        return self.number_of_samples
 
     def __getitem__(self, index: int) -> Iterable[torch.tensor]:
         """
