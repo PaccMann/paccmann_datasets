@@ -32,7 +32,8 @@ class TestPolymerDataset(unittest.TestCase):
                 'label_0,label_1,monomer,catalyst',
                 '2.3,3.4,CHEMBL545,CHEMBL17',
                 '4.5,5.6,CHEMBL17564,CHEMBL6402',  # yapf: disable
-                '6.7,7.8,CHEMBL602,CHEMBL6402'
+                '6.7,7.8,CHEMBL602,CHEMBL6402',
+                '6.7,7.8,CHEMBL54556,CHEMBL5434'
             ]
         )
 
