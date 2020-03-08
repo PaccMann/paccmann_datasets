@@ -1,5 +1,5 @@
 numpy==1.18.1
-scikit-learn==0.21.3
+scikit-learn==0.22.2.post1
 pandas==0.25.2
 torch==1.0.1
 diskcache==4.1.0
