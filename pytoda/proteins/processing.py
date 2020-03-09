@@ -101,6 +101,5 @@ UNIREP_VOCAB = OrderedDict(
         ("<START>", 26),
         ("<STOP>", 27),
         ("<UNK>", 28),
-        ("<SEP>", 29),
     ]
 )
