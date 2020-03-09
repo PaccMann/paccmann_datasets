@@ -45,6 +45,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                         [a_test_file.filename, another_test_file.filename],
                         ['tcr', 'peptide'],
                         annotation_file.filename,
+                        sequence_filetypes='.smi'
                     )
 
                     self.assertEqual(len(ppi_dataset), 3)
@@ -66,6 +67,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                         [a_test_file.filename, another_test_file.filename],
                         ['tcr', 'peptide'],
                         annotation_file.filename,
+                        sequence_filetypes='.smi'
                     )
 
                     self.assertEqual(len(ppi_dataset), 3)
@@ -105,6 +107,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                         [a_test_file.filename, another_test_file.filename],
                         ['tcr', 'peptide'],
                         annotation_file.filename,
+                        sequence_filetypes='.smi'
                     )
 
                     # test first sample
@@ -138,6 +141,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                         [a_test_file.filename, another_test_file.filename],
                         ['TCR', 'Peptide'],
                         annotation_file.filename,
+                        sequence_filetypes='.smi'
                     )
 
                     # test first sample
@@ -195,6 +199,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                         [a_test_file.filename, another_test_file.filename],
                         ['tcr', 'peptide'],
                         annotation_file.filename,
+                        sequence_filetypes='.smi'
                     )
                     self.assertEqual(len(ppi_dataset), 2)
 
@@ -229,6 +234,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                         [a_test_file.filename, another_test_file.filename],
                         ['tcr', 'peptide'],
                         annotation_file.filename,
+                        sequence_filetypes='.smi',
                         annotations_column_names=['label_0']
                     )
                     self.assertEqual(len(ppi_dataset), 2)
@@ -249,6 +255,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                         [a_test_file.filename, another_test_file.filename],
                         ['tcr', 'peptide'],
                         annotation_file.filename,
+                        sequence_filetypes='.smi',
                         annotations_column_names=[1]
                     )
                     self.assertEqual(len(ppi_dataset), 2)
@@ -266,6 +273,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                 ppi_dataset = ProteinProteinInteractionDataset(
                     [a_test_file.filename], ['peptide'],
                     annotation_file.filename,
+                    sequence_filetypes='.smi',
                     annotations_column_names=[1]
                 )
                 self.assertEqual(len(ppi_dataset), 3)
@@ -286,6 +294,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                                 third_test_file.filename
                             ], ['tcr', 'peptide', 'peptide'],
                             annotation_file.filename,
+                            sequence_filetypes='.smi',
                             annotations_column_names=[1]
                         )
                         self.assertEqual(len(ppi_dataset), 2)

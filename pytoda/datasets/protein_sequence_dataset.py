@@ -9,6 +9,7 @@ from ..transforms import Compose
 from ..types import FileList
 from ._smi_eager_dataset import _SmiEagerDataset
 from .utils import concatenate_file_based_datasets
+from ._fasta_eager_dataset import _FastaEagerDataset
 
 
 class ProteinSequenceDataset(Dataset):
@@ -20,6 +21,7 @@ class ProteinSequenceDataset(Dataset):
     def __init__(
         self,
         *filepaths: FileList,
+        filetype: str = '.smi',
         protein_language: ProteinLanguage = None,
         amino_acid_dict: str = 'iupac',
         padding: bool = True,
@@ -36,7 +38,9 @@ class ProteinSequenceDataset(Dataset):
         Initialize a Protein Sequence dataset.
 
         Args:
-            filepaths (FileList): paths to .smi/.csv file with the sequences.
+            filepaths (FileList): paths to .smi, .csv/.fasta/.fasta.gz file
+                with the sequences.
+            filetype (str): From {.smi, .csv, .fasta, .fasta.gz}.
             protein_language (ProteinLanguage): a protein language or child
                 object. Defaults to None.
             amino_acid_dict (str): Type of dictionary used for amino acid
@@ -58,6 +62,10 @@ class ProteinSequenceDataset(Dataset):
         Dataset.__init__(self)
         # Parse language object and data paths
         self.filepaths = filepaths
+        self.filetype = filetype
+        assert (
+            filetype in ['.csv', '.smi', '.fasta', '.fasta.gz']
+        ), f'Unknown filetype given {filetype}'
         self.name = name
 
         if protein_language is None:
@@ -132,8 +140,12 @@ class ProteinSequenceDataset(Dataset):
         """Setup the dataset."""
         self._dataset = concatenate_file_based_datasets(
             filepaths=self.filepaths,
-            dataset_class=_SmiEagerDataset,
-            name='Sequence'
+            dataset_class=(
+                _SmiEagerDataset if self.filetype == '.csv'
+                or self.filetype == '.smi' else _FastaEagerDataset
+            ),
+            name='Sequence',
+            gzipped=True if self.filetype == '.fasta.gz' else False
         )
 
     def __len__(self) -> int:

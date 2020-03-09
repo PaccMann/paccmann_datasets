@@ -23,6 +23,7 @@ class ProteinProteinInteractionDataset(Dataset):
         sequence_filepaths: Union[Iterable[str], Iterable[Iterable[str]]],
         entity_names: Iterable[str],
         labels_filepath: str,
+        sequence_filetypes: Union[str, List[str]] = 'infer',
         annotations_column_names: Union[List[int], List[str]] = None,
         protein_language: ProteinLanguage = None,
         amino_acid_dict: str = 'iupac',
@@ -49,6 +50,13 @@ class ProteinProteinInteractionDataset(Dataset):
                 column names of the labels_filepaths.
             labels_filepath (str): path to .csv file with classification
                 labels.
+            sequence_filetypes: (Union[str, List[str]]). Filetypes of the
+                sequence files. Can either be a str if all files have identical
+                types or an Iterable if different entities have different
+                types. Different types across the same entity are not
+                supported. Supported formats are {.smi, .csv, .fasta,
+                .fasta.gz}. Default is `infer`, i.e. filetypes are inferred
+                automatically.
             annotations_column_names (Union[List[int], List[str]]): indexes
                 (positional or strings) for the annotations. Defaults to None,
                 a.k.a. all the columns, except the entity_names are annotation
@@ -79,6 +87,24 @@ class ProteinProteinInteractionDataset(Dataset):
         self.sequence_filepaths = sequence_filepaths
         self.labels_filepath = labels_filepath
         self.entities = list(map(lambda x: x.capitalize(), entity_names))
+
+        #  Data type of sequence files
+        if sequence_filetypes == 'infer':
+            self.filetypes = list(
+                map(lambda x: '.' + x.split('.')[-1], sequence_filepaths)
+            )
+
+        elif sequence_filetypes in ['.smi', '.csv', '.fasta', '.fasta.gz']:
+            self.filetypes = [sequence_filetypes] * len(self.entities)
+        elif len(sequence_filetypes) == len(self.entities) and all(
+            map(
+                lambda x: x in ['.smi', '.csv', '.fasta', '.fasta.gz'],
+                sequence_filetypes
+            )
+        ):
+            self.filetypes = sequence_filetypes
+        else:
+            raise ValueError(f'Unsupported filetype: {sequence_filetypes}')
 
         # device
         self.device = device
@@ -112,6 +138,7 @@ class ProteinProteinInteractionDataset(Dataset):
         self._datasets = [
             ProteinSequenceDataset(
                 self.sequence_filepaths[index],
+                filetype=self.filetypes[index],
                 protein_language=protein_language,
                 padding=self.paddings[index],
                 padding_length=self.padding_lengths[index],

@@ -11,7 +11,9 @@ class _SmiEagerDataset(Dataset):
     In case of out of memory errors consider using _SmiLazyDataset.
     """
 
-    def __init__(self, smi_filepath: str, name: str = 'SMILES') -> None:
+    def __init__(
+        self, smi_filepath: str, name: str = 'SMILES', **kwargs
+    ) -> None:
         """
         Initialize a .smi dataset.
 

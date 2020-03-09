@@ -1,9 +1,12 @@
 """Testing ProteinLanguage."""
-import unittest
 import os
+import unittest
+
+from upfp import parse_fasta
+
+from pytoda.proteins.processing import IUPAC_VOCAB, UNIREP_VOCAB
 from pytoda.proteins.protein_language import ProteinLanguage
 from pytoda.tests.utils import TestFileContent
-from pytoda.proteins.processing import IUPAC_VOCAB, UNIREP_VOCAB
 
 
 class TestProteinLanguage(unittest.TestCase):
@@ -46,6 +49,22 @@ class TestProteinLanguage(unittest.TestCase):
             protein_language = ProteinLanguage()
             protein_language.add_file(a_test_file.filename, index_col=1)
             self.assertEqual(protein_language.max_token_sequence_length, 7)
+
+        # Test parsing of .fasta file
+        content = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
+        MQNPLPEVMSPEHDKRTTTPMSKEANKFIRELDKKPGDLAVVSDFVKRNTGKRLPIGKRS
+        NLYVRICDLSGTIYMGETFILESWEELYLPEPTKMEVLGTLESCCGIPPFPEWIVMVGED
+        QCVYAYGDEEILLFAYSVKQLVEEGIQETGISYKYPDDISDVDEEVLQQDEEIQKIRKKT
+        REFVDKDAQEFQDFLNSLDASLLS
+        >sp|Q91G88|006L_IIV6 Putative KilA-N domain-containing protein 006L OS=Invertebrate iridescent virus 6 OX=176652 GN=IIV6-006L PE=3 SV=1
+        MDSLNEVCYEQIKGTFYKGLFGDFPLIVDKKTGCFNATKLCVLGGKRFVDWNKTLRSKKL
+        IQYYETRCDIKTESLLYEIKGDNNDEITKQITGTYLPKEFILDIASWISVEFYDKCNNII
+        """
+
+        with TestFileContent(content) as a_test_file:
+            protein_language = ProteinLanguage(add_start_and_stop=False)
+            protein_language.add_file(a_test_file.filename, file_type='.fasta')
+            self.assertEqual(protein_language.max_token_sequence_length, 204)
 
     def test_sequence_to_token_indexes(self) -> None:
         """Test sequence_to_token_indexes."""

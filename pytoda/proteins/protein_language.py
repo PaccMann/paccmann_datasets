@@ -1,6 +1,8 @@
 """Protein language handling."""
 
 import dill
+from upfp import parse_fasta
+
 from ..files import read_smi
 from ..types import Indexes, Tokens
 from .processing import IUPAC_VOCAB, UNIREP_VOCAB
@@ -126,32 +128,50 @@ class ProteinLanguage(object):
             self.max_token_sequence_length = total_number_of_tokens
 
     def add_file(
-        self, filepath: str, index_col: int = 1, chunk_size: int = 100000
+        self,
+        filepath: str,
+        file_type: str = '.smi',
+        index_col: int = 1,
+        chunk_size: int = 100000
     ) -> None:
         """
-        Add a set of SMILES from a .smi file.
+        Add a set of protein sequences from a file.
 
         Args:
-            filepath (str): path to the .smi file.
+            filepath (str): path to the file.
+            file_type (str): Type of file, from {'.smi', '.csv', '.fasta', 
+                '.fasta.gz'}. If '.csv' is selected, it is assumed to be tab-
+                separated.
             chunk_size (int): number of rows to read in a chunk.
-                Defaults to 100000.
-            index_col (int): Data column used for indexing, defaults to 1.
+                Defaults to 100000. Does not apply for fasta files.
+            index_col (int): Data column used for indexing, defaults to 1, does
+                not apply to fasta files.
         """
-
-        try:
-            for chunk in read_smi(
-                filepath,
-                chunk_size=chunk_size,
-                index_col=index_col,
-                names=['Sequence']
-            ):
-                for sequence in chunk['Sequence']:
-                    self.add_sequence(sequence)
-        except Exception:
-            raise KeyError(
-                ".smi file needs to have 2 columns, index needs to be in "
-                f"column ({index_col}), sequences in the other."
+        if file_type not in ['.csv', '.smi', '.fasta', '.fasta.gz']:
+            raise ValueError(
+                "Please provide file of type "
+                "{'.smi', '.csv', '.fasta','.fasta.gz'}"
             )
+
+        if file_type == '.csv' or file_type == '.smi':
+            try:
+                for chunk in read_smi(
+                    filepath,
+                    chunk_size=chunk_size,
+                    index_col=index_col,
+                    names=['Sequence']
+                ):
+                    for sequence in chunk['Sequence']:
+                        self.add_sequence(sequence)
+            except Exception:
+                raise KeyError(
+                    ".smi file needs to have 2 columns, index needs to be in "
+                    f"column ({index_col}), sequences in the other."
+                )
+        elif file_type == '.fasta':
+            database = parse_fasta(filepath, gzipped=False)
+            for item in database:
+                self.add_sequence(item['sequence'])
 
     def add_sequence(self, sequence: str) -> None:
         """

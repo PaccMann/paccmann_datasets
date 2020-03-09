@@ -3,7 +3,6 @@ import os
 import random
 import unittest
 
-import numpy as np
 from torch.utils.data import DataLoader
 
 from pytoda.datasets import ProteinSequenceDataset
@@ -30,6 +29,24 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     another_test_file.filename,
                 )
                 self.assertEqual(len(protein_sequence_dataset), 8)
+
+        # Test parsing of .fasta file
+        content = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
+        MQNPLPEVMSPEHDKRTTTPMSKEANKFIRELDKKPGDLAVVSDFVKRNTGKRLPIGKRS
+        NLYVRICDLSGTIYMGETFILESWEELYLPEPTKMEVLGTLESCCGIPPFPEWIVMVGED
+        QCVYAYGDEEILLFAYSVKQLVEEGIQETGISYKYPDDISDVDEEVLQQDEEIQKIRKKT
+        REFVDKDAQEFQDFLNSLDASLLS
+        >sp|Q91G88|006L_IIV6 Putative KilA-N domain-containing protein 006L OS=Invertebrate iridescent virus 6 OX=176652 GN=IIV6-006L PE=3 SV=1
+        MDSLNEVCYEQIKGTFYKGLFGDFPLIVDKKTGCFNATKLCVLGGKRFVDWNKTLRSKKL
+        IQYYETRCDIKTESLLYEIKGDNNDEITKQITGTYLPKEFILDIASWISVEFYDKCNNII
+        """
+
+        with TestFileContent(content) as a_test_file:
+            protein_sequence_dataset = ProteinSequenceDataset(
+                a_test_file.filename, filetype='.fasta'
+            )
+
+            self.assertEqual(len(protein_sequence_dataset), 2)
 
     def test___getitem__(self) -> None:
         """Test __getitem__."""
@@ -200,6 +217,26 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     protein_sequence_dataset[7].numpy().flatten().tolist(),
                     [pad_index, n_index, c_index, c_index, s_index]
                 )
+
+        # Test parsing of .fasta file
+        content = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
+        MQNPLPEVMSPEHDKRTTTPMSKEANKFIRELDKKPGDLAVVSDFVKRNTGKRLPIGKRS
+        NLYVRICDLSGTIYMGETFILESWEELYLPEPTKMEVLGTLESCCGIPPFPEWIVMVGED
+        QCVYAYGDEEILLFAYSVKQLVEEGIQETGISYKYPDDISDVDEEVLQQDEEIQKIRKKT
+        REFVDKDAQEFQDFLNSLDASLLS
+        >sp|Q91G88|006L_IIV6 Putative KilA-N domain-containing protein 006L OS=Invertebrate iridescent virus 6 OX=176652 GN=IIV6-006L PE=3 SV=1
+        MDSLNEVCYEQIKGTFYKGLFGDFPLIVDKKTGCFNATKLCVLGGKRFVDWNKTLRSKKL
+        IQYYETRCDIKTESLLYEIKGDNNDEITKQITGTYLPKEFILDIASWISVEFYDKCNNII
+        """
+
+        with TestFileContent(content) as a_test_file:
+            protein_sequence_dataset = ProteinSequenceDataset(
+                a_test_file.filename,
+                filetype='.fasta',
+                add_start_and_stop=True
+            )
+
+            self.assertEqual(len(protein_sequence_dataset[1].tolist()), 206)
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
