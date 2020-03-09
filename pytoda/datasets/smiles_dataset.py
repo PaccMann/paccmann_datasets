@@ -36,8 +36,7 @@ class SMILESDataset(Dataset):
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
-        backend: str = 'eager',
-        name: str = 'smiles-dataset',
+        backend: str = 'eager'
     ) -> None:
         """
         Initialize a SMILES dataset.
@@ -74,11 +73,8 @@ class SMILESDataset(Dataset):
                 Defaults to gpu, if available.
             backend (str): memeory management backend.
                 Defaults to eager, prefer speed over memory consumption.
-            name (str): name of the SMILESDataset.
-
         """
         Dataset.__init__(self)
-        self.name = name
         if not (backend in SMILES_DATASET_IMPLEMENTATIONS):
             raise RuntimeError(
                 'backend={} not supported! '.format(backend) +

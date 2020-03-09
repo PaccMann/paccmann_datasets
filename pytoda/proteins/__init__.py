@@ -1,1 +1,0 @@
-from .protein_language import ProteinLanguage  # noqa
