@@ -33,7 +33,9 @@ class _FastaEagerDataset(Dataset):
                             *[
                                 (index, item['sequence'])
                                 for index, item in enumerate(
-                                    parse_fasta(fasta_filepath, gzipped=False)
+                                    parse_fasta(
+                                        fasta_filepath, gzipped=gzipped
+                                    )
                                 )
                             ]
                         )
