@@ -20,6 +20,7 @@ class ProteinLanguage(object):
         self,
         name: str = 'protein-language',
         amino_acid_dict: str = 'iupac',
+        tokenizer: object = list,
         add_start_and_stop: bool = True
     ) -> None:
         """
@@ -29,6 +30,9 @@ class ProteinLanguage(object):
             name (str): name of the ProteinLanguage.
             amino_acid_dict (str): Tokenization regime for amino acid
                 sequence. Defaults to 'iupac', alternative is 'unirep'.
+            tokenizer (object): This needs to be a function used to tokenize
+                the amino acid sequences. The default is list which simply
+                splits the sequence character-by-character.
             add_start_and_stop (bool): add <START> and <STOP> in the sequence,
                 of tokens. Defaults to True.
         """
@@ -51,7 +55,7 @@ class ProteinLanguage(object):
             if '<' not in token
         ]
 
-        self.tokenizer = list
+        self.tokenizer = tokenizer
         self.number_of_tokens = len(self.token_to_index)
         self.index_to_token = {
             index: token
