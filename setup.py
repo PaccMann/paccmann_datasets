@@ -25,14 +25,14 @@ setup(
     license='MIT',
     install_requires=[
         'numpy', 'scikit-learn', 'pandas', 'torch>=1.0.0', 'diskcache', 'dill',
-        'selfies'
+        'selfies', 'upfp'
     ],
     classifiers=[
         'Intended Audience :: Developers',
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     packages=find_packages(),

@@ -2,11 +2,10 @@
 import os
 import pandas as pd
 from itertools import takewhile, repeat
+from typing import Iterable
 
 
-def count_file_lines(
-    filepath: str, buffer_size: int = 1024*1024
-) -> int:
+def count_file_lines(filepath: str, buffer_size: int = 1024 * 1024) -> int:
     """
     Cound lines in a file without persisting it in memory.
 
@@ -23,8 +22,7 @@ def count_file_lines(
         raw_fp = fp.raw
         previous_buffer = None
         for buffer in takewhile(
-            lambda x: x,
-            (raw_fp.read(buffer_size) for _ in repeat(None))
+            lambda x: x, (raw_fp.read(buffer_size) for _ in repeat(None))
         ):
             number_of_lines += buffer.count(new_line)
             previous_buffer = buffer
@@ -32,21 +30,32 @@ def count_file_lines(
     return number_of_lines
 
 
-def read_smi(filepath: str, chunk_size: int = None) -> pd.DataFrame:
+def read_smi(
+    filepath: str,
+    chunk_size: int = None,
+    index_col: int = 1,
+    names: Iterable[str] = ['SMILES']
+) -> pd.DataFrame:
     """
-    Read a .smi in a pd.DataFrame.
+    Read a .smi (or .csv file with tab-separated values) in a pd.DataFrame.
 
     Args:
         filepath (str): path to a .smi file.
-        chunk_size (int): size of the chunk.
-            Defaults to None, a.k.a. no chunking.
+        chunk_size (int): size of the chunk. Defaults to None, a.k.a. no
+            chunking.
+        index_col (int): Data column used for indexing, defaults to 1.
+        names (Iterable[str]): Column names.
 
     Returns:
         pd.DataFrame: a pd.DataFrame containing the SMILES
             where the index is the compound name.
     """
+
     return pd.read_csv(
-        filepath, sep='\t',
-        header=None, index_col=1, names=['SMILES'],
+        filepath,
+        sep='\t',
+        header=None,
+        index_col=index_col,
+        names=names,
         chunksize=chunk_size
     )
