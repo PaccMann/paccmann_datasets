@@ -1,9 +1,15 @@
+[![Updates](https://pyup.io/repos/github/PaccMann/paccmann_datasets/shield.svg)](https://pyup.io/repos/github/PaccMann/paccmann_datasets/)
 [![Build Status](https://travis-ci.org/PaccMann/paccmann_datasets.svg?branch=master)](https://travis-ci.org/PaccMann/paccmann_datasets)
 # pytoda
 
 ## Overview
 
 pytoda - PaccMann P*yTo*rch *Da*taset Classes
+
+`pytoda` is a package that simplifies using biochemcial data for training models
+in `pytorch`. It implements datasets to handle SMILES (`SMILESDataset`, `PolymerDataset`), protein sequences
+(`ProteinSequenceDataset`) or multimodal datasets for downstream prediction
+tasks (`DrugSensitivityDataset`, `ProteinProteinInteractionDataset`).
 
 ## Requirements
 
