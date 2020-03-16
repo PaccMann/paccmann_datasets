@@ -1,3 +1,4 @@
+sudo: required
 dist: trusty
 language: python
 python: 3.6
@@ -10,18 +11,22 @@ install:
   - pip install coverage
 script:
   - CODECOV_TOKEN="de068e1c-a84c-45da-8a41-146b5120b5eb"
-  - bash <(curl -s https://codecov.io/env)
-  - docker run -t pytoda_tests /bin/bash -c "coverage run -m unittest discover"
+  - ci_env="bash <(curl -s https://codecov.io/env)"
+  - ci_post_cov="bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN"
+  # - docker run -t pytoda_tests /bin/bash -c "$ci_env && coverage run -m
+  #   unittest discover && $ci_post_cov"
+  - docker run -t pytoda_tests /bin/bash -c "$ci_env && coverage run -m unittest discover"
   # Copy data from container to host
+  - $ci_env
   - docker ps -a
   - container_id=`docker ps -a | grep -v CONTAINER | cut -d ' ' -f 1`
   - echo $container_id
-  - docker cp "${container_id}:/datasets/coverage.xml" .
-  - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
-
-# after_success:
-#   - codecov
-#   - bash <(curl -s https://codecov.io/bash)
+  - docker cp "${container_id}:/datasets/.coverage" .
+  - $ci_post_cov
+after_success:
+  - coveralls --data_file=.coverage
+  # - codecov
+  # - bash <(curl -s https://codecov.io/bash)
 notifications:
   slack:
     secure: bpk7ySo7JGVP21hGApm1LP2lDynH0bj1PJkFJ+SFqyV7Fbpil9R3q7ONeNk5U4TIaJ4Rz8+ZV0dQ4/qQ+ZUJBq9QwRBffdImdV+AK2IKT3qQ0qBEsEx76Cht4jc+p0P84tRhQ3ter3LhgcVpLdzHNc7/SjfpF2rLal1nOba0RvuHcdJ6WArFjR+ql6EpQvly0j7jt16RWHIlsCV34AuLpmNl9i8XV8aK1Y9SQ3Had0kd+iy8A3vIruNn017conT5tavIZaF7I4+5JSAToN92MVjbSEUF+AkWtf7OJovAj0pyNzi3Dtmk4P7o8brfYCxnQyMGzyHLqK9leXY2oliSNBcVUFKBRDjakxwTZBtXNW3WaWi74u3/voChYGA/VJQuztMEhnQ9uu2L7+Pn20d6HzHkP6r3PQMXPfnT/gupQMTcUB6AAkFDcojPEgbSv62iDhT7UNIyxan7Q1fgaiMuL8+xxaVIaoAdESVdOcYAluI58CPMDOe4O4t49EfOAy1DDhqzF/PS38T2Sl6//P5tCtL2P+c+dElIP7qq2G/l0A3tAzzIhzeWGLAf6WCpQC/NG32p6UIqWdqsuuxY+KavPj+nlBMzvAqQ7uxPq2Q7o+HvGQEVvbfpWXLNBQyB/hEYNPxaPfWddjcFqU0t27CZdnYRoAR0HE5vxNuHTPzrVYk=
