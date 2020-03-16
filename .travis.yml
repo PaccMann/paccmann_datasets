@@ -6,8 +6,6 @@ services:
 before_script:
   - docker pull drugilsberg/rdkit-ubuntu:latest
   - docker build -f .travis/Dockerfile -t pytoda_tests .
-install:
-  - pip install coverage
 script:
   - docker run -it pytoda_tests python3 -m unittest discover -t . -p "test_*py" pytoda
   - codecov_token=de068e1c-a84c-45da-8a41-146b5120b5eb
