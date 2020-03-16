@@ -9,7 +9,6 @@ before_script:
 install:
   - pip install coverage
 script:
-  - docker run -it pytoda_tests python3 -m unittest discover -t . -p "test_*py" pytoda
   - CODECOV_TOKEN="de068e1c-a84c-45da-8a41-146b5120b5eb"
   - bash <(curl -s https://codecov.io/env)
   - docker run -t pytoda_tests /bin/bash -c "coverage run -m unittest discover"
