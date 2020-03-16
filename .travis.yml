@@ -10,8 +10,7 @@ install:
   - pip install coverage
 script:
   - docker run -it pytoda_tests python3 -m unittest discover -t . -p "test_*py" pytoda
-  - coverage run -m unittest discover
-# Push the results back to codecov
+  - docker run coverage run -m unittest discover
 after_success:
   - codecov
   - bash <(curl -s https://codecov.io/bash)
