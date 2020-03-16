@@ -8,5 +8,6 @@ COPY . .
 RUN pip3 install --no-deps .
 RUN apt-get update
 RUN apt-get install python-pip curl git -y
-ADD . $WORKDIR
+RUN pip install codecov
+# Copy git content from current branch
 CMD /bin/bash

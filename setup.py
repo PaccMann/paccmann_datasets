@@ -12,7 +12,7 @@ scripts = []
 
 setup(
     name='pytoda',
-    version='0.0.3',
+    version='0.0.4',
     description='pytoda: PaccMann PyTorch Dataset Classes.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",

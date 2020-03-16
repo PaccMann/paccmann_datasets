@@ -1,5 +1,8 @@
+[![Build
+Status](https://travis-ci.org/PaccMann/paccmann_datasets.svg?branch=master)](https://travis-ci.org/PaccMann/paccmann_datasets)
+[![codecov](https://codecov.io/gh/PaccMann/paccmann_datasets/branch/master/graph/badge.svg)](https://codecov.io/gh/PaccMann/paccmann_datasets)
 [![Updates](https://pyup.io/repos/github/PaccMann/paccmann_datasets/shield.svg)](https://pyup.io/repos/github/PaccMann/paccmann_datasets/)
-[![Build Status](https://travis-ci.org/PaccMann/paccmann_datasets.svg?branch=master)](https://travis-ci.org/PaccMann/paccmann_datasets)
+
 # pytoda
 
 ## Overview
