@@ -8,4 +8,5 @@ COPY . .
 RUN pip3 install --no-deps .
 RUN apt-get update
 RUN apt-get install python-pip curl git -y
+ADD . $WORKDIR
 CMD /bin/bash
