@@ -14,7 +14,9 @@ script:
   - bash <(curl -s https://codecov.io/env)
   - docker run -t pytoda_tests /bin/bash -c "coverage run -m unittest discover"
   # Copy data from container to host
+  - docker ps -a
   - container_id=`docker ps -a | grep -v CONTAINER | cut -d ' ' -f 1`
+  - echo $container_id
   - docker cp "${container_id}:/datasets/coverage.xml" .
   - bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
 
