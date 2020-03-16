@@ -6,4 +6,5 @@ diskcache==4.1.0
 dill==0.3.1.1
 selfies==0.2.4
 upfp==0.0.4
+coverage==5.0.3
 
