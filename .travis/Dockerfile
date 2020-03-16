@@ -7,5 +7,5 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 COPY . .
 RUN pip3 install --no-deps .
 RUN apt-get update
-RUN apt-get -y install curl
+RUN apt-get install python-pip curl git -y
 CMD /bin/bash
