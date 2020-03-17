@@ -205,15 +205,23 @@ class Kekulize(Transform):
         Returns:
             str: Kekulized SMILES of same molecule.
         """
-        molecule = Chem.MolFromSmiles(smiles)
-        Chem.Kekulize(molecule)
-        return Chem.MolToSmiles(
-            molecule,
-            kekuleSmiles=True,
-            allBondsExplicit=self.all_bonds_explicit,
-            allHsExplicit=self.all_hs_explicit,
-            canonical=False
-        )
+        try:
+            molecule = Chem.MolFromSmiles(smiles)
+            Chem.Kekulize(molecule)
+            return Chem.MolToSmiles(
+                molecule,
+                kekuleSmiles=True,
+                allBondsExplicit=self.all_bonds_explicit,
+                allHsExplicit=self.all_hs_explicit,
+                canonical=False
+            )
+        except Exception:
+            warnings.warn(
+                f'Invalid SMILES {smiles}, no kekulization done '
+                f'bondsExplicit: {self.all_bonds_explicit} & HsExplicit: '
+                f'{self.all_hs_explicit} are also ignored.'
+            )
+            return smiles
 
 
 class NotKekulize(Transform):
@@ -235,13 +243,20 @@ class NotKekulize(Transform):
         Returns:
             str: Kekulized SMILES of same molecule.
         """
-        molecule = Chem.MolFromSmiles(smiles)
-        return Chem.MolToSmiles(
-            molecule,
-            allBondsExplicit=self.all_bonds_explicit,
-            allHsExplicit=self.all_hs_explicit,
-            canonical=False
-        )
+        try:
+            molecule = Chem.MolFromSmiles(smiles)
+            return Chem.MolToSmiles(
+                molecule,
+                allBondsExplicit=self.all_bonds_explicit,
+                allHsExplicit=self.all_hs_explicit,
+                canonical=False
+            )
+        except Exception:
+            warnings.warn(
+                f'Invalid SMILES {smiles}, HsExplicit: {self.all_hs_explicit} '
+                f'and bondsExplicit: {self.all_bonds_explicit} are ignored.'
+            )
+            return smiles
 
 
 class Augment(Transform):
@@ -270,6 +285,9 @@ class Augment(Transform):
             str: randomized SMILES representation.
         """
         molecule = Chem.MolFromSmiles(smiles)
+        if molecule is None:
+            warnings.warn(f'Augmentation skipped for invalid mol: {smiles}')
+            return smiles
         atom_indexes = list(range(molecule.GetNumAtoms()))
         if len(atom_indexes) == 0:  # RDkit error handling
             return smiles
@@ -328,22 +346,28 @@ class AugmentTensor(Transform):
             smiles = self.smiles_language.token_indexes_to_smiles(
                 smiles_numerical
             )
-            molecule = Chem.MolFromSmiles(smiles)
-            atom_indexes = list(range(molecule.GetNumAtoms()))
-            if len(atom_indexes) == 0:  # RDkit error handling
-                return smiles
-            np.random.shuffle(atom_indexes)
-            renumbered_molecule = Chem.RenumberAtoms(molecule, atom_indexes)
-            if self.kekule_smiles:
-                Chem.Kekulize(renumbered_molecule)
+            try:
+                molecule = Chem.MolFromSmiles(smiles)
+                atom_indexes = list(range(molecule.GetNumAtoms()))
+                if len(atom_indexes) == 0:  # RDkit error handling
+                    return smiles
+                np.random.shuffle(atom_indexes)
+                renumbered_molecule = Chem.RenumberAtoms(
+                    molecule, atom_indexes
+                )
+                if self.kekule_smiles:
+                    Chem.Kekulize(renumbered_molecule)
 
-            augmented_smiles = Chem.MolToSmiles(
-                renumbered_molecule,
-                canonical=False,
-                kekuleSmiles=self.kekule_smiles,
-                allBondsExplicit=self.all_bonds_explicit,
-                allHsExplicit=self.all_hs_explicit
-            )
+                augmented_smiles = Chem.MolToSmiles(
+                    renumbered_molecule,
+                    canonical=False,
+                    kekuleSmiles=self.kekule_smiles,
+                    allBondsExplicit=self.all_bonds_explicit,
+                    allHsExplicit=self.all_hs_explicit
+                )
+            except Exception:
+                warnings.warn(f'Augmentation skipped, mol invalid: {smiles}')
+                augmented_smiles = smiles
             return self.smiles_language.smiles_to_token_indexes(
                 augmented_smiles
             )
@@ -449,7 +473,14 @@ class Canonicalization(Transform):
     """
 
     def __call__(self, smiles: str) -> str:
-        return Chem.MolToSmiles(Chem.MolFromSmiles(smiles), canonical=True)
+        try:
+            canon = Chem.MolToSmiles(
+                Chem.MolFromSmiles(smiles), canonical=True
+            )
+            return canon
+        except Exception:
+            warnings.warn(f'Invalid SMILES {smiles}, no canonicalization done')
+            return smiles
 
 
 class SMILESToMorganFingerprints(Transform):

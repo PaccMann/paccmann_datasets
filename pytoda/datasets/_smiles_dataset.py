@@ -4,11 +4,13 @@ from torch.utils.data import Dataset
 from ..smiles.processing import (
     tokenize_selfies, tokenize_smiles, SMILES_TOKENIZER
 )
+import warnings
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
     Augment, Kekulize, NotKekulize, LeftPadding, Randomize, RemoveIsomery,
     Selfies, SMILESToTokenIndexes, ToTensor, Canonicalization
 )
+from rdkit import Chem
 from ..transforms import Compose
 from ..types import FileList
 
@@ -114,33 +116,33 @@ class _SMILESDataset(Dataset):
 
         # Build up cascade of SMILES transformations
         # Below transformations are optional
-        _transforms = []
+        language_transforms = []
         if self.canonical:
-            _transforms += [Canonicalization()]
+            language_transforms += [Canonicalization()]
         else:
             if self.remove_bonddir or self.remove_chirality:
-                _transforms += [
+                language_transforms += [
                     RemoveIsomery(
                         bonddir=self.remove_bonddir,
                         chirality=self.remove_chirality
                     )
                 ]
             if self.kekulize:
-                _transforms += [
+                language_transforms += [
                     Kekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
                         all_hs_explicit=self.all_hs_explicit
                     )
                 ]
             else:
-                _transforms += [
+                language_transforms += [
                     NotKekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
                         all_hs_explicit=self.all_hs_explicit
                     )
                 ]
             if self.augment:
-                _transforms += [
+                language_transforms += [
                     Augment(
                         kekule_smiles=self.kekulize,
                         all_bonds_explicit=self.all_bonds_explicit,
@@ -148,16 +150,38 @@ class _SMILESDataset(Dataset):
                     )
                 ]
             if self.selfies:
-                _transforms += [Selfies()]
+                language_transforms += [Selfies()]
 
-        self.language_transforms = Compose(_transforms)
+        self.language_transforms = Compose(language_transforms)
         self._setup_dataset()
         # Run once over dataset to add missing tokens to smiles language
+        invalid_molecules = []
         for index in range(len(self._dataset)):
             self.smiles_language.add_smiles(
                 self.language_transforms(self._dataset[index])
             )
-        transforms = _transforms.copy()
+
+            if Chem.MolFromSmiles(self._dataset[index]) is None:
+                invalid_molecules.append(index)
+
+        # Raise warning about invalid molecules
+        if len(invalid_molecules) > 0:
+            print(
+                f'NOTE: We found {len(invalid_molecules)} invalid smiles. '
+                'Chek the warning trace. We recommend using '
+                'pytoda.smiles.smi_cleaner to remove the invalid SMILES in '
+                'your .smi file.'
+            )
+
+        num_tokens = len(self.smiles_language.token_to_index)
+        # Raise warning if new tokens were added.
+        if len(self.smiles_language.token_to_index) > num_tokens:
+            print(
+                f'NOTE:{len(self.smiles_language.token_to_index) - num_tokens}'
+                'new tokens were added to SMILES language.'
+            )
+
+        transforms = language_transforms.copy()
         transforms += [
             SMILESToTokenIndexes(smiles_language=self.smiles_language)
         ]
