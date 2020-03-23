@@ -1,6 +1,6 @@
-numpy==1.18.1
+numpy==1.18.2
 scikit-learn==0.22.2.post1
-pandas==1.0.2
+pandas==1.0.3
 torch==1.4.0
 diskcache==4.1.0
 dill==0.3.1.1
