@@ -127,7 +127,8 @@ class RemoveIsomery(Transform):
             self._call_fn = self._isomery_call_fn
         else:
             self._call_fn = lambda smiles: Chem.MolToSmiles(
-                Chem.MolFromSmiles(smiles), isomericSmiles=False
+                Chem.MolFromSmiles(smiles, sanitize=False),
+                isomericSmiles=False
             )
 
     def _isomery_call_fn(self, smiles: str) -> str:
@@ -188,11 +189,14 @@ class RemoveIsomery(Transform):
 class Kekulize(Transform):
     """ Transform SMILES to Kekule version """
 
-    def __init__(self, all_bonds_explicit=False, all_hs_explicit=False):
+    def __init__(
+        self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True
+    ):
 
         # NOTE: Explicit bonds or Hs without Kekulization is not supported
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
+        self.sanitize = sanitize
 
     def __call__(self, smiles: str) -> str:
         """
@@ -206,7 +210,10 @@ class Kekulize(Transform):
             str: Kekulized SMILES of same molecule.
         """
         try:
-            molecule = Chem.MolFromSmiles(smiles)
+            molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
+            if not self.sanitize:
+                # Properties as valence are not calculated if sanitize is False
+                molecule.UpdatePropertyCache(strict=False)
             Chem.Kekulize(molecule)
             return Chem.MolToSmiles(
                 molecule,
@@ -225,26 +232,27 @@ class Kekulize(Transform):
 
 
 class NotKekulize(Transform):
-    """ Transform SMILES to Kekule version """
+    """ Transform SMILES without explicitly converting to Kekule version """
 
-    def __init__(self, all_bonds_explicit=False, all_hs_explicit=False):
-
+    def __init__(
+        self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True
+    ):
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
+        self.sanitize = sanitize
 
     def __call__(self, smiles: str) -> str:
         """
-        Apply the kekulization transform.
+        Apply transform.
 
         Args:
             smiles (str): a SMILES representation.
-            all_bonds_explicit (bool): whether bonds are explicitly encoded.
 
         Returns:
-            str: Kekulized SMILES of same molecule.
+            str: SMILES of same molecule.
         """
         try:
-            molecule = Chem.MolFromSmiles(smiles)
+            molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
             return Chem.MolToSmiles(
                 molecule,
                 allBondsExplicit=self.all_bonds_explicit,
@@ -266,13 +274,15 @@ class Augment(Transform):
         self,
         kekule_smiles=False,
         all_bonds_explicit=False,
-        all_hs_explicit=False
+        all_hs_explicit=False,
+        sanitize=True
     ) -> None:
         """ NOTE:  These parameter need to be passed down to the enumerator."""
 
         self.kekule_smiles = kekule_smiles
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
+        self.sanitize = sanitize
 
     def __call__(self, smiles: str) -> str:
         """
@@ -284,10 +294,12 @@ class Augment(Transform):
         Returns:
             str: randomized SMILES representation.
         """
-        molecule = Chem.MolFromSmiles(smiles)
+        molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
         if molecule is None:
             warnings.warn(f'Augmentation skipped for invalid mol: {smiles}')
             return smiles
+        if not self.sanitize:
+            molecule.UpdatePropertyCache(strict=False)
         atom_indexes = list(range(molecule.GetNumAtoms()))
         if len(atom_indexes) == 0:  # RDkit error handling
             return smiles
@@ -315,13 +327,15 @@ class AugmentTensor(Transform):
         smiles_language,
         kekule_smiles=False,
         all_bonds_explicit=False,
-        all_hs_explicit=False
+        all_hs_explicit=False,
+        sanitize=True
     ) -> None:
         """ NOTE:  These parameter need to be passed down to the enumerator."""
         self.smiles_language = smiles_language
         self.kekule_smiles = kekule_smiles
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
+        self.sanitize = sanitize
 
     def update_smiles_language(self, smiles_language):
         if not isinstance(
@@ -347,7 +361,7 @@ class AugmentTensor(Transform):
                 smiles_numerical
             )
             try:
-                molecule = Chem.MolFromSmiles(smiles)
+                molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
                 atom_indexes = list(range(molecule.GetNumAtoms()))
                 if len(atom_indexes) == 0:  # RDkit error handling
                     return smiles
@@ -472,10 +486,14 @@ class Canonicalization(Transform):
             output: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
     """
 
+    def __init__(self, sanitize=True):
+        self.sanitize = sanitize
+
     def __call__(self, smiles: str) -> str:
         try:
             canon = Chem.MolToSmiles(
-                Chem.MolFromSmiles(smiles), canonical=True
+                Chem.MolFromSmiles(smiles, sanitize=self.sanitize),
+                canonical=True
             )
             return canon
         except Exception:
@@ -487,7 +505,11 @@ class SMILESToMorganFingerprints(Transform):
     """Get fingerprints starting from SMILES."""
 
     def __init__(
-        self, radius: int = 2, bits: int = 512, chirality=True
+        self,
+        radius: int = 2,
+        bits: int = 512,
+        chirality=True,
+        sanitize=False
     ) -> None:
         """
         Initialize a SMILES to fingerprints object.
@@ -499,6 +521,7 @@ class SMILESToMorganFingerprints(Transform):
         self.radius = radius
         self.bits = bits
         self.chirality = chirality
+        self.sanitize = sanitize
 
     def __call__(self, smiles: str) -> np.array:
         """
@@ -511,7 +534,10 @@ class SMILESToMorganFingerprints(Transform):
             np.array: the fingerprints.
         """
         try:
-            molecule = Chem.MolFromSmiles(smiles)
+            molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
+            if not self.sanitize:
+                molecule.UpdatePropertyCache(strict=False)
+                AllChem.FastFindRings(molecule)
             fingerprint = AllChem.GetMorganFingerprintAsBitVect(
                 molecule,
                 self.radius,

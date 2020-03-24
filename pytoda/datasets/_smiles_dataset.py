@@ -39,6 +39,7 @@ class _SMILESDataset(Dataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
+        sanitize: bool = True,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu')
     ) -> None:
@@ -73,6 +74,7 @@ class _SMILESDataset(Dataset):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
+            sanitize (bool): Sanitize SMILES. Defaults to True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
         """
@@ -112,6 +114,7 @@ class _SMILESDataset(Dataset):
         self.remove_bonddir = remove_bonddir
         self.remove_chirality = remove_chirality
         self.selfies = selfies
+        self.sanitize = sanitize
         self.device = device
 
         # Build up cascade of SMILES transformations
@@ -131,14 +134,16 @@ class _SMILESDataset(Dataset):
                 language_transforms += [
                     Kekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
-                        all_hs_explicit=self.all_hs_explicit
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
                     )
                 ]
             else:
                 language_transforms += [
                     NotKekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
-                        all_hs_explicit=self.all_hs_explicit
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
                     )
                 ]
             if self.augment:
@@ -146,7 +151,8 @@ class _SMILESDataset(Dataset):
                     Augment(
                         kekule_smiles=self.kekulize,
                         all_bonds_explicit=self.all_bonds_explicit,
-                        all_hs_explicit=self.all_hs_explicit
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
                     )
                 ]
             if self.selfies:
@@ -161,7 +167,9 @@ class _SMILESDataset(Dataset):
                 self.language_transforms(self._dataset[index])
             )
 
-            if Chem.MolFromSmiles(self._dataset[index]) is None:
+            if Chem.MolFromSmiles(
+                self._dataset[index], sanitize=self.sanitize
+            ) is None:
                 invalid_molecules.append(index)
 
         # Raise warning about invalid molecules
