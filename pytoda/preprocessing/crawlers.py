@@ -87,6 +87,12 @@ def get_smiles_from_pubchem(
         smiles (str) -- The SMILES string of the drug name.
     """
 
+    if not kekulize and not sanitize:
+        raise ValueError(
+            'If Kekulize is False, molecule has to be sanitize '
+            '(sanitize cannot be False).'
+        )
+
     if type(drug) != str:
         raise TypeError(
             f'Please insert drug of type str, given was {type(drug)}({drug}).'
