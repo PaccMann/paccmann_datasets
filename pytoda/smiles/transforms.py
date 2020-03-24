@@ -101,7 +101,7 @@ class ToTensor(Transform):
 class RemoveIsomery(Transform):
     """ Remove isomery (isotopic and chiral specifications) from SMILES """
 
-    def __init__(self, bonddir=True, chirality=True) -> None:
+    def __init__(self, bonddir=True, chirality=True, sanitize=True) -> None:
         """
         Keyword Arguments:
             bonddir (bool): whether bond direction information should be
@@ -116,6 +116,7 @@ class RemoveIsomery(Transform):
         self.multichar_atom = re.compile(r'\[[0-9]?[A-Za-z][a-z]?\w?[2-8]?\]')
         self.bonddir = bonddir
         self.chirality = chirality
+        self.sanitize = sanitize
 
         if not self.bonddir and not self.chirality:
             self._call_fn = lambda smiles: smiles
@@ -127,7 +128,7 @@ class RemoveIsomery(Transform):
             self._call_fn = self._isomery_call_fn
         else:
             self._call_fn = lambda smiles: Chem.MolToSmiles(
-                Chem.MolFromSmiles(smiles, sanitize=False),
+                Chem.MolFromSmiles(smiles, sanitize=sanitize),
                 isomericSmiles=False
             )
 
@@ -165,7 +166,9 @@ class RemoveIsomery(Transform):
         smiles = ''.join(new_str).replace('N@@', 'N').replace('N@', 'N')
 
         try:
-            Chem.SanitizeMol(Chem.MolFromSmiles(smiles, sanitize=False))
+            Chem.SanitizeMol(
+                Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
+            )
             return smiles
         except TypeError:
             warnings.warn(f'Invalid SMILES {smiles}')
