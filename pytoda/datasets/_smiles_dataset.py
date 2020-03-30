@@ -92,9 +92,12 @@ class _SMILESDataset(Dataset):
                 self.smiles_language = SMILESLanguage(
                     add_start_and_stop=add_start_and_stop
                 )
-                self.smiles_language.add_smis(self.smi_filepaths)
         else:
             self.smiles_language = smiles_language
+
+        # Add SMIILES to the SMILES Language object
+        num_tokens = len(self.smiles_language.token_to_index)
+        self.smiles_language.add_smis(self.smi_filepaths)
 
         # Set up transformation paramater
         self.padding = padding
@@ -152,7 +155,6 @@ class _SMILESDataset(Dataset):
                 language_transforms += [Selfies()]
 
         self.language_transforms = Compose(language_transforms)
-        num_tokens = len(self.smiles_language.token_to_index)
         self._setup_dataset()
 
         # If we use language transforms: add missing tokens to smiles language
@@ -175,12 +177,12 @@ class _SMILESDataset(Dataset):
                     ' your .smi file.'
                 )
 
-            # Raise warning if new tokens were added.
-            if len(self.smiles_language.token_to_index) > num_tokens:
-                print(
-                    f'{len(self.smiles_language.token_to_index) - num_tokens}'
-                    'new tokens were added to SMILES language.'
-                )
+        # Raise warning if new tokens were added.
+        if len(self.smiles_language.token_to_index) > num_tokens:
+            print(
+                f'{len(self.smiles_language.token_to_index) - num_tokens}'
+                ' new token(s) were added to SMILES language.'
+            )
 
         transforms = language_transforms.copy()
         transforms += [
