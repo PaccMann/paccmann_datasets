@@ -4,7 +4,6 @@ from torch.utils.data import Dataset
 from ..smiles.processing import (
     tokenize_selfies, tokenize_smiles, SMILES_TOKENIZER
 )
-import warnings
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
     Augment, Kekulize, NotKekulize, LeftPadding, Randomize, RemoveIsomery,
@@ -134,7 +133,7 @@ class _SMILESDataset(Dataset):
                         all_hs_explicit=self.all_hs_explicit
                     )
                 ]
-            else:
+            elif self.all_bonds_explicit or self.all_hs_explicit:
                 language_transforms += [
                     NotKekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
@@ -153,33 +152,35 @@ class _SMILESDataset(Dataset):
                 language_transforms += [Selfies()]
 
         self.language_transforms = Compose(language_transforms)
-        self._setup_dataset()
-        # Run once over dataset to add missing tokens to smiles language
-        invalid_molecules = []
-        for index in range(len(self._dataset)):
-            self.smiles_language.add_smiles(
-                self.language_transforms(self._dataset[index])
-            )
-
-            if Chem.MolFromSmiles(self._dataset[index]) is None:
-                invalid_molecules.append(index)
-
-        # Raise warning about invalid molecules
-        if len(invalid_molecules) > 0:
-            print(
-                f'NOTE: We found {len(invalid_molecules)} invalid smiles. '
-                'Chek the warning trace. We recommend using '
-                'pytoda.smiles.smi_cleaner to remove the invalid SMILES in '
-                'your .smi file.'
-            )
-
         num_tokens = len(self.smiles_language.token_to_index)
-        # Raise warning if new tokens were added.
-        if len(self.smiles_language.token_to_index) > num_tokens:
-            print(
-                f'NOTE:{len(self.smiles_language.token_to_index) - num_tokens}'
-                'new tokens were added to SMILES language.'
-            )
+        self._setup_dataset()
+
+        # If we use language transforms: add missing tokens to smiles language
+        if len(self.language_transforms.transforms) > 0:
+
+            invalid_molecules = []
+            for index in range(len(self._dataset)):
+                self.smiles_language.add_smiles(
+                    self.language_transforms(self._dataset[index])
+                )
+
+                if Chem.MolFromSmiles(self._dataset[index]) is None:
+                    invalid_molecules.append(index)
+            # Raise warning about invalid molecules
+            if len(invalid_molecules) > 0:
+                print(
+                    f'NOTE: We found {len(invalid_molecules)} invalid smiles. '
+                    'Check the warning trace. We recommend using '
+                    'pytoda.smiles.smi_cleaner to remove the invalid SMILES in'
+                    ' your .smi file.'
+                )
+
+            # Raise warning if new tokens were added.
+            if len(self.smiles_language.token_to_index) > num_tokens:
+                print(
+                    f'{len(self.smiles_language.token_to_index) - num_tokens}'
+                    'new tokens were added to SMILES language.'
+                )
 
         transforms = language_transforms.copy()
         transforms += [
