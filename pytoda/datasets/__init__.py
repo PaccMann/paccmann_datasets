@@ -8,3 +8,4 @@ from .polymer_dataset import PolymerDataset  # noqa
 from .protein_protein_interaction_dataset import (  # noqa
     ProteinProteinInteractionDataset
 )
+from .drug_protein_affinity_dataset import DrugProteinAffinityDataset  # noqa
