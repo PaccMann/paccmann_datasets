@@ -1,15 +1,18 @@
 """Implementation of _SMILESDataset."""
+import warnings
+
 import torch
+from rdkit import Chem
 from torch.utils.data import Dataset
+
 from ..smiles.processing import (
-    tokenize_selfies, tokenize_smiles, SMILES_TOKENIZER
+    SMILES_TOKENIZER, tokenize_selfies, tokenize_smiles
 )
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
-    Augment, Kekulize, NotKekulize, LeftPadding, Randomize, RemoveIsomery,
-    Selfies, SMILESToTokenIndexes, ToTensor, Canonicalization
+    Augment, Canonicalization, Kekulize, LeftPadding, NotKekulize, Randomize,
+    RemoveIsomery, Selfies, SMILESToTokenIndexes, ToTensor
 )
-from rdkit import Chem
 from ..transforms import Compose
 from ..types import FileList
 
@@ -74,6 +77,16 @@ class _SMILESDataset(Dataset):
                 to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
+
+        NOTE: If the setup is too slow, consider skipping all SMILES language
+            transforms. To achieve this, set ALL following arguments to False:
+                - `canonical`
+                - `augment`
+                - `kekulize`
+                - `all_bonds_explicit`
+                - `all_hs_explicit`
+                - `remove_bonddir`
+                - `remove_chirality`
         """
         Dataset.__init__(self)
         # Parse language object and data paths
@@ -92,12 +105,9 @@ class _SMILESDataset(Dataset):
                 self.smiles_language = SMILESLanguage(
                     add_start_and_stop=add_start_and_stop
                 )
+                self.smiles_language.add_smis(self.smi_filepaths)
         else:
             self.smiles_language = smiles_language
-
-        # Add SMIILES to the SMILES Language object
-        num_tokens = len(self.smiles_language.token_to_index)
-        self.smiles_language.add_smis(self.smi_filepaths)
 
         # Set up transformation paramater
         self.padding = padding
@@ -155,9 +165,22 @@ class _SMILESDataset(Dataset):
                 language_transforms += [Selfies()]
 
         self.language_transforms = Compose(language_transforms)
+        num_tokens = len(self.smiles_language.token_to_index)
         self._setup_dataset()
 
         # If we use language transforms: add missing tokens to smiles language
+        if (
+            smiles_language is not None
+            and len(self.language_transforms.transforms) == 0
+        ):
+            print(
+                'WARNING: You operate in the fast-setup regime.\nIf you pass a'
+                ' SMILESLanguage object, but dont specify any SMILES language'
+                ' transform, no pass is given over all SMILES in '
+                f'{self.smi_filepaths}.\nCheck *yourself* that all SMILES '
+                'tokens are known to your SMILESLanguage object.'
+            )
+
         if len(self.language_transforms.transforms) > 0:
 
             invalid_molecules = []
@@ -177,12 +200,12 @@ class _SMILESDataset(Dataset):
                     ' your .smi file.'
                 )
 
-        # Raise warning if new tokens were added.
-        if len(self.smiles_language.token_to_index) > num_tokens:
-            print(
-                f'{len(self.smiles_language.token_to_index) - num_tokens}'
-                ' new token(s) were added to SMILES language.'
-            )
+            # Raise warning if new tokens were added.
+            if len(self.smiles_language.token_to_index) > num_tokens:
+                print(
+                    f'{len(self.smiles_language.token_to_index) - num_tokens}'
+                    ' new token(s) were added to SMILES language.'
+                )
 
         transforms = language_transforms.copy()
         transforms += [
