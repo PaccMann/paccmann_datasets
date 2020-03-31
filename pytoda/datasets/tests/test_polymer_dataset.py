@@ -180,7 +180,8 @@ class TestPolymerDataset(unittest.TestCase):
                             a_test_file.filename, another_test_file.filename
                         ],
                         annotations_filepath=annotation_file.filename,
-                        entity_names=['monomer', 'cATalysT']
+                        entity_names=['monomer', 'cATalysT'],
+                        remove_bonddir=True
                     )
 
                     pad_ind = polymer_dataset.smiles_language.padding_index
@@ -282,7 +283,8 @@ class TestPolymerDataset(unittest.TestCase):
                         ],
                         annotations_filepath=annotation_file.filename,
                         entity_names=['monomer', 'cATalysT'],
-                        annotations_column_names=['label_0']
+                        annotations_column_names=['label_0'],
+                        remove_bonddir=True
                     )
                     pad_ind = polymer_dataset.smiles_language.padding_index
                     monomer_start_ind = (
