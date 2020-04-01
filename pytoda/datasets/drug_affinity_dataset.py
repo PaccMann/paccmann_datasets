@@ -133,7 +133,7 @@ class DrugAffinityDataset(Dataset):
             device=self.device,
             backend=self.backend
         )
-        # gene expression
+        # protein sequences
         self.protein_sequence_dataset = ProteinSequenceDataset(
             self.protein_filepath,
             protein_language=protein_language,

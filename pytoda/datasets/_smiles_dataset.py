@@ -194,8 +194,8 @@ class _SMILESDataset(Dataset):
                 print(
                     f'NOTE: We found {len(invalid_molecules)} invalid smiles. '
                     'Check the warning trace. We recommend using '
-                    'pytoda.smiles.smi_cleaner to remove the invalid SMILES in'
-                    ' your .smi file.'
+                    'pytoda.preprocessing.smi.smi_cleaner to remove the '
+                    'invalid SMILES in your .smi file.'
                 )
 
             # Raise warning if new tokens were added.
