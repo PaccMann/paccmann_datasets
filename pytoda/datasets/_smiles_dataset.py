@@ -1,6 +1,4 @@
 """Implementation of _SMILESDataset."""
-import warnings
-
 import torch
 from rdkit import Chem
 from torch.utils.data import Dataset

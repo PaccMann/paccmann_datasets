@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """Filter our invalid SMILES from a .smi file."""
 import argparse
-import pandas as pd
-from pytoda.files import read_smi
-from rdkit import Chem
+from pytoda.preprocessing.smi import filter_invalid_smi
 
 # define the parser arguments
 parser = argparse.ArgumentParser()
@@ -26,32 +24,10 @@ parser.add_argument(
     required=False
 )
 
-
-def execute_filter(input_filepath, output_filepath, chunk_size):
-    """
-    Execute the filter.
-
-    Args:
-        input_filepath (str): path to the .smi file to process.
-        output_filepath (str): path where to store the filtered .smi file.
-        chunk_size (int): size of the SMILES chunk.
-    """
-    for chunk in read_smi(input_filepath, chunk_size=chunk_size):
-        pd.DataFrame([
-            [row['SMILES'], index]
-            for index, row in chunk.iterrows()
-            if Chem.MolFromSmiles(row['SMILES'])
-        ]).to_csv(
-            output_filepath,
-            index=None, header=None,
-            mode='a'
-        )
-
-
 if __name__ == '__main__':
     # parse arguments
     args = parser.parse_args()
     # run the filter
-    execute_filter(
+    filter_invalid_smi(
         args.input_filepath, args.output_filepath, args.chunk_size
     )

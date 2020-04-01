@@ -14,13 +14,13 @@ PUBCHEM_END = '/TXT'
 def get_smiles_from_zinc(drug: Union[str, int]) -> str:
     """
     Uses the ZINC databases to retrieve the SMILES of a ZINC ID (int) or a drug
-    name (str). 
+    name (str).
 
     Args:
-        drug (Union[str, int]) -- A string with a drug name or an int of a ZINC
+        drug (Union[str, int]): a string with a drug name or an int of a ZINC
             ID.
     Returns:
-        smiles (str) -- The SMILES string of the drug name or ZINC ID.
+        smiles (str): The SMILES string of the drug name or ZINC ID.
     """
 
     if type(drug) != str and type(drug) != int:
@@ -67,16 +67,15 @@ def get_smiles_from_pubchem(
     drug: str, use_isomeric: bool = True, kekulize: bool = False
 ) -> str:
     """
-
-    Uses the PubChem database to retrieve the SMILES of a drug name (str). 
+    Uses the PubChem database to retrieve the SMILES of a drug name (str).
 
     Args:
-        drug (str) -- A string with a drug name (or a PubChem ID as a string).
+        drug (str): string with a drug name (or a PubChem ID as a string).
         use_isomeric (bool, optional) - If available, returns the isomeric
             SMILES, not the canonical one.
-        kekulize (bool, optional) -- Whether kekulization is used. PubChem uses
+        kekulize (bool, optional): whether kekulization is used. PubChem uses
             kekulization per default, so setting this to 'True' will not
-            perform any operation on the retrieved SMILES. 
+            perform any operation on the retrieved SMILES.
             NOTE: Setting it to 'False' will convert aromatic atoms to lower-
             case characters and *induces a RDKit dependency*
     Returns:
