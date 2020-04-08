@@ -127,6 +127,18 @@ class PolymerDataset(SMILESDataset):
                 remove_chirality, selfies
             )
         )
+
+        self._init_smis(smi_filepaths, entity_names, smiles_language)
+
+        self._init_annotation_files(
+            annotations_filepath, annotations_column_names
+        )
+
+    def _init_smis(self, smi_filepaths, entity_names, smiles_language):
+        """Initialize the SMILESDataset part of the dataset (loads
+        smis)
+        """
+
         # Create one SMILES dataset per chemical entity
         self._datasets = [
             SMILESDataset(
@@ -144,7 +156,7 @@ class PolymerDataset(SMILESDataset):
                 remove_bonddir=self.remove_bonddirs[index],
                 remove_chirality=self.remove_chiralitys[index],
                 selfies=self.selfies[index],
-                device=device
+                device=self.device
             ) for index in range(len(smi_filepaths))
         ]
         """
@@ -165,6 +177,10 @@ class PolymerDataset(SMILESDataset):
                     tokenizer_index[-1]
                 ].smiles_language = dataset.smiles_language  # yapf: disable
 
+    def _init_annotation_files(
+        self, annotations_filepath, annotations_column_names
+    ):
+        """Initialize the annotation files part of the dataset"""
         # Read and post-process the annotations dataframe
         self.annotations_filepath = annotations_filepath
         self.annotated_data_df = pd.read_csv(self.annotations_filepath)
