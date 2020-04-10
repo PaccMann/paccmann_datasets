@@ -1,9 +1,69 @@
 """Testing AnnotatedDataset dataset with eager backend."""
 import unittest
+from functools import wraps
+
 import os
 import numpy as np
+
+from pytoda.datasets._polymer_dataset import _PolymerDatasetNoAnnotation
+
 from pytoda.datasets import PolymerDataset
 from pytoda.tests.utils import TestFileContent
+
+
+def mock_input(fn):
+
+    @wraps(fn)
+    def mock_wrapper(self):
+        content_monomer = os.linesep.join(
+            [
+                'CCO	CHEMBL545',
+                'C	CHEMBL17564',
+                'CO	CHEMBL14688',
+                'NCCS	CHEMBL602',
+            ]
+        )
+        content_catalyst = os.linesep.join(
+            [
+                'N#CCCC1CCCC1=NNc1ccc([N+](=O)[O-])cc1	CHEMBL543',
+                'CC	CHEMBL17',
+                'NCCSCCCCC	CHEMBL6402',
+            ]
+        )
+
+        with TestFileContent(content_monomer) as a_test_file:
+            with TestFileContent(content_catalyst) as another_test_file:
+                fn(
+                    self,
+                    mock_file_1=a_test_file,
+                    mock_file_2=another_test_file
+                )
+
+    return mock_wrapper
+
+
+def _getitem_helper(polymer_dataset):
+    pad_ind = polymer_dataset.smiles_language.padding_index
+    monomer_start_ind = (
+        polymer_dataset.smiles_language.token_to_index['<MONOMER_START>']
+    )
+    monomer_stop_ind = (
+        polymer_dataset.smiles_language.token_to_index['<MONOMER_STOP>']
+    )
+    catalyst_start_ind = (
+        polymer_dataset.smiles_language.token_to_index['<CATALYST_START>']
+    )
+    catalyst_stop_ind = (
+        polymer_dataset.smiles_language.token_to_index['<CATALYST_STOP>']
+    )
+    c_ind = polymer_dataset.smiles_language.token_to_index['C']
+    o_ind = polymer_dataset.smiles_language.token_to_index['O']
+    n_ind = polymer_dataset.smiles_language.token_to_index['N']
+    s_ind = polymer_dataset.smiles_language.token_to_index['S']
+    return (
+        pad_ind, monomer_start_ind, monomer_stop_ind, catalyst_start_ind,
+        catalyst_stop_ind, c_ind, o_ind, n_ind, s_ind
+    )
 
 
 class TestPolymerDataset(unittest.TestCase):
@@ -346,6 +406,71 @@ class TestPolymerDataset(unittest.TestCase):
                     self.assertTrue(
                         np.allclose(labels.numpy().flatten().tolist(), [6.7])
                     )
+
+
+class TestPolymerDatasetNoAnnotation(unittest.TestCase):
+    """Testing the non-annotated polymer dataset"""
+
+    @mock_input
+    def test___init__(self, mock_file_1, mock_file_2) -> None:
+        _PolymerDatasetNoAnnotation(
+            smi_filepaths=[mock_file_1.filename, mock_file_2.filename],
+            entity_names=['monomer', 'cATalysT']
+        )
+
+    @mock_input
+    def test___len__(self, mock_file_1, mock_file_2) -> None:
+
+        polymer_dataset = _PolymerDatasetNoAnnotation(
+            smi_filepaths=[mock_file_1.filename, mock_file_2.filename],
+            entity_names=['monomer', 'cATalysT']
+        )
+
+        self.assertEqual(len(polymer_dataset), 7)
+
+    @mock_input
+    def test___getitem__(self, mock_file_1, mock_file_2) -> None:
+        polymer_dataset = _PolymerDatasetNoAnnotation(
+            smi_filepaths=[mock_file_1.filename, mock_file_2.filename],
+            entity_names=['monomer', 'cATalysT'],
+            remove_bonddir=True
+        )
+        (
+            pad_ind, monomer_start_ind, monomer_stop_ind, catalyst_start_ind,
+            catalyst_stop_ind, c_ind, o_ind, n_ind, s_ind
+        ) = _getitem_helper(polymer_dataset)
+        # test first sample
+        monomer = polymer_dataset['monomer', 0]
+        catalyst = polymer_dataset['catalyst', 1]
+
+        self.assertEqual(
+            monomer.numpy().flatten().tolist(), [
+                pad_ind, monomer_start_ind, c_ind, c_ind, o_ind,
+                monomer_stop_ind
+            ]
+        )
+
+        self.assertEqual(
+            catalyst.numpy().flatten().tolist(), [
+                *(29 * [pad_ind]), catalyst_start_ind, c_ind, c_ind,
+                catalyst_stop_ind
+            ]
+        )
+
+        # monomer, catalyst, labels = polymer_dataset[2]
+
+        # self.assertEqual(
+        #     monomer.numpy().flatten().tolist(),
+        #     [monomer_start_ind, n_ind, c_ind, c_ind, s_ind, monomer_stop_ind]
+        # )
+        # self.assertEqual(
+        #     catalyst.numpy().flatten().tolist(), [
+        #         pad_ind, pad_ind, pad_ind, pad_ind, pad_ind, pad_ind, pad_ind,
+        #         pad_ind, pad_ind, catalyst_start_ind, c_ind, c_ind,
+        #         catalyst_stop_ind
+        #     ]
+        # )
+        # self.assertTrue(np.allclose(labels.numpy().flatten().tolist(), [6.7]))
 
 
 if __name__ == '__main__':
