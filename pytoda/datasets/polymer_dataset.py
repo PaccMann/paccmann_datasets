@@ -1,13 +1,8 @@
 """PolymerDataset module."""
-from copy import deepcopy
 from typing import Iterable, List, Union
 
-import pandas as pd
 import torch
-from numpy import iterable
-from ..smiles.transforms import SMILESToTokenIndexes
 from ..smiles.polymer_language import PolymerLanguage
-from .smiles_dataset import SMILESDataset
 
 from ._polymer_dataset import \
     _PolymerDatasetAnnotation, _PolymerDatasetNoAnnotation

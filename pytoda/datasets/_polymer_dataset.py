@@ -5,9 +5,13 @@ from typing import Iterable, List, Union, Tuple
 import pandas as pd
 import torch
 from numpy import iterable
+
+from ..transforms import Compose
 from ..smiles.transforms import SMILESToTokenIndexes
 from ..smiles.polymer_language import PolymerLanguage
 from .smiles_dataset import SMILESDataset
+
+# pylint: disable=not-callable, no-member
 
 
 class _PolymerDataset(SMILESDataset):
@@ -182,6 +186,9 @@ class _PolymerDataset(SMILESDataset):
                     tokenizer_index[-1]
                 ].smiles_language = dataset.smiles_language  # yapf: disable
 
+        # Flag: Return to get untokenised smiles
+        self._returning_tensors = True
+
     def _init_annotation_files(
         self, annotations_filepath, annotations_column_names
     ):
@@ -235,6 +242,26 @@ class _PolymerDataset(SMILESDataset):
 
         self.available_entity_ids = available_entity_ids
         self.number_of_samples = self.annotated_data_df.shape[0]
+
+    def set_mode_smiles(self):
+        """Set dataset to return the original SMILES strings intead of tensors"""
+        if not self._returning_tensors:
+            return
+        self._bakup_transforms = []
+        for ds in self._datasets:
+            self._bakup_transforms.append(deepcopy(ds._dataset.transform))
+            ds._dataset.transform = Compose([])
+        self._returning_tensors = False
+
+    def set_mode_tensor(self):
+        """Set dataset to return tensors of tokens"""
+        if self._returning_tensors:
+            return
+        for ds, transform in zip(
+            self._datasets, self._bakup_transforms
+        ):
+            ds._dataset.transform = transform
+        self._returning_tensors = True
 
     def __len__(self, *args, **kwargs):
         raise NotImplementedError()
@@ -302,7 +329,9 @@ class _PolymerDatasetNoAnnotation(_PolymerDataset):
         """Total count of elements in the datset"""
         return sum(self.sizes.values())
 
-    def __getitem__(self, index_entity: Tuple[Union[str, int], int]) -> torch.Tensor:
+    def __getitem__(
+        self, index_entity: Tuple[Union[str, int], int]
+    ) -> torch.Tensor:
         """Gets one sample of data from a given entity.
 
         Args:

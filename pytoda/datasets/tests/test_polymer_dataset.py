@@ -458,6 +458,33 @@ class TestPolymerDatasetNoAnnotation(unittest.TestCase):
             ]
         )
 
+    @mock_input
+    def test__return_modes(self, mock_file_1, mock_file_2) -> None:
+        polymer_dataset = _PolymerDatasetNoAnnotation(
+            smi_filepaths=[mock_file_1.filename, mock_file_2.filename],
+            entity_names=['monomer', 'cATalysT'],
+            remove_bonddir=True
+        )
+        polymer_dataset.set_mode_smiles()
+        monomer = polymer_dataset['monomer', 3]
+
+        self.assertEqual(monomer, 'NCCS')
+
+        polymer_dataset.set_mode_tensor()
+        monomer = polymer_dataset['monomer', 3]
+
+        (
+            pad_ind, monomer_start_ind, monomer_stop_ind, catalyst_start_ind,
+            catalyst_stop_ind, c_ind, o_ind, n_ind, s_ind
+        ) = _getitem_helper(polymer_dataset)
+
+        self.assertEqual(
+            monomer.numpy().flatten().tolist(), [
+                monomer_start_ind, n_ind, c_ind, c_ind, s_ind,
+                monomer_stop_ind
+            ]
+        )
+
 
 class TestPolymerDataset(unittest.TestCase):
 
@@ -474,9 +501,7 @@ class TestPolymerDataset(unittest.TestCase):
         )
         with TestFileContent(annotated_content) as annotation_file:
             PolymerDataset(
-                smi_filepaths=[
-                    mock_file_1.filename, mock_file_2.filename
-                ],
+                smi_filepaths=[mock_file_1.filename, mock_file_2.filename],
                 entity_names=['monomer', 'cATalysT'],
                 annotations_filepath=annotation_file.filename
             )
