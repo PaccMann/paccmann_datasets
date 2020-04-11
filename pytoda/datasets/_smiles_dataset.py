@@ -6,11 +6,13 @@ from torch.utils.data import Dataset
 from ..smiles.processing import (
     SMILES_TOKENIZER, tokenize_selfies, tokenize_smiles
 )
+import warnings
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
     Augment, Canonicalization, Kekulize, LeftPadding, NotKekulize, Randomize,
     RemoveIsomery, Selfies, SMILESToTokenIndexes, ToTensor
 )
+from rdkit import Chem
 from ..transforms import Compose
 from ..types import FileList
 
@@ -39,6 +41,7 @@ class _SMILESDataset(Dataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
+        sanitize: bool = True,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu')
     ) -> None:
@@ -73,6 +76,7 @@ class _SMILESDataset(Dataset):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
+            sanitize (bool): Sanitize SMILES. Defaults to True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
 
@@ -122,6 +126,7 @@ class _SMILESDataset(Dataset):
         self.remove_bonddir = remove_bonddir
         self.remove_chirality = remove_chirality
         self.selfies = selfies
+        self.sanitize = sanitize
         self.device = device
 
         # Build up cascade of SMILES transformations
@@ -141,14 +146,16 @@ class _SMILESDataset(Dataset):
                 language_transforms += [
                     Kekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
-                        all_hs_explicit=self.all_hs_explicit
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
                     )
                 ]
             elif self.all_bonds_explicit or self.all_hs_explicit:
                 language_transforms += [
                     NotKekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
-                        all_hs_explicit=self.all_hs_explicit
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
                     )
                 ]
             if self.augment:
@@ -156,7 +163,8 @@ class _SMILESDataset(Dataset):
                     Augment(
                         kekule_smiles=self.kekulize,
                         all_bonds_explicit=self.all_bonds_explicit,
-                        all_hs_explicit=self.all_hs_explicit
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
                     )
                 ]
             if self.selfies:

@@ -44,7 +44,6 @@ def PolymerDataset(
     All SMILES dataset parameter can be controlled either separately for each
     dataset (by iterable of correct length) or globally (bool/int).
 
-
     Args:
         smi_filepaths (FileList): paths to .smi files, one per entity
         entity_names (Iterable[str]): List of chemical entities.

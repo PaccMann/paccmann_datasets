@@ -1,5 +1,6 @@
 """Testing SMILES transforms."""
 import unittest
+import itertools
 
 import numpy as np
 import torch
@@ -13,7 +14,12 @@ from pytoda.smiles.transforms import (
 class TestTransforms(unittest.TestCase):
     """Testing transforms."""
 
-    def test_kekulize(self) -> None:
+    def test_kekulize(self):
+        sanitize_opts = [True, False]
+        for sanitize in sanitize_opts:
+            self._test_kekulize(sanitize)
+
+    def _test_kekulize(self, sanitize) -> None:
         """Test Kekulize."""
         for smiles, ground_truth in [
             ('c1cnoc1', 'C1=CON=C1'),
@@ -21,7 +27,9 @@ class TestTransforms(unittest.TestCase):
             ('c1snnc1-c1ccccn1', 'C1=C(C2=CC=CC=N2)N=NS1')
         ]:
             transform = Kekulize(
-                all_bonds_explicit=False, all_hs_explicit=False
+                all_bonds_explicit=False,
+                all_hs_explicit=False,
+                sanitize=sanitize
             )
             self.assertEqual(transform(smiles), ground_truth)
 
@@ -31,7 +39,9 @@ class TestTransforms(unittest.TestCase):
             ('c1snnc1-c1ccccn1', 'C1=C(-C2=C-C=C-C=N-2)-N=N-S-1')
         ]:
             transform = Kekulize(
-                all_bonds_explicit=True, all_hs_explicit=False
+                all_bonds_explicit=True,
+                all_hs_explicit=False,
+                sanitize=sanitize
             )
             self.assertEqual(transform(smiles), ground_truth)
 
@@ -44,7 +54,9 @@ class TestTransforms(unittest.TestCase):
             )
         ]:
             transform = Kekulize(
-                all_bonds_explicit=False, all_hs_explicit=True
+                all_bonds_explicit=False,
+                all_hs_explicit=True,
+                sanitize=sanitize
             )
             self.assertEqual(transform(smiles), ground_truth)
 
@@ -56,17 +68,28 @@ class TestTransforms(unittest.TestCase):
                 '[CH]1=[C](-[C]2=[CH]-[CH]=[CH]-[CH]=[N]-2)-[N]=[N]-[S]-1'
             )
         ]:
-            transform = Kekulize(all_bonds_explicit=True, all_hs_explicit=True)
+            transform = Kekulize(
+                all_bonds_explicit=True,
+                all_hs_explicit=True,
+                sanitize=sanitize
+            )
             self.assertEqual(transform(smiles), ground_truth)
 
     def test_non_kekulize(self) -> None:
+        sanitize_opts = [True, False]
+        for sanitize in sanitize_opts:
+            self._test_non_kekulize(sanitize)
+
+    def _test_non_kekulize(self, sanitize) -> None:
         """Test NotKekulize."""
         for smiles, ground_truth in [
             ('c1cnoc1', 'c1cnoc1'), ('[O-][n+]1ccccc1S', '[O-][n+]1ccccc1S'),
             ('c1snnc1-c1ccccn1', 'c1snnc1-c1ccccn1')
         ]:
             transform = NotKekulize(
-                all_bonds_explicit=False, all_hs_explicit=False
+                all_bonds_explicit=False,
+                all_hs_explicit=False,
+                sanitize=sanitize
             )
             self.assertEqual(transform(smiles), ground_truth)
 
@@ -76,7 +99,9 @@ class TestTransforms(unittest.TestCase):
             ('c1snnc1-c1ccccn1', 'c1:s:n:n:c:1-c1:c:c:c:c:n:1')
         ]:
             transform = NotKekulize(
-                all_bonds_explicit=True, all_hs_explicit=False
+                all_bonds_explicit=True,
+                all_hs_explicit=False,
+                sanitize=sanitize
             )
             self.assertEqual(transform(smiles), ground_truth)
 
@@ -89,7 +114,9 @@ class TestTransforms(unittest.TestCase):
             )
         ]:
             transform = NotKekulize(
-                all_bonds_explicit=False, all_hs_explicit=True
+                all_bonds_explicit=False,
+                all_hs_explicit=True,
+                sanitize=sanitize
             )
             self.assertEqual(transform(smiles), ground_truth)
 
@@ -102,26 +129,36 @@ class TestTransforms(unittest.TestCase):
             )
         ]:
             transform = NotKekulize(
-                all_bonds_explicit=True, all_hs_explicit=True
+                all_bonds_explicit=True,
+                all_hs_explicit=True,
+                sanitize=sanitize
             )
             self.assertEqual(transform(smiles), ground_truth)
 
     def test_remove_isomery(self) -> None:
         """Test RemoveIsomery."""
 
-        for bonddir, chirality, smiles, ground_truth in zip(
+        for bonddir, chirality, smiles, ground_truth, sanitize in zip(
             [False, False, True, True],
             [False, True, False, True],
             4 * ['C/C=C/C[C@H](O)Cc1ccccc1'],
             [
                 'C/C=C/C[C@H](O)Cc1ccccc1', 'C/C=C/CC(O)Cc1ccccc1',
                 'CC=CC[C@H](O)Cc1ccccc1', 'CC=CCC(O)Cc1ccccc1'
-            ]
+            ],
+            [True, False]
         ):  # yapf: disable
-            transform = RemoveIsomery(bonddir=bonddir, chirality=chirality)
+            transform = RemoveIsomery(
+                bonddir=bonddir, chirality=chirality, sanitize=sanitize
+            )
             self.assertEqual(transform(smiles), ground_truth)
 
     def test_augment_tensor(self) -> None:
+        sanitize_opts = [True, False]
+        for sanitize in sanitize_opts:
+            self._test_augment_tensor(sanitize)
+
+    def _test_augment_tensor(self, sanitize) -> None:
         """Test AugmentTensor."""
 
         smiles = 'NCCS'
@@ -129,7 +166,7 @@ class TestTransforms(unittest.TestCase):
         smiles_language.add_smiles(smiles)
 
         np.random.seed(0)
-        transform = AugmentTensor(smiles_language)
+        transform = AugmentTensor(smiles_language, sanitize=sanitize)
         smiles_num_list = smiles_language.smiles_to_token_indexes(smiles)
 
         for augmented_smile in ['C(S)CN', 'NCCS', 'SCCN', 'C(N)CS', 'C(CS)N']:

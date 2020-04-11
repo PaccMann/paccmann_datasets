@@ -147,7 +147,8 @@ class TestPolymerDatasetAnnotation(unittest.TestCase):
                         annotations_filepath=annotation_file.filename,
                         entity_names=['monomer', 'cATalysT'],
                         all_bonds_explicit=True,
-                        all_hs_explicit=[True, False]
+                        all_hs_explicit=[True, False],
+                        sanitize=[True, False]
                     )
 
                     pad_ind = polymer_dataset.smiles_language.padding_index
