@@ -5,8 +5,8 @@ from functools import wraps
 import os
 import numpy as np
 
-from pytoda.datasets._polymer_dataset import _PolymerDatasetNoAnnotation
-
+from pytoda.datasets._polymer_dataset import \
+    _PolymerDatasetNoAnnotation, _PolymerDatasetAnnotation
 from pytoda.datasets import PolymerDataset
 from pytoda.tests.utils import TestFileContent
 
@@ -66,7 +66,7 @@ def _getitem_helper(polymer_dataset):
     )
 
 
-class TestPolymerDataset(unittest.TestCase):
+class TestPolymerDatasetAnnotation(unittest.TestCase):
     """Testing annotated dataset."""
 
     def test___len__(self) -> None:
@@ -100,7 +100,7 @@ class TestPolymerDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerDataset(
+                    polymer_dataset = _PolymerDatasetAnnotation(
                         smi_filepaths=[
                             a_test_file.filename, another_test_file.filename
                         ],
@@ -140,7 +140,7 @@ class TestPolymerDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerDataset(
+                    polymer_dataset = _PolymerDatasetAnnotation(
                         smi_filepaths=[
                             a_test_file.filename, another_test_file.filename
                         ],
@@ -235,7 +235,7 @@ class TestPolymerDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerDataset(
+                    polymer_dataset = _PolymerDatasetAnnotation(
                         smi_filepaths=[
                             a_test_file.filename, another_test_file.filename
                         ],
@@ -337,7 +337,7 @@ class TestPolymerDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerDataset(
+                    polymer_dataset = _PolymerDatasetAnnotation(
                         smi_filepaths=[
                             a_test_file.filename, another_test_file.filename
                         ],
@@ -439,7 +439,8 @@ class TestPolymerDatasetNoAnnotation(unittest.TestCase):
             pad_ind, monomer_start_ind, monomer_stop_ind, catalyst_start_ind,
             catalyst_stop_ind, c_ind, o_ind, n_ind, s_ind
         ) = _getitem_helper(polymer_dataset)
-        # test first sample
+
+        # test retrieving one sample of each entity
         monomer = polymer_dataset['monomer', 0]
         catalyst = polymer_dataset['catalyst', 1]
 
@@ -457,20 +458,36 @@ class TestPolymerDatasetNoAnnotation(unittest.TestCase):
             ]
         )
 
-        # monomer, catalyst, labels = polymer_dataset[2]
 
-        # self.assertEqual(
-        #     monomer.numpy().flatten().tolist(),
-        #     [monomer_start_ind, n_ind, c_ind, c_ind, s_ind, monomer_stop_ind]
-        # )
-        # self.assertEqual(
-        #     catalyst.numpy().flatten().tolist(), [
-        #         pad_ind, pad_ind, pad_ind, pad_ind, pad_ind, pad_ind, pad_ind,
-        #         pad_ind, pad_ind, catalyst_start_ind, c_ind, c_ind,
-        #         catalyst_stop_ind
-        #     ]
-        # )
-        # self.assertTrue(np.allclose(labels.numpy().flatten().tolist(), [6.7]))
+class TestPolymerDataset(unittest.TestCase):
+
+    @mock_input
+    def test___init__annotation(self, mock_file_1, mock_file_2) -> None:
+        annotated_content = os.linesep.join(
+            [
+                'label_0,label_1,monomer,catalyst',
+                '2.3,3.4,CHEMBL545,CHEMBL17',
+                '4.5,5.6,CHEMBL17564,CHEMBL6402',  # yapf: disable
+                '6.7,7.8,CHEMBL602,CHEMBL6402',
+                '6.7,7.8,CHEMBL54556,CHEMBL5434'
+            ]
+        )
+        with TestFileContent(annotated_content) as annotation_file:
+            PolymerDataset(
+                smi_filepaths=[
+                    mock_file_1.filename, mock_file_2.filename
+                ],
+                entity_names=['monomer', 'cATalysT'],
+                annotations_filepath=annotation_file.filename
+            )
+
+    @mock_input
+    def test___init__no_annotation(self, mock_file_1, mock_file_2) -> None:
+        PolymerDataset(
+            smi_filepaths=[mock_file_1.filename, mock_file_2.filename],
+            entity_names=['monomer', 'cATalysT'],
+            annotations_filepath=None
+        )
 
 
 if __name__ == '__main__':
