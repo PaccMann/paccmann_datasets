@@ -251,10 +251,26 @@ class _PolymerDataset(SMILESDataset):
             return
         self._bakup_transforms = []
 
+        def _find_index_transform(compose: Compose) -> int:
+            """Find index transform
+
+            Args:
+                compose (Compose): Compose element from teh smilesDastaset
+
+            Returns:
+                [int]: Index SMILESToTokenIndexes is 
+            """
+            for i, transform in enumerate(compose.transforms):
+                if isinstance(transform, SMILESToTokenIndexes):
+                    return i
+
         for ds in self._datasets:
             self._bakup_transforms.append(deepcopy(ds._dataset.transform))
+            index = _find_index_transform(ds._dataset.transform)
+            # Use all the transforms up to the SMILESToTokenIndexes transform
             ds._dataset.transform = Compose(
                 [
+                    *ds._dataset.transform.transforms[:index],
                     self.smiles_language.add_start_stop_tokens,
                     lambda x: ''.join(x)
                 ]
