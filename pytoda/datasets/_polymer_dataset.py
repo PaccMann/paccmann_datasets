@@ -136,14 +136,14 @@ class _PolymerDataset(SMILESDataset):
             )
         )
 
-        self._init_smis(smi_filepaths, entity_names, smiles_language)
+        self._init_smis(smi_filepaths, entity_names)
 
         if use_anotation_files:
             self._init_annotation_files(
                 annotations_filepath, annotations_column_names
             )
 
-    def _init_smis(self, smi_filepaths, entity_names, smiles_language):
+    def _init_smis(self, smi_filepaths, entity_names):
         """Initialize the SMILESDataset part of the dataset (loads
         smis)
         """
