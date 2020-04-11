@@ -468,7 +468,7 @@ class TestPolymerDatasetNoAnnotation(unittest.TestCase):
         polymer_dataset.set_mode_smiles()
         monomer = polymer_dataset['monomer', 3]
 
-        self.assertEqual(monomer, 'NCCS')
+        self.assertEqual(monomer, '<MONOMER_START>NCCS<MONOMER_STOP>')
 
         polymer_dataset.set_mode_tensor()
         monomer = polymer_dataset['monomer', 3]

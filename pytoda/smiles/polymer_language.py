@@ -84,6 +84,21 @@ class PolymerLanguage(SMILESLanguage):
         ), f'Unknown entity was given ({entity})'
         self.current_entity = entity.capitalize()
 
+    def add_start_stop_tokens(self, tokenized_smiles: Iterable[str]
+                              ) -> Iterable[str]:
+        """Add the start and stop tokens to the smiles
+
+        Args:
+            smiles (Iterable[str]): tokenized smiles
+
+        Returns:
+            Iterable[str]: tokenized smiles with the extra start and stop
+        """
+        return [
+            '<' + self.current_entity.upper() + '_START>', *tokenized_smiles,
+            '<' + self.current_entity.upper() + '_STOP>'
+        ]
+
     def smiles_to_token_indexes(self, smiles: str) -> Indexes:
         """
         Transform character-level SMILES into a sequence of token indexes.
@@ -94,15 +109,10 @@ class PolymerLanguage(SMILESLanguage):
         Returns:
             Indexes: indexes representation for the SMILES/SELFIES provided.
         """
-        return [
-            self.token_to_index['<' + self.current_entity.upper() + '_START>']
-        ] + [
-            self.token_to_index[token]
-            for token in self.smiles_tokenizer(smiles)
-            if token in self.token_to_index
-        ] + [
-            self.token_to_index['<' + self.current_entity.upper() + '_STOP>']
-        ]
+        tokenized_smiles = self.add_start_stop_tokens(
+            self.smiles_tokenizer(smiles)
+        )
+        return [self.token_to_index[token] for token in tokenized_smiles]
 
     def token_indexes_to_smiles(self, token_indexes: Indexes) -> str:
         """

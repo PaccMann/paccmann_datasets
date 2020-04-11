@@ -244,22 +244,28 @@ class _PolymerDataset(SMILESDataset):
         self.number_of_samples = self.annotated_data_df.shape[0]
 
     def set_mode_smiles(self):
-        """Set dataset to return the original SMILES strings intead of tensors"""
+        """Set dataset to return the original SMILES strings (wiht the sart-end
+        tokens) intead of tensors
+        """
         if not self._returning_tensors:
             return
         self._bakup_transforms = []
+
         for ds in self._datasets:
             self._bakup_transforms.append(deepcopy(ds._dataset.transform))
-            ds._dataset.transform = Compose([])
+            ds._dataset.transform = Compose(
+                [
+                    self.smiles_language.add_start_stop_tokens,
+                    lambda x: ''.join(x)
+                ]
+            )
         self._returning_tensors = False
 
     def set_mode_tensor(self):
         """Set dataset to return tensors of tokens"""
         if self._returning_tensors:
             return
-        for ds, transform in zip(
-            self._datasets, self._bakup_transforms
-        ):
+        for ds, transform in zip(self._datasets, self._bakup_transforms):
             ds._dataset.transform = transform
         self._returning_tensors = True
 
@@ -350,5 +356,5 @@ class _PolymerDatasetNoAnnotation(_PolymerDataset):
         if type(entity) == str:
             entity = entity.capitalize()
             entity = [ds.name for ds in self._datasets].index(entity)
-
+        self.smiles_language.update_entity(self._datasets[entity].name)
         return self._datasets[entity][index]
