@@ -64,7 +64,10 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
 
 
 def get_smiles_from_pubchem(
-    drug: str, use_isomeric: bool = True, kekulize: bool = False
+    drug: str,
+    use_isomeric: bool = True,
+    kekulize: bool = False,
+    sanitize: bool = True
 ) -> str:
     """
     Uses the PubChem database to retrieve the SMILES of a drug name (str).
@@ -78,9 +81,16 @@ def get_smiles_from_pubchem(
             perform any operation on the retrieved SMILES.
             NOTE: Setting it to 'False' will convert aromatic atoms to lower-
             case characters and *induces a RDKit dependency*
+        sanitize (bool, optional) -- Sanitize SMILE
     Returns:
         smiles (str) -- The SMILES string of the drug name.
     """
+
+    if not kekulize and not sanitize:
+        raise ValueError(
+            'If Kekulize is False, molecule has to be sanitize '
+            '(sanitize cannot be False).'
+        )
 
     if type(drug) != str:
         raise TypeError(
@@ -105,7 +115,9 @@ def get_smiles_from_pubchem(
             smiles = urllib_request.urlopen(path).read(
             ).decode('UTF-8').replace('\n', '')
             if not kekulize:
-                smiles = Chem.MolToSmiles(Chem.MolFromSmiles(smiles))
+                smiles = Chem.MolToSmiles(
+                    Chem.MolFromSmiles(smiles, sanitize=sanitize)
+                )
             return smiles
         except urllib_error.HTTPError:
             if option == 'CanonicalSMILES':
