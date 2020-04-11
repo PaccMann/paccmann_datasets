@@ -103,7 +103,9 @@ class RemoveIsomery(Transform):
 
     def __init__(self, bonddir=True, chirality=True, sanitize=True) -> None:
         """
-        Keyword Arguments:
+        Initialize isomery removal.
+
+        Args:
             bonddir (bool): whether bond direction information should be
                 removed or not (default: {True})
             chirality (bool): whether chirality information should be removed
@@ -179,18 +181,18 @@ class RemoveIsomery(Transform):
         Executable of RemoveIsomery class. The _call_fn is determined in
         the constructor based on the bonddir and chirality parameter.
 
-        Arguments:
-            smiles {str} -- [A SMILES sequence]
+        Args:
+            smiles (str): a SMILES sequence.
 
         Returns:
-            str -- [SMILES after the _call_fn was applied]
+            str: SMILES after the _call_fn was applied.
         """
 
         return self._call_fn(smiles)
 
 
 class Kekulize(Transform):
-    """ Transform SMILES to Kekule version """
+    """Transform SMILES to Kekule version."""
 
     def __init__(
         self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True
@@ -235,6 +237,7 @@ class Kekulize(Transform):
 
 
 class NotKekulize(Transform):
+
     """ Transform SMILES without explicitly converting to Kekule version """
 
     def __init__(
@@ -333,7 +336,7 @@ class AugmentTensor(Transform):
         all_hs_explicit=False,
         sanitize=True
     ) -> None:
-        """ NOTE:  These parameter need to be passed down to the enumerator."""
+        """NOTE:  These parameter need to be passed down to the enumerator."""
         self.smiles_language = smiles_language
         self.kekule_smiles = kekule_smiles
         self.all_bonds_explicit = all_bonds_explicit
@@ -458,15 +461,18 @@ class AugmentTensor(Transform):
 
 
 class Randomize(Transform):
-    """ Randomize a molecule by truly shuffling all tokens. """
+    """Randomize a molecule by truly shuffling all tokens."""
 
     def __call__(self, tokens: Indexes) -> Indexes:
         """
+        Intialize SMILES randomizer.
+
         NOTE: Must not apply this transformation on SMILES string, only on the
             tokenized, numerical vectors (i.e. after SMILESToTokenIndexes)
 
-        Arguments:
-            Tokens: indexes representation for the SMILES to be randomized.
+        Args:
+            tokens (Indexes): indexes representation for the SMILES to be
+                randomized.
         Returns:
            Indexes: shuffled indexes representation of the molecule
         """
@@ -483,10 +489,11 @@ class Selfies(Transform):
 
 
 class Canonicalization(Transform):
-    """ Convert any SMILES to RDKit-canonical SMILES
-        example: 
-            input: 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
-            output: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
+    """
+    Convert any SMILES to RDKit-canonical SMILES.
+    An example:
+     - input: 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
+     - output: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
     """
 
     def __init__(self, sanitize=True):

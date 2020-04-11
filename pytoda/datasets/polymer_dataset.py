@@ -151,9 +151,11 @@ class PolymerDataset(SMILESDataset):
                 device=device
             ) for index in range(len(smi_filepaths))
         ]
-        # Push the Polymer language configuration down to the smiles language
-        # object associated to the dataset and to the tokenizer that use this
-        # object.
+        """
+        Push the Polymer language configuration down to the smiles language
+        object associated to the dataset and to the tokenizer that use this
+        object.
+        """
         for dataset in self._datasets:
 
             dataset.smiles_language = deepcopy(self.smiles_language)

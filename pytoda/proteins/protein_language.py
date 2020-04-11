@@ -80,6 +80,10 @@ class ProteinLanguage(object):
                 lambda token_indexes: token_indexes
             )
 
+        self.padding_index = self.token_to_index['<PAD>']
+        self.start_index = self.token_to_index['<START>']
+        self.stop_index = self.token_to_index['<STOP>']
+
     def __len__(self) -> int:
         """Number of characters the language knows."""
         return self.number_of_tokens

@@ -8,11 +8,11 @@ if os.path.exists('README.md'):
     with open('README.md') as fp:
         LONG_DESCRIPTION = fp.read()
 
-scripts = []
+scripts = ['bin/pytoda-filter-invalid-smi']
 
 setup(
     name='pytoda',
-    version='0.0.3',
+    version='0.0.6',
     description='pytoda: PaccMann PyTorch Dataset Classes.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
