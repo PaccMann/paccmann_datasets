@@ -442,8 +442,42 @@ class TestPolymerDatasetNoAnnotation(unittest.TestCase):
         ) = _getitem_helper(polymer_dataset)
 
         # test retrieving one sample of each entity
-        monomer = polymer_dataset['monomer', 0]
-        catalyst = polymer_dataset['catalyst', 1]
+        #files are [monomer, catalyst]
+        sizes = polymer_dataset.sizes
+        monomer_sample_ind = 0
+        catalyst_sample_ind = sizes['Monomer'] + 1
+
+        monomer = polymer_dataset[monomer_sample_ind]  # ['monomer', 0]
+        catalyst = polymer_dataset[catalyst_sample_ind]  # ['catalyst', 1]
+
+        self.assertEqual(
+            monomer.numpy().flatten().tolist(), [
+                pad_ind, monomer_start_ind, c_ind, c_ind, o_ind,
+                monomer_stop_ind
+            ]
+        )
+
+        self.assertEqual(
+            catalyst.numpy().flatten().tolist(), [
+                *(29 * [pad_ind]), catalyst_start_ind, c_ind, c_ind,
+                catalyst_stop_ind
+            ]
+        )
+
+    @mock_input
+    def test_get_sample(self, mock_file_1, mock_file_2) -> None:
+        polymer_dataset = _PolymerDatasetNoAnnotation(
+            smi_filepaths=[mock_file_1.filename, mock_file_2.filename],
+            entity_names=['monomer', 'cATalysT'],
+            remove_bonddir=True
+        )
+        (
+            pad_ind, monomer_start_ind, monomer_stop_ind, catalyst_start_ind,
+            catalyst_stop_ind, c_ind, o_ind, n_ind, s_ind
+        ) = _getitem_helper(polymer_dataset)
+
+        monomer = polymer_dataset.get_sample('monomer', 0)
+        catalyst = polymer_dataset.get_sample('catalyst', 1)
 
         self.assertEqual(
             monomer.numpy().flatten().tolist(), [
@@ -467,12 +501,12 @@ class TestPolymerDatasetNoAnnotation(unittest.TestCase):
             remove_bonddir=True
         )
         polymer_dataset.set_mode_smiles()
-        monomer = polymer_dataset['monomer', 3]
+        monomer = polymer_dataset.get_sample('monomer', 3)
 
         self.assertEqual(monomer, '<MONOMER_START>NCCS<MONOMER_STOP>')
 
         polymer_dataset.set_mode_tensor()
-        monomer = polymer_dataset['monomer', 3]
+        monomer = polymer_dataset.get_sample('monomer', 3)
 
         (
             pad_ind, monomer_start_ind, monomer_stop_ind, catalyst_start_ind,

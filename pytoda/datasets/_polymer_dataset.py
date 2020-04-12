@@ -248,8 +248,8 @@ class _PolymerDataset(SMILESDataset):
         self.number_of_samples = self.annotated_data_df.shape[0]
 
     def set_mode_smiles(self):
-        """Set dataset to return the original SMILES strings (wiht the sart-end
-        tokens) intead of tensors
+        """Set dataset to return the original SMILES strings (wiht the 
+        start-end tokens) intead of tensors
         """
         if not self._returning_tensors:
             return
@@ -355,24 +355,45 @@ class _PolymerDatasetNoAnnotation(_PolymerDataset):
         """Total count of elements in the datset"""
         return sum(self.sizes.values())
 
-    def __getitem__(
-        self, index_entity: Tuple[Union[str, int], int]
-    ) -> torch.Tensor:
+    def __getitem__(self, index: int) -> Union[torch.Tensor, str]:
+        """Get a sample. The index corresponds to the global index over all
+        the datasets (i.e. samples from entity 1, samples of entyty 2, ..., 
+        samples of entity n)
+
+            Args:
+                index (int)
+
+            Returns:
+                Sample in the same format as `.get_sample`
+        """
+        if index >= len(self):
+            raise IndexError(f'Index {index} out of bounds.')
+
+        size = 0
+        for e, s in self.sizes.items():
+            size += s
+            if index < size:
+                entry = e
+                index = index - (size - s)
+                break
+
+        return self.get_sample(entry, index)
+
+    def get_sample(
+        self, entity: Union[str, int], index: [int]
+    ) -> Union[torch.Tensor, str]:
         """Gets one sample of data from a given entity.
 
         Args:
-            index_entity: entity and index (one of each, coma separated):
-                entity (Union[str, int]): entity where to sample from. It can
-                    either be the dataset entity name or the index (int) of the
-                    entity (as it was passed into the PolymerDataset)
-                index (int): index of the sample to fetch.
+            entity (Union[str, int]): entity where to sample from. It can
+                either be the dataset entity name or the index (int) of the
+                entity (as it was passed into the PolymerDataset)
+            index (int): index of the sample to fetch.
 
         Returns:
-            Tuple: a tuple containing self.entities+1 torch.Tensors
-            representing respetively: compound token indexes for each chemical
-            entity and the property labels (annotations)
+            Tuple: sample as a torch.Tensor of tokens, alternatively if the
+            return mode is set to SMILES it will return a string.
         """
-        entity, index = index_entity
         if type(entity) == str:
             entity = entity.capitalize()
             entity = [ds.name for ds in self._datasets].index(entity)
