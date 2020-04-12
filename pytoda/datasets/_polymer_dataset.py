@@ -47,6 +47,7 @@ class _PolymerDataset(SMILESDataset):
         remove_bonddir: Union[Iterable[str], bool] = False,
         remove_chirality: Union[Iterable[str], bool] = False,
         selfies: Union[Iterable[str], bool] = False,
+        sanitize: Union[Iterable[bool], bool] = True,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
@@ -97,6 +98,8 @@ class _PolymerDataset(SMILESDataset):
                 information. Defaults to False.
             selfies (Union[Iterable[str], bool]): Whether selfies is used
                 instead of smiles, defaults to False.
+            sanitize (Union[Iterable[bool], bool]): Sanitize SMILES. Defaults
+                to True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
             backend (str): memory management backend.
@@ -124,7 +127,7 @@ class _PolymerDataset(SMILESDataset):
             self.paddings, self.padding_lengths, self.canonicals,
             self.augments, self.kekulizes, self.all_bonds_explicits,
             self.all_hs_explicits, self.randomizes, self.remove_bonddirs,
-            self.remove_chiralitys, self.selfies
+            self.remove_chiralitys, self.selfies, self.sanitize
         ) = map(
             (
                 lambda x: x if iterable(x) and len(x) == len(self.entities)
@@ -132,7 +135,7 @@ class _PolymerDataset(SMILESDataset):
             ), (
                 padding, padding_length, canonical, augment, kekulize,
                 all_bonds_explicit, all_hs_explicit, randomize, remove_bonddir,
-                remove_chirality, selfies
+                remove_chirality, selfies, sanitize
             )
         )
 
@@ -165,6 +168,7 @@ class _PolymerDataset(SMILESDataset):
                 remove_bonddir=self.remove_bonddirs[index],
                 remove_chirality=self.remove_chiralitys[index],
                 selfies=self.selfies[index],
+                sanitize=self.sanitize[index],
                 device=self.device
             ) for index in range(len(smi_filepaths))
         ]

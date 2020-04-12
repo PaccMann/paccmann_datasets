@@ -30,6 +30,7 @@ def PolymerDataset(
     remove_bonddir: Union[Iterable[str], bool] = False,
     remove_chirality: Union[Iterable[str], bool] = False,
     selfies: Union[Iterable[str], bool] = False,
+    sanitize: Union[Iterable[bool], bool] = True,
     device: torch.
     device = (torch.device('cuda' if torch.cuda.is_available() else 'cpu')),
     backend: str = 'eager'
@@ -85,6 +86,8 @@ def PolymerDataset(
             information. Defaults to False.
         selfies (Union[Iterable[str], bool]): Whether selfies is used
             instead of smiles, defaults to False.
+        sanitize (Union[Iterable[bool], bool]): Sanitize SMILES. Defaults
+            to True.
         device (torch.device): device where the tensors are stored.
             Defaults to gpu, if available.
         backend (str): memory management backend.
@@ -112,6 +115,7 @@ def PolymerDataset(
         remove_bonddir=remove_bonddir,
         remove_chirality=remove_chirality,
         selfies=selfies,
+        sanitize=sanitize,
         device=device
     )
 
