@@ -1,6 +1,8 @@
 """Polymer language handling."""
 from typing import Iterable
 from collections import Counter
+import warnings
+
 from .smiles_language import SMILESLanguage
 from ..types import Indexes, SMILESTokenizer
 from .processing import tokenize_smiles, SMILES_TOKENIZER
@@ -94,9 +96,10 @@ class PolymerLanguage(SMILESLanguage):
         Returns:
             Iterable[str]: tokenized smiles with the extra start and stop
         """
+        idx = self.entities.index(self.current_entity)
         return [
-            '<' + self.current_entity.upper() + '_START>', *tokenized_smiles,
-            '<' + self.current_entity.upper() + '_STOP>'
+            self.start_entity_tokens[idx], *tokenized_smiles,
+            self.stop_entity_tokens[idx]
         ]
 
     def smiles_to_token_indexes(self, smiles: str) -> Indexes:
@@ -112,7 +115,13 @@ class PolymerLanguage(SMILESLanguage):
         tokenized_smiles = self.add_start_stop_tokens(
             self.smiles_tokenizer(smiles)
         )
-        return [self.token_to_index[token] for token in tokenized_smiles]
+        out = []
+        for token in tokenized_smiles:
+            if token in self.token_to_index:
+                out.append(self.token_to_index[token])
+            else:
+                warnings.warn(f'Skipped token `{token}` in entry: {smiles}')
+        return out
 
     def token_indexes_to_smiles(self, token_indexes: Indexes) -> str:
         """
