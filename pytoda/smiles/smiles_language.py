@@ -243,7 +243,7 @@ class SMILESLanguage(object):
             token_indexes (Indexes): a sequence of token indexes.
 
         Returns:
-            str: a SMILES representation.
+            str: a SMILES (or SELFIES) representation.
         """
         return ''.join(
             [
