@@ -47,6 +47,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     padding=True,
                     augment=False,
                     kekulize=True,
+                    sanitize=True,
                     all_bonds_explicit=True,
                     remove_chirality=True,
                     backend='lazy'
