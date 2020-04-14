@@ -48,7 +48,7 @@ def PolymerDataset(
     Args:
         smi_filepaths (FileList): paths to .smi files, one per entity
         entity_names (Iterable[str]): List of chemical entities.
-        annotations_filepath (Union[str, None]): Path to .csv with the IDs of 
+        annotations_filepath (Union[str, None]): Path to .csv with the IDs of
             the chemical entities and their properties. Needs to have one
             column per entity name. If `None` is explicitly passed a polymer
             dataset without annotations will be used, that means that the items

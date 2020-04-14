@@ -57,14 +57,17 @@ class _PolymerDataset(SMILESDataset):
         Initialize a Polymer dataset.
 
         Args:
-            use_anotation_files (bool): Wheter the dataset requires an 
+            use_anotation_files (bool): Whether the dataset requires an
                 annotation file for data sampling. If False, the entry will
                 have to be defined explicitly when retrieving items.
             smi_filepaths (FileList): paths to .smi files, one per entity
             entity_names (Iterable[str]): List of chemical entities.
-            annotations_filepath (str): Path to .csv with the IDs of the
-                chemical entities and their properties. Needs to have one
-                column per entity name.
+            annotations_filepath (Union[str, None]): Path to .csv with the IDs
+                of the chemical entities and their properties. Needs to have
+                one column per entity name. If `None` is explicitly passed a
+                polymer dataset without annotations will be used, that means
+                that the items will need to be retrieved by explicitly
+                selecting entity index.
             annotations_column_names (Union[List[int], List[str]]): indexes
                 (positional or strings) for the annotations. Defaults to None,
                 a.k.a. all the columns, except the entity_names are annotation
@@ -381,7 +384,7 @@ class _PolymerDatasetNoAnnotation(_PolymerDataset):
 
     def get_sample(
         self, entity: Union[str, int], index: [int]
-    ) -> Union[torch.Tensor, str]:
+    ) -> Union[torch.Tensor, str]:  # yapf: disable
         """Gets one sample of data from a given entity.
 
         Args:
