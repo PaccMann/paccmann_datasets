@@ -1,11 +1,16 @@
 """SMILES language handling."""
-import dill
+import logging
 from collections import Counter
+
+import dill
+from selfies import decoder as selfies_decoder
+from selfies import encoder as selfies_encoder
+
 from ..files import read_smi
 from ..types import FileList, Indexes, SMILESTokenizer, Tokens
-from .processing import tokenize_smiles, SMILES_TOKENIZER
-from selfies import encoder as selfies_encoder
-from selfies import decoder as selfies_decoder
+from .processing import SMILES_TOKENIZER, tokenize_smiles
+
+logger = logging.getLogger('pytoda_smiles_language')
 
 
 class SMILESLanguage(object):
@@ -270,7 +275,11 @@ class SMILESLanguage(object):
         try:
             return selfies_decoder(selfies)
         except Exception:
-            print(f'Could not convert selfies {selfies} to SMILES.')
+            logger.warning(
+                f'Could not convert SELFIES {selfies} to SMILES, returning '
+                'the SELFIES instead'
+            )
+            return selfies
 
     def smiles_to_selfies(self, smiles: str) -> str:
         """
@@ -288,4 +297,8 @@ class SMILESLanguage(object):
         try:
             return selfies_encoder(smiles)
         except Exception:
-            print(f'Could not convert selfies {smiles} to SMILES.')
+            logger.warning(
+                f'Could not convert SMILES {smiles} to SELFIES, returning '
+                'the SMILES instead'
+            )
+            return smiles
