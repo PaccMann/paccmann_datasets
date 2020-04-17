@@ -96,20 +96,19 @@ class ToTensor(Transform):
 
 
 class Randomize(Transform):
-    """Randomize a molecule by truly shuffling all tokens."""
+    """Randomize a sequence all tokens."""
 
     def __call__(self, tokens: Indexes) -> Indexes:
         """
-        Intialize SMILES randomizer.
-
-        NOTE: Must not apply this transformation on SMILES string, only on the
-            tokenized, numerical vectors (i.e. after SMILESToTokenIndexes)
-
         Args:
             tokens (Indexes): indexes representation for the SMILES to be
                 randomized.
         Returns:
            Indexes: shuffled indexes representation of the molecule
+
+        NOTE: If this transform is used on SMILES, it must not be applied on
+            the raw SMILES string, but on the tokenized, numerical vectors
+            (i.e. after SMILESToTokenIndexes).
         """
         smiles_tokens = deepcopy(tokens)
         np.random.shuffle(smiles_tokens)
@@ -117,7 +116,7 @@ class Randomize(Transform):
 
 
 class AugmentByReversing(Transform):
-    """Augment an amino acid sequence by (eventually) flipping order"""
+    """Augment an sequence by (eventually) flipping order"""
 
     def __call__(self, sequence: str) -> str:
         """
