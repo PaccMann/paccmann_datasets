@@ -52,11 +52,17 @@ class LeftPadding(Transform):
         Returns:
             Indexes: left padded indexes representation.
         """
-
-        return (
-            (self.padding_length - len(token_indexes)) * [self.padding_index] +
-            token_indexes
-        )
+        if self.padding_length < len(token_indexes):
+            logger.warning(
+                f'\n{token_indexes} is longer than padding length '
+                f'({self.padding_length}). End of string will be stripped off.'
+            )
+            return token_indexes[:self.padding_length]
+        else:
+            return (
+                (self.padding_length - len(token_indexes)) *
+                [self.padding_index] + token_indexes
+            )
 
 
 class ToTensor(Transform):

@@ -230,10 +230,10 @@ class _SMILESDataset(Dataset):
                 logger.warning(
                     f'Padding length of given SMILES Language was '
                     f'{self.padding_length}. Following a pass over the dataset'
-                    f'the padding length was updated to '
+                    f' the padding length was updated to '
                     f'{self.smiles_language.max_token_sequence_length}. If you'
-                    f'wish to fix the padding length, pass it directly to the '
-                    'constructor.'
+                    f' wish to fix the padding length, pass it directly to the'
+                    ' constructor.'
                 )
                 self.padding_length = (
                     self.smiles_language.max_token_sequence_length

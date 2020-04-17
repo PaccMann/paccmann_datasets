@@ -10,7 +10,7 @@ class TestTransforms(unittest.TestCase):
         """Test LeftPadding."""
 
         padding_index = 0
-        padding_lengths = [8]
+        padding_lengths = [8, 4]
 
         # Molecules that are too long will be cut and a warning will be raised.
         for padding_length in padding_lengths:
