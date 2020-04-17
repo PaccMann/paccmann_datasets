@@ -1,7 +1,10 @@
+import logging
 import urllib
 import urllib.error as urllib_error
 import urllib.request as urllib_request
 from typing import Union
+
+logger = logging.getLogger('pytoda_crawlers')
 
 ZINC_DRUG_SEARCH_ROOT = 'http://zinc.docking.org/substances/search/?q='
 ZINC_ID_SEARCH_ROOT = 'http://zinc.docking.org/substances/'
@@ -46,7 +49,7 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
             zinc_id = zinc_ids[0]
 
         except urllib_error.HTTPError:
-            print(f'Did not find any result for drug: {drug}')
+            logger.warninig(f'Did not find any result for drug: {drug}')
             return []
 
     elif type(drug) == int:
@@ -121,6 +124,6 @@ def get_smiles_from_pubchem(
             return smiles
         except urllib_error.HTTPError:
             if option == 'CanonicalSMILES':
-                print(f'Did not find any result for drug: {drug}')
+                logger.warninig(f'Did not find any result for drug: {drug}')
                 return []
             continue
