@@ -1,18 +1,21 @@
 """SMILES transforms."""
+import logging
 import re
-import warnings
 from copy import deepcopy
 
 import numpy as np
 import torch
-import pytoda
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from selfies import encoder
 
+import pytoda
+
 from ..transforms import Transform
 from ..types import Indexes
 from .smiles_language import SMILESLanguage
+
+logger = logging.getLogger('SMILES_transforms')
 
 
 class SMILESToTokenIndexes(Transform):
@@ -64,8 +67,17 @@ class LeftPadding(Transform):
         Returns:
             Indexes: left padded indexes representation.
         """
-        return (self.padding_length -
-                len(token_indexes)) * [self.padding_index] + token_indexes
+        if self.padding_length < len(token_indexes):
+            logger.warning(
+                f'\n{token_indexes} is longer than padding length '
+                f'({self.padding_length}). End of string will be stripped off.'
+            )
+            return token_indexes[:self.padding_length]
+        else:
+            return (
+                (self.padding_length - len(token_indexes)) *
+                [self.padding_index] + token_indexes
+            )
 
 
 class ToTensor(Transform):
@@ -173,7 +185,7 @@ class RemoveIsomery(Transform):
             )
             return smiles
         except TypeError:
-            warnings.warn(f'Invalid SMILES {smiles}')
+            logger.warning(f'\nInvalid SMILES {smiles}')
             return ''
 
     def __call__(self, smiles: str) -> str:
@@ -228,8 +240,8 @@ class Kekulize(Transform):
                 canonical=False
             )
         except Exception:
-            warnings.warn(
-                f'Invalid SMILES {smiles}, no kekulization done '
+            logger.warning(
+                f'\nInvalid SMILES {smiles}, no kekulization done '
                 f'bondsExplicit: {self.all_bonds_explicit} & HsExplicit: '
                 f'{self.all_hs_explicit} are also ignored.'
             )
@@ -237,7 +249,6 @@ class Kekulize(Transform):
 
 
 class NotKekulize(Transform):
-
     """ Transform SMILES without explicitly converting to Kekule version """
 
     def __init__(
@@ -266,8 +277,8 @@ class NotKekulize(Transform):
                 canonical=False
             )
         except Exception:
-            warnings.warn(
-                f'Invalid SMILES {smiles}, HsExplicit: {self.all_hs_explicit} '
+            logger.warning(
+                f'\nInvalid SMILES {smiles}, HsExplicit:{self.all_hs_explicit}'
                 f'and bondsExplicit: {self.all_bonds_explicit} are ignored.'
             )
             return smiles
@@ -302,7 +313,7 @@ class Augment(Transform):
         """
         molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
         if molecule is None:
-            warnings.warn(f'Augmentation skipped for invalid mol: {smiles}')
+            logger.warning(f'\nAugmentation skipped for invalid mol: {smiles}')
             return smiles
         if not self.sanitize:
             molecule.UpdatePropertyCache(strict=False)
@@ -386,7 +397,9 @@ class AugmentTensor(Transform):
                     allHsExplicit=self.all_hs_explicit
                 )
             except Exception:
-                warnings.warn(f'Augmentation skipped, mol invalid: {smiles}')
+                logger.warning(
+                    f'\nAugmentation skipped, mol invalid: {smiles}'
+                )
                 augmented_smiles = smiles
             return self.smiles_language.smiles_to_token_indexes(
                 augmented_smiles
@@ -507,7 +520,9 @@ class Canonicalization(Transform):
             )
             return canon
         except Exception:
-            warnings.warn(f'Invalid SMILES {smiles}, no canonicalization done')
+            logger.warning(
+                f'\nInvalid SMILES {smiles}, no canonicalization done'
+            )
             return smiles
 
 
@@ -515,11 +530,7 @@ class SMILESToMorganFingerprints(Transform):
     """Get fingerprints starting from SMILES."""
 
     def __init__(
-        self,
-        radius: int = 2,
-        bits: int = 512,
-        chirality=True,
-        sanitize=False
+        self, radius: int = 2, bits: int = 512, chirality=True, sanitize=False
     ) -> None:
         """
         Initialize a SMILES to fingerprints object.
@@ -555,7 +566,7 @@ class SMILESToMorganFingerprints(Transform):
                 useChirality=self.chirality
             )
         except Exception:
-            warnings.warn(f'Invalid SMILES {smiles}')
+            logger.warning(f'\nInvalid SMILES {smiles}')
             molecule = Chem.MolFromSmiles('')
             fingerprint = AllChem.GetMorganFingerprintAsBitVect(
                 molecule, self.radius, nBits=self.bits
