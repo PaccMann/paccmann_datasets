@@ -9,11 +9,11 @@ from ..smiles.processing import (
 import warnings
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
-    Augment, Canonicalization, Kekulize, LeftPadding, NotKekulize, Randomize,
-    RemoveIsomery, Selfies, SMILESToTokenIndexes, ToTensor
+    Augment, Canonicalization, Kekulize, NotKekulize, RemoveIsomery, Selfies,
+    SMILESToTokenIndexes
 )
 from rdkit import Chem
-from ..transforms import Compose
+from ..transforms import Compose, ToTensor, Randomize, LeftPadding
 from ..types import FileList
 
 
