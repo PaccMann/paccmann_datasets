@@ -7,7 +7,8 @@ import torch
 
 from pytoda.smiles.smiles_language import SMILESLanguage
 from pytoda.smiles.transforms import (
-    AugmentTensor, Kekulize, NotKekulize, RemoveIsomery
+    AugmentTensor, Kekulize, NotKekulize, RemoveIsomery, LeftPadding,
+    SMILESToTokenIndexes
 )
 
 
@@ -196,6 +197,20 @@ class TestTransforms(unittest.TestCase):
             ground_truth += [smiles_language.padding_index
                              ] * (seq_len - len(ground_truth))
             self.assertEqual(augmented[ind].tolist(), ground_truth)
+
+    def test_left_padding(self) -> None:
+        """Test LeftPadding."""
+
+        padding_index = 0
+        padding_lengths = [8, 4]
+
+        # Molecules that are too long will be cut and a warning will be raised.
+        for padding_length in padding_lengths:
+            transform = LeftPadding(
+                padding_index=padding_index, padding_length=padding_length
+            )
+            for mol in ['C(N)CS', 'CCO']:
+                self.assertEqual(len(transform(list(mol))), padding_length)
 
 
 if __name__ == '__main__':
