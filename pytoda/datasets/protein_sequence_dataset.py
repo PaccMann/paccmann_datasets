@@ -3,13 +3,14 @@ import torch
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
-from ..proteins.transforms import AugmentByReversing, SequenceToTokenIndexes
-from ..smiles.transforms import LeftPadding, Randomize, ToTensor
-from ..transforms import Compose
+from ..proteins.transforms import SequenceToTokenIndexes
+from ..transforms import (
+    AugmentByReversing, Compose, LeftPadding, Randomize, ToTensor
+)
 from ..types import FileList
+from ._fasta_eager_dataset import _FastaEagerDataset
 from ._smi_eager_dataset import _SmiEagerDataset
 from .utils import concatenate_file_based_datasets
-from ._fasta_eager_dataset import _FastaEagerDataset
 
 
 class ProteinSequenceDataset(Dataset):

@@ -1,4 +1,6 @@
 """Implementation of _SMILESDataset."""
+import logging
+
 import torch
 from rdkit import Chem
 from torch.utils.data import Dataset
@@ -6,15 +8,15 @@ from torch.utils.data import Dataset
 from ..smiles.processing import (
     SMILES_TOKENIZER, tokenize_selfies, tokenize_smiles
 )
-import warnings
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
-    Augment, Canonicalization, Kekulize, LeftPadding, NotKekulize, Randomize,
-    RemoveIsomery, Selfies, SMILESToTokenIndexes, ToTensor
+    Augment, Canonicalization, Kekulize, NotKekulize, RemoveIsomery, Selfies,
+    SMILESToTokenIndexes
 )
-from rdkit import Chem
-from ..transforms import Compose
+from ..transforms import Compose, LeftPadding, Randomize, ToTensor
 from ..types import FileList
+
+logger = logging.getLogger('pytoda_smiles_dataset')
 
 
 class _SMILESDataset(Dataset):
@@ -114,7 +116,7 @@ class _SMILESDataset(Dataset):
         # Set up transformation paramater
         self.padding = padding
         self.augment = augment
-        self.padding_length = self.padding_length = (
+        self.padding_length = (
             self.smiles_language.max_token_sequence_length
             if padding_length is None else padding_length
         )
@@ -179,7 +181,7 @@ class _SMILESDataset(Dataset):
             smiles_language is not None
             and len(self.language_transforms.transforms) == 0
         ):
-            print(
+            logger.warning(
                 'WARNING: You operate in the fast-setup regime.\nIf you pass a'
                 ' SMILESLanguage object, but dont specify any SMILES language'
                 ' transform, no pass is given over all SMILES in '
@@ -199,7 +201,7 @@ class _SMILESDataset(Dataset):
                     invalid_molecules.append(index)
             # Raise warning about invalid molecules
             if len(invalid_molecules) > 0:
-                print(
+                logger.warning(
                     f'NOTE: We found {len(invalid_molecules)} invalid smiles. '
                     'Check the warning trace. We recommend using '
                     'pytoda.preprocessing.smi.smi_cleaner to remove the '
@@ -208,7 +210,7 @@ class _SMILESDataset(Dataset):
 
             # Raise warning if new tokens were added.
             if len(self.smiles_language.token_to_index) > num_tokens:
-                print(
+                logger.warning(
                     f'{len(self.smiles_language.token_to_index) - num_tokens}'
                     ' new token(s) were added to SMILES language.'
                 )
@@ -220,7 +222,19 @@ class _SMILESDataset(Dataset):
         if self.randomize:
             transforms += [Randomize()]
         if self.padding:
-            if padding_length is None:
+            if (
+                padding_length is None
+                and self.smiles_language.max_token_sequence_length >
+                self.padding_length
+            ):
+                logger.warning(
+                    f'Padding length of given SMILES Language was '
+                    f'{self.padding_length}. Following a pass over the dataset'
+                    f' the padding length was updated to '
+                    f'{self.smiles_language.max_token_sequence_length}. If you'
+                    f' wish to fix the padding length, pass it directly to the'
+                    ' constructor.'
+                )
                 self.padding_length = (
                     self.smiles_language.max_token_sequence_length
                 )

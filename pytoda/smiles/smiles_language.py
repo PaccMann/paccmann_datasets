@@ -1,9 +1,16 @@
 """SMILES language handling."""
-import dill
+import logging
 from collections import Counter
+
+import dill
+from selfies import decoder as selfies_decoder
+from selfies import encoder as selfies_encoder
+
 from ..files import read_smi
 from ..types import FileList, Indexes, SMILESTokenizer, Tokens
-from .processing import tokenize_smiles, SMILES_TOKENIZER
+from .processing import SMILES_TOKENIZER, tokenize_smiles
+
+logger = logging.getLogger('pytoda_smiles_language')
 
 
 class SMILESLanguage(object):
@@ -241,7 +248,7 @@ class SMILESLanguage(object):
             token_indexes (Indexes): a sequence of token indexes.
 
         Returns:
-            str: a SMILES representation.
+            str: a SMILES (or SELFIES) representation.
         """
         return ''.join(
             [
@@ -251,3 +258,47 @@ class SMILESLanguage(object):
                 if token_index > 3
             ]
         )
+
+    def selfies_to_smiles(self, selfies: str) -> str:
+        """
+        SELFIES to SMILES converter method.
+        Based on: https://arxiv.org/abs/1905.13741
+
+        Arguments:
+            selfies {str} -- SELFIES representation
+
+        Returns:
+            str -- A SMILES string
+        """
+        if not isinstance(selfies, str):
+            raise TypeError(f'Wrong data type: {type(selfies)}. Use strings.')
+        try:
+            return selfies_decoder(selfies)
+        except Exception:
+            logger.warning(
+                f'Could not convert SELFIES {selfies} to SMILES, returning '
+                'the SELFIES instead'
+            )
+            return selfies
+
+    def smiles_to_selfies(self, smiles: str) -> str:
+        """
+        SMILES to SELFIES converter method.
+        Based on: https://arxiv.org/abs/1905.13741
+
+        Arguments:
+            smiles {str} -- smiles representation
+
+        Returns:
+            str -- A SELFIES string
+        """
+        if not isinstance(smiles, str):
+            raise TypeError(f'Wrong data type: {type(smiles)}. Use strings.')
+        try:
+            return selfies_encoder(smiles)
+        except Exception:
+            logger.warning(
+                f'Could not convert SMILES {smiles} to SELFIES, returning '
+                'the SMILES instead'
+            )
+            return smiles
