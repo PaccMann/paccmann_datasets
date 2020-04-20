@@ -102,7 +102,7 @@ class TestProteinFeatureLanguage(unittest.TestCase):
                 AA_FEAT['X'], AA_FEAT['<STOP>']
             ]
         )
-'''
+
     def test_token_indexes_to_sequence(self) -> None:
         """Test token_indexes_to_sequence."""
         sequence = 'CGX'
@@ -124,8 +124,7 @@ class TestProteinFeatureLanguage(unittest.TestCase):
             protein_language.token_indexes_to_sequence(token_indexes), 'CGX'
         )
 
-        # UNIREP Vocab
-        protein_language = ProteinFeatureLanguage(features='blosum')
+        protein_language = ProteinFeatureLanguage(features='float_features')
         protein_language.add_sequence(sequence)
         token_indexes = [
             protein_language.token_to_index[token] for token in sequence
@@ -137,16 +136,6 @@ class TestProteinFeatureLanguage(unittest.TestCase):
             [protein_language.token_to_index['<START>']] + token_indexes +
             [protein_language.token_to_index['<STOP>']]
         )
-
-        protein_language = ProteinFeatureLanguage(
-            add_start_and_stop=True, features='binary_features'
-        )
-        protein_language.add_sequence(sequence)
-        self.assertEqual(
-            protein_language.token_indexes_to_sequence(token_indexes), 'CGX'
-        )
-
-
         protein_language = ProteinFeatureLanguage(
             add_start_and_stop=True, features='float_features'
         )
@@ -154,8 +143,13 @@ class TestProteinFeatureLanguage(unittest.TestCase):
         self.assertEqual(
             protein_language.token_indexes_to_sequence(token_indexes), 'CGX'
         )
+        ## No indices to token possible for binary_features
+        ## as multiple aa have the same encoding -> backwards indentification impossible
 
-'''
+
+        
+
+
 
 if __name__ == '__main__':
     unittest.main()
