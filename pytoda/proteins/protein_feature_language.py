@@ -1,10 +1,4 @@
 """Protein language handling."""
-
-import dill
-from upfp import parse_fasta
-
-from ..files import read_smi
-from ..types import Indexes, Tokens
 from .processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62
 from .protein_language import ProteinLanguage
 
@@ -50,6 +44,8 @@ class ProteinFeatureLanguage(ProteinLanguage):
                 "Choose dict as 'binary_features', 'float_features' or "
                 f"'blosum' (given was {features})."
             )
+
+        self.number_of_features = len(self.token_to_index['<START>'])
         # Setup dictionary
         self.sequence_tokens = [
             index for token, index in self.token_to_index.items()
@@ -85,7 +81,25 @@ class ProteinFeatureLanguage(ProteinLanguage):
         self.start_index = self.token_to_index['<START>']
         self.stop_index = self.token_to_index['<STOP>']
 
-    def sequence_to_token_indexes(self, sequence: str) -> Indexes:
+        if self.feat != 'binary_features':
+            self._token_indexes_to_sequence = lambda token_indexes: (
+                ''.join(
+                    [
+                        self.index_to_token.get(token_index, '')
+                        for token_index in token_indexes
+                        if token_index in self.sequence_tokens
+                    ]
+                )
+            )
+        else:
+            self._token_indexes_to_sequence = lambda x: (_ for _ in ()).throw(
+                Exception(
+                    'token_indexes_to_sequence not implemented for '
+                    'binary_features since mapping is not unique.'
+                )
+            )
+
+    def sequence_to_token_indexes(self, sequence: str) -> list:
         """
         Transform character-level amino acid sequence (AAS) into a sequence of
         token indexes.
@@ -94,7 +108,8 @@ class ProteinFeatureLanguage(ProteinLanguage):
             sequence (str): an AAS representation.
 
         Returns:
-            Indexes: indexes representation for the AAS provided.
+            list: list of tuples (one tuple per AA) where every tuple has
+                self.number_of_features entries.
         """
         return self._finalize_token_indexes_fn(
             [
@@ -104,20 +119,15 @@ class ProteinFeatureLanguage(ProteinLanguage):
             ]
         )
 
-    def token_indexes_to_sequence(self, token_indexes: Indexes) -> str:
+    def token_indexes_to_sequence(self, token_indexes: list) -> str:
         """
-        Transform a sequence of token indexes into amino acid sequence.
+        Transform a list of tuples of token indexes into amino acid sequence.
 
         Args:
-            token_indexes (Indexes): a sequence of token indexes.
+            token_indexes (list): a list of tuples, one tuple per AA and each
+                tuple has length self.number_of_features
 
         Returns:
             str: an amino acid sequence representation.
         """
-        return ''.join(
-            [
-                self.index_to_token.get(token_index, '')
-                for token_index in token_indexes
-                if token_index in self.sequence_tokens
-            ]
-        )
+        return self._token_indexes_to_sequence(token_indexes)
