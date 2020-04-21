@@ -113,7 +113,6 @@ class TestProteinFeatureLanguage(unittest.TestCase):
         token_indexes = [
             protein_language.token_to_index[token] for token in sequence
         ]
-        token_indexes[1] = tuple([2, 3, 4])
         self.assertEqual(
             protein_language.token_indexes_to_sequence(token_indexes), 'CGX'
         )
