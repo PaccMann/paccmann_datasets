@@ -7,6 +7,7 @@ from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
+from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
@@ -121,7 +122,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 augment_by_reverts, randomizes
             )
         )
-
+        
         if protein_language is None:
             self.protein_language = ProteinLanguage()
 
@@ -130,8 +131,8 @@ class ProteinProteinInteractionDataset(Dataset):
             assert (
                 (
                     self.protein_language.add_start_and_stop ==
-                    all(add_start_and_stops)
-                ) and all(add_start_and_stops) == any(add_start_and_stops)
+                    all(self.add_start_and_stop)
+                ) and all(self.add_start_and_stop) == any(self.add_start_and_stop)
             ), 'Inconsistencies found in add_start_and_stop.'
 
         # Create protein sequence datasets
