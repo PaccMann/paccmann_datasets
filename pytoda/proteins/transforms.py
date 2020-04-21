@@ -1,6 +1,4 @@
 """Amino Acid Sequence transforms."""
-import random
-
 from ..transforms import Transform
 from ..types import Indexes
 from .protein_language import ProteinLanguage
@@ -29,19 +27,3 @@ class SequenceToTokenIndexes(Transform):
             Indexes: indexes representation for the Sequence provided.
         """
         return self.protein_language.sequence_to_token_indexes(smiles)
-
-
-class AugmentByReversing(Transform):
-    """Augment an amino acid sequence by (eventually) flipping order"""
-
-    def __call__(self, sequence: str) -> str:
-        """
-        Apply the transform.
-
-        Args:
-            sequnce (str): a sequence representation.
-
-        Returns:
-            str: Either the sequence itself, or the revesed sequence.
-        """
-        return sequence[::-1] if round(random.random()) else sequence

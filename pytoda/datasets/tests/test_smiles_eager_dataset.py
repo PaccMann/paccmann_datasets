@@ -89,6 +89,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
+                    padding_length=6,
                     add_start_and_stop=True,
                     backend='eager'
                 )
@@ -107,6 +108,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
+                    padding_length=8,
                     augment=True,
                     backend='eager'
                 )
@@ -117,6 +119,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
                     token_indexes = (
                         smiles_dataset[3].numpy().flatten().tolist()
                     )
+
                     smiles = (
                         smiles_dataset.smiles_language.
                         token_indexes_to_smiles(token_indexes)

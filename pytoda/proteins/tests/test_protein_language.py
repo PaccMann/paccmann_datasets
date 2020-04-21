@@ -2,8 +2,6 @@
 import os
 import unittest
 
-from upfp import parse_fasta
-
 from pytoda.proteins.processing import IUPAC_VOCAB, UNIREP_VOCAB
 from pytoda.proteins.protein_language import ProteinLanguage
 from pytoda.tests.utils import TestFileContent
