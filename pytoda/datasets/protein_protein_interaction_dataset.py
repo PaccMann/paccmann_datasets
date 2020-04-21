@@ -110,7 +110,7 @@ class ProteinProteinInteractionDataset(Dataset):
         self.device = device
 
         (
-            self.paddings, self.padding_lengths, self.add_start_and_stop,
+            self.paddings, self.padding_lengths, self.add_start_and_stops,
             self.augment_by_reverts, self.randomizes
         ) = map(
             (
@@ -129,9 +129,11 @@ class ProteinProteinInteractionDataset(Dataset):
             self.protein_language = protein_language
             assert (
                 (
-                    self.protein_language.add_start_and_stop ==
-                    all(add_start_and_stops)
-                ) and all(add_start_and_stops) == any(add_start_and_stops)
+                    self.protein_language.add_start_and_stop == all(
+                        self.add_start_and_stops
+                    )
+                ) and all(self.add_start_and_stops
+                          ) == any(self.add_start_and_stops)
             ), 'Inconsistencies found in add_start_and_stop.'
 
         # Create protein sequence datasets
@@ -142,7 +144,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 protein_language=protein_language,
                 padding=self.paddings[index],
                 padding_length=self.padding_lengths[index],
-                add_start_and_stop=self.add_start_and_stop[index],
+                add_start_and_stop=self.add_start_and_stops[index],
                 augment_by_revert=self.augment_by_reverts[index],
                 randomize=self.randomizes[index],
                 device=self.device,

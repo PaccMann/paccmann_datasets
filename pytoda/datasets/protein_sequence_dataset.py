@@ -57,7 +57,7 @@ class ProteinSequenceDataset(Dataset):
                 Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            name (str): name of the ProteinSequenceDataset.                
+            name (str): name of the ProteinSequenceDataset.       
         """
         Dataset.__init__(self)
         # Parse language object and data paths
