@@ -89,8 +89,10 @@ class TestProteinFeatureLanguage(unittest.TestCase):
         )
         protein_language.add_sequence(sequence)
         self.assertListEqual(
-            protein_language.sequence_to_token_indexes(sequence),
-            [AA_PROPERTIES_NUM['C'], AA_PROPERTIES_NUM['G'], AA_PROPERTIES_NUM['X']]
+            protein_language.sequence_to_token_indexes(sequence), [
+                AA_PROPERTIES_NUM['C'], AA_PROPERTIES_NUM['G'],
+                AA_PROPERTIES_NUM['X']
+            ]
         )
         protein_language = ProteinFeatureLanguage(
             add_start_and_stop=True, features='float_features'
@@ -98,8 +100,8 @@ class TestProteinFeatureLanguage(unittest.TestCase):
         protein_language.add_sequence(sequence)
         self.assertListEqual(
             protein_language.sequence_to_token_indexes(sequence), [
-                AA_FEAT['<START>'], AA_FEAT['C'], AA_FEAT['G'],
-                AA_FEAT['X'], AA_FEAT['<STOP>']
+                AA_FEAT['<START>'], AA_FEAT['C'], AA_FEAT['G'], AA_FEAT['X'],
+                AA_FEAT['<STOP>']
             ]
         )
 
@@ -111,6 +113,7 @@ class TestProteinFeatureLanguage(unittest.TestCase):
         token_indexes = [
             protein_language.token_to_index[token] for token in sequence
         ]
+        token_indexes[1] = tuple([2, 3, 4])
         self.assertEqual(
             protein_language.token_indexes_to_sequence(token_indexes), 'CGX'
         )
@@ -143,12 +146,20 @@ class TestProteinFeatureLanguage(unittest.TestCase):
         self.assertEqual(
             protein_language.token_indexes_to_sequence(token_indexes), 'CGX'
         )
-        ## No indices to token possible for binary_features
-        ## as multiple aa have the same encoding -> backwards indentification impossible
-
-
-        
-
+        """
+        NOTE: token_indexes_to_sequence for binary_features is impossible as
+        multiple aa have the same encoding.
+        """
+        # Test whether code throws exception.
+        protein_language = ProteinFeatureLanguage(features='binary_features')
+        protein_language.add_sequence(sequence)
+        token_indexes = [
+            protein_language.token_to_index[token] for token in sequence
+        ]
+        self.assertRaises(
+            Exception, protein_language.token_indexes_to_sequence,
+            token_indexes
+        )
 
 
 if __name__ == '__main__':
