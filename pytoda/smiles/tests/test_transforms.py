@@ -1,6 +1,5 @@
 """Testing SMILES transforms."""
 import unittest
-import itertools
 
 import numpy as np
 import torch
