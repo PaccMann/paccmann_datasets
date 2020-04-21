@@ -7,6 +7,7 @@ from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
+from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 

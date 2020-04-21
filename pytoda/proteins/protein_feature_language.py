@@ -8,11 +8,12 @@ from ..types import Indexes, Tokens
 from .processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62
 from .protein_language import ProteinLanguage
 
+
 class ProteinFeatureLanguage(ProteinLanguage):
     """
     ProteinFeatureLanguage class.
 
-    ProteinFeatureLanguage handles Protein data and translates from text to 
+    ProteinFeatureLanguage handles Protein data and translates from text to
     feature space
     """
 
@@ -23,13 +24,12 @@ class ProteinFeatureLanguage(ProteinLanguage):
         tokenizer: object = list,
         add_start_and_stop: bool = True
     ) -> None:
-
         """
         Initialize Protein feature language.
 
         Args:
             name (str): name of the ProteinFeatureLanguage.
-            features (str): Feature alphabet choice. Defaults to 'blosum', 
+            features (str): Feature alphabet choice. Defaults to 'blosum',
             alternatives are 'binary_features' and 'float_features'.
             tokenizer (object): This needs to be a function used to tokenize
                 the amino acid sequences. The default is list which simply
@@ -40,15 +40,15 @@ class ProteinFeatureLanguage(ProteinLanguage):
         self.add_start_and_stop = add_start_and_stop
 
         if self.feat == 'binary_features':
-        	self.token_to_index = AA_PROPERTIES_NUM
+            self.token_to_index = AA_PROPERTIES_NUM
         elif self.feat == 'float_features':
-        	self.token_to_index = AA_FEAT
+            self.token_to_index = AA_FEAT
         elif self.feat == 'blosum':
-        	self.token_to_index = BLOSUM62
+            self.token_to_index = BLOSUM62
         else:
             raise ValueError(
-                "Choose dict as 'binary_features', 'float_features' or 'blosum' (given was"
-                f"{amino_acid_dict})."
+                "Choose dict as 'binary_features', 'float_features' or "
+                f"'blosum' (given was {features})."
             )
         # Setup dictionary
         self.sequence_tokens = [
@@ -84,7 +84,6 @@ class ProteinFeatureLanguage(ProteinLanguage):
         self.padding_index = self.token_to_index['<PAD>']
         self.start_index = self.token_to_index['<START>']
         self.stop_index = self.token_to_index['<STOP>']
-
 
     def sequence_to_token_indexes(self, sequence: str) -> Indexes:
         """
