@@ -221,10 +221,11 @@ class Augment(Transform):
 
     def __init__(
         self,
-        kekule_smiles=False,
-        all_bonds_explicit=False,
-        all_hs_explicit=False,
-        sanitize=True
+        kekule_smiles: bool = False,
+        all_bonds_explicit: bool = False,
+        all_hs_explicit: bool = False,
+        sanitize: bool = True,
+        seed: int = -1
     ) -> None:
         """ NOTE:  These parameter need to be passed down to the enumerator."""
 
@@ -232,6 +233,9 @@ class Augment(Transform):
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
         self.sanitize = sanitize
+        self.seed = seed
+        if self.seed > -1:
+            np.random.seed(self.seed)
 
     def __call__(self, smiles: str) -> str:
         """
