@@ -117,7 +117,7 @@ class ListToTensor(Transform):
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
-        dtype: torch.dtype = torch.short
+        dtype: torch.dtype = torch.float
     ) -> None:
         """
         Initialize a token indexes to tensor object.
@@ -125,7 +125,7 @@ class ListToTensor(Transform):
         Args:
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            dtype (torch.dtype): data type. Defaults to torch.short.
+            dtype (torch.dtype): data type. Defaults to torch.float.
         """
         if not isinstance(dtype, torch.dtype):
             raise TypeError(f'Dtype must be torch.dtype not {type(dtype)}')

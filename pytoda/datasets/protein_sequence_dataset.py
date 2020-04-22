@@ -3,9 +3,10 @@ import torch
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
+from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from ..proteins.transforms import SequenceToTokenIndexes
 from ..transforms import (
-    AugmentByReversing, Compose, LeftPadding, Randomize, ToTensor
+    AugmentByReversing, Compose, LeftPadding, Randomize, ToTensor, ListToTensor
 )
 from ..types import FileList
 from ._fasta_eager_dataset import _FastaEagerDataset
@@ -120,7 +121,12 @@ class ProteinSequenceDataset(Dataset):
                     padding_index=self.protein_language.token_to_index['<PAD>']
                 )
             ]
-        transforms += [ToTensor(device=self.device)]
+        if isinstance(self.protein_language, ProteinFeatureLanguage):
+            transforms += [ListToTensor(device = self.device)]
+        elif isinstance(self.protein_language, ProteinLanguage):
+            transforms += [ToTensor(device=self.device)]
+        else:
+            raise TypeError('Please choose either ProteinLanguage or ProteinFeatureLanguage')
         self.transform = Compose(transforms)
 
         # NOTE: recover sample and index mappings
