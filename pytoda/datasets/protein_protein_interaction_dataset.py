@@ -62,8 +62,11 @@ class ProteinProteinInteractionDataset(Dataset):
                 (positional or strings) for the annotations. Defaults to None,
                 a.k.a. all the columns, except the entity_names are annotation
                 labels.
-            protein_language (ProteinLanguage): a protein language, defaults to
-                None.
+            protein_language (ProteinLanguage): a protein language or a child
+                object, defaults to None.
+                NOTE: ProteinFeatureLanguage objects cannot be created auto-
+                matically. If you want to use it, give it directly to the
+                constructor.
             amino_acid_dict (str): The type of amino acid dictionary to map
                 sequence tokens to numericals. Defaults to 'iupac', alternative
                 is 'unirep'.

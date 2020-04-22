@@ -45,6 +45,9 @@ class ProteinSequenceDataset(Dataset):
             filetype (str): From {.smi, .csv, .fasta, .fasta.gz}.
             protein_language (ProteinLanguage): a protein language or child
                 object. Defaults to None.
+                NOTE: ProteinFeatureLanguage objects cannot be created auto-
+                matically. If you want to use it, give it directly to the
+                constructor.
             amino_acid_dict (str): Type of dictionary used for amino acid
                 sequences. Defaults to 'iupac', alternative is 'unirep'.
             padding (bool): pad sequences to longest in the protein language.
@@ -122,11 +125,13 @@ class ProteinSequenceDataset(Dataset):
                 )
             ]
         if isinstance(self.protein_language, ProteinFeatureLanguage):
-            transforms += [ListToTensor(device = self.device)]
+            transforms += [ListToTensor(device=self.device)]
         elif isinstance(self.protein_language, ProteinLanguage):
             transforms += [ToTensor(device=self.device)]
         else:
-            raise TypeError('Please choose either ProteinLanguage or ProteinFeatureLanguage')
+            raise TypeError(
+                'Please choose either ProteinLanguage or ProteinFeatureLanguage'
+            )
         self.transform = Compose(transforms)
 
         # NOTE: recover sample and index mappings
