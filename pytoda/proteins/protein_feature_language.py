@@ -92,6 +92,7 @@ class ProteinFeatureLanguage(ProteinLanguage):
                 )
             )
         else:
+            # Lambda function that throws an exception.
             self._token_indexes_to_sequence = lambda x: (_ for _ in ()).throw(
                 Exception(
                     'token_indexes_to_sequence not implemented for '
