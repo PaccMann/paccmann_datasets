@@ -112,6 +112,8 @@ Hydrophobic = -1, Hydrophilic = 1
 NonAromatic = -1, Aromatic = 1
 NonIonizable = -1, Ionizable = 1
 Stop = -1, Start = 1, Neither = 0
+
+Taken from: 
 """
 AA_PROPERTIES_NUM = OrderedDict(
     [
@@ -134,7 +136,7 @@ AA_PROPERTIES_NUM = OrderedDict(
         ('R', (1, 1, 1, -1, 1, 0)),
         ('S', (1, 0, 1, -1, -1, 0)),
         ('T', (1, 0, 1, -1, -1, 0)),
-        ('U', (-1, 0, -1, -1, 1, 0)),  # Selenocyteine 
+        ('U', (-1, 0, -1, -1, 1, 0)),  # Selenocyteine
         ('V', (-1, 0, -1, -1, -1, 0)),
         ('W', (-1, 0, -1, 1, -1, 0)),
         ('Y', (1, 0, -1, 1, 1, 0)),
@@ -146,6 +148,7 @@ AA_PROPERTIES_NUM = OrderedDict(
 )
 """
 Molecular Weight, Residue Weight, pKa, pKb, pKx, pI, Hydrophobicity at pH2
+Taken from: https://www.sigmaaldrich.com/life-science/metabolomics/learning-center/amino-acid-reference-chart.html
 """
 AA_FEAT = OrderedDict(
     [
@@ -169,7 +172,7 @@ AA_FEAT = OrderedDict(
         ('R', (174.2, 156.19, 2.17, 9.04, 12.48, 10.76, -26, 0)),
         ('S', (105.09, 87.08, 2.21, 9.15, 0, 5.68, -7, 0)),
         ('T', (119.12, 101.11, 2.09, 9.1, 0, 5.6, 13, 0)),
-        ('U', (168.07, 150.05, 5.47, 10.28, 0, 3.9, 52, 0)), #Selenocyteine
+        ('U', (168.07, 150.05, 5.47, 10.28, 0, 3.9, 52, 0)), # Selenocyteine
         ('V', (117.15, 99.13, 2.32, 9.62, 0, 5.96, 97, 0)),
         ('W', (204.23, 186.22, 2.83, 9.39, 0, 5.89, 84, 0)),
         ('Y', (181.19, 163.18, 2.2, 9.11, 10.07, 5.66, 49, 0)),
@@ -181,6 +184,9 @@ AA_FEAT = OrderedDict(
         ('<STOP>', (0, 0, 0, 0, 0, 0, 0, -1))
     ]
 )
+"""
+Taken from: https://en.wikipedia.org/wiki/BLOSUM#/media/File:BLOSUM62.png
+"""
 
 BLOSUM62 = OrderedDict(
     [
