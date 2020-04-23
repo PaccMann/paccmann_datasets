@@ -143,6 +143,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 self.sequence_filepaths[index],
                 filetype=self.filetypes[index],
                 protein_language=protein_language,
+                amino_acid_dict=amino_acid_dict,
                 padding=self.paddings[index],
                 padding_length=self.padding_lengths[index],
                 add_start_and_stop=self.add_start_and_stops[index],

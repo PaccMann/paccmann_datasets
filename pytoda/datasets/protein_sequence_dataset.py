@@ -76,7 +76,9 @@ class ProteinSequenceDataset(Dataset):
                 add_start_and_stop=add_start_and_stop
             )
         else:
-            self.protein_language = protein_language
+            self.protein_language = ProteinFeatureLanguage(
+                features=amino_acid_dict
+            )
             assert (
                 add_start_and_stop == protein_language.add_start_and_stop
             ), f'add_start_and_stop was "{add_start_and_stop}", but given '
