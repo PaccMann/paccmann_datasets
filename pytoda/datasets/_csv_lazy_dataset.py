@@ -91,4 +91,4 @@ class _CsvLazyDataset(_CacheDataset, _CsvDataset):
 
     def __del__(self):
         """Delete the _CsvLazyDataset."""
-        _CacheDataset.__init__(self)
+        _CacheDataset.__del__(self)
