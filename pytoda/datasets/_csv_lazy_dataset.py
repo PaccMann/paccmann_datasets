@@ -1,10 +1,23 @@
 """Implementation of _CsvLazyDataset."""
+import os
+import warnings
+from collections import OrderedDict
+
 import numpy as np
 import pandas as pd
-from collections import OrderedDict
+
+from ..types import FeatureList
 from ._cache_dataset import _CacheDataset
 from ._csv_dataset import _CsvDataset
-from ..types import FeatureList
+
+
+def sizeof_fmt(num, suffix='B'):
+    """Source: https://stackoverflow.com/a/1094933"""
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
 class _CsvLazyDataset(_CacheDataset, _CsvDataset):
@@ -34,7 +47,17 @@ class _CsvLazyDataset(_CacheDataset, _CsvDataset):
                 Except from nrows and chunksize.
         """
         self.chunk_size = chunk_size
-        _CacheDataset.__init__(self)
+        size_limit = 1073741824  # default limit of 1GiB from diskcash
+        file_size = os.path.getsize(filepath)
+        if file_size > size_limit:
+            size_limit = file_size
+            message = (
+                f'Temporary directory for caching can be up to {size_limit} '
+                f'bytes ({sizeof_fmt(size_limit)}) large to fit data.'
+            )
+            # ResourceWarning is usually filtered by default
+            warnings.warn(message, ResourceWarning)
+        _CacheDataset.__init__(self, size_limit=size_limit)
         _CsvDataset.__init__(
             self, filepath, feature_list=feature_list, **kwargs
         )
