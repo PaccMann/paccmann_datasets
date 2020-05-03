@@ -1,5 +1,7 @@
 """SMILES processing utilities."""
+import logging
 import re
+
 from ..types import Tokens
 
 # tokenizer
@@ -9,6 +11,8 @@ SMILES_TOKENIZER = re.compile(
 )
 # handle "-" character
 SMILES_NORMALIZER = re.compile(r'-(\w)')
+
+logger = logging.getLogger(__name__)
 
 
 def tokenize_smiles(smiles: str, normalize=False, regexp=None) -> Tokens:
@@ -41,10 +45,13 @@ def tokenize_selfies(selfies: str) -> Tokens:
     Returns:
         Tokens: the tokenized SELFIES.
     """
-
-    selfies = selfies.replace('.', '[.]')  # to allow parsing unbound atoms
-    selfies_char_list_pre = selfies[1:-1].split('][')
-    return [
-        '[' + selfies_element + ']'
-        for selfies_element in selfies_char_list_pre
-    ]
+    try:
+        selfies = selfies.replace('.', '[.]')  # to allow parsing unbound atoms
+        selfies_char_list_pre = selfies[1:-1].split('][')
+        return [
+            '[' + selfies_element + ']'
+            for selfies_element in selfies_char_list_pre
+        ]
+    except Exception:
+        logger.warning(f'Error in tokenizing {selfies}. Returning empty list.')
+        return ['']
