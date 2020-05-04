@@ -4,7 +4,7 @@ import urllib.error as urllib_error
 import urllib.request as urllib_request
 from typing import Union
 
-logger = logging.getLogger('pytoda_crawlers')
+logger = logging.getLogger(__name__)
 
 ZINC_DRUG_SEARCH_ROOT = 'http://zinc.docking.org/substances/search/?q='
 ZINC_ID_SEARCH_ROOT = 'http://zinc.docking.org/substances/'
