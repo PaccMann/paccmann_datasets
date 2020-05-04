@@ -2,7 +2,7 @@
 import torch
 import pandas as pd
 from torch.utils.data import Dataset
-from ..types import AnnotatedData, Union, List
+from ..types import AnnotatedData, Union, List, Any, Tuple
 
 
 class AnnotatedDataset(Dataset):
@@ -110,3 +110,27 @@ class AnnotatedDataset(Dataset):
             self.dataset.sample_to_index_mapping[selected_sample.name]
         ]   # yapf: disable
         return sample, labels_tensor
+
+
+def indexed(dataset, integer=False):  # TODO test
+    """Change instances indexing behavior by returning index as well."""
+    default_getitem = dataset.__getitem__  # bound method
+
+    if integer:
+        def return_item_index_tuple(self, index: int) -> Tuple[Any, int]:
+            return default_getitem(index), index
+
+    else:
+        def return_item_index_tuple(self, index: int) -> Tuple[Any, str]:
+            return (
+                default_getitem(index),
+                # dataset.__getitem__(index),
+                dataset.index_to_sample_mapping[index]
+            )
+    methods = {'__getitem__': return_item_index_tuple}
+    dataset.__class__ = type(
+        f'Indexed{type(dataset).__name__}',
+        (dataset.__class__,),
+        methods
+    )
+    return dataset
