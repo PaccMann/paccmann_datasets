@@ -5,9 +5,10 @@ from ..smiles.smiles_language import SMILESLanguage
 from ._smiles_dataset import _SMILESDataset
 from ._smi_eager_dataset import _SmiEagerDataset
 from .utils import concatenate_file_based_datasets
+from .base_dataset import DatasetDelegator
 
 
-class _SMILESEagerDataset(_SMILESDataset):
+class _SMILESEagerDataset(_SMILESDataset):  # base_dataset: Base is delegator already?
     """
     SMILES dataset using eager loading.
 

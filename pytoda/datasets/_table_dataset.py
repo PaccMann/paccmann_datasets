@@ -6,9 +6,10 @@ from collections import OrderedDict
 from torch.utils.data import Dataset
 from ._csv_dataset import reduce_csv_dataset_statistics
 from ..types import FileList, FeatureList
+from .base_dataset import DatasetDelegator
 
 
-class _TableDataset(Dataset):
+class _TableDataset(DatasetDelegator):  # base_dataset: DatasetDelegator, but implements all of IndexedDataset on its own
     """
     Table dataset abstract definition.
 
@@ -43,7 +44,6 @@ class _TableDataset(Dataset):
                 Defaults to gpu, if available.
             kwargs (dict): additional parameters for pd.read_csv.
         """
-        Dataset.__init__(self)
         self.processing = {}
         self.filepaths = filepaths
         self.feature_list = feature_list
@@ -64,7 +64,7 @@ class _TableDataset(Dataset):
         self.kwargs = copy.deepcopy(kwargs)
         if self.standardize and self.min_max:
             raise RuntimeError('Cannot both standardize and min-max scale')
-        self._dataset = None
+        self.dataset = None
         self.max = None
         self.min = None
         self.mean = None
@@ -77,17 +77,19 @@ class _TableDataset(Dataset):
         (  # yapf:disable
             self.feature_list, self.max, self.min, self.mean, self.std
         ) = reduce_csv_dataset_statistics(
-            self._dataset.datasets, self.feature_list, self.feature_ordering
+            self.dataset.datasets, self.feature_list, self.feature_ordering
         )
+          # base_dataset: solved by delegation to get_key and get_index
         # NOTE: recover sample and index mappings
-        self.sample_to_index_mapping = {}
-        self.index_to_sample_mapping = {}
-        for index in range(len(self._dataset)):
-            dataset_index, sample_index = self._dataset.get_index_pair(index)
-            dataset = self._dataset.datasets[dataset_index]
-            sample = dataset.index_to_sample_mapping[sample_index]
-            self.sample_to_index_mapping[sample] = index
-            self.index_to_sample_mapping[index] = sample
+        # self.sample_to_index_mapping = {}
+        # self.index_to_sample_mapping = {}
+        # for index in range(len(self.dataset)):
+        #     dataset_index, sample_index = self.dataset.get_index_pair(index)
+        #     dataset = self.dataset.datasets[dataset_index]
+        #     sample = dataset.index_to_sample_mapping[sample_index]
+        #     self.sample_to_index_mapping[sample] = index
+        #     self.index_to_sample_mapping[index] = sample
+
         # NOTE: adapt feature list, mapping and function
         self.feature_mapping = pd.Series(
             OrderedDict(
@@ -129,16 +131,17 @@ class _TableDataset(Dataset):
         self._preprocess_dataset()
 
     def _setup_dataset(self) -> None:
-        """Setup the dataset."""
+        """Setup IndexedDataset assigned to self.dataset."""
         raise NotImplementedError
 
     def _preprocess_dataset(self) -> None:
         """Preprocess the dataset."""
         raise NotImplementedError
 
-    def __len__(self) -> int:
-        "Total number of samples."
-        return len(self._dataset)
+  # base_dataset: TODO delete if tests pass
+    # def __len__(self) -> int:
+    #     "Total number of samples."
+    #     return len(self.dataset)
 
     def __getitem__(self, index: int) -> torch.tensor:
         """
@@ -152,5 +155,6 @@ class _TableDataset(Dataset):
                 for the current sample.
         """
         return torch.tensor(
-            self._dataset[index], dtype=self.dtype, device=self.device
-        )
+            self.dataset[index], dtype=self.dtype, device=self.device
+        )  # TODO torch.tensor needed? Dataloader should take care of this.
+        # if not we can remove this

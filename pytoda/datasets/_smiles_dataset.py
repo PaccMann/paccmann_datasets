@@ -19,7 +19,7 @@ from ..types import FileList
 logger = logging.getLogger('pytoda_smiles_dataset')
 
 
-class _SMILESDataset(Dataset):
+class _SMILESDataset(DatasetDelegator):  # base_dataset: TODO base IndexedDataset and DatasetDelegator
     """
     SMILES dataset abstract definition.
 
@@ -192,12 +192,12 @@ class _SMILESDataset(Dataset):
         if len(self.language_transforms.transforms) > 0:
 
             invalid_molecules = []
-            for index in range(len(self._dataset)):
+            for index in range(len(self.dataset)):
                 self.smiles_language.add_smiles(
-                    self.language_transforms(self._dataset[index])
+                    self.language_transforms(self.dataset[index])
                 )
 
-                if Chem.MolFromSmiles(self._dataset[index]) is None:
+                if Chem.MolFromSmiles(self.dataset[index]) is None:
                     invalid_molecules.append(index)
             # Raise warning about invalid molecules
             if len(invalid_molecules) > 0:
@@ -251,9 +251,9 @@ class _SMILESDataset(Dataset):
         self.sample_to_index_mapping = {}
         self.index_to_sample_mapping = {}
 
-        for index in range(len(self._dataset)):
-            dataset_index, sample_index = self._dataset.get_index_pair(index)
-            dataset = self._dataset.datasets[dataset_index]
+        for index in range(len(self.dataset)):
+            dataset_index, sample_index = self.dataset.get_index_pair(index)
+            dataset = self.dataset.datasets[dataset_index]
             try:
                 sample = dataset.index_to_sample_mapping[sample_index]
             except KeyError:
@@ -263,11 +263,13 @@ class _SMILESDataset(Dataset):
 
     def _setup_dataset(self) -> None:
         """Setup the dataset."""
+          # base_dataset: this makes this a Delegator base class
         raise NotImplementedError
 
-    def __len__(self) -> int:
-        """Total number of samples."""
-        return len(self._dataset)
+      # base_dataset: test len deletion (delegation)
+    # def __len__(self) -> int:
+    #     """Total number of samples."""
+    #     return len(self.dataset)
 
     def __getitem__(self, index: int) -> torch.tensor:
         """
@@ -280,4 +282,4 @@ class _SMILESDataset(Dataset):
             torch.tensor: a torch tensor of token indexes,
                 for the current sample.
         """
-        return self.transform(self._dataset[index])
+        return self.transform(self.dataset[index])

@@ -5,6 +5,7 @@ from ..smiles.smiles_language import SMILESLanguage
 from ._smiles_eager_dataset import _SMILESEagerDataset
 from ._smiles_lazy_dataset import _SMILESLazyDataset
 from ..types import FileList
+from .base_dataset import DatasetDelegator
 
 SMILES_DATASET_IMPLEMENTATIONS = {
     'eager': _SMILESEagerDataset,
@@ -12,7 +13,7 @@ SMILES_DATASET_IMPLEMENTATIONS = {
 }
 
 
-class SMILESDataset(Dataset):
+class SMILESDataset(DatasetDelegator):
     """
     SMILES dataset implementation.
     """
@@ -79,7 +80,7 @@ class SMILESDataset(Dataset):
             name (str): name of the SMILESDataset.
 
         """
-        Dataset.__init__(self)
+        DatasetDelegator.__init__(self)
         self.name = name
         if not (backend in SMILES_DATASET_IMPLEMENTATIONS):
             raise RuntimeError(
@@ -87,7 +88,7 @@ class SMILESDataset(Dataset):
                 'Select one in [{}]'.
                 format(','.join(SMILES_DATASET_IMPLEMENTATIONS.keys()))
             )
-        self._dataset = SMILES_DATASET_IMPLEMENTATIONS[backend](
+        self.dataset = SMILES_DATASET_IMPLEMENTATIONS[backend](
             smi_filepaths=smi_filepaths,
             smiles_language=smiles_language,
             padding=padding,
@@ -105,22 +106,6 @@ class SMILESDataset(Dataset):
             sanitize=sanitize,
             device=device
         )
-        self.smiles_language = self._dataset.smiles_language
-        self.sample_to_index_mapping = self._dataset.sample_to_index_mapping
-
-    def __len__(self) -> int:
-        """Total number of samples."""
-        return len(self._dataset)
-
-    def __getitem__(self, index: int) -> torch.tensor:
-        """
-        Generates one sample of data.
-
-        Args:
-            index (int): index of the sample to fetch.
-
-        Returns:
-            torch.tensor: a torch tensor of token indexes,
-                for the current sample.
-        """
-        return self._dataset[index]
+          # base_dataset: test for theses attributes:
+        # self.smiles_language = self.dataset.smiles_language
+        # self.sample_to_index_mapping = self.dataset.sample_to_index_mapping

@@ -37,10 +37,10 @@ class PolymerLanguage(SMILESLanguage):
 
         self.entities = list(map(lambda x: x.capitalize(), entity_names))
         # self.current_entity = self.entities[0]
-        self.start_entity_tokens, self.stop_entity_tokens = [
+        self.start_entity_tokens, self.stop_entity_tokens = (
             list(map(lambda x: '<' + x.upper() + '_' + s + '>', entity_names))
             for s in ['START', 'STOP']
-        ]
+        )
 
         self.name = name
         self.smiles_tokenizer = smiles_tokenizer

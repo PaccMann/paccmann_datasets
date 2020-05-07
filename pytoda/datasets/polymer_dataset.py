@@ -1,16 +1,18 @@
 """PolymerDataset module."""
 from copy import deepcopy
-from typing import Iterable, List, Union
+from typing import Hashable, Iterable, List, Union
 
 import pandas as pd
 import torch
 from numpy import iterable
-from ..smiles.transforms import SMILESToTokenIndexes
+from torch.utils.data import Dataset
+
 from ..smiles.polymer_language import PolymerLanguage
+from ..smiles.transforms import SMILESToTokenIndexes
 from .smiles_dataset import SMILESDataset
 
 
-class PolymerDataset(SMILESDataset):
+class PolymerDataset(Dataset):
     """
     Polymer dataset implementation.
 
@@ -131,7 +133,8 @@ class PolymerDataset(SMILESDataset):
             )
         )
         # Create one SMILES dataset per chemical entity
-        self._datasets = [
+        # i.e. not a DatasetDelegator as here are not concatenated datasets
+        self.datasets = [
             SMILESDataset(
                 smi_filepaths[index],
                 name=self.entities[index],
@@ -156,16 +159,16 @@ class PolymerDataset(SMILESDataset):
         object associated to the dataset and to the tokenizer that use this
         object.
         """
-        for dataset in self._datasets:
+        for dataset in self.datasets:
 
             dataset.smiles_language = deepcopy(self.smiles_language)
             dataset.smiles_language.update_entity(dataset.name)
             tokenizer_index = [
-                i for i, t in enumerate(dataset._dataset.transform.transforms)
+                i for i, t in enumerate(dataset.transform.transforms)
                 if isinstance(t, SMILESToTokenIndexes)
             ]
             if len(tokenizer_index) > 0:
-                dataset._dataset.transform.transforms[
+                dataset.transform.transforms[
                     tokenizer_index[-1]
                 ].smiles_language = dataset.smiles_language  # yapf: disable
 
@@ -206,22 +209,23 @@ class PolymerDataset(SMILESDataset):
         self.number_of_tasks = len(self.labels)
 
         # NOTE: filter data based on the availability
-        available_entity_ids = []
-        for entity, dataset in zip(self.entities, self._datasets):
-            available_entity_ids.append(
-                set(dataset.sample_to_index_mapping.keys())
-                & set(self.annotated_data_df[entity])
+        # available_entity_ids = []  # base_dataset: check for removal
+        mask = pd.Series(
+            [True] * len(self.annotated_data_df),
+            index=self.annotated_data_df.index
+        )
+        for entity, dataset in zip(self.entities, self.datasets):
+            # prune rows (in mask) with ids unavailable in respective dataset
+            mask = mask & self.annotated_data_df[entity].isin(
+                set(dataset.sample_to_index_mapping.keys())  # base_dataset: TODO dataset.keys()
             )
-
-            self.annotated_data_df = self.annotated_data_df.loc[
-                self.annotated_data_df[entity].isin(available_entity_ids[-1])]
-
-        self.available_entity_ids = available_entity_ids
-        self.number_of_samples = self.annotated_data_df.shape[0]
+            # available_entity_ids.append(set(self.annotated_data_df.loc[mask, entity]))  # base_dataset: check for removal
+        self.annotated_data_df = self.annotated_data_df.loc[mask]
+        # self.available_entity_ids = available_entity_ids   # base_dataset: check for removal
 
     def __len__(self) -> Iterable[int]:
         """Total number of samples."""
-        return self.number_of_samples
+        return len(self.annotated_data_df)
 
     def __getitem__(self, index: int) -> Iterable[torch.tensor]:
         """
@@ -236,7 +240,7 @@ class PolymerDataset(SMILESDataset):
             entity and the property labels (annotations)
         """
 
-        # sample selection
+        # sample selection for all entities/datasets
         selected_sample = self.annotated_data_df.iloc[index]
 
         # labels (annotations)
@@ -247,11 +251,7 @@ class PolymerDataset(SMILESDataset):
         )
         # samples (SMILES)
         smiles_tensor = tuple(
-            map(
-                lambda x: x[
-                    x.sample_to_index_mapping[selected_sample[x.name]]
-                ],
-                self._datasets
-            )
+            dataset.get_item(selected_sample[dataset.name])  # base_dataset: TODO get_from_key or so
+            for dataset in self.datasets
         )  # yapf: disable
         return tuple([*smiles_tensor, labels_tensor])

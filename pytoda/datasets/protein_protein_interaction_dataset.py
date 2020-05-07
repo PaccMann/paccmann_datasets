@@ -141,7 +141,7 @@ class ProteinProteinInteractionDataset(Dataset):
             ), 'Inconsistencies found in add_start_and_stop.'
 
         # Create protein sequence datasets
-        self._datasets = [
+        self.datasets = [
             ProteinSequenceDataset(
                 self.sequence_filepaths[index],
                 filetype=self.filetypes[index],
@@ -195,7 +195,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 )
             )
         ), 'At least one given entity name was not found in labels_filepath.'
-        for entity, dataset in zip(self.entities, self._datasets):
+        for entity, dataset in zip(self.entities, self.datasets):
             available_sequence_ids.append(
                 set(dataset.sample_to_index_mapping.keys())
                 & set(self.labels_df[entity])
@@ -240,7 +240,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 lambda x: x[
                     x.sample_to_index_mapping[selected_sample[x.name]]
                 ],
-                self._datasets
+                self.datasets
             )
         )  # yapf: disable
         return tuple([*proteins_tensors, labels_tensor])

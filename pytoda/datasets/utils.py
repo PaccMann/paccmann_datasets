@@ -1,7 +1,8 @@
 """Utils for the dataset module."""
 from torch.utils.data import Dataset
-from ._concatenated_dataset import _ConcatenatedDataset
+
 from ..types import FileList
+from .base_dataset import _ConcatenatedDataset
 
 
 def concatenate_file_based_datasets(
@@ -12,7 +13,7 @@ def concatenate_file_based_datasets(
 
     Args:
         filepaths (FileList): list of filepaths.
-        dataset_class (type): dataset class.
+        dataset_class (type): dataset class reading from file.
         kwargs (dict): additional arguments for
             dataset_class.__init__(self, filepath, **kwargs).
     Returns:

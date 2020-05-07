@@ -2,10 +2,11 @@
 import torch
 import pandas as pd
 from torch.utils.data import Dataset
+from .base_dataset import IndexedDataset, DatasetDelegator
 from ..types import AnnotatedData, Union, List
 
 
-class AnnotatedDataset(Dataset):
+class AnnotatedDataset(DatasetDelegator):
     """
     Annotated dataset implementation.
     """
@@ -13,16 +14,16 @@ class AnnotatedDataset(Dataset):
     def __init__(
         self,
         annotations_filepath: str,
-        dataset: Dataset,
+        dataset: IndexedDataset,
         annotation_index: Union[int, str] = -1,
         label_columns: Union[List[int], List[str]] = None,
         dtype: torch.dtype = torch.float,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
         **kwargs
-    ) -> None:
+    ) -> None:  # TODO document string labels
         """
-        Initialize an annotated dataset.
+        Initialize an annotated dataset via additional annotations dataframe.
         E.g. the  dataset could be SMILES and the annotations could be
         single or multi task labels.
 
@@ -31,7 +32,8 @@ class AnnotatedDataset(Dataset):
                 Currently, the supported formats are column separated files.
                 The default structure assumes that the last column contains an
                 id that is also used in the dataset provided.
-            dataset (Dataset): path to .smi file.
+            dataset (Dataset): instance of a IndexedDataset (supporting
+                label indices). E.g. a SMILESDataset
             annotation_index (Union[int, str]): positional or string for the
                 column containing the annotation index. Defaults to -1, a.k.a.
                 the last column.
@@ -44,8 +46,6 @@ class AnnotatedDataset(Dataset):
                 Defaults to gpu, if available.
             kwargs (dict): additional parameter for pd.read_csv.
         """
-        Dataset.__init__(self)
-
         self.device = device
         self.annotations_filepath = annotations_filepath
         self.dataset = dataset
@@ -83,7 +83,7 @@ class AnnotatedDataset(Dataset):
 
     def __len__(self) -> int:
         "Total number of samples."
-        return self.annotated_data_df.shape[0]
+        return len(self.annotated_data_df)  # base_dataset: any checks on synchonized data in dataset?
 
     def __getitem__(self, index: int) -> AnnotatedData:
         """

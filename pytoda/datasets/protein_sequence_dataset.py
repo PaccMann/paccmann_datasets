@@ -105,9 +105,9 @@ class ProteinSequenceDataset(Dataset):
         self.language_transforms = Compose(_transforms)
         self._setup_dataset()
         # Run once over dataset to add missing tokens to smiles language
-        for index in range(len(self._dataset)):
+        for index in range(len(self.dataset)):
             self.protein_language.add_sequence(
-                self.language_transforms(self._dataset[index])
+                self.language_transforms(self.dataset[index])
             )
         transforms = _transforms.copy()
         transforms += [
@@ -140,9 +140,9 @@ class ProteinSequenceDataset(Dataset):
         self.sample_to_index_mapping = {}
         self.index_to_sample_mapping = {}
 
-        for index in range(len(self._dataset)):
-            dataset_index, sample_index = self._dataset.get_index_pair(index)
-            dataset = self._dataset.datasets[dataset_index]
+        for index in range(len(self.dataset)):
+            dataset_index, sample_index = self.dataset.get_index_pair(index)
+            dataset = self.dataset.datasets[dataset_index]
             try:
                 sample = dataset.index_to_sample_mapping[sample_index]
             except KeyError:
@@ -152,7 +152,7 @@ class ProteinSequenceDataset(Dataset):
 
     def _setup_dataset(self) -> None:
         """Setup the dataset."""
-        self._dataset = concatenate_file_based_datasets(
+        self.dataset = concatenate_file_based_datasets(
             filepaths=self.filepaths,
             dataset_class=(
                 _SmiEagerDataset if self.filetype == '.csv'
@@ -164,7 +164,7 @@ class ProteinSequenceDataset(Dataset):
 
     def __len__(self) -> int:
         """Total number of samples."""
-        return len(self._dataset)
+        return len(self.dataset)
 
     def __getitem__(self, index: int) -> torch.tensor:
         """
@@ -177,4 +177,4 @@ class ProteinSequenceDataset(Dataset):
             torch.tensor: a torch tensor of token indexes,
                 for the current sample.
         """
-        return self.transform(self._dataset[index])
+        return self.transform(self.dataset[index])
