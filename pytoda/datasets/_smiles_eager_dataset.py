@@ -5,10 +5,9 @@ from ..smiles.smiles_language import SMILESLanguage
 from ._smiles_dataset import _SMILESDataset
 from ._smi_eager_dataset import _SmiEagerDataset
 from .utils import concatenate_file_based_datasets
-from .base_dataset import DatasetDelegator
 
 
-class _SMILESEagerDataset(_SMILESDataset):  # base_dataset: Base is delegator already?
+class _SMILESEagerDataset(_SMILESDataset):  # base_dataset: Base is delegator already!
     """
     SMILES dataset using eager loading.
 
@@ -93,6 +92,6 @@ class _SMILESEagerDataset(_SMILESDataset):  # base_dataset: Base is delegator al
 
     def _setup_dataset(self) -> None:
         """Setup the dataset."""
-        self._dataset = concatenate_file_based_datasets(
+        self.dataset = concatenate_file_based_datasets(
             filepaths=self.smi_filepaths, dataset_class=_SmiEagerDataset
         )

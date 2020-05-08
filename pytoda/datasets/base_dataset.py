@@ -55,6 +55,10 @@ class DatasetDelegator:
     def __getitem__(self, index: int):
         return self.dataset[index]
 
+      # base_dataset: returned dataset is not a Delegator, is this expected?
+    def __add__(self, other):
+        return _ConcatenatedDataset([self, other])
+
     @staticmethod
     def _delegation_filter(method_name):
         """To remove unwanted attributes/methods from being delegated."
@@ -141,3 +145,13 @@ class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
             return sample_idx
         else:
             return sample_idx + self.cumulative_sizes[dataset_idx - 1]
+
+    def get_item_from_key(self, key: Hashable) -> Any:
+        """Get item via sample identifier"""
+        return self.__getitem__(self.get_index(key))
+
+    def keys(self):
+        """Default generator of keys by iterating over dataset."""
+        for dataset in self.datasets:
+            for key in dataset.keys():
+                yield key

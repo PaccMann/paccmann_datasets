@@ -94,7 +94,7 @@ class _SMILESLazyDataset(_SMILESDataset):
 
     def _setup_dataset(self) -> None:
         """Setup the dataset."""
-        self._dataset = concatenate_file_based_datasets(
+        self.dataset = concatenate_file_based_datasets(
             filepaths=self.smi_filepaths,
             dataset_class=_SmiLazyDataset,
             chunk_size=self.chunk_size

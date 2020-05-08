@@ -81,9 +81,17 @@ class AnnotatedDataset(DatasetDelegator):
         # get the number of labels
         self.number_of_tasks = len(self.labels)
 
+    def assert_matching_keys(self):  # base_dataset: use in tests
+        e = ValueError('Annotation data index does not match dataset keys')
+        try:
+            if any(self.annotated_data_df.index != list(self.keys())):
+                raise e
+        except ValueError:  # length mismatch
+            raise e
+
     def __len__(self) -> int:
         "Total number of samples."
-        return len(self.annotated_data_df)  # base_dataset: any checks on synchonized data in dataset?
+        return len(self.annotated_data_df)  # base_dataset: any checks on synchronized data in dataset?
 
     def __getitem__(self, index: int) -> AnnotatedData:
         """
@@ -99,6 +107,10 @@ class AnnotatedDataset(DatasetDelegator):
         """
         # sample selection
         selected_sample = self.annotated_data_df.iloc[index]
+          # base_dataset: require
+          # - matching order (as is, no guarantee)
+          # - dataset.get_key in df.index (would raise)
+          # - both, as in self.assert_matching_keys
         # label
         labels_tensor = torch.tensor(
             list(selected_sample[self.labels].values),
