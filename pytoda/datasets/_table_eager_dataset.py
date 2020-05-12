@@ -2,11 +2,11 @@
 import torch
 from .utils import concatenate_file_based_datasets
 from ..types import FileList, FeatureList
-from ._table_dataset import _TableDataset
+from ._table_dataset_delegator import _TableDatasetDelegator
 from ._csv_eager_dataset import _CsvEagerDataset
 
 
-class _TableEagerDataset(_TableDataset):
+class _TableEagerDataset(_TableDatasetDelegator):
     """
     Table dataset using eager loading.
 
@@ -53,8 +53,8 @@ class _TableEagerDataset(_TableDataset):
         )
 
     def _setup_dataset(self) -> None:
-        """Setup the dataset."""
-        self._dataset = concatenate_file_based_datasets(
+        """Setup IndexedDataset assigned to self.dataset for delegation."""
+        self.dataset = concatenate_file_based_datasets(
             filepaths=self.filepaths,
             dataset_class=_CsvEagerDataset,
             feature_list=self.feature_list,
@@ -65,5 +65,5 @@ class _TableEagerDataset(_TableDataset):
     def _preprocess_dataset(self) -> None:
         """Preprocess the dataset."""
         self.feature_fn = lambda sample: sample[self.feature_list]
-        for dataset in self._dataset.datasets:
+        for dataset in self.dataset.datasets:
             dataset.df = self.transform_fn(self.feature_fn(dataset.df))

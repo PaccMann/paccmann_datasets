@@ -2,12 +2,13 @@
 import numpy as np
 import pandas as pd
 from collections import OrderedDict
-from ._cache_dataset import _CacheDataset
-from ._csv_dataset import _CsvDataset
-from ..types import FeatureList
+from ._cache_datasource import _CacheDatasource
+from .base_dataset import IndexedDataset
+from ._csv_statistics import _CsvStatistics
+from ..types import FeatureList, Hashable, Any, Iterator
 
 
-class _CsvLazyDataset(_CacheDataset, _CsvDataset):
+class _CsvLazyDataset(IndexedDataset, _CacheDatasource, _CsvStatistics):
     """
     .csv dataset using lazy loading.
 
@@ -29,21 +30,21 @@ class _CsvLazyDataset(_CacheDataset, _CsvDataset):
         Args:
             filepath (str): path to .csv file.
             feature_list (FeatureList): a list of features. Defaults to None.
-            chunk_size (int): size of the chunks. Defauls to 10000.
+            chunk_size (int): size of the chunks. Defaults to 10000.
             kwargs (dict): additional parameters for pd.read_csv.
                 Except from nrows and chunksize.
         """
         self.chunk_size = chunk_size
-        _CacheDataset.__init__(self)
-        _CsvDataset.__init__(
+        _CacheDatasource.__init__(self)
+        _CsvStatistics.__init__(
             self, filepath, feature_list=feature_list, **kwargs
-        )
-        # NOTE: make sure chunksize is not passed twice
-        _ = self.kwargs.pop('chunksize', None)
+        )  # calls setup_datasource
+        _ = self.kwargs.pop('chunksize', None)  # not passing chunksize twice
+        IndexedDataset.__init__(self)
 
-    def setup_dataset(self) -> None:
-        """Setup the dataset."""
-        self.sample_to_index_mapping = {}
+    def setup_datasource(self) -> None:
+        """Setup the datasource ready to collect statistics."""  # base_dataset: TODO
+        self.key_to_index_mapping = {}
         index = 0
         for chunk in pd.read_csv(
             self.filepath, chunksize=self.chunk_size, **self.kwargs
@@ -51,15 +52,15 @@ class _CsvLazyDataset(_CacheDataset, _CsvDataset):
             chunk = self.feature_fn(chunk)
             self.min_max_scaler.partial_fit(chunk.values)
             self.standardizer.partial_fit(chunk.values)
-            for row_index, row in chunk.iterrows():
+            for key, row in chunk.iterrows():
                 self.cache[index] = row.values
-                self.sample_to_index_mapping[row_index] = index
+                self.key_to_index_mapping[key] = index  # base_dataset: TODO returned sample would be last of duplicate keys, not first!
                 index += 1
-        self.index_to_sample_mapping = {
+        self.index_to_key_mapping = {
             index: sample
-            for sample, index in self.sample_to_index_mapping.items()
+            for sample, index in self.key_to_index_mapping.items()
         }
-        self.number_of_samples = len(self.sample_to_index_mapping)
+        self.number_of_samples = len(self.key_to_index_mapping)
         self.feature_list = chunk.columns.tolist()
         self.feature_mapping = pd.Series(
             OrderedDict(
@@ -84,11 +85,18 @@ class _CsvLazyDataset(_CacheDataset, _CsvDataset):
             index (int): index of the sample to fetch.
 
         Returns:
-            torch.tensor: a torch tensor of token indexes,
-                for the current sample.
+            np.array: the current sample read from cache.
         """
         return self.cache[index]
 
+    def get_key(self, index: int) -> Hashable:
+        """Get sample identifier from integer index."""
+        return self.index_to_key_mapping[index]
+
+    def get_index(self, key: Hashable) -> int:
+        """Get index for first datum mapping to the given sample identifier."""
+        return self.key_to_index_mapping[key]
+
     def __del__(self):
         """Delete the _CsvLazyDataset."""
-        _CacheDataset.__init__(self)
+        _CacheDatasource.__del__(self)

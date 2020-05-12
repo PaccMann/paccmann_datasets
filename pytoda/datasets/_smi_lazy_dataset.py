@@ -1,9 +1,11 @@
 """Implementation of _SmiLazyDataset."""
-from ._cache_dataset import _CacheDataset
+from ._cache_datasource import _CacheDatasource
+from .base_dataset import IndexedDataset
+from ..types import Hashable
 from ..files import read_smi
 
 
-class _SmiLazyDataset(_CacheDataset):
+class _SmiLazyDataset(IndexedDataset, _CacheDatasource):
     """
     .smi dataset using lazy loading.
 
@@ -18,23 +20,24 @@ class _SmiLazyDataset(_CacheDataset):
 
         Args:
             smi_filepath (str): path to .smi file.
-            chunk_size (int): size of the chunks. Defauls to 10000.
+            chunk_size (int): size of the chunks. Defaults to 10000.
         """
-        super(_SmiLazyDataset, self).__init__()
+        _CacheDatasource.__init__(self)
+        IndexedDataset.__init__(self)
         self.smi_filepath = smi_filepath
         self.chunk_size = chunk_size
-        self.sample_to_index_mapping = {}
+        self.key_to_index_mapping = {}
         index = 0
         for chunk in read_smi(self.smi_filepath, chunk_size=self.chunk_size):
             for row_index, row in chunk.iterrows():
                 self.cache[index] = row['SMILES']
-                self.sample_to_index_mapping[row_index] = index
+                self.key_to_index_mapping[row_index] = index
                 index += 1
-        self.index_to_sample_mapping = {
+        self.index_to_key_mapping = {
             index: sample
-            for sample, index in self.sample_to_index_mapping.items()
+            for sample, index in self.key_to_index_mapping.items()
         }
-        self.number_of_samples = len(self.sample_to_index_mapping)
+        self.number_of_samples = len(self.key_to_index_mapping)
 
     def __len__(self) -> int:
         """Total number of samples."""
@@ -48,7 +51,18 @@ class _SmiLazyDataset(_CacheDataset):
             index (int): index of the sample to fetch.
 
         Returns:
-            torch.tensor: a torch tensor of token indexes,
-                for the current sample.
+            str: a SMILES for the current sample.
         """
         return self.cache[index]
+
+    def get_key(self, index: int) -> Hashable:
+        """Get sample identifier from integer index."""
+        return self.index_to_key_mapping[index]
+
+    def get_index(self, key: Hashable) -> int:
+        """Get index for first datum mapping to the given sample identifier."""
+        return self.key_to_index_mapping[key]
+
+    def __del__(self):
+        """Delete the _SmiLazyDataset."""
+        _CacheDatasource.__del__(self)

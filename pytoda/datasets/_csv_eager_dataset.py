@@ -1,12 +1,12 @@
 """Implementation of _CsvEagerDataset."""
-import numpy as np
 import pandas as pd
 from collections import OrderedDict
-from ._csv_dataset import _CsvDataset
+from ._csv_statistics import _CsvStatistics
+from .dataframe_dataset import DataFrameDataset
 from ..types import FeatureList
 
 
-class _CsvEagerDataset(_CsvDataset):
+class _CsvEagerDataset(_CsvStatistics, DataFrameDataset):
     """
     .csv dataset using eager loading.
 
@@ -26,23 +26,18 @@ class _CsvEagerDataset(_CsvDataset):
             kwargs (dict): additional parameters for pd.read_csv.
                 Except from nrows.
         """
-        _CsvDataset.__init__(
+        _CsvStatistics.__init__(
             self, filepath, feature_list=feature_list, **kwargs
-        )
+        )  # calls setup_datasource
 
-    def setup_dataset(self) -> None:
-        """Setup the dataset."""
-        self.df = self.feature_fn(pd.read_csv(self.filepath, **self.kwargs))
+    def setup_datasource(self) -> None:
+        """Setup the datasource ready to collect statistics."""
+        df = self.feature_fn(pd.read_csv(self.filepath, **self.kwargs))
+        # IndexedDataset implementation
+        DataFrameDataset.__int__(self, df)  # base_datset: test transformation on self.df (happens in TableDataset)
         self.min_max_scaler.fit(self.df.values)
         self.standardizer.fit(self.df.values)
-        self.sample_to_index_mapping = {
-            sample: index
-            for index, sample in enumerate(self.df.index.tolist())
-        }
-        self.index_to_sample_mapping = {
-            index: sample
-            for sample, index in self.sample_to_index_mapping.items()
-        }
+          # base_dataset: check for downstream use of index_to_sample_mapping
         self.feature_list = self.df.columns.tolist()
         self.feature_mapping = pd.Series(
             OrderedDict(
@@ -53,20 +48,3 @@ class _CsvEagerDataset(_CsvDataset):
             )
         )
         self.feature_fn = lambda df: df[self.feature_list]
-
-    def __len__(self) -> int:
-        """Total number of samples."""
-        return self.df.shape[0]
-
-    def __getitem__(self, index: int) -> np.array:
-        """
-        Generates one sample of data.
-
-        Args:
-            index (int): index of the sample to fetch.
-
-        Returns:
-            torch.tensor: a torch tensor of token indexes,
-                for the current sample.
-        """
-        return self.df.iloc[index].values

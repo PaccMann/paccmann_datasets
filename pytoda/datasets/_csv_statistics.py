@@ -1,15 +1,14 @@
-"""Abstract implementation of _CsvDataset."""
+"""Abstract implementation of _CsvStatistics."""
 import copy
 import numpy as np
 from functools import reduce
-from torch.utils.data import Dataset
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from typing import List, Tuple
 from ..types import FeatureList
 
 
-class _CsvDataset(Dataset):
-    """.csv dataset abstract implementation."""
+class _CsvStatistics:
+    """.csv abstract setup for dataset statistics."""
 
     def __init__(
         self, filepath: str, feature_list: FeatureList = None, **kwargs
@@ -24,7 +23,7 @@ class _CsvDataset(Dataset):
                 Except from nrows.
 
         """
-        Dataset.__init__(self)
+          # base_datasets: why not nrows?
         self.filepath = filepath
         self.feature_list = feature_list
         self.min_max_scaler = MinMaxScaler()
@@ -37,27 +36,27 @@ class _CsvDataset(Dataset):
             ).T.fillna(0.0)
         else:
             self.feature_fn = lambda df: df
-        self.setup_dataset()
+        self.setup_datasource()
         self.max = self.min_max_scaler.data_max_
         self.min = self.min_max_scaler.data_min_
         self.mean = self.standardizer.mean_
         self.std = self.standardizer.scale_
 
-    def setup_dataset(self) -> None:
-        """Setup the dataset."""
+    def setup_datasource(self) -> None:
+        """Setup the datasource computing statistics."""
         raise NotImplementedError
 
 
 def reduce_csv_dataset_statistics(
-    csv_datasets: List[_CsvDataset],
-    feature_list: FeatureList = None,
+    csv_datasets: List[_CsvStatistics],
+    feature_list: FeatureList = None,  # base_dataset: check for deprecation of argument
     feature_ordering: dict = None,
 ) -> Tuple[np.array, np.array, np.array, np.array]:
     """
     Reduce datasets statistics.
 
     Args:
-        csv_datasets (List[_CsvDataset]): list of .csv datasets.
+        csv_datasets (List[_CsvStatistics]): list of .csv datasets.
         feature_list (FeatureList): a list of features. Defaults to None.
         feature_ordering (dict): a dictionary used to sort features by key.
             Defaults to None, a.k.a. sorting the strings.

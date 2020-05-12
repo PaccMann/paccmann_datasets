@@ -3,11 +3,12 @@ import bisect
 
 from torch.utils.data import ConcatDataset, Dataset
 
-from ..types import Any, List, Tuple, Hashable, FileList
+from ..types import Any, Hashable, Iterator, List, Tuple
 
 
 class IndexedDataset(Dataset):
-    """Base Class for Datsets with both integer index and sample identifier.
+    """
+    Base Class for Datsets with both integer index and sample identifier.
     Think .iloc versus .loc indexing.
 
     Implicit abstract methods are:
@@ -36,14 +37,15 @@ class IndexedDataset(Dataset):
         """Get item via sample identifier"""
         return self.__getitem__(self.get_index(key))
 
-    def keys(self):
-        """Default generator of keys by iterating over dataset."""
+    def keys(self) -> Iterator:
+        """Default iterator of keys by iterating over dataset indeces."""
         for index in range(len(self)):
             yield self.get_key(index)
 
 
 class DatasetDelegator:
-    """Base class for IndexedDataset attribute accesses from `self.dataset`.
+    """
+    Base class for IndexedDataset attribute accesses from `self.dataset`.
 
     The attributes/methods to delegate are stored to allow explicit filtering
     and addition to class documentation.
@@ -95,8 +97,9 @@ class DatasetDelegator:
 
 
 class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
-    """Extension of ConcatDataset with transparent indexing.
-    
+    """
+    Extension of ConcatDataset with transparent indexing.
+
     The keys are expected to be unique. If there are duplicate keys, on lookup
     the first one found will be used by default."""
 

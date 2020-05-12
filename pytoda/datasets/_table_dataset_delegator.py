@@ -1,15 +1,14 @@
-"""Implementation of _TableDataset."""
+"""Implementation of _TableDatasetDelegator."""
 import torch
 import copy
 import pandas as pd
 from collections import OrderedDict
-from torch.utils.data import Dataset
 from ._csv_dataset import reduce_csv_dataset_statistics
 from ..types import FileList, FeatureList
 from .base_dataset import DatasetDelegator
 
 
-class _TableDataset(DatasetDelegator):  # base_dataset: DatasetDelegator, but implements all of IndexedDataset on its own
+class _TableDatasetDelegator(DatasetDelegator):
     """
     Table dataset abstract definition.
 
@@ -131,7 +130,7 @@ class _TableDataset(DatasetDelegator):  # base_dataset: DatasetDelegator, but im
         self._preprocess_dataset()
 
     def _setup_dataset(self) -> None:
-        """Setup IndexedDataset assigned to self.dataset."""
+        """Setup IndexedDataset assigned to self.dataset for delegation."""
         raise NotImplementedError
 
     def _preprocess_dataset(self) -> None:

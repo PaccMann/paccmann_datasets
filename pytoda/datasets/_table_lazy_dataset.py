@@ -2,12 +2,12 @@
 import torch
 from .utils import concatenate_file_based_datasets
 from ..types import FileList, FeatureList
-from ._table_dataset import _TableDataset
+from ._table_dataset_delegator import _TableDatasetDelegator
 from ._csv_lazy_dataset import _CsvLazyDataset
 from ._csv_dataset import reduce_csv_dataset_statistics
 
 
-class _TableLazyDataset(_TableDataset):
+class _TableLazyDataset(_TableDatasetDelegator):
     """
     Table dataset using lazy loading.
 
@@ -58,8 +58,8 @@ class _TableLazyDataset(_TableDataset):
         )
 
     def _setup_dataset(self) -> None:
-        """Setup the dataset."""
-        self._dataset = concatenate_file_based_datasets(
+        """Setup IndexedDataset assigned to self.dataset for delegation."""
+        self.dataset = concatenate_file_based_datasets(
             filepaths=self.filepaths,
             dataset_class=_CsvLazyDataset,
             feature_list=self.feature_list,
@@ -71,7 +71,7 @@ class _TableLazyDataset(_TableDataset):
         """Preprocess the dataset."""
         self.feature_fn = lambda sample: sample[self.feature_mapping[
             self.feature_list].values]
-        for dataset in self._dataset.datasets:
+        for dataset in self.dataset.datasets:
             for index in dataset.cache:
                 dataset.cache[index] = self.transform_fn(
                     self.feature_fn(dataset.cache[index])
