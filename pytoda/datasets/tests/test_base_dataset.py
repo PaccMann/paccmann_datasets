@@ -36,7 +36,7 @@ class IndexedA(IndexedDataset):
         return len(self.datasource)
 
     def __getitem__(self, index):
-        return self.datasource.iloc[index]  # .values
+        return self.datasource.iloc[index].values
 
     def get_key(self, index: int) -> Hashable:
         """Get sample identifier from integer index."""
@@ -55,9 +55,8 @@ class Tracing(IndexedA):
 
 
 class Delegating(DatasetDelegator):
-    """NOT implementing methods (also not from inheritance)"""
+    """NOT implementing methods (and only built-ins from inheritance)"""
     def __init__(self, data):
-        super().__init__()
         self.dataset = data
 
 
@@ -71,82 +70,101 @@ class TestBaseDatasets(unittest.TestCase):
         return an_array, A(an_array), keys, a_df, IndexedA(a_df)
 
     def setUp(self):
-        self.length = 10
+        self.length = 11
         self.dims = 5
+        # ds for dataset
         (
-            self.an_array, self.a_dataset,
-            self.keys, self.a_df, self.a_idx_dataset
+            self.an_array, self.a_default_ds,
+            self.keys, self.a_1st_df, self.a_1st_ds
         ) = self.random_data(self.length, self.dims)
         (
             _, _,
-            _, self.a_2nd_df, self.a_2nd_idx_dataset
+            _, self.a_2nd_df, self.a_2nd_ds
         ) = self.random_data(self.length, self.dims)
         (
             _, _,
-            _, self.a_3rd_df, self.a_3rd_idx_dataset
+            _, self.a_3rd_df, self.a_3rd_ds
         ) = self.random_data(self.length, self.dims)
 
-        self.delegating_dataset = Delegating(self.a_2nd_idx_dataset)
+        self.delegating_ds = Delegating(self.a_2nd_ds)
 
         # IndexedDataset.__add__
-        self.concat_dataset = self.delegating_dataset + self.a_3rd_idx_dataset
+        self.concat_ds = self.delegating_ds + self.a_3rd_ds
+
+    def test_delegation_dir(self):
+        ds_dir = dir(self.delegating_ds)
+        # delegated to IndexedA
+        self.assertIn('get_key', ds_dir)
+        self.assertIn('get_index', ds_dir)
+        # delegated to IndexedDataset
+        self.assertIn('get_item_from_key', ds_dir)
+        self.assertIn('keys', ds_dir)
+        # futile, as built-ins delegation needed hardcoding in DatasetDelegator
+        # self.assertIn('__len__', ds_dir)  # see test___len__
+        # self.assertIn('__getitem__', ds_dir)  # see test___getitem__
+        # self.assertIn('__add__', ds_dir)  # see tests on self.concat_ds
 
     def test___len__(self) -> None:
         """Test __len__."""
-        self.assertEqual(len(self.a_dataset), self.length)
-        self.assertEqual(len(self.a_idx_dataset), self.length)
-        self.assertEqual(len(self.a_2nd_idx_dataset), self.length)
-        self.assertEqual(len(self.a_3rd_idx_dataset), self.length)
-        self.assertEqual(len(self.delegating_dataset), self.length)
-        self.assertEqual(len(self.concat_dataset), 2*self.length)
+        self.assertEqual(len(self.a_default_ds), self.length)
+        self.assertEqual(len(self.a_1st_ds), self.length)
+        self.assertEqual(len(self.a_2nd_ds), self.length)
+        self.assertEqual(len(self.a_3rd_ds), self.length)
+        self.assertEqual(len(self.delegating_ds), self.length)
+        self.assertEqual(len(self.concat_ds), 2*self.length)
 
     def test___getitem__(self) -> None:
         """Test __getitem__."""
         # Tracing(self.a_3rd_df)[0]
 
         i = 0
-        self.assertTrue(all(self.a_dataset[i] == self.an_array[i]))
-        self.assertTrue(all(self.a_idx_dataset[i] == self.a_df.iloc[i]))
-        self.assertTrue(all(self.a_2nd_idx_dataset[i] == self.a_2nd_df.iloc[i]))
-        self.assertTrue(all(self.a_3rd_idx_dataset[i] == self.a_3rd_df.iloc[i]))
-        self.assertTrue(all(self.delegating_dataset[i] == self.a_2nd_df.iloc[i]))
+        self.assertTrue(all(self.a_default_ds[i] == self.an_array[i]))
+        self.assertTrue(all(self.a_1st_ds[i] == self.a_1st_df.iloc[i]))
+        self.assertTrue(all(self.a_2nd_ds[i] == self.a_2nd_df.iloc[i]))
+        self.assertTrue(all(self.a_3rd_ds[i] == self.a_3rd_df.iloc[i]))
+        self.assertTrue(all(self.delegating_ds[i] == self.a_2nd_df.iloc[i]))
         # first in datasets
-        self.assertTrue(all(self.concat_dataset[i] == self.a_2nd_df.iloc[i]))
+        self.assertTrue(all(self.concat_ds[i] == self.a_2nd_df.iloc[i]))
 
         i = -1
-        self.assertTrue(all(self.a_dataset[i] == self.an_array[i]))
-        self.assertTrue(all(self.a_idx_dataset[i] == self.a_df.iloc[i]))
-        self.assertTrue(all(self.a_2nd_idx_dataset[i] == self.a_2nd_df.iloc[i]))
-        self.assertTrue(all(self.a_3rd_idx_dataset[i] == self.a_3rd_df.iloc[i]))
-        self.assertTrue(all(self.delegating_dataset[i] == self.a_2nd_df.iloc[i]))
+        self.assertTrue(all(self.a_default_ds[i] == self.an_array[i]))
+        self.assertTrue(all(self.a_1st_ds[i] == self.a_1st_df.iloc[i]))
+        self.assertTrue(all(self.a_2nd_ds[i] == self.a_2nd_df.iloc[i]))
+        self.assertTrue(all(self.a_3rd_ds[i] == self.a_3rd_df.iloc[i]))
+        self.assertTrue(all(self.delegating_ds[i] == self.a_2nd_df.iloc[i]))
         # last in datasets
-        self.assertTrue(all(self.concat_dataset[i] == self.a_3rd_df.iloc[i]))
+        self.assertTrue(all(self.concat_ds[i] == self.a_3rd_df.iloc[i]))
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
-        # content = os.linesep.join(
-        #     [
-        #         'CCO	CHEMBL545',
-        #         'C	CHEMBL17564',
-        #         'CO	CHEMBL14688',
-        #         'NCCS	CHEMBL602',
-        #     ]
-        # )
-        # with TestFileContent(content) as a_test_file:
-        #     with TestFileContent(content) as another_test_file:
-        #         smiles_dataset = SMILESDataset(
-        #             a_test_file.filename,
-        #             another_test_file.filename,
-        #             backend='eager'
-        #         )
-        #         data_loader = DataLoader(
-        #             smiles_dataset, batch_size=4, shuffle=True
-        #         )
-        #         for batch_index, batch in enumerate(data_loader):
-        #             self.assertEqual(batch.shape, (4, 4))
-        #             if batch_index > 10:
-        #                 break
-        pass
+
+        batch_size = 4
+        a_1st_dl = DataLoader(
+            self.a_1st_ds, batch_size=batch_size, shuffle=True, drop_last=False
+        )
+        full_batches = self.length // batch_size
+
+        for batch_index, batch in enumerate(a_1st_dl):
+            if batch_index >= full_batches:  # if drop_last
+                self.assertEqual(
+                    batch.shape, (self.length % batch_size, self.dims)
+                )
+            else:
+                self.assertEqual(batch.shape, (batch_size, self.dims))
+
+        # concatenated
+        concat_dl = DataLoader(
+            self.concat_ds, batch_size=batch_size, shuffle=True, drop_last=False
+        )
+        full_batches = (2 * self.length) // batch_size
+
+        for batch_index, batch in enumerate(concat_dl):
+            if batch_index >= full_batches:  # if drop_last
+                self.assertEqual(
+                    batch.shape, ((2 * self.length) % batch_size, self.dims)
+                )
+            else:
+                self.assertEqual(batch.shape, (batch_size, self.dims))
 
 
 if __name__ == '__main__':
