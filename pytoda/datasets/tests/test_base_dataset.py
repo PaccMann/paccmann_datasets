@@ -1,17 +1,14 @@
 """Testing basic ways to setup a dataset."""
 import unittest
-import traceback
 import uuid
-import os
 import numpy as np
 import pandas as pd
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 from pytoda.datasets import (
     IndexedDataset, DatasetDelegator,
     _ConcatenatedDataset
 )
-from pytoda.tests.utils import TestFileContent
-from pytoda.types import List, Tuple, Hashable, FileList
+from pytoda.types import Hashable
 
 
 class IndexedA(IndexedDataset):
@@ -124,7 +121,7 @@ class TestBaseDatasets(unittest.TestCase):
 
         batch_size = 4
         a_1st_dl = DataLoader(
-            self.a_1st_ds, batch_size=batch_size, shuffle=True, drop_last=False
+            self.a_1st_ds, batch_size=batch_size, shuffle=True
         )
         full_batches = self.length // batch_size
 
@@ -138,7 +135,7 @@ class TestBaseDatasets(unittest.TestCase):
 
         # concatenated
         concat_dl = DataLoader(
-            self.concat_ds, batch_size=batch_size, shuffle=True, drop_last=False
+            self.concat_ds, batch_size=batch_size, shuffle=True
         )
         full_batches = (2 * self.length) // batch_size
 
@@ -194,7 +191,7 @@ class TestBaseDatasets(unittest.TestCase):
             )
             # _ConcatenatedDataset is not a DatasetDelegator
             self.assertNotIn('datasource', dir(ds))
-        
+
         # duplicate keys lookup returns first
         index == self.length + 1
         duplicate_ds = other_ds + other_ds
