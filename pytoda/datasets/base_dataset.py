@@ -17,6 +17,9 @@ class IndexedDataset(Dataset):
     Default implementations to index using key and getting all keys are
     provided but should be overloaded when possible as calls to `get_item`
     and `get_key` might be expensive.
+
+    The keys are expected to be unique. If there are duplicate keys, on lookup
+    the first one found will be used by default.
     """
     def __add__(self, other):
         return _ConcatenatedDataset([self, other])
@@ -26,7 +29,7 @@ class IndexedDataset(Dataset):
         raise NotImplementedError
 
     def get_index(self, key: Hashable) -> int:
-        """Get integer index from sample identifier."""
+        """Get index for first datum mapping to the given sample identifier."""
         raise NotImplementedError
 
     def get_item_from_key(self, key: Hashable) -> Any:
@@ -55,7 +58,7 @@ class DatasetDelegator:
     def __getitem__(self, index: int):
         return self.dataset[index]
 
-      # base_dataset: returned dataset is not a Delegator, is this expected?
+      # base_dataset: returned dataset is not a Delegator
     def __add__(self, other):
         return _ConcatenatedDataset([self, other])
 
@@ -92,7 +95,10 @@ class DatasetDelegator:
 
 
 class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
-    """Extension of ConcatDataset with transparent indexing."""
+    """Extension of ConcatDataset with transparent indexing.
+    
+    The keys are expected to be unique. If there are duplicate keys, on lookup
+    the first one found will be used by default."""
 
     def __init__(self, datasets: List[Dataset]):
         """
@@ -127,10 +133,15 @@ class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
             sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
         return (dataset_idx, sample_idx)
 
+    # the following require dataset to implement get_key and get_index
+    def get_key_pair(self, index: int) -> Tuple[int, Hashable]:
+        """Get dataset index sample identifier from integer index."""
+        dataset_idx, sample_idx = self.get_index_pair(index)
+        return dataset_idx, self.datasets[dataset_idx].get_key(sample_idx)
+
     def get_key(self, index: int) -> Hashable:
         """Get sample identifier from integer index."""
-        dataset_idx, sample_idx = self.get_index_pair(index)
-        return self.datasets[dataset_idx].get_key(sample_idx)
+        return self.get_key_pair(index)[1]
 
     def get_index(self, key: Hashable) -> int:
         """Get index for first datum mapping to the given sample identifier."""
@@ -147,7 +158,7 @@ class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
             return sample_idx + self.cumulative_sizes[dataset_idx - 1]
 
     def get_item_from_key(self, key: Hashable) -> Any:
-        """Get item via sample identifier"""
+        """Get first datum mapping to the given sample identifier."""
         return self.__getitem__(self.get_index(key))
 
     def keys(self):
