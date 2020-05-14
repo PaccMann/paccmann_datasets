@@ -12,7 +12,6 @@ class DataFrameDataset(IndexedDataset):
     def __init__(self, df: pd.DataFrame):
         super(DataFrameDataset).__init__()
         self.df = df
-        self._range_index = pd.RangeIndex(0, self.__len__())
 
     def __len__(self) -> int:
         """Total number of samples."""
@@ -38,16 +37,16 @@ class DataFrameDataset(IndexedDataset):
         """Get index for first datum mapping to the given sample identifier."""
         # item will raise if not single value (deprecated in pandas)
         try:
-            index = self._range_index[
+            indices = np.nonzero(
                 self.datasource.index == key
-            ]
-            return index.values.item()
+            )[0]
+            return indices.item()
         except ValueError:
-            if len(index) == 0:
+            if len(indices) == 0:
                 raise KeyError
             else:
                 # key not unique, return first as _ConcatenatedDataset
-                return index.values[0]
+                return indices[0]
 
     def get_item_from_key(self, key: Hashable) -> np.array:
         """Get item via sample identifier"""
