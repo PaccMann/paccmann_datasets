@@ -9,7 +9,7 @@ from .smiles_dataset import SMILESDataset
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
-class DrugAffinityDataset(Dataset):
+class DrugAffinityDataset(Dataset):  # base_dataset: TODO
     """
     Drug affinity dataset implementation.
     """
@@ -100,7 +100,7 @@ class DrugAffinityDataset(Dataset):
                 sequence tokens. Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            backend (str): memeory management backend.
+            backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
                 Note that at the moment only the smiles dataset implement both
                 backends. The drug affinity data and the protein dataset are

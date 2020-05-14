@@ -8,7 +8,7 @@ from .smiles_dataset import SMILESDataset
 from .gene_expression_dataset import GeneExpressionDataset
 
 
-class DrugSensitivityDataset(Dataset):
+class DrugSensitivityDataset(Dataset):  # base_dataset: TODO
     """
     Drug sensitivity dataset implementation.
     """
@@ -104,7 +104,7 @@ class DrugSensitivityDataset(Dataset):
                 GeneExpressionDataset.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            backend (str): memeory management backend.
+            backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
                 Note that at the moment only the gene expression and the
                 smiles datasets implement both backends. The drug sensitivity

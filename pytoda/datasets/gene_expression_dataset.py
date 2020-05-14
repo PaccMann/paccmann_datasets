@@ -44,7 +44,7 @@ class GeneExpressionDataset(DatasetDelegator):
             dtype (torch.dtype): data type. Defaults to torch.float.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            backend (str): memeory management backend.
+            backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             chunk_size (int): size of the chunks in case of lazy reading, is
                 ignored with 'eager' backend. Defaults to 10000.
