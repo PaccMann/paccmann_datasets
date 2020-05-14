@@ -1,6 +1,6 @@
 """GeneExpressionDataset module."""
 import torch
-from torch.utils.data import Dataset
+from .base_datset import DatasetDelegator
 from ._table_eager_dataset import _TableEagerDataset
 from ._table_lazy_dataset import _TableLazyDataset
 from ..types import FileList, GeneList
@@ -11,7 +11,7 @@ TABLE_DATASET_IMPLEMENTATIONS = {
 }
 
 
-class GeneExpressionDataset:
+class GeneExpressionDataset(DatasetDelegator):
     """
     Gene expression dataset implementation.
     """
@@ -48,14 +48,13 @@ class GeneExpressionDataset:
                 Defaults to eager, prefer speed over memory consumption.
             kwargs (dict): additional parameters for pd.read_csv.
         """
-        Dataset.__init__(self)
         if not (backend in TABLE_DATASET_IMPLEMENTATIONS):
             raise RuntimeError(
                 'backend={} not supported! '.format(backend) +
                 'Select one in [{}]'.
                 format(','.join(TABLE_DATASET_IMPLEMENTATIONS.keys()))
             )
-        self._dataset = TABLE_DATASET_IMPLEMENTATIONS[backend](
+        self.dataset = TABLE_DATASET_IMPLEMENTATIONS[backend](
             filepaths=gene_expression_filepaths,
             feature_list=gene_list,
             standardize=standardize,
@@ -65,28 +64,6 @@ class GeneExpressionDataset:
             device=device,
             **kwargs
         )
-        self.gene_list = self._dataset.feature_list
+        DatasetDelegator.__init__(self)  # delegate to self.dataset
+        self.gene_list = self.dataset.feature_list
         self.number_of_features = len(self.gene_list)
-        self.max = self._dataset.max
-        self.min = self._dataset.min
-        self.mean = self._dataset.mean
-        self.std = self._dataset.std
-        self.sample_to_index_mapping = self._dataset.sample_to_index_mapping
-        self.processing = self._dataset.processing
-
-    def __len__(self) -> int:
-        """Total number of samples."""
-        return len(self._dataset)
-
-    def __getitem__(self, index: int) -> torch.tensor:
-        """
-        Generates one sample of data.
-
-        Args:
-            index (int): index of the sample to fetch.
-
-        Returns:
-            torch.tensor: a torch tensor of token indexes,
-                for the current sample.
-        """
-        return self._dataset[index]

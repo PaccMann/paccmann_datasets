@@ -1,14 +1,15 @@
 """Implementation of AnnotatedDataset class."""
 import torch
 import pandas as pd
-from torch.utils.data import Dataset
-from .base_dataset import IndexedDataset, DatasetDelegator
-from ..types import AnnotatedData, Union, List
+from .base_dataset import IndexedDataset
+from .dataframe_dataset import DataFrameDataset
+from ..types import AnnotatedData, Union, List, Hashable
 
 
-class AnnotatedDataset(DatasetDelegator):
+class AnnotatedDataset(DataFrameDataset):
     """
-    Annotated dataset implementation.
+    Annotated samples in order of annotations csv, fetching data
+    from passed dataset.
     """
 
     def __init__(
@@ -48,12 +49,13 @@ class AnnotatedDataset(DatasetDelegator):
         """
         self.device = device
         self.annotations_filepath = annotations_filepath
-        self.dataset = dataset
-        self.annotated_data_df = pd.read_csv(
+        self.datasource = dataset
+
+        # processing of the dataframe for dataset setup
+        df = pd.read_csv(
             self.annotations_filepath, **kwargs
         )
-        # post-processing of the dataframe
-        columns = self.annotated_data_df.columns
+        columns = df.columns
         # handle annotation index
         if isinstance(annotation_index, int):
             self.annotation_index = columns[annotation_index]
@@ -61,6 +63,12 @@ class AnnotatedDataset(DatasetDelegator):
             self.annotation_index = annotation_index
         else:
             raise RuntimeError('annotation_index should be int or str.')
+        # set the index explicitly
+        df = df.set_index(
+            self.annotation_index
+        )
+        DataFrameDataset.__init__(self, df)
+
         # handle labels
         if label_columns is None:
             self.labels = [
@@ -74,24 +82,8 @@ class AnnotatedDataset(DatasetDelegator):
             raise RuntimeError(
                 'label_columns should be an iterable containing int or str'
             )
-        # set the index explicitly
-        self.annotated_data_df = self.annotated_data_df.set_index(
-            self.annotation_index
-        )
         # get the number of labels
         self.number_of_tasks = len(self.labels)
-
-    def assert_matching_keys(self):  # base_dataset: use in tests
-        e = ValueError('Annotation data index does not match dataset keys')
-        try:
-            if any(self.annotated_data_df.index != list(self.keys())):
-                raise e
-        except ValueError:  # length mismatch
-            raise e
-
-    def __len__(self) -> int:
-        "Total number of samples."
-        return len(self.annotated_data_df)  # base_dataset: any checks on synchronized data in dataset?
 
     def __getitem__(self, index: int) -> AnnotatedData:
         """
@@ -106,11 +98,31 @@ class AnnotatedDataset(DatasetDelegator):
                 the current sample.
         """
         # sample selection
-        selected_sample = self.annotated_data_df.iloc[index]
-          # base_dataset: require
-          # - matching order (as is, no guarantee)
-          # - dataset.get_key in df.index (would raise)
-          # - both, as in self.assert_matching_keys
+        selected_sample = self.df.iloc[index]
+        # label
+        labels_tensor = torch.tensor(
+            list(selected_sample[self.labels].values),  # base_dataset: why selecting self.labels here and not for all in __init__? want to change self.labels on the instance?
+            dtype=torch.float,
+            device=self.device
+        )
+        # sample
+        sample = self.datasource.get_item_from_key(selected_sample.name)
+        return sample, labels_tensor
+
+    def get_item_from_key(self, key: Hashable) -> AnnotatedData:
+        """
+        Generates one sample of data.
+
+        Args:
+            index (int): index of the sample to fetch.
+
+        Returns:
+            AnnotatedData: a tuple containing two torch.tensors,
+                representing respetively: compound token indexes and labels for
+                the current sample.
+        """
+        # sample selection
+        selected_sample = self.df.loc[key, :]
         # label
         labels_tensor = torch.tensor(
             list(selected_sample[self.labels].values),
@@ -118,7 +130,5 @@ class AnnotatedDataset(DatasetDelegator):
             device=self.device
         )
         # sample
-        sample = self.dataset[
-            self.dataset.sample_to_index_mapping[selected_sample.name]
-        ]   # yapf: disable
+        sample = self.datasource.get_item_from_key(key)
         return sample, labels_tensor
