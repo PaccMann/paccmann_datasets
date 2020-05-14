@@ -1,14 +1,19 @@
-"""Implementation of _TableDatasetDelegator."""
-import torch
+"""Implementation of _TableDataset."""
 import copy
-import pandas as pd
 from collections import OrderedDict
+
+import pandas as pd
+import torch
+
+from ..types import FeatureList, FileList
 from ._csv_dataset import reduce_csv_dataset_statistics
-from ..types import FileList, FeatureList
+from ._csv_eager_dataset import _CsvEagerDataset
+from ._csv_lazy_dataset import _CsvLazyDataset
 from .base_dataset import DatasetDelegator
+from .utils import concatenate_file_based_datasets
 
 
-class _TableDatasetDelegator(DatasetDelegator):
+class _TableDataset(DatasetDelegator):
     """
     Table dataset abstract definition.
 
@@ -26,6 +31,7 @@ class _TableDatasetDelegator(DatasetDelegator):
         dtype: torch.dtype = torch.float,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
+        chunk_size: int = 10000,
         **kwargs
     ) -> None:
         """
@@ -41,6 +47,8 @@ class _TableDatasetDelegator(DatasetDelegator):
             dtype (torch.dtype): data type. Defaults to torch.float.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
+            chunk_size (int): size of the chunks in case of lazy reading, is
+                ignored with 'eager' backend. Defaults to 10000.
             kwargs (dict): additional parameters for pd.read_csv.
         """
         self.processing = {}
@@ -60,6 +68,7 @@ class _TableDatasetDelegator(DatasetDelegator):
         self.processing_parameters = processing_parameters
         self.dtype = dtype
         self.device = device
+        self.chunk_size = chunk_size
         self.kwargs = copy.deepcopy(kwargs)
         if self.standardize and self.min_max:
             raise RuntimeError('Cannot both standardize and min-max scale')
@@ -157,3 +166,58 @@ class _TableDatasetDelegator(DatasetDelegator):
             self.dataset[index], dtype=self.dtype, device=self.device
         )  # TODO torch.tensor needed? Dataloader should take care of this.
         # if not we can remove this
+
+
+class _TableLazyDataset(_TableDataset):
+    """
+    Table dataset using lazy loading.
+
+    Suggested when handling datasets that can fit in the device memory.
+    In case of datasets fitting in device memory consider using
+    _TableEagerDataset for better performance.
+    """
+
+    def _setup_dataset(self) -> None:
+        """Setup IndexedDataset assigned to self.dataset for delegation."""
+        self.dataset = concatenate_file_based_datasets(
+            filepaths=self.filepaths,
+            dataset_class=_CsvLazyDataset,
+            feature_list=self.feature_list,
+            chunk_size=self.chunk_size,
+            **self.kwargs
+        )
+
+    def _preprocess_dataset(self) -> None:
+        """Preprocess the dataset."""
+        self.feature_fn = lambda sample: sample[self.feature_mapping[
+            self.feature_list].values]
+        for dataset in self.dataset.datasets:
+            for index in dataset.cache:
+                dataset.cache[index] = self.transform_fn(
+                    self.feature_fn(dataset.cache[index])
+                )
+
+
+class _TableEagerDataset(_TableDataset):
+    """
+    Table dataset using eager loading.
+
+    Suggested when handling datasets that can fit in the device memory.
+    In case of out of memory errors consider using _TableLazyDataset.
+    """
+
+    def _setup_dataset(self) -> None:
+        """Setup IndexedDataset assigned to self.dataset for delegation."""
+        self.dataset = concatenate_file_based_datasets(
+            filepaths=self.filepaths,
+            dataset_class=_CsvEagerDataset,
+            feature_list=self.feature_list,
+            dtype={'cell_line': str},
+            **self.kwargs
+        )
+
+    def _preprocess_dataset(self) -> None:
+        """Preprocess the dataset."""
+        self.feature_fn = lambda sample: sample[self.feature_list]
+        for dataset in self.dataset.datasets:
+            dataset.df = self.transform_fn(self.feature_fn(dataset.df))

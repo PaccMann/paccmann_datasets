@@ -1,9 +1,7 @@
 """SMILESDataset module."""
 import torch
-from torch.utils.data import Dataset
 from ..smiles.smiles_language import SMILESLanguage
-from ._smiles_eager_dataset import _SMILESEagerDataset
-from ._smiles_lazy_dataset import _SMILESLazyDataset
+from ._smiles_dataset import _SMILESEagerDataset, _SMILESLazyDataset
 from ..types import FileList
 from .base_dataset import DatasetDelegator
 
@@ -40,6 +38,7 @@ class SMILESDataset(DatasetDelegator):
         ),
         backend: str = 'eager',
         name: str = 'smiles-dataset',
+        chunk_size: int = 10000,
     ) -> None:
         """
         Initialize a SMILES dataset.
@@ -75,12 +74,13 @@ class SMILESDataset(DatasetDelegator):
             sanitize (bool): Sanitize SMILES. Defaults to True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            backend (str): memeory management backend.
+            backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             name (str): name of the SMILESDataset.
+            chunk_size (int): size of the chunks in case of lazy reading, is
+                ignored with 'eager' backend. Defaults to 10000.
 
         """
-        DatasetDelegator.__init__(self)
         self.name = name
         if not (backend in SMILES_DATASET_IMPLEMENTATIONS):
             raise RuntimeError(
@@ -104,8 +104,13 @@ class SMILESDataset(DatasetDelegator):
             remove_chirality=remove_chirality,
             selfies=selfies,
             sanitize=sanitize,
-            device=device
+            device=device,
+            chunk_size=chunk_size
         )
+        DatasetDelegator.__init__(self)  # delegate to self.dataset
+          # base_dataset: or was it the idea to hide most attributes in self.dataset? Then:
+          # - do not assign to self in _SMILESDataset
+          # - adapt Delegator init to add specific attributes to delegatable
           # base_dataset: test for theses attributes:
         # self.smiles_language = self.dataset.smiles_language
         # self.sample_to_index_mapping = self.dataset.sample_to_index_mapping

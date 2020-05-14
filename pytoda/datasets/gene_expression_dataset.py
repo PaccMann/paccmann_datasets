@@ -1,8 +1,7 @@
 """GeneExpressionDataset module."""
 import torch
 from .base_datset import DatasetDelegator
-from ._table_eager_dataset import _TableEagerDataset
-from ._table_lazy_dataset import _TableLazyDataset
+from ._table_dataset import _TableEagerDataset, _TableLazyDataset
 from ..types import FileList, GeneList
 
 TABLE_DATASET_IMPLEMENTATIONS = {
@@ -27,6 +26,7 @@ class GeneExpressionDataset(DatasetDelegator):
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
         backend: str = 'eager',
+        chunk_size: int = 10000,
         **kwargs
     ) -> None:
         """
@@ -46,6 +46,8 @@ class GeneExpressionDataset(DatasetDelegator):
                 Defaults to gpu, if available.
             backend (str): memeory management backend.
                 Defaults to eager, prefer speed over memory consumption.
+            chunk_size (int): size of the chunks in case of lazy reading, is
+                ignored with 'eager' backend. Defaults to 10000.
             kwargs (dict): additional parameters for pd.read_csv.
         """
         if not (backend in TABLE_DATASET_IMPLEMENTATIONS):
@@ -62,8 +64,10 @@ class GeneExpressionDataset(DatasetDelegator):
             processing_parameters=processing_parameters,
             dtype=dtype,
             device=device,
+            chunk_size=chunk_size,
             **kwargs
         )
-        DatasetDelegator.__init__(self)  # delegate to self.dataset
         self.gene_list = self.dataset.feature_list
         self.number_of_features = len(self.gene_list)
+        DatasetDelegator.__init__(self)  # delegate to self.dataset
+          # base_dataset: or was it the idea to hide most attributes

@@ -3,24 +3,24 @@ import logging
 
 import torch
 from rdkit import Chem
-from torch.utils.data import Dataset
 
-from .base_dataset import DatasetDelegator
-from ..smiles.processing import (
-    SMILES_TOKENIZER, tokenize_selfies, tokenize_smiles
-)
+from ..smiles.processing import (SMILES_TOKENIZER, tokenize_selfies,
+                                 tokenize_smiles)
 from ..smiles.smiles_language import SMILESLanguage
-from ..smiles.transforms import (
-    Augment, Canonicalization, Kekulize, NotKekulize, RemoveIsomery, Selfies,
-    SMILESToTokenIndexes
-)
+from ..smiles.transforms import (Augment, Canonicalization, Kekulize,
+                                 NotKekulize, RemoveIsomery, Selfies,
+                                 SMILESToTokenIndexes)
 from ..transforms import Compose, LeftPadding, Randomize, ToTensor
 from ..types import FileList
+from ._smi_eager_dataset import _SmiEagerDataset
+from ._smi_lazy_dataset import _SmiLazyDataset
+from .base_dataset import DatasetDelegator
+from .utils import concatenate_file_based_datasets
 
 logger = logging.getLogger('pytoda_smiles_dataset')
 
 
-class _SMILESDataset(DatasetDelegator):  # base_dataset: TODO base IndexedDataset and DatasetDelegator
+class _SMILESBaseDataset(DatasetDelegator):
     """
     SMILES dataset abstract definition.
 
@@ -46,7 +46,8 @@ class _SMILESDataset(DatasetDelegator):  # base_dataset: TODO base IndexedDatase
         selfies: bool = False,
         sanitize: bool = True,
         device: torch.device = torch.
-        device('cuda' if torch.cuda.is_available() else 'cpu')
+        device('cuda' if torch.cuda.is_available() else 'cpu'),
+        chunk_size: int = 10000
     ) -> None:
         """
         Initialize a SMILES dataset.
@@ -82,6 +83,7 @@ class _SMILESDataset(DatasetDelegator):  # base_dataset: TODO base IndexedDatase
             sanitize (bool): Sanitize SMILES. Defaults to True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
+
 
         NOTE: If the setup is too slow, consider skipping all SMILES language
             transforms. To achieve this, set ALL following arguments to False:
@@ -130,6 +132,7 @@ class _SMILESDataset(DatasetDelegator):  # base_dataset: TODO base IndexedDatase
         self.selfies = selfies
         self.sanitize = sanitize
         self.device = device
+        self.chunk_size = chunk_size
 
         # Build up cascade of SMILES transformations
         # Below transformations are optional
@@ -247,32 +250,13 @@ class _SMILESDataset(DatasetDelegator):  # base_dataset: TODO base IndexedDatase
         transforms += [ToTensor(device=self.device)]
         self.transform = Compose(transforms)
 
-          # base_dataset: use get_key/get_index instead
-          # but check for duplicates happens only in the reader
-        # # NOTE: recover sample and index mappings
-        # self.sample_to_index_mapping = {}
-        # self.index_to_sample_mapping = {}
-
-        # for index in range(len(self.dataset)):
-        #     dataset_index, sample_index = self.dataset.get_index_pair(index)
-        #     dataset = self.dataset.datasets[dataset_index]
-        #     try:
-        #         sample = dataset.index_to_sample_mapping[sample_index]
-        #     except KeyError:
-        #         raise KeyError('Please remove duplicates from your .smi file.')
-        #     self.sample_to_index_mapping[sample] = index
-        #     self.index_to_sample_mapping[index] = sample
+        DatasetDelegator.__init__(self)
+        if self.has_duplicate_keys():
+            raise KeyError('Please remove duplicates from your .smi file.')
 
     def _setup_dataset(self) -> None:
         """Setup the dataset."""
-          # base_dataset: this makes this a Delegator base class
-          # but smiles lazy/eager logic should be resolved here
         raise NotImplementedError
-
-      # base_dataset: test len deletion (delegation)
-    # def __len__(self) -> int:
-    #     """Total number of samples."""
-    #     return len(self.dataset)
 
     def __getitem__(self, index: int) -> torch.tensor:
         """
@@ -286,3 +270,36 @@ class _SMILESDataset(DatasetDelegator):  # base_dataset: TODO base IndexedDatase
                 for the current sample.
         """
         return self.transform(self.dataset[index])
+
+
+class _SMILESEagerDataset(_SMILESBaseDataset):  # base_dataset: Base is delegator already!
+    """
+    SMILES dataset using eager loading.
+
+    Suggested when handling datasets that can fit in the device memory.
+    In case of out of memory errors consider using _SMILESLazyDataset.
+    """
+
+    def _setup_dataset(self) -> None:
+        """Setup the dataset."""
+        self.dataset = concatenate_file_based_datasets(
+            filepaths=self.smi_filepaths, dataset_class=_SmiEagerDataset
+        )
+
+
+class _SMILESLazyDataset(_SMILESBaseDataset):
+    """
+    SMILES dataset using lazy loading.
+
+    Suggested when handling datasets that can't fit in the device memory.
+    In case of datasets fitting in device memory consider using
+    _SMILESEagerDataset for better performance.
+    """
+
+    def _setup_dataset(self) -> None:
+        """Setup the dataset."""
+        self.dataset = concatenate_file_based_datasets(
+            filepaths=self.smi_filepaths,
+            dataset_class=_SmiLazyDataset,
+            chunk_size=self.chunk_size
+        )

@@ -1,5 +1,6 @@
 """Implementation of base classes working with datasets."""
 import bisect
+import pandas as pd
 
 from torch.utils.data import ConcatDataset, Dataset
 
@@ -41,6 +42,9 @@ class IndexedDataset(Dataset):
         """Default iterator of keys by iterating over dataset indeces."""
         for index in range(len(self)):
             yield self.get_key(index)
+
+    def has_duplicate_keys(self):
+        return pd.Index(self.keys).has_duplicates
 
 
 class DatasetDelegator:
