@@ -46,6 +46,7 @@ class _CsvLazyDataset(IndexedDataset, _CacheDatasource, _CsvStatistics):
         """Setup the datasource ready to collect statistics."""  # base_dataset: TODO
         self.key_to_index_mapping = {}
         index = 0
+        self.ordered_keys = []
         for chunk in pd.read_csv(
             self.filepath, chunksize=self.chunk_size, **self.kwargs
         ):
@@ -56,11 +57,9 @@ class _CsvLazyDataset(IndexedDataset, _CacheDatasource, _CsvStatistics):
                 self.cache[index] = row.values
                 self.key_to_index_mapping[key] = index  # base_dataset: TODO returned sample would be last of duplicate keys, not first!
                 index += 1
-        self.index_to_key_mapping = {
-            index: sample
-            for sample, index in self.key_to_index_mapping.items()
-        }
-        self.number_of_samples = len(self.key_to_index_mapping)
+                self.ordered_keys.append(key)
+
+        self.number_of_samples = len(self.ordered_keys)
         self.feature_list = chunk.columns.tolist()
         self.feature_mapping = pd.Series(
             OrderedDict(
@@ -91,11 +90,17 @@ class _CsvLazyDataset(IndexedDataset, _CacheDatasource, _CsvStatistics):
 
     def get_key(self, index: int) -> Hashable:
         """Get sample identifier from integer index."""
-        return self.index_to_key_mapping[index]
+        return self.ordered_keys[index]
 
     def get_index(self, key: Hashable) -> int:
         """Get index for first datum mapping to the given sample identifier."""
         return self.key_to_index_mapping[key]
+
+    def keys(self):
+        return iter(self.ordered_keys)
+
+    def has_duplicate_keys(self):
+        return self.number_of_samples != len(self.key_to_index_mapping)
 
     def __del__(self):
         """Delete the _CsvLazyDataset."""

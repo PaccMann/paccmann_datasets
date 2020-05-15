@@ -33,13 +33,13 @@ class _SmiLazyDataset(IndexedDataset, _CacheDatasource):
         index = 0
         self.ordered_keys = []
         for chunk in read_smi(self.smi_filepath, chunk_size=self.chunk_size):
-            for row_index, row in chunk.iterrows():
+            for key, row in chunk.iterrows():
                 self.cache[index] = row['SMILES']
-                self.key_to_index_mapping[row_index] = index
+                self.key_to_index_mapping[key] = index
                 index += 1
-                self.ordered_keys.append(row_index)
+                self.ordered_keys.append(key)
 
-        self.number_of_samples = len(self.key_to_index_mapping)
+        self.number_of_samples = len(self.ordered_keys)
 
     def __len__(self) -> int:
         """Total number of samples."""
@@ -67,6 +67,9 @@ class _SmiLazyDataset(IndexedDataset, _CacheDatasource):
 
     def keys(self):
         return iter(self.ordered_keys)
+
+    def has_duplicate_keys(self):
+        return self.number_of_samples != len(self.key_to_index_mapping)
 
     def __del__(self):
         """Delete the _SmiLazyDataset."""

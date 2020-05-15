@@ -42,7 +42,7 @@ class _FastaEagerDataset(IndexedDataset):  # base_dataset: needs test
 
     def __len__(self) -> int:
         """Total number of samples."""
-        return len(self.index_to_sample_mapping)
+        return len(self.samples)
 
     def __getitem__(self, index: int) -> str:
         """
@@ -64,6 +64,9 @@ class _FastaEagerDataset(IndexedDataset):  # base_dataset: needs test
     def get_index(self, key: Hashable) -> int:
         """Get index for first datum mapping to the given sample identifier."""
         return self.key_to_index_mapping[key]
+
+    def has_duplicate_keys(self):
+        return self.number_of_samples != len(self.key_to_index_mapping)
 
     def keys(self):
         return iter(self.ordered_keys)

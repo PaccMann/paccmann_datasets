@@ -37,7 +37,6 @@ class _CsvEagerDataset(_CsvStatistics, DataFrameDataset):
         DataFrameDataset.__int__(self, df)  # base_datset: test transformation on self.df (happens in TableDataset)
         self.min_max_scaler.fit(self.df.values)
         self.standardizer.fit(self.df.values)
-          # base_dataset: check for downstream use of index_to_sample_mapping
         self.feature_list = self.df.columns.tolist()
         self.feature_mapping = pd.Series(
             OrderedDict(

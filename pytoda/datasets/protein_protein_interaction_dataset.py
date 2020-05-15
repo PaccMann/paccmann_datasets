@@ -21,7 +21,7 @@ class ProteinProteinInteractionDataset(Dataset):
 
     def __init__(
         self,
-        sequence_filepaths: Union[Iterable[str], Iterable[Iterable[str]]],
+        sequence_filepaths: Iterable[Union[str, Iterable]],
         entity_names: Iterable[str],
         labels_filepath: str,
         sequence_filetypes: Union[str, List[str]] = 'infer',
@@ -41,14 +41,16 @@ class ProteinProteinInteractionDataset(Dataset):
         Initialize a protein protein interactiondataset.
 
         Args:
-            sequence_filepaths (Union[Iterable[str], Iterable[Iterable[str]]]):
-                paths to .smi or .csv file for protein sequences. For each item
-                in the iterable, one protein sequence dataset is created.
-                Iterables can be nested, i.e. each protein sequence dataset can
-                be created from an iterable of filepaths.
+            sequence_filepaths (Iterable[Union[str, Iterable]]):
+                paths to .smi (also as .csv) or .fasta (.gz) file for protein
+                sequences. For each item in the iterable, one protein sequence
+                dataset is created. Iterables can be nested, i.e. each protein
+                sequence dataset can be created from an iterable of filepaths
+                of same type, see sequence_filetypes.
             entity_names (Iterable[str]): List of protein sequence entities,
                 e.g. ['Peptides', 'T-Cell-Receptors']. These names should be
-                column names of the labels_filepaths.
+                column names of the labels_filepaths in order respective to
+                sequence_filepaths.
             labels_filepath (str): path to .csv file with classification
                 labels.
             sequence_filetypes: (Union[str, List[str]]). Filetypes of the
@@ -64,8 +66,8 @@ class ProteinProteinInteractionDataset(Dataset):
                 labels.
             protein_language (ProteinLanguage): a protein language or a child
                 object, defaults to None.
-                NOTE: ProteinFeatureLanguage objects cannot be created auto-
-                matically. If you want to use it, give it directly to the
+                NOTE: ProteinFeatureLanguage objects cannot be created
+                automatically. If you want to use it, give it directly to the
                 constructor.
             amino_acid_dict (str): The type of amino acid dictionary to map
                 sequence tokens to numericals. Defaults to 'iupac', alternative
@@ -88,7 +90,6 @@ class ProteinProteinInteractionDataset(Dataset):
             len(entity_names) == len(sequence_filepaths)
         ), 'sequence_filepaths should be an iterable of length in entity names'
 
-        self.sequence_filepaths = sequence_filepaths
         self.labels_filepath = labels_filepath
         self.entities = list(map(lambda x: x.capitalize(), entity_names))
 
@@ -140,10 +141,18 @@ class ProteinProteinInteractionDataset(Dataset):
                           ) == any(self.add_start_and_stops)
             ), 'Inconsistencies found in add_start_and_stop.'
 
+        # wrap single filepath per entity to treat equally as iterable (*args)
+        self.sequence_filepaths = [
+                [filepath]
+                if isinstance(filepath, str)
+                else filepath
+                for filepath in sequence_filepaths
+        ]
+
         # Create protein sequence datasets
         self.datasets = [
             ProteinSequenceDataset(
-                self.sequence_filepaths[index],
+                *filepaths,
                 filetype=self.filetypes[index],
                 protein_language=protein_language,
                 amino_acid_dict=amino_acid_dict,
@@ -154,7 +163,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 randomize=self.randomizes[index],
                 device=self.device,
                 name=self.entities[index]
-            ) for index in range(len(self.sequence_filepaths))
+            ) for index, filepaths in enumerate(self.sequence_filepaths)
         ]
         # Labels
         self.labels_df = pd.read_csv(self.labels_filepath)
@@ -186,8 +195,6 @@ class ProteinProteinInteractionDataset(Dataset):
         # get the number of labels
         self.number_of_tasks = len(self.labels)
 
-        # NOTE: filter data based on the availability
-        available_sequence_ids = []
         assert (
             all(
                 list(
@@ -195,18 +202,24 @@ class ProteinProteinInteractionDataset(Dataset):
                 )
             )
         ), 'At least one given entity name was not found in labels_filepath.'
+
+        # NOTE: filter data based on the availability
+        # available_sequence_ids = []  # base_dataset: check for removal
+        mask = pd.Series(
+            [True] * len(self.labels_df),
+            index=self.labels_df.index
+        )
+
         for entity, dataset in zip(self.entities, self.datasets):
-            available_sequence_ids.append(
-                set(dataset.sample_to_index_mapping.keys())
-                & set(self.labels_df[entity])
+            # prune rows (in mask) with ids unavailable in respective dataset
+            mask = mask & self.labels_df[entity].isin(
+                set(dataset.keys())
             )
+            # available_sequence_ids.append(set(self.labels_df.loc[mask, entity]))  # base_dataset: check for removal
+        self.labels_df = self.labels_df.loc[mask]
+        # self.available_sequence_ids = available_sequence_ids   # base_dataset: check for removal
 
-            self.labels_df = self.labels_df.loc[self.labels_df[entity].isin(
-                available_sequence_ids[-1]
-            )]
-
-        self.available_sequence_ids = available_sequence_ids
-        self.number_of_samples = self.labels_df.shape[0]
+        self.number_of_samples = len(self.labels_df)
 
     def __len__(self) -> int:
         "Total number of samples."

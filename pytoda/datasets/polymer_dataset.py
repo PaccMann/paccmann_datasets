@@ -133,10 +133,9 @@ class PolymerDataset(Dataset):
             )
         )
         # Create one SMILES dataset per chemical entity
-        # i.e. not a DatasetDelegator as here are not concatenated datasets
         self.datasets = [
             SMILESDataset(
-                smi_filepaths[index],
+                smi_filepath,
                 name=self.entities[index],
                 smiles_language=self.smiles_language,
                 padding=self.paddings[index],
@@ -152,7 +151,7 @@ class PolymerDataset(Dataset):
                 selfies=self.selfies[index],
                 sanitize=self.sanitize[index],
                 device=device
-            ) for index in range(len(smi_filepaths))
+            ) for index, smi_filepath in enumerate(smi_filepaths)
         ]
         """
         Push the Polymer language configuration down to the smiles language
@@ -217,7 +216,7 @@ class PolymerDataset(Dataset):
         for entity, dataset in zip(self.entities, self.datasets):
             # prune rows (in mask) with ids unavailable in respective dataset
             mask = mask & self.annotated_data_df[entity].isin(
-                set(dataset.sample_to_index_mapping.keys())  # base_dataset: TODO dataset.keys()
+                set(dataset.keys())
             )
             # available_entity_ids.append(set(self.annotated_data_df.loc[mask, entity]))  # base_dataset: check for removal
         self.annotated_data_df = self.annotated_data_df.loc[mask]
@@ -251,7 +250,7 @@ class PolymerDataset(Dataset):
         )
         # samples (SMILES)
         smiles_tensor = tuple(
-            dataset.get_item(selected_sample[dataset.name])  # base_dataset: TODO get_from_key or so
+            dataset.get_item_from_key(selected_sample[dataset.name])
             for dataset in self.datasets
         )  # yapf: disable
         return tuple([*smiles_tensor, labels_tensor])
