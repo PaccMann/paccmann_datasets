@@ -112,6 +112,6 @@ class SMILESDataset(DatasetDelegator):
           # base_dataset: or was it the idea to hide most attributes in self.dataset? Then:
           # - do not assign to self in _SMILESDataset
           # - adapt Delegator init to add specific attributes to delegatable
-          # base_dataset: test for theses attributes:
+          # base_dataset: test for these attributes:
         # self.smiles_language = self.dataset.smiles_language
         # self.sample_to_index_mapping = self.dataset.sample_to_index_mapping

@@ -33,7 +33,7 @@ class AnnotatedDataset(DataFrameDataset):
                 Currently, the supported formats are column separated files.
                 The default structure assumes that the last column contains an
                 id that is also used in the dataset provided.
-            dataset (Dataset): instance of a IndexedDataset (supporting
+            dataset (IndexedDataset): instance of a IndexedDataset (supporting
                 label indices). E.g. a SMILESDataset
             annotation_index (Union[int, str]): positional or string for the
                 column containing the annotation index. Defaults to -1, a.k.a.

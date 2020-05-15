@@ -43,7 +43,7 @@ class _CsvLazyDataset(IndexedDataset, _CacheDatasource, _CsvStatistics):
         IndexedDataset.__init__(self)
 
     def setup_datasource(self) -> None:
-        """Setup the datasource ready to collect statistics."""  # base_dataset: TODO
+        """Setup the datasource ready to collect statistics."""
         self.key_to_index_mapping = {}
         index = 0
         self.ordered_keys = []

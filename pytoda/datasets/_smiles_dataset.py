@@ -272,7 +272,7 @@ class _SMILESBaseDataset(DatasetDelegator):
         return self.transform(self.dataset[index])
 
 
-class _SMILESEagerDataset(_SMILESBaseDataset):  # base_dataset: Base is delegator already!
+class _SMILESEagerDataset(_SMILESBaseDataset):
     """
     SMILES dataset using eager loading.
 

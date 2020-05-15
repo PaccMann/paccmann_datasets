@@ -87,16 +87,6 @@ class _TableDataset(DatasetDelegator):
         ) = reduce_csv_dataset_statistics(
             self.dataset.datasets, self.feature_list, self.feature_ordering
         )
-          # base_dataset: solved by delegation to get_key and get_index
-        # NOTE: recover sample and index mappings
-        # self.sample_to_index_mapping = {}
-        # self.index_to_sample_mapping = {}
-        # for index in range(len(self.dataset)):
-        #     dataset_index, sample_index = self.dataset.get_index_pair(index)
-        #     dataset = self.dataset.datasets[dataset_index]
-        #     sample = dataset.index_to_sample_mapping[sample_index]
-        #     self.sample_to_index_mapping[sample] = index
-        #     self.index_to_sample_mapping[index] = sample
 
         # NOTE: adapt feature list, mapping and function
         self.feature_mapping = pd.Series(
@@ -146,11 +136,6 @@ class _TableDataset(DatasetDelegator):
         """Preprocess the dataset."""
         raise NotImplementedError
 
-  # base_dataset: TODO delete if tests pass
-    # def __len__(self) -> int:
-    #     "Total number of samples."
-    #     return len(self.dataset)
-
     def __getitem__(self, index: int) -> torch.tensor:
         """
         Generates one sample of data.
@@ -164,7 +149,7 @@ class _TableDataset(DatasetDelegator):
         """
         return torch.tensor(
             self.dataset[index], dtype=self.dtype, device=self.device
-        )  # TODO torch.tensor needed? Dataloader should take care of this.
+        )  # base_dataset: TODO torch.tensor needed? Dataloader should take care of this.
         # if not we can remove this
 
 
