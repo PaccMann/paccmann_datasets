@@ -108,6 +108,7 @@ class SMILESDataset(DatasetDelegator):
             chunk_size=chunk_size
         )
         DatasetDelegator.__init__(self)  # delegate to self.dataset
+
           # base_dataset: or was it the idea to hide most attributes in self.dataset? Then:
           # - do not assign to self in _SMILESDataset
           # - adapt Delegator init to add specific attributes to delegatable

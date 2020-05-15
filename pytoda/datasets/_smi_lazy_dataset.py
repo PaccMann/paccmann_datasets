@@ -14,7 +14,9 @@ class _SmiLazyDataset(IndexedDataset, _CacheDatasource):
     _SmiEagerDataset for better performance.
     """
 
-    def __init__(self, smi_filepath: str, chunk_size: int = 10000) -> None:
+    def __init__(
+        self, smi_filepath: str, name: str = 'SMILES', chunk_size: int = 10000
+    ) -> None:
         """
         Initialize a .smi dataset.
 
@@ -25,6 +27,7 @@ class _SmiLazyDataset(IndexedDataset, _CacheDatasource):
         _CacheDatasource.__init__(self)
         IndexedDataset.__init__(self)
         self.smi_filepath = smi_filepath
+        self.name = name
         self.chunk_size = chunk_size
         self.key_to_index_mapping = {}
         index = 0

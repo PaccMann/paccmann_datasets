@@ -1,9 +1,10 @@
 """Implementation of _FastaEagerDataset."""
-from torch.utils.data import Dataset
+from ..base_dataset import IndexedDataset
 from upfp import parse_fasta
+from ..types import Hashable
 
 
-class _FastaEagerDataset(Dataset):
+class _FastaEagerDataset(IndexedDataset):  # base_dataset: needs test
     """
     .fasta dataset using eager loading.
 
@@ -21,30 +22,23 @@ class _FastaEagerDataset(Dataset):
             gzipped (bool): Whether or not fasta file is zipped (.fasta.gz).
             name (str): type of dataset, used to index columns.
         """
-        Dataset.__init__(self)
+        IndexedDataset.__init__(self)
         self.fasta_filepath = fasta_filepath
         self.name = name
 
+        self.key_to_index_mapping = {}
+        self.ordered_keys = []
+        self.samples = []
         try:
-            self.index_to_sample_mapping = dict(
-                zip(
-                    *list(
-                        zip(
-                            *[
-                                (index, item['sequence'])
-                                for index, item in enumerate(
-                                    parse_fasta(
-                                        fasta_filepath, gzipped=gzipped
-                                    )
-                                )
-                            ]
-                        )
-                    )
-                )
-            )
-
+            for index, item in enumerate(
+                    parse_fasta(fasta_filepath, gzipped=gzipped)
+            ):
+                key = item['accession_number']  # uniprot unique identifier
+                self.key_to_index_mapping[key] = index
+                self.ordered_keys.append(key)
+                self.samples.append(item['sequence'])
         except KeyError:
-            raise KeyError('Badly formatted .fasta file, no sequence found.')
+            raise KeyError('Badly formatted .fasta file, no sequence found.')   # base_dataset: needs test, only supports uniprot fasta
 
     def __len__(self) -> int:
         """Total number of samples."""
@@ -61,4 +55,15 @@ class _FastaEagerDataset(Dataset):
             torch.tensor: a torch tensor of token indexes,
                 for the current sample.
         """
-        return self.index_to_sample_mapping[index]
+        return self.samples[index]
+
+    def get_key(self, index: int) -> Hashable:
+        """Get sample identifier from integer index."""
+        return self.ordered_keys[index]
+
+    def get_index(self, key: Hashable) -> int:
+        """Get index for first datum mapping to the given sample identifier."""
+        return self.key_to_index_mapping[key]
+
+    def keys(self):
+        return iter(self.ordered_keys)

@@ -250,7 +250,7 @@ class _SMILESBaseDataset(DatasetDelegator):
         transforms += [ToTensor(device=self.device)]
         self.transform = Compose(transforms)
 
-        DatasetDelegator.__init__(self)
+        DatasetDelegator.__init__(self)  # delegate to self.dataset
         if self.has_duplicate_keys():
             raise KeyError('Please remove duplicates from your .smi file.')
 

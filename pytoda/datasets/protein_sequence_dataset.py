@@ -1,6 +1,5 @@
 """Implementation of ProteinSequenceDataset."""
 import torch
-from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
@@ -11,12 +10,57 @@ from ..transforms import (
 from ..types import FileList
 from ._fasta_eager_dataset import _FastaEagerDataset
 from ._smi_eager_dataset import _SmiEagerDataset
+from ._smi_lazy_dataset import _SmiLazyDataset
 from .utils import concatenate_file_based_datasets
+from .base_dataset import DatasetDelegator, IndexedDataset
+
+SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
+    '.csv': {
+        'eager': (_SmiEagerDataset, {'name'}),
+        'lazy': (_SmiLazyDataset, {'chunk_size', 'name'}),
+    },  # base_dataset: how to support not .smi formatted csv? At least warn?
+    '.smi': {
+        'eager': (_SmiEagerDataset, {'name'}),
+        'lazy': (_SmiLazyDataset, {'chunk_size', 'name'}),
+    },
+    '.fasta': {
+        'eager': (_FastaEagerDataset, {'gzipped', 'name'}),
+    },
+    '.fasta.gz': {
+        'eager': (_FastaEagerDataset, {'gzipped', 'name'}),
+    },
+}
 
 
-class ProteinSequenceDataset(Dataset):
+def protein_sequence_dataset(
+    *filepaths, filetype, backend, **kwargs
+) -> IndexedDataset:
+    """Return a dataset of protein sequences."""
+    try:
+        # hardcoded factory
+        dataset_class, valid_keys = SEQUENCE_DATASET_IMPLEMENTATIONS[
+            filetype
+        ][backend]
+    except KeyError:
+        raise ValueError(  # filetype checked already
+            f'backend {backend)} not supported for {filetype}.'
+        )
+
+    kwargs['gzipped'] = True if filetype == '.fasta.gz' else False
+    kwargs['name'] = 'Sequence'
+    # prune unsupported arguments
+    kwargs = dict((k, v) for k, v in kwargs.items() if k in valid_keys)
+
+    return concatenate_file_based_datasets(
+        filepaths=filepaths,
+        dataset_class=dataset_class,
+        **kwargs
+    )
+
+
+class ProteinSequenceDataset(DatasetDelegator):
     """
-    Protein Sequence dataset definition.
+    Protein Sequence dataset using a Language to transform sequences.
 
     """
 
@@ -34,7 +78,8 @@ class ProteinSequenceDataset(Dataset):
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
-        name: str = 'protein-sequences'
+        name: str = 'protein-sequences',
+        **kwargs
     ) -> None:
         """
         Initialize a Protein Sequence dataset.
@@ -62,9 +107,10 @@ class ProteinSequenceDataset(Dataset):
                 Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            name (str): name of the ProteinSequenceDataset.       
+            name (str): name of the ProteinSequenceDataset.
+            kwargs (dict): additional arguments for dataset constructor.
         """
-        Dataset.__init__(self)
+
         # Parse language object and data paths
         self.filepaths = filepaths
         self.filetype = filetype
@@ -97,13 +143,21 @@ class ProteinSequenceDataset(Dataset):
         self.augment_by_revert = augment_by_revert
         self.device = device
 
+        # setup dataset
+        self._setup_dataset(**kwargs)
+        DatasetDelegator.__init__(self)  # delegate to self.dataset
+        if self.has_duplicate_keys():
+            raise KeyError(
+                f'Please remove duplicates from your {self.filetype} file.'
+            )
+
         # Build up cascade of Protein transformations
         # Below transformations are optional
         _transforms = []
         if self.augment_by_revert:
             _transforms += [AugmentByReversing()]
         self.language_transforms = Compose(_transforms)
-        self._setup_dataset()
+
         # Run once over dataset to add missing tokens to smiles language
         for index in range(len(self.dataset)):
             self.protein_language.add_sequence(
@@ -132,39 +186,17 @@ class ProteinSequenceDataset(Dataset):
             transforms += [ToTensor(device=self.device)]
         else:
             raise TypeError(
-                'Please choose either ProteinLanguage or ProteinFeatureLanguage'
+                'Please choose either ProteinLanguage or '
+                'ProteinFeatureLanguage'
             )
         self.transform = Compose(transforms)
 
-        # NOTE: recover sample and index mappings
-        self.sample_to_index_mapping = {}
-        self.index_to_sample_mapping = {}
-
-        for index in range(len(self.dataset)):
-            dataset_index, sample_index = self.dataset.get_index_pair(index)
-            dataset = self.dataset.datasets[dataset_index]
-            try:
-                sample = dataset.index_to_sample_mapping[sample_index]
-            except KeyError:
-                raise KeyError('Please remove duplicates from your .smi file.')
-            self.sample_to_index_mapping[sample] = index
-            self.index_to_sample_mapping[index] = sample
-
-    def _setup_dataset(self) -> None:
+    def _setup_dataset(self, **kwargs) -> None:
         """Setup the dataset."""
-        self.dataset = concatenate_file_based_datasets(
-            filepaths=self.filepaths,
-            dataset_class=(
-                _SmiEagerDataset if self.filetype == '.csv'
-                or self.filetype == '.smi' else _FastaEagerDataset
-            ),
-            name='Sequence',
-            gzipped=True if self.filetype == '.fasta.gz' else False
+        self.backend = 'eager'  # base_datset: TODO
+        self.dataset = protein_sequence_dataset(
+            *self.filepaths, self.filetype, self.backend, **kwargs
         )
-
-    def __len__(self) -> int:
-        """Total number of samples."""
-        return len(self.dataset)
 
     def __getitem__(self, index: int) -> torch.tensor:
         """

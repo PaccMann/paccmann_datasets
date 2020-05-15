@@ -38,7 +38,7 @@ class DataFrameDataset(IndexedDataset):
         # item will raise if not single value (deprecated in pandas)
         try:
             indices = np.nonzero(
-                self.datasource.index == key
+                self.df.index == key
             )[0]
             return indices.item()
         except ValueError:
