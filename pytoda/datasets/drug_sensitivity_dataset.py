@@ -8,7 +8,7 @@ from .smiles_dataset import SMILESDataset
 from .gene_expression_dataset import GeneExpressionDataset
 
 
-class DrugSensitivityDataset(Dataset):  # base_dataset: TODO
+class DrugSensitivityDataset(Dataset):
     """
     Drug sensitivity dataset implementation.
     """

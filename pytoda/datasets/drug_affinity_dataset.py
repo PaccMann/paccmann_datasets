@@ -9,7 +9,7 @@ from .smiles_dataset import SMILESDataset
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
-class DrugAffinityDataset(Dataset):  # base_dataset: TODO
+class DrugAffinityDataset(Dataset):
     """
     Drug affinity dataset implementation.
     """
@@ -152,18 +152,18 @@ class DrugAffinityDataset(Dataset):  # base_dataset: TODO
         )
         # NOTE: filter based on the availability
         self.available_drugs = set(
-            self.smiles_dataset.sample_to_index_mapping.keys()
+            self.smiles_dataset.keys()
         ) & set(self.drug_affinity_df['ligand_name'])
         self.drug_affinity_df = self.drug_affinity_df.loc[
             self.drug_affinity_df['ligand_name'].isin(self.available_drugs)]
         self.available_sequences = set(
-            self.protein_sequence_dataset.sample_to_index_mapping.keys()
+            self.protein_sequence_dataset.keys()
         ) & set(self.drug_affinity_df['sequence_id'])
         self.drug_affinity_df = self.drug_affinity_df.loc[
             self.drug_affinity_df['sequence_id'].isin(
                 self.available_sequences
             )]
-        self.number_of_samples = self.drug_affinity_df.shape[0]
+        self.number_of_samples = len(self.drug_affinity_df)
 
     def __len__(self) -> int:
         "Total number of samples."
@@ -189,13 +189,13 @@ class DrugAffinityDataset(Dataset):  # base_dataset: TODO
             device=self.device
         )
         # SMILES
-        token_indexes_tensor = self.smiles_dataset[
-            self.smiles_dataset.sample_to_index_mapping[
-                selected_sample['ligand_name']
-            ]
-        ]  # yapf: disable
+        token_indexes_tensor = self.smiles_dataset.get_item_from_key(
+            selected_sample['ligand_name']
+        )
         # protein
-        protein_sequence_tensor = self.protein_sequence_dataset[
-            self.protein_sequence_dataset.sample_to_index_mapping[
-                selected_sample['sequence_id']]]
+        protein_sequence_tensor = (
+            self.protein_sequence_dataset.get_item_from_key(
+                selected_sample['sequence_id']
+            )
+        )
         return token_indexes_tensor, protein_sequence_tensor, affinity_tensor
