@@ -221,7 +221,7 @@ class ProteinProteinInteractionDataset(Dataset):
 
             Returns:
                 Tuple: a tuple containing self.entities+1 torch.Tensors
-                representing respetively: compound token indexes for each protein
+                representing respectively: compound token indexes for each protein
                 entity and the property labels (annotations)
             """
 

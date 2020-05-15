@@ -28,15 +28,14 @@ class _SmiLazyDataset(IndexedDataset, _CacheDatasource):
         self.chunk_size = chunk_size
         self.key_to_index_mapping = {}
         index = 0
+        self.ordered_keys = []
         for chunk in read_smi(self.smi_filepath, chunk_size=self.chunk_size):
             for row_index, row in chunk.iterrows():
                 self.cache[index] = row['SMILES']
                 self.key_to_index_mapping[row_index] = index
                 index += 1
-        self.index_to_key_mapping = {
-            index: sample
-            for sample, index in self.key_to_index_mapping.items()
-        }
+                self.ordered_keys.append(row_index)
+
         self.number_of_samples = len(self.key_to_index_mapping)
 
     def __len__(self) -> int:
@@ -57,11 +56,14 @@ class _SmiLazyDataset(IndexedDataset, _CacheDatasource):
 
     def get_key(self, index: int) -> Hashable:
         """Get sample identifier from integer index."""
-        return self.index_to_key_mapping[index]
+        return self.ordered_keys[index]
 
     def get_index(self, key: Hashable) -> int:
         """Get index for first datum mapping to the given sample identifier."""
         return self.key_to_index_mapping[key]
+
+    def keys(self):
+        return iter(self.ordered_keys)
 
     def __del__(self):
         """Delete the _SmiLazyDataset."""

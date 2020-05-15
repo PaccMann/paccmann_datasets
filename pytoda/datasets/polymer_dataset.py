@@ -236,7 +236,7 @@ class PolymerDataset(Dataset):
 
         Returns:
             Tuple: a tuple containing self.entities+1 torch.Tensors
-            representing respetively: compound token indexes for each chemical
+            representing respectively: compound token indexes for each chemical
             entity and the property labels (annotations)
         """
 

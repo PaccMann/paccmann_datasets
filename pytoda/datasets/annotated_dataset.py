@@ -94,7 +94,7 @@ class AnnotatedDataset(DataFrameDataset):
 
         Returns:
             AnnotatedData: a tuple containing two torch.tensors,
-                representing respetively: compound token indexes and labels for
+                representing respectively: compound token indexes and labels for
                 the current sample.
         """
         # sample selection
@@ -118,7 +118,7 @@ class AnnotatedDataset(DataFrameDataset):
 
         Returns:
             AnnotatedData: a tuple containing two torch.tensors,
-                representing respetively: compound token indexes and labels for
+                representing respectively: compound token indexes and labels for
                 the current sample.
         """
         # sample selection

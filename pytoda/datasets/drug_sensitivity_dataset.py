@@ -161,18 +161,18 @@ class DrugSensitivityDataset(Dataset):  # base_dataset: TODO
         )
         # NOTE: filter based on the availability
         self.available_drugs = set(
-            self.smiles_dataset.sample_to_index_mapping.keys()
+            self.smiles_dataset.keys()
         ) & set(self.drug_sensitivity_df['drug'])
         self.drug_sensitivity_df = self.drug_sensitivity_df.loc[
             self.drug_sensitivity_df['drug'].isin(self.available_drugs)]
         self.available_profiles = set(
-            self.gene_expression_dataset.sample_to_index_mapping.keys()
+            self.gene_expression_dataset.keys()
         ) & set(self.drug_sensitivity_df['cell_line'])
         self.drug_sensitivity_df = self.drug_sensitivity_df.loc[
             self.drug_sensitivity_df['cell_line'].isin(
                 self.available_profiles
             )]
-        self.number_of_samples = self.drug_sensitivity_df.shape[0]
+        self.number_of_samples = len(self.drug_sensitivity_df)
         # NOTE: optional min-max scaling
         if self.drug_sensitivity_min_max:
             minimum = (
@@ -210,7 +210,7 @@ class DrugSensitivityDataset(Dataset):  # base_dataset: TODO
 
         Returns:
             DrugSensitivityData: a tuple containing three torch.tensors,
-                representing respetively: compound token indexes,
+                representing respectively: compound token indexes,
                 gene expression values and IC50 for the current sample.
         """
         # drug sensitivity
@@ -221,13 +221,13 @@ class DrugSensitivityDataset(Dataset):  # base_dataset: TODO
             device=self.device
         )
         # SMILES
-        token_indexes_tensor = self.smiles_dataset[
-            self.smiles_dataset.sample_to_index_mapping[
-                selected_sample['drug']
-            ]
-        ]  # yapf: disable
+        token_indexes_tensor = self.smiles_dataset.get_item_from_key(
+            selected_sample['drug']
+        )
         # gene_expression
-        gene_expression_tensor = self.gene_expression_dataset[
-            self.gene_expression_dataset.sample_to_index_mapping[
-                selected_sample['cell_line']]]
+        gene_expression_tensor = (
+            self.gene_expression_dataset.get_item_from_key(
+                selected_sample['cell_line']
+            )
+        )
         return token_indexes_tensor, gene_expression_tensor, ic50_tensor
