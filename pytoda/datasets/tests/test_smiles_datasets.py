@@ -6,30 +6,34 @@ from torch.utils.data import DataLoader
 from pytoda.datasets import SMILESDataset
 from pytoda.tests.utils import TestFileContent
 
+CONTENT = os.linesep.join(
+    [
+        'CCO	CHEMBL545',
+        'C	CHEMBL17564',
+        'CO	CHEMBL14688',
+        'NCCS	CHEMBL602',
+    ]
+)
+MORE_CONTENT = os.linesep.join(
+    [
+        'COCC(C)N	CHEMBL3184692',
+        'COCCOC	CHEMBL1232411',
+        'O=CC1CCC1	CHEMBL18475',  # longest with length 9
+        'NC(=O)O	CHEMBL125278',
+    ]
+)
+LONGEST = 9
 
-class TestSMILESDatasetLazyBackend(unittest.TestCase):
-    """Testing SMILES dataset with lazy backend."""
+
+class TestSMILESDatasetEagerBackend(unittest.TestCase):
+    """Testing SMILES dataset with eager backend."""
 
     def setUp(self):
-        self.content = os.linesep.join(
-            [
-                'CCO	CHEMBL545',
-                'C	CHEMBL17564',
-                'CO	CHEMBL14688',
-                'NCCS	CHEMBL602',
-            ]
-        )
-
-        self.other_content = os.linesep.join(
-            [
-                'COCC(C)N	CHEMBL3184692',
-                'COCCOC	CHEMBL1232411',
-                'O=CC1CCC1	CHEMBL18475',  # longest with length 9
-                'NC(=O)O	CHEMBL125278',
-            ]
-        )
-
-        self.longest = 9
+        self.backend = 'eager'
+        print(f'backend is {self.backend}')
+        self.content = CONTENT
+        self.other_content = MORE_CONTENT
+        self.longest = LONGEST
 
     def test___len__(self) -> None:
         """Test __len__."""
@@ -39,7 +43,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
-                    backend='lazy'
+                    backend=self.backend
                 )
                 self.assertEqual(len(smiles_dataset), 8)
 
@@ -57,7 +61,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     sanitize=True,
                     all_bonds_explicit=True,
                     remove_chirality=True,
-                    backend='lazy'
+                    backend=self.backend
                 )
                 pad_index = smiles_dataset.smiles_language.padding_index
                 start_index = smiles_dataset.smiles_language.start_index
@@ -117,7 +121,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     a_test_file.filename,
                     another_test_file.filename,
                     padding=False,
-                    backend='lazy'
+                    backend=self.backend
                 )
                 self.assertListEqual(
                     smiles_dataset[0].numpy().flatten().tolist(),
@@ -132,7 +136,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     a_test_file.filename,
                     another_test_file.filename,
                     add_start_and_stop=True,
-                    backend='lazy'
+                    backend=self.backend
                 )
                 self.assertEqual(smiles_dataset.padding_length, self.longest+2)
 
@@ -172,7 +176,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     a_test_file.filename,
                     another_test_file.filename,
                     augment=True,
-                    backend='lazy'
+                    backend=self.backend
                 )
                 np.random.seed(0)
                 for randomized_smiles in [
@@ -194,7 +198,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     add_start_and_stop=True,
                     remove_bonddir=True,
                     selfies=True,
-                    backend='lazy'
+                    backend=self.backend
                 )
                 c_index = smiles_dataset.smiles_language.token_to_index['[C]']
                 o_index = smiles_dataset.smiles_language.token_to_index['[O]']
@@ -219,7 +223,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
-                    backend='lazy'
+                    backend=self.backend
                 )
                 data_loader = DataLoader(
                     smiles_dataset, batch_size=4, shuffle=True
@@ -228,6 +232,17 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     self.assertEqual(batch.shape, (4, self.longest))
                     if batch_index > 10:
                         break
+
+
+class TestSMILESDatasetLazyBackend(TestSMILESDatasetEagerBackend):
+    """Testing SMILES dataset with lazy backend."""
+
+    def setUp(self):
+        self.backend = 'lazy'
+        print(f'backend is {self.backend}')
+        self.content = CONTENT
+        self.other_content = MORE_CONTENT
+        self.longest = LONGEST
 
 
 if __name__ == '__main__':
