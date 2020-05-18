@@ -53,7 +53,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 sequence_filepaths.
             labels_filepath (str): path to .csv file with classification
                 labels.
-            sequence_filetypes: (Union[str, List[str]]). Filetypes of the
+            sequence_filetypes (Union[str, List[str]]): the filetypes of the
                 sequence files. Can either be a str if all files have identical
                 types or an Iterable if different entities have different
                 types. Different types across the same entity are not
@@ -64,13 +64,13 @@ class ProteinProteinInteractionDataset(Dataset):
                 (positional or strings) for the annotations. Defaults to None,
                 a.k.a. all the columns, except the entity_names are annotation
                 labels.
-            protein_language (ProteinLanguage): a protein language or a child
-                object, defaults to None.
+            protein_language (ProteinLanguage): a ProteinLanguage (or child)
+                instance. Defaults to None, creating a default instance.
                 NOTE: ProteinFeatureLanguage objects cannot be created
-                automatically. If you want to use it, give it directly to the
+                automatically. If you want to use it, pass it directly to the
                 constructor.
             amino_acid_dict (str): The type of amino acid dictionary to map
-                sequence tokens to numericals. Defaults to 'iupac', alternative
+                sequence tokens to a number. Defaults to 'iupac', alternative
                 is 'unirep'.
             paddings (Union[bool, Iterable[bool]]): pad sequences to longest in
                 the protein language. Defaults to True.
@@ -234,8 +234,8 @@ class ProteinProteinInteractionDataset(Dataset):
 
             Returns:
                 Tuple: a tuple containing self.entities+1 torch.Tensors
-                representing respectively: compound token indexes for each protein
-                entity and the property labels (annotations)
+                representing respectively: compound token indexes for each
+                protein entity and the property labels (annotations)
             """
 
         # sample selection
@@ -248,12 +248,8 @@ class ProteinProteinInteractionDataset(Dataset):
             device=self.device
         )
         # samples (Protein sequences)
-        proteins_tensors = tuple(
-            map(
-                lambda x: x[
-                    x.sample_to_index_mapping[selected_sample[x.name]]
-                ],
-                self.datasets
-            )
-        )  # yapf: disable
+        proteins_tensors = [
+            ds.get_item_from_key(selected_sample[ds.name])
+            for ds in self.datasets
+        ]
         return tuple([*proteins_tensors, labels_tensor])
