@@ -7,7 +7,6 @@ from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
-from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
@@ -65,10 +64,8 @@ class ProteinProteinInteractionDataset(Dataset):
                 a.k.a. all the columns, except the entity_names are annotation
                 labels.
             protein_language (ProteinLanguage): a ProteinLanguage (or child)
-                instance. Defaults to None, creating a default instance.
-                NOTE: ProteinFeatureLanguage objects cannot be created
-                automatically. If you want to use it, pass it directly to the
-                constructor.
+                instance, e.g. ProteinFeatureLanguage. Defaults to None,
+                creating a default instance.
             amino_acid_dict (str): The type of amino acid dictionary to map
                 sequence tokens to a number. Defaults to 'iupac', alternative
                 is 'unirep'.

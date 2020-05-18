@@ -6,7 +6,7 @@ import pandas as pd
 import torch
 
 from ..types import FeatureList, FileList
-from ._csv_dataset import reduce_csv_dataset_statistics
+from ._csv_statistics import reduce_csv_statistics
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
 from .base_dataset import DatasetDelegator
@@ -84,7 +84,7 @@ class _TableDataset(DatasetDelegator):
         # NOTE: reduce statistics
         (  # yapf:disable
             self.feature_list, self.max, self.min, self.mean, self.std
-        ) = reduce_csv_dataset_statistics(
+        ) = reduce_csv_statistics(
             self.dataset.datasets, self.feature_list, self.feature_ordering
         )
 

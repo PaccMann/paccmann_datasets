@@ -44,7 +44,8 @@ class IndexedDataset(Dataset):
             yield self.get_key(index)
 
     def has_duplicate_keys(self):
-        return pd.Index(self.keys).has_duplicates
+        """Check whether each key is unique."""
+        return pd.Index(self.keys()).has_duplicates
 
 
 class DatasetDelegator:

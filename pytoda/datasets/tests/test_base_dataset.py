@@ -11,36 +11,36 @@ from pytoda.datasets import (
 from pytoda.types import Hashable
 
 
-class IndexedA(IndexedDataset):
+class Indexed(IndexedDataset):
+    """As DataFrameDataset but only implementing necessary methods"""
     def __init__(self, df):
-        self.datasource = df
-        self.range_index = pd.RangeIndex(0, self.__len__())
+        self.df = df
         super().__init__()
 
     def __len__(self):
-        return len(self.datasource)
+        return len(self.df)
 
     def __getitem__(self, index):
-        return self.datasource.iloc[index].values
+        return self.df.iloc[index].values
 
     def get_key(self, index: int) -> Hashable:
         """Get sample identifier from integer index."""
-        return self.datasource.index[index]
+        return self.df.index[index]
 
     def get_index(self, key: Hashable) -> int:
         """Get index for first datum mapping to the given sample identifier."""
         # item will raise if not single value (deprecated in pandas)
         try:
-            index = self.range_index[
-                self.datasource.index == key
-            ]
-            return index.values.item()
+            indices = np.nonzero(
+                self.df.index == key
+            )[0]
+            return indices.item()
         except ValueError:
-            if len(index) == 0:
+            if len(indices) == 0:
                 raise KeyError
             else:
                 # key not unique, return first as _ConcatenatedDataset
-                return index.values[0]
+                return indices[0]
 
 
 class Delegating(DatasetDelegator):
@@ -58,7 +58,7 @@ class TestBaseDatasets(unittest.TestCase):
         an_array = np.random.randn(self.length, self.dims)
         keys = [str(uuid.uuid4()) for _ in range(self.length)]
         a_df = pd.DataFrame(an_array, index=keys)
-        return keys, a_df, IndexedA(a_df)
+        return keys, a_df, Indexed(a_df)
 
     def setUp(self):
         (
@@ -76,7 +76,7 @@ class TestBaseDatasets(unittest.TestCase):
 
     def test_delegation_dir(self):
         ds_dir = dir(self.delegating_ds)
-        # delegated to IndexedA
+        # delegated to Indexed
         self.assertIn('get_key', ds_dir)
         self.assertIn('get_index', ds_dir)
         # delegated to IndexedDataset
@@ -87,9 +87,7 @@ class TestBaseDatasets(unittest.TestCase):
         self.assertIn('__getitem__', ds_dir)  # see test___getitem__
         self.assertIn('__add__', ds_dir)  # see tests on self.concat_ds
 
-        # implementation specific
-        # self.assertIn('datasource', ds_dir)
-        # self.assertIn('range_index', ds_dir)
+        # no tests on implementation specific attributes
 
     def test___len__(self) -> None:
         """Test __len__."""
@@ -159,6 +157,8 @@ class TestBaseDatasets(unittest.TestCase):
         self.assertTrue(all(ds[index] == ds.get_item_from_key(key)))
         # keys
         self.assertSequenceEqual(keys, list(ds.keys()))
+        # duplicate keys
+        self.assertFalse(ds.has_duplicate_keys())
 
     def test_all_base_for_indexed_methods(self):
         (
@@ -199,6 +199,7 @@ class TestBaseDatasets(unittest.TestCase):
             index,
             duplicate_ds.get_index(duplicate_ds.get_key(index))
         )
+        self.assertTrue(duplicate_ds.has_duplicate_keys())
 
 
 if __name__ == '__main__':

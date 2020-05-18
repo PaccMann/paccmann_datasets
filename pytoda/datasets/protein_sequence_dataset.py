@@ -43,7 +43,7 @@ def protein_sequence_dataset(
         ][backend]
     except KeyError:
         raise ValueError(  # filetype checked already
-            f'backend {backend)} not supported for {filetype}.'
+            f'backend {backend} not supported for {filetype}.'
         )
 
     kwargs['gzipped'] = True if filetype == '.fasta.gz' else False
@@ -88,11 +88,9 @@ class ProteinSequenceDataset(DatasetDelegator):
             filepaths (FileList): paths to .smi, .csv/.fasta/.fasta.gz file
                 with the sequences.
             filetype (str): From {.smi, .csv, .fasta, .fasta.gz}.
-            protein_language (ProteinLanguage): a protein language or child
-                object. Defaults to None.
-                NOTE: ProteinFeatureLanguage objects cannot be created auto-
-                matically. If you want to use it, give it directly to the
-                constructor.
+            protein_language (ProteinLanguage): a ProteinLanguage (or child)
+                instance, e.g. ProteinFeatureLanguage. Defaults to None,
+                creating a default instance.
             amino_acid_dict (str): Type of dictionary used for amino acid
                 sequences. Defaults to 'iupac', alternative is 'unirep'.
             padding (bool): pad sequences to longest in the protein language.
@@ -193,7 +191,7 @@ class ProteinSequenceDataset(DatasetDelegator):
 
     def _setup_dataset(self, **kwargs) -> None:
         """Setup the dataset."""
-        self.backend = 'eager'  # base_datset: TODO
+        self.backend = 'eager'  # base_dataset: TODO
         self.dataset = protein_sequence_dataset(
             *self.filepaths, self.filetype, self.backend, **kwargs
         )

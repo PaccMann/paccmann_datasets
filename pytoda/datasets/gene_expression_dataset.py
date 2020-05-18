@@ -1,6 +1,6 @@
 """GeneExpressionDataset module."""
 import torch
-from .base_datset import DatasetDelegator
+from .base_dataset import DatasetDelegator
 from ._table_dataset import _TableEagerDataset, _TableLazyDataset
 from ..types import FileList, GeneList
 

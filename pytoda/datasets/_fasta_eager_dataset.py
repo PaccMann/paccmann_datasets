@@ -1,7 +1,8 @@
 """Implementation of _FastaEagerDataset."""
-from ..base_dataset import IndexedDataset
 from upfp import parse_fasta
+
 from ..types import Hashable
+from .base_dataset import IndexedDataset
 
 
 class _FastaEagerDataset(IndexedDataset):  # base_dataset: needs test

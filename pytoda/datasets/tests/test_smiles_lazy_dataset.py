@@ -10,9 +10,8 @@ from pytoda.tests.utils import TestFileContent
 class TestSMILESDatasetLazyBackend(unittest.TestCase):
     """Testing SMILES dataset with lazy backend."""
 
-    def test___len__(self) -> None:
-        """Test __len__."""
-        content = os.linesep.join(
+    def setUp(self):
+        self.content = os.linesep.join(
             [
                 'CCO	CHEMBL545',
                 'C	CHEMBL17564',
@@ -20,8 +19,23 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                 'NCCS	CHEMBL602',
             ]
         )
-        with TestFileContent(content) as a_test_file:
-            with TestFileContent(content) as another_test_file:
+
+        self.other_content = os.linesep.join(
+            [
+                'COCC(C)N	CHEMBL3184692',
+                'COCCOC	CHEMBL1232411',
+                'O=CC1CCC1	CHEMBL18475',  # longest with length 9
+                'NC(=O)O	CHEMBL125278',
+            ]
+        )
+
+        self.longest = 9
+
+    def test___len__(self) -> None:
+        """Test __len__."""
+
+        with TestFileContent(self.content) as a_test_file:
+            with TestFileContent(self.other_content) as another_test_file:
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
@@ -31,16 +45,9 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
 
     def test___getitem__(self) -> None:
         """Test __getitem__."""
-        content = os.linesep.join(
-            [
-                'CCO	CHEMBL545',
-                'C	CHEMBL17564',
-                'CO	CHEMBL14688',
-                'NCCS	CHEMBL602',
-            ]
-        )
-        with TestFileContent(content) as a_test_file:
-            with TestFileContent(content) as another_test_file:
+
+        with TestFileContent(self.content) as a_test_file:
+            with TestFileContent(self.other_content) as another_test_file:
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
@@ -61,18 +68,51 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                 s_index = smiles_dataset.smiles_language.token_to_index['S']
                 d_index = smiles_dataset.smiles_language.token_to_index['-']
 
+                sample = 0
+                padding_len = smiles_dataset.padding_length - (
+                    len(
+                        # str from underlying concatenated _smi dataset
+                        smiles_dataset.dataset.dataset[sample]
+                    ) * 2 - 1  # just d_index, no '=', '(', etc.
+                )
                 self.assertListEqual(
-                    smiles_dataset[0].numpy().flatten().tolist(), [
-                        pad_index, pad_index, c_index, d_index, c_index,
+                    smiles_dataset[sample].numpy().flatten().tolist(),
+                    [pad_index] * padding_len + [
+                        c_index, d_index, c_index,
                         d_index, o_index
                     ]
                 )
+
+                sample = 3
+                padding_len = smiles_dataset.padding_length - (
+                    len(
+                        # str from underlying concatenated _smi dataset
+                        smiles_dataset.dataset.dataset[sample]
+                    ) * 2 - 1  # just d_index, no '=', '(', etc.
+                )
                 self.assertListEqual(
-                    smiles_dataset[7].numpy().flatten().tolist(), [
+                    smiles_dataset[sample].numpy().flatten().tolist(),
+                    [pad_index] * padding_len + [
                         n_index, d_index, c_index, d_index, c_index, d_index,
                         s_index
                     ]
                 )
+
+                sample = 5
+                padding_len = smiles_dataset.padding_length - (
+                    len(
+                        # str from underlying concatenated _smi dataset
+                        smiles_dataset.dataset.dataset[sample]
+                    ) * 2 - 1  # just d_index, no '=', '(', etc.
+                )
+                self.assertListEqual(
+                    smiles_dataset[sample].numpy().flatten().tolist(),
+                    [pad_index] * padding_len + [
+                        c_index, d_index, o_index, d_index, c_index, d_index,
+                        c_index, d_index, o_index, d_index, c_index
+                    ]
+                )
+
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
@@ -84,27 +124,50 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     [c_index, c_index, o_index]
                 )
                 self.assertListEqual(
-                    smiles_dataset[7].numpy().flatten().tolist(),
-                    [n_index, c_index, c_index, s_index]
+                    smiles_dataset[5].numpy().flatten().tolist(),
+                    [c_index, o_index, c_index, c_index, o_index, c_index]
                 )
+
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     add_start_and_stop=True,
                     backend='lazy'
                 )
+                self.assertEqual(smiles_dataset.padding_length, self.longest+2)
+
+                sample = 0
+                padding_len = smiles_dataset.padding_length - (
+                    len(
+                        # str from underlying concatenated _smi dataset
+                        smiles_dataset.dataset.dataset[sample]
+                    )
+                ) - 2  # start and stop
                 self.assertListEqual(
-                    smiles_dataset[0].numpy().flatten().tolist(), [
-                        pad_index, start_index, c_index, c_index, o_index,
+                    smiles_dataset[sample].numpy().flatten().tolist(),
+                    [pad_index] * padding_len + [
+                        start_index,
+                        c_index, c_index, o_index,
                         stop_index
                     ]
                 )
+
+                sample = 5
+                padding_len = smiles_dataset.padding_length - (
+                    len(
+                        # str from underlying concatenated _smi dataset
+                        smiles_dataset.dataset.dataset[sample]
+                    )
+                ) - 2  # start and stop
                 self.assertListEqual(
-                    smiles_dataset[7].numpy().flatten().tolist(), [
-                        start_index, n_index, c_index, c_index, s_index,
+                    smiles_dataset[sample].numpy().flatten().tolist(),
+                    [pad_index] * padding_len + [
+                        start_index,
+                        c_index, o_index, c_index, c_index, o_index, c_index,
                         stop_index
                     ]
                 )
+
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
@@ -143,7 +206,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     [start_index, c_index, c_index, o_index, stop_index]
                 )
                 self.assertListEqual(
-                    smiles_dataset[7].numpy().flatten().tolist(), [
+                    smiles_dataset[3].numpy().flatten().tolist(), [
                         start_index, n_index, c_index, c_index, s_index,
                         stop_index
                     ]
@@ -151,16 +214,8 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
-        content = os.linesep.join(
-            [
-                'CCO	CHEMBL545',
-                'C	CHEMBL17564',
-                'CO	CHEMBL14688',
-                'NCCS	CHEMBL602',
-            ]
-        )
-        with TestFileContent(content) as a_test_file:
-            with TestFileContent(content) as another_test_file:
+        with TestFileContent(self.content) as a_test_file:
+            with TestFileContent(self.other_content) as another_test_file:
                 smiles_dataset = SMILESDataset(
                     a_test_file.filename,
                     another_test_file.filename,
@@ -170,7 +225,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     smiles_dataset, batch_size=4, shuffle=True
                 )
                 for batch_index, batch in enumerate(data_loader):
-                    self.assertEqual(batch.shape, (4, 4))
+                    self.assertEqual(batch.shape, (4, self.longest))
                     if batch_index > 10:
                         break
 

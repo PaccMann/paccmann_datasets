@@ -47,7 +47,7 @@ class _CsvStatistics:
         raise NotImplementedError
 
 
-def reduce_csv_dataset_statistics(
+def reduce_csv_statistics(
     csv_datasets: List[_CsvStatistics],
     feature_list: FeatureList = None,  # base_dataset: check for deprecation of argument
     feature_ordering: dict = None,
