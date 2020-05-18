@@ -99,6 +99,7 @@ class _CsvLazyDataset(IndexedDataset, _CacheDatasource, _CsvStatistics):
     def keys(self):
         return iter(self.ordered_keys)
 
+    @property
     def has_duplicate_keys(self):
         return self.number_of_samples != len(self.key_to_index_mapping)
 

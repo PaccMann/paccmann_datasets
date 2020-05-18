@@ -66,6 +66,7 @@ class _FastaEagerDataset(IndexedDataset):  # base_dataset: needs test
         """Get index for first datum mapping to the given sample identifier."""
         return self.key_to_index_mapping[key]
 
+    @property
     def has_duplicate_keys(self):
         return self.number_of_samples != len(self.key_to_index_mapping)
 

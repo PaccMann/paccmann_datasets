@@ -144,7 +144,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         # setup dataset
         self._setup_dataset(**kwargs)
         DatasetDelegator.__init__(self)  # delegate to self.dataset
-        if self.has_duplicate_keys():
+        if self.has_duplicate_keys:
             raise KeyError(
                 f'Please remove duplicates from your {self.filetype} file.'
             )

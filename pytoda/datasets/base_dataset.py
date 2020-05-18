@@ -20,8 +20,9 @@ class IndexedDataset(Dataset):
     provided but should be overloaded when possible as calls to `get_item`
     and `get_key` might be expensive.
 
-    The keys are expected to be unique. If there are duplicate keys, on lookup
-    the first one found will be used by default.
+    The keys are expected to be unique. Call `has_duplicate_keys` to make sure.
+    If there are duplicate keys, on lookup generally the first one found will
+    be used, but there are no guarantees.
     """
     def __add__(self, other):
         return _ConcatenatedDataset([self, other])
@@ -43,6 +44,7 @@ class IndexedDataset(Dataset):
         for index in range(len(self)):
             yield self.get_key(index)
 
+    @property
     def has_duplicate_keys(self):
         """Check whether each key is unique."""
         return pd.Index(self.keys()).has_duplicates

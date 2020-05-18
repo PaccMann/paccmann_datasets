@@ -158,7 +158,7 @@ class TestBaseDatasets(unittest.TestCase):
         # keys
         self.assertSequenceEqual(keys, list(ds.keys()))
         # duplicate keys
-        self.assertFalse(ds.has_duplicate_keys())
+        self.assertFalse(ds.has_duplicate_keys
 
     def test_all_base_for_indexed_methods(self):
         (
@@ -199,7 +199,7 @@ class TestBaseDatasets(unittest.TestCase):
             index,
             duplicate_ds.get_index(duplicate_ds.get_key(index))
         )
-        self.assertTrue(duplicate_ds.has_duplicate_keys())
+        self.assertTrue(duplicate_ds.has_duplicate_keys)
 
 
 if __name__ == '__main__':
