@@ -47,6 +47,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     padding=True,
                     augment=False,
                     kekulize=True,
+                    sanitize=True,
                     all_bonds_explicit=True,
                     remove_chirality=True,
                     backend='lazy'
@@ -169,7 +170,7 @@ class TestSMILESDatasetLazyBackend(unittest.TestCase):
                     smiles_dataset, batch_size=4, shuffle=True
                 )
                 for batch_index, batch in enumerate(data_loader):
-                    self.assertEqual(batch.shape, (4, 4, 1))
+                    self.assertEqual(batch.shape, (4, 4))
                     if batch_index > 10:
                         break
 

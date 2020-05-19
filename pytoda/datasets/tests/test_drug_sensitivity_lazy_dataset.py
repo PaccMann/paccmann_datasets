@@ -111,10 +111,7 @@ class TestDrugSensitivityDataset(unittest.TestCase):
                     np.testing.assert_almost_equal(
                         token_indexes_tensor.numpy(),
                         np.array(
-                            [
-                                [padding_index], [padding_index], [c_index],
-                                [o_index]
-                            ]
+                            [padding_index, padding_index, c_index, o_index]
                         )
                     )
                     np.testing.assert_almost_equal(
@@ -176,7 +173,7 @@ class TestDrugSensitivityDataset(unittest.TestCase):
                             ic50_batch
                         )
                     ) in enumerate(data_loader):
-                        self.assertEqual(token_indexes_batch.size(), (2, 4, 1))
+                        self.assertEqual(token_indexes_batch.size(), (2, 4))
                         self.assertEqual(gene_expression_batch.size(), (2, 4))
                         self.assertEqual(ic50_batch.size(), (2, 1))
                         if batch_index > 4:

@@ -1,7 +1,6 @@
 """SMILES transforms."""
+import logging
 import re
-import warnings
-from copy import deepcopy
 
 import numpy as np
 import torch
@@ -9,9 +8,13 @@ from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from selfies import encoder
 
+import pytoda
+
 from ..transforms import Transform
 from ..types import Indexes
 from .smiles_language import SMILESLanguage
+
+logger = logging.getLogger('pytoda_SMILES_transforms')
 
 
 class SMILESToTokenIndexes(Transform):
@@ -39,70 +42,14 @@ class SMILESToTokenIndexes(Transform):
         return self.smiles_language.smiles_to_token_indexes(smiles)
 
 
-class LeftPadding(Transform):
-    """Left pad token indexes."""
-
-    def __init__(self, padding_length: int, padding_index: int) -> None:
-        """
-        Initialize a left padding token indexes object.
-
-        Args:
-            padding_length (int): length of the padding.
-            padding_index (int): padding index.
-        """
-        self.padding_length = padding_length
-        self.padding_index = padding_index
-
-    def __call__(self, token_indexes: Indexes) -> Indexes:
-        """
-        Apply the transform.
-
-        Args:
-            token_indexes (Indexes): token indexes.
-
-        Returns:
-            Indexes: left padded indexes representation.
-        """
-        return (self.padding_length -
-                len(token_indexes)) * [self.padding_index] + token_indexes
-
-
-class ToTensor(Transform):
-    """Transform token indexes to torch tensor."""
-
-    def __init__(self, device, dtype=torch.short) -> None:
-        """
-        Initialize a token indexes to tensor object.
-
-        Args:
-            dtype (torch.dtype): data type. Defaults to torch.short.
-            device (torch.device): device where the tensors are stored.
-            Defaults to gpu, if available.
-        """
-        self.dtype = torch.short
-        self.device = device
-
-    def __call__(self, token_indexes: Indexes) -> torch.Tensor:
-        """
-        Apply the transform.
-
-        Args:
-            token_indexes (Indexes): token indexes.
-
-        Returns:
-            torch.Tensor: tensor representation of the token indexes.
-        """
-        return torch.tensor(
-            token_indexes, dtype=self.dtype, device=self.device
-        ).view(-1, 1)
-
-
 class RemoveIsomery(Transform):
     """ Remove isomery (isotopic and chiral specifications) from SMILES """
 
-    def __init__(self, bonddir=True, chirality=True) -> None:
+    def __init__(self, bonddir=True, chirality=True, sanitize=True) -> None:
         """
-        Keyword Arguments:
+        Initialize isomery removal.
+
+        Args:
             bonddir (bool): whether bond direction information should be
                 removed or not (default: {True})
             chirality (bool): whether chirality information should be removed
@@ -115,6 +62,7 @@ class RemoveIsomery(Transform):
         self.multichar_atom = re.compile(r'\[[0-9]?[A-Za-z][a-z]?\w?[2-8]?\]')
         self.bonddir = bonddir
         self.chirality = chirality
+        self.sanitize = sanitize
 
         if not self.bonddir and not self.chirality:
             self._call_fn = lambda smiles: smiles
@@ -126,7 +74,8 @@ class RemoveIsomery(Transform):
             self._call_fn = self._isomery_call_fn
         else:
             self._call_fn = lambda smiles: Chem.MolToSmiles(
-                Chem.MolFromSmiles(smiles), isomericSmiles=False
+                Chem.MolFromSmiles(smiles, sanitize=sanitize),
+                isomericSmiles=False
             )
 
     def _isomery_call_fn(self, smiles: str) -> str:
@@ -163,10 +112,12 @@ class RemoveIsomery(Transform):
         smiles = ''.join(new_str).replace('N@@', 'N').replace('N@', 'N')
 
         try:
-            Chem.SanitizeMol(Chem.MolFromSmiles(smiles, sanitize=False))
+            Chem.SanitizeMol(
+                Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
+            )
             return smiles
         except TypeError:
-            warnings.warn(f'Invalid SMILES {smiles}')
+            logger.warning(f'\nInvalid SMILES {smiles}')
             return ''
 
     def __call__(self, smiles: str) -> str:
@@ -174,24 +125,27 @@ class RemoveIsomery(Transform):
         Executable of RemoveIsomery class. The _call_fn is determined in
         the constructor based on the bonddir and chirality parameter.
 
-        Arguments:
-            smiles {str} -- [A SMILES sequence]
+        Args:
+            smiles (str): a SMILES sequence.
 
         Returns:
-            str -- [SMILES after the _call_fn was applied]
+            str: SMILES after the _call_fn was applied.
         """
 
         return self._call_fn(smiles)
 
 
 class Kekulize(Transform):
-    """ Transform SMILES to Kekule version """
+    """Transform SMILES to Kekule version."""
 
-    def __init__(self, all_bonds_explicit=False, all_hs_explicit=False):
+    def __init__(
+        self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True
+    ):
 
         # NOTE: Explicit bonds or Hs without Kekulization is not supported
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
+        self.sanitize = sanitize
 
     def __call__(self, smiles: str) -> str:
         """
@@ -204,42 +158,62 @@ class Kekulize(Transform):
         Returns:
             str: Kekulized SMILES of same molecule.
         """
-        molecule = Chem.MolFromSmiles(smiles)
-        Chem.Kekulize(molecule)
-        return Chem.MolToSmiles(
-            molecule,
-            kekuleSmiles=True,
-            allBondsExplicit=self.all_bonds_explicit,
-            allHsExplicit=self.all_hs_explicit,
-            canonical=False
-        )
-        
+        try:
+            molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
+            if not self.sanitize:
+                # Properties as valence are not calculated if sanitize is False
+                molecule.UpdatePropertyCache(strict=False)
+            Chem.Kekulize(molecule)
+            return Chem.MolToSmiles(
+                molecule,
+                kekuleSmiles=True,
+                allBondsExplicit=self.all_bonds_explicit,
+                allHsExplicit=self.all_hs_explicit,
+                canonical=False
+            )
+        except Exception:
+            logger.warning(
+                f'\nInvalid SMILES {smiles}, no kekulization done '
+                f'bondsExplicit: {self.all_bonds_explicit} & HsExplicit: '
+                f'{self.all_hs_explicit} are also ignored.'
+            )
+            return smiles
+
+
 class NotKekulize(Transform):
-    """ Transform SMILES to Kekule version """
+    """ Transform SMILES without explicitly converting to Kekule version """
 
-    def __init__(self, all_bonds_explicit=False, all_hs_explicit=False):
-
+    def __init__(
+        self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True
+    ):
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
+        self.sanitize = sanitize
 
     def __call__(self, smiles: str) -> str:
         """
-        Apply the kekulization transform.
+        Apply transform.
 
         Args:
             smiles (str): a SMILES representation.
-            all_bonds_explicit (bool): whether bonds are explicitly encoded.
 
         Returns:
-            str: Kekulized SMILES of same molecule.
+            str: SMILES of same molecule.
         """
-        molecule = Chem.MolFromSmiles(smiles)
-        return Chem.MolToSmiles(
-            molecule,
-            allBondsExplicit=self.all_bonds_explicit,
-            allHsExplicit=self.all_hs_explicit,
-            canonical=False
-        )
+        try:
+            molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
+            return Chem.MolToSmiles(
+                molecule,
+                allBondsExplicit=self.all_bonds_explicit,
+                allHsExplicit=self.all_hs_explicit,
+                canonical=False
+            )
+        except Exception:
+            logger.warning(
+                f'\nInvalid SMILES {smiles}, HsExplicit:{self.all_hs_explicit}'
+                f'and bondsExplicit: {self.all_bonds_explicit} are ignored.'
+            )
+            return smiles
 
 
 class Augment(Transform):
@@ -247,15 +221,21 @@ class Augment(Transform):
 
     def __init__(
         self,
-        kekule_smiles=False,
-        all_bonds_explicit=False,
-        all_hs_explicit=False
+        kekule_smiles: bool = False,
+        all_bonds_explicit: bool = False,
+        all_hs_explicit: bool = False,
+        sanitize: bool = True,
+        seed: int = -1
     ) -> None:
         """ NOTE:  These parameter need to be passed down to the enumerator."""
 
         self.kekule_smiles = kekule_smiles
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
+        self.sanitize = sanitize
+        self.seed = seed
+        if self.seed > -1:
+            np.random.seed(self.seed)
 
     def __call__(self, smiles: str) -> str:
         """
@@ -267,7 +247,12 @@ class Augment(Transform):
         Returns:
             str: randomized SMILES representation.
         """
-        molecule = Chem.MolFromSmiles(smiles)
+        molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
+        if molecule is None:
+            logger.warning(f'\nAugmentation skipped for invalid mol: {smiles}')
+            return smiles
+        if not self.sanitize:
+            molecule.UpdatePropertyCache(strict=False)
         atom_indexes = list(range(molecule.GetNumAtoms()))
         if len(atom_indexes) == 0:  # RDkit error handling
             return smiles
@@ -285,22 +270,143 @@ class Augment(Transform):
         )
 
 
-class Randomize(Transform):
-    """ Randomize a molecule by truly shuffling all tokens. """
+class AugmentTensor(Transform):
+    """
+    Augment a SMILES (represented as a Tensor) according to Bjerrum (2017).
+    """
 
-    def __call__(self, tokens: Indexes) -> Indexes:
+    def __init__(
+        self,
+        smiles_language,
+        kekule_smiles=False,
+        all_bonds_explicit=False,
+        all_hs_explicit=False,
+        sanitize=True
+    ) -> None:
+        """NOTE:  These parameter need to be passed down to the enumerator."""
+        self.smiles_language = smiles_language
+        self.kekule_smiles = kekule_smiles
+        self.all_bonds_explicit = all_bonds_explicit
+        self.all_hs_explicit = all_hs_explicit
+        self.sanitize = sanitize
+
+    def update_smiles_language(self, smiles_language):
+        if not isinstance(
+            smiles_language, pytoda.smiles.smiles_language.SMILESLanguage
+        ):
+            raise ValueError('Please pass a SMILES language object')
+        self.smiles_language = smiles_language
+
+    def __call__(self, smiles_numerical: list) -> str:
         """
-        NOTE: Must not apply this transformation on SMILES string, only on the
-            tokenized, numerical vectors (i.e. after SMILESToTokenIndexes)
+        Apply the transform.
 
-        Arguments:
-            Tokens: indexes representation for the SMILES to be randomized.
+        Args:
+            smiles_numerical (Union[list, torch.Tensor]): either a SMILES
+                represented as list of ints or a Tensor.
+
         Returns:
-           Indexes: shuffled indexes representation of the molecule
+            torch.Tensor: randomized SMILES representation.
         """
-        smiles_tokens = deepcopy(tokens)
-        np.random.shuffle(smiles_tokens)
-        return smiles_tokens
+
+        if type(smiles_numerical) == list:
+            smiles = self.smiles_language.token_indexes_to_smiles(
+                smiles_numerical
+            )
+            try:
+                molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
+                atom_indexes = list(range(molecule.GetNumAtoms()))
+                if len(atom_indexes) == 0:  # RDkit error handling
+                    return smiles
+                np.random.shuffle(atom_indexes)
+                renumbered_molecule = Chem.RenumberAtoms(
+                    molecule, atom_indexes
+                )
+                if self.kekule_smiles:
+                    Chem.Kekulize(renumbered_molecule)
+
+                augmented_smiles = Chem.MolToSmiles(
+                    renumbered_molecule,
+                    canonical=False,
+                    kekuleSmiles=self.kekule_smiles,
+                    allBondsExplicit=self.all_bonds_explicit,
+                    allHsExplicit=self.all_hs_explicit
+                )
+            except Exception:
+                logger.warning(
+                    f'\nAugmentation skipped, mol invalid: {smiles}'
+                )
+                augmented_smiles = smiles
+            return self.smiles_language.smiles_to_token_indexes(
+                augmented_smiles
+            )
+        elif type(smiles_numerical) == torch.Tensor:
+            return self.__call__tensor(smiles_numerical)
+
+        else:
+            raise TypeError('Please pass either a torch.Tensor or a list.')
+
+    def __call__tensor(self, smiles_numerical: torch.Tensor) -> str:
+        """
+        Wrapper of the transform for torch.Tensor.
+
+        Args:
+            smiles_numerical (torch.Tensor): a Tensor with SMILES represented
+                as ints. Needs to have shape batch_size x sequence_length.
+        Returns:
+            str: randomized SMILES representation.
+        """
+
+        # Infer the padding type to ensure returning tensor of same shape.
+        if self.smiles_language.padding_index in smiles_numerical.flatten():
+
+            padding = True
+            left_padding = any([
+                self.smiles_language.padding_index == row[0]
+                for row in smiles_numerical
+            ])  # yapf: disable
+            right_padding = any([
+                self.smiles_language.padding_index == row[-1]
+                for row in smiles_numerical
+            ])  # yapf: disable
+            if (
+                (left_padding and right_padding)
+                or (not left_padding and not right_padding)
+            ):
+                raise ValueError(
+                    'Could not uniqely infer padding type. Leftpadding was '
+                    f'{left_padding}, right_padding was {right_padding}.'
+                )
+        else:
+            padding = False
+
+        seq_len = smiles_numerical.shape[1]
+
+        # Loop over tensor (SMILES by SMILES) and augment. Exclude augmentation
+        # if it violates the padding
+        augmented = []
+        for smiles in smiles_numerical:
+
+            lenx = seq_len + 1
+            while lenx > seq_len:
+                augmented_smiles = self.__call__(smiles.tolist())
+                lenx = len(augmented_smiles)
+            if padding:
+                pads = (
+                    [self.smiles_language.padding_index] *
+                    (seq_len - len(augmented_smiles))
+                )
+                if right_padding:
+                    augmented_smiles = augmented_smiles + pads
+                if left_padding:
+                    augmented_smiles = pads + augmented_smiles
+
+            augmented.append(
+                torch.unsqueeze(torch.Tensor(augmented_smiles), 0)
+            )
+
+        augmented = torch.cat(augmented, dim=0)
+        return augmented
 
 
 class Selfies(Transform):
@@ -311,21 +417,35 @@ class Selfies(Transform):
 
 
 class Canonicalization(Transform):
-    """ Convert any SMILES to RDKit-canonical SMILES
-        example: 
-            input: 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
-            output: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
+    """
+    Convert any SMILES to RDKit-canonical SMILES.
+    An example:
+     - input: 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
+     - output: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
     """
 
+    def __init__(self, sanitize=True):
+        self.sanitize = sanitize
+
     def __call__(self, smiles: str) -> str:
-        return Chem.MolToSmiles(Chem.MolFromSmiles(smiles), canonical=True)
+        try:
+            canon = Chem.MolToSmiles(
+                Chem.MolFromSmiles(smiles, sanitize=self.sanitize),
+                canonical=True
+            )
+            return canon
+        except Exception:
+            logger.warning(
+                f'\nInvalid SMILES {smiles}, no canonicalization done'
+            )
+            return smiles
 
 
 class SMILESToMorganFingerprints(Transform):
     """Get fingerprints starting from SMILES."""
 
     def __init__(
-        self, radius: int = 2, bits: int = 512, chirality=True
+        self, radius: int = 2, bits: int = 512, chirality=True, sanitize=False
     ) -> None:
         """
         Initialize a SMILES to fingerprints object.
@@ -337,6 +457,7 @@ class SMILESToMorganFingerprints(Transform):
         self.radius = radius
         self.bits = bits
         self.chirality = chirality
+        self.sanitize = sanitize
 
     def __call__(self, smiles: str) -> np.array:
         """
@@ -349,7 +470,10 @@ class SMILESToMorganFingerprints(Transform):
             np.array: the fingerprints.
         """
         try:
-            molecule = Chem.MolFromSmiles(smiles)
+            molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
+            if not self.sanitize:
+                molecule.UpdatePropertyCache(strict=False)
+                AllChem.FastFindRings(molecule)
             fingerprint = AllChem.GetMorganFingerprintAsBitVect(
                 molecule,
                 self.radius,
@@ -357,7 +481,7 @@ class SMILESToMorganFingerprints(Transform):
                 useChirality=self.chirality
             )
         except Exception:
-            warnings.warn(f'Invalid SMILES {smiles}')
+            logger.warning(f'\nInvalid SMILES {smiles}')
             molecule = Chem.MolFromSmiles('')
             fingerprint = AllChem.GetMorganFingerprintAsBitVect(
                 molecule, self.radius, nBits=self.bits

@@ -20,13 +20,13 @@ def csv_data_splitter(
     **kwargs
 ) -> Tuple[str, str]:
     """
-    Function for generic splitting into train and test data in csv format..
+    Function for generic splitting into train and test data in csv format.
     This is an eager splitter trying to fit the entire dataset into memory.
 
     Args:
         data_filepaths (FileList): a list of .csv files that contain the data.
         save_path (str): folder to store the training/testing dataset.
-        data_type (str): data type.
+        data_type (str): data type (only used as prefix for the saved files).
         mode (str): mode to split data from: "random" and "file".
             - random: does a random split across all samples in all files.
             - file: randomly splits the files into training and testing.
@@ -106,7 +106,7 @@ def csv_data_splitter(
         _hash_from_df_columns(test_df, number_of_columns)
     )
     hash_fn.update(hash_str.encode('utf-8'))
-    hash_id = str(int(hash_fn.hexdigest(), 16))
+    hash_id = str(int(hash_fn.hexdigest(), 16))[:6]
     # generate file path
     train_filepath = os.path.join(
         save_path,

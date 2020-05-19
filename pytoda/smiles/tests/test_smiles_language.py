@@ -147,6 +147,18 @@ class TestSmilesLanguage(unittest.TestCase):
             smiles_language.token_indexes_to_smiles(token_indexes), 'CCO'
         )
 
+    def test_smiles_to_selfies(self) -> None:
+        """Test smiles_to_selfies and selfies_to_smiles"""
+        smiles = 'CCO'
+        smiles_language = SMILESLanguage()
+
+        self.assertEqual(
+            smiles,
+            smiles_language.selfies_to_smiles(
+                smiles_language.smiles_to_selfies(smiles)
+            )
+        )
+
 
 if __name__ == '__main__':
     unittest.main()

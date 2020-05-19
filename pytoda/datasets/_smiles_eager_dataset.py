@@ -31,6 +31,7 @@ class _SMILESEagerDataset(_SMILESDataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
+        sanitize: bool = True,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu')
     ) -> None:
@@ -47,8 +48,10 @@ class _SMILESEagerDataset(_SMILESDataset):
                 applies only if padding is True. Defaults to None.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
-            canonical (bool): performs canonicalization of SMILES (one original string for one molecule),
-                if canonical=True, then other transformations (augment etc, see below) do not apply
+            canonical (bool): performs canonicalization of SMILES (one original
+                string for one molecule),
+                if canonical=True, then other transformations (augment etc, see
+                below) do not apply
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.
@@ -64,6 +67,7 @@ class _SMILESEagerDataset(_SMILESDataset):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
+            sanitize (bool): Sanitize SMILES. Defaults to True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
         """
@@ -82,6 +86,7 @@ class _SMILESEagerDataset(_SMILESDataset):
             remove_bonddir=remove_bonddir,
             remove_chirality=remove_chirality,
             selfies=selfies,
+            sanitize=sanitize,
             device=device
         )
 

@@ -58,6 +58,7 @@ class _TableEagerDataset(_TableDataset):
             filepaths=self.filepaths,
             dataset_class=_CsvEagerDataset,
             feature_list=self.feature_list,
+            dtype={'cell_line': str},
             **self.kwargs
         )
 

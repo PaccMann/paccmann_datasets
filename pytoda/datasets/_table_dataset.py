@@ -108,8 +108,8 @@ class _TableDataset(Dataset):
             self.processing = {
                 'processing': 'standardize',
                 'parameters': {
-                    'mean': mean,
-                    'std': std
+                    'mean': list(mean),
+                    'std': list(std)
                 }
             }
         elif self.min_max:

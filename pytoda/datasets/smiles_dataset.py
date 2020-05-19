@@ -33,9 +33,12 @@ class SMILESDataset(Dataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
-        device: torch.device = torch.
-        device('cuda' if torch.cuda.is_available() else 'cpu'),
-        backend: str = 'eager'
+        sanitize: bool = True,
+        device: torch.device = (
+            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        ),
+        backend: str = 'eager',
+        name: str = 'smiles-dataset',
     ) -> None:
         """
         Initialize a SMILES dataset.
@@ -50,8 +53,9 @@ class SMILESDataset(Dataset):
                 applies only if padding is True. Defaults to None.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
-            canonical (bool): performs canonicalization of SMILES (one original string for one molecule),
-                if canonical=True, then other transformations (augment etc, see below) do not apply
+            canonical (bool): performs canonicalization of SMILES (one
+                original string for one molecule), if True, then other
+                transformations (augment etc, see below) do not apply
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.
@@ -67,12 +71,16 @@ class SMILESDataset(Dataset):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
+            sanitize (bool): Sanitize SMILES. Defaults to True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
             backend (str): memeory management backend.
                 Defaults to eager, prefer speed over memory consumption.
+            name (str): name of the SMILESDataset.
+
         """
         Dataset.__init__(self)
+        self.name = name
         if not (backend in SMILES_DATASET_IMPLEMENTATIONS):
             raise RuntimeError(
                 'backend={} not supported! '.format(backend) +
@@ -94,6 +102,7 @@ class SMILESDataset(Dataset):
             remove_bonddir=remove_bonddir,
             remove_chirality=remove_chirality,
             selfies=selfies,
+            sanitize=sanitize,
             device=device
         )
         self.smiles_language = self._dataset.smiles_language

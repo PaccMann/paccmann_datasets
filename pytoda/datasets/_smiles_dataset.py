@@ -1,16 +1,22 @@
 """Implementation of _SMILESDataset."""
+import logging
+
 import torch
+from rdkit import Chem
 from torch.utils.data import Dataset
+
 from ..smiles.processing import (
-    tokenize_selfies, tokenize_smiles, SMILES_TOKENIZER
+    SMILES_TOKENIZER, tokenize_selfies, tokenize_smiles
 )
 from ..smiles.smiles_language import SMILESLanguage
 from ..smiles.transforms import (
-    Augment, Kekulize, NotKekulize, LeftPadding, Randomize, RemoveIsomery,
-    Selfies, SMILESToTokenIndexes, ToTensor, Canonicalization
+    Augment, Canonicalization, Kekulize, NotKekulize, RemoveIsomery, Selfies,
+    SMILESToTokenIndexes
 )
-from ..transforms import Compose
+from ..transforms import Compose, LeftPadding, Randomize, ToTensor
 from ..types import FileList
+
+logger = logging.getLogger(__name__)
 
 
 class _SMILESDataset(Dataset):
@@ -37,6 +43,7 @@ class _SMILESDataset(Dataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
+        sanitize: bool = True,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu')
     ) -> None:
@@ -53,8 +60,9 @@ class _SMILESDataset(Dataset):
                 applies only if padding is True. Defaults to None.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
-            canonical (bool): performs canonicalization of SMILES (one original string for one molecule),
-                if canonical=True, then other transformations (augment etc, see below) do not apply
+            canonical (bool): performs canonicalization of SMILES (one original
+                string for one molecule). If True, then other transformations
+                (augment etc, see below) do not apply.
             augment (bool): perform SMILES augmentation. Defaults to False.
             kekulize (bool): kekulizes SMILES (implicit aromaticity only).
                 Defaults to False.
@@ -70,8 +78,19 @@ class _SMILESDataset(Dataset):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
+            sanitize (bool): Sanitize SMILES. Defaults to True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
+
+        NOTE: If the setup is too slow, consider skipping all SMILES language
+            transforms. To achieve this, set ALL following arguments to False:
+                - `canonical`
+                - `augment`
+                - `kekulize`
+                - `all_bonds_explicit`
+                - `all_hs_explicit`
+                - `remove_bonddir`
+                - `remove_chirality`
         """
         Dataset.__init__(self)
         # Parse language object and data paths
@@ -97,7 +116,7 @@ class _SMILESDataset(Dataset):
         # Set up transformation paramater
         self.padding = padding
         self.augment = augment
-        self.padding_length = self.padding_length = (
+        self.padding_length = (
             self.smiles_language.max_token_sequence_length
             if padding_length is None else padding_length
         )
@@ -109,62 +128,116 @@ class _SMILESDataset(Dataset):
         self.remove_bonddir = remove_bonddir
         self.remove_chirality = remove_chirality
         self.selfies = selfies
+        self.sanitize = sanitize
         self.device = device
 
         # Build up cascade of SMILES transformations
         # Below transformations are optional
-        _transforms = []
+        language_transforms = []
         if self.canonical:
-            _transforms += [Canonicalization()]
+            language_transforms += [Canonicalization()]
         else:
             if self.remove_bonddir or self.remove_chirality:
-                _transforms += [
+                language_transforms += [
                     RemoveIsomery(
                         bonddir=self.remove_bonddir,
                         chirality=self.remove_chirality
                     )
                 ]
             if self.kekulize:
-                _transforms += [
+                language_transforms += [
                     Kekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
-                        all_hs_explicit=self.all_hs_explicit
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
                     )
                 ]
-            else:
-                _transforms += [
+            elif self.all_bonds_explicit or self.all_hs_explicit:
+                language_transforms += [
                     NotKekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
-                        all_hs_explicit=self.all_hs_explicit
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
                     )
                 ]
             if self.augment:
-                _transforms += [
+                language_transforms += [
                     Augment(
                         kekule_smiles=self.kekulize,
                         all_bonds_explicit=self.all_bonds_explicit,
-                        all_hs_explicit=self.all_hs_explicit
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
                     )
                 ]
             if self.selfies:
-                _transforms += [Selfies()]
+                language_transforms += [Selfies()]
 
-        self.language_transforms = Compose(_transforms)
+        self.language_transforms = Compose(language_transforms)
+        num_tokens = len(self.smiles_language.token_to_index)
         self._setup_dataset()
-        # Run once over dataset to add missing tokens to smiles language
-        for index in range(len(self._dataset)):
-            self.smiles_language.add_smiles(
-                self.language_transforms(self._dataset[index])
+
+        # If we use language transforms: add missing tokens to smiles language
+        if (
+            smiles_language is not None
+            and len(self.language_transforms.transforms) == 0
+        ):
+            logger.warning(
+                'WARNING: You operate in the fast-setup regime.\nIf you pass a'
+                ' SMILESLanguage object, but dont specify any SMILES language'
+                ' transform, no pass is given over all SMILES in '
+                f'{self.smi_filepaths}.\nCheck *yourself* that all SMILES '
+                'tokens are known to your SMILESLanguage object.'
             )
-        transforms = _transforms.copy()
+
+        if len(self.language_transforms.transforms) > 0:
+
+            invalid_molecules = []
+            for index in range(len(self._dataset)):
+                self.smiles_language.add_smiles(
+                    self.language_transforms(self._dataset[index])
+                )
+
+                if Chem.MolFromSmiles(self._dataset[index]) is None:
+                    invalid_molecules.append(index)
+            # Raise warning about invalid molecules
+            if len(invalid_molecules) > 0:
+                logger.warning(
+                    f'NOTE: We found {len(invalid_molecules)} invalid smiles. '
+                    'Check the warning trace. We recommend using '
+                    'pytoda.preprocessing.smi.smi_cleaner to remove the '
+                    'invalid SMILES in your .smi file.'
+                )
+
+            # Raise warning if new tokens were added.
+            if len(self.smiles_language.token_to_index) > num_tokens:
+                logger.warning(
+                    f'{len(self.smiles_language.token_to_index) - num_tokens}'
+                    ' new token(s) were added to SMILES language.'
+                )
+
+        transforms = language_transforms.copy()
         transforms += [
             SMILESToTokenIndexes(smiles_language=self.smiles_language)
         ]
         if self.randomize:
             transforms += [Randomize()]
         if self.padding:
-            if padding_length is None:
-                self.padding_length = self.smiles_language.max_token_sequence_length
+            if (
+                padding_length is None
+                and self.smiles_language.max_token_sequence_length >
+                self.padding_length
+            ):
+                logger.warning(
+                    f'Padding length of given SMILES Language was '
+                    f'{self.padding_length}. Following a pass over the dataset'
+                    f' the padding length was updated to '
+                    f'{self.smiles_language.max_token_sequence_length}. If you'
+                    f' wish to fix the padding length, pass it directly to the'
+                    ' constructor.'
+                )
+                self.padding_length = (
+                    self.smiles_language.max_token_sequence_length
+                )
             transforms += [
                 LeftPadding(
                     padding_length=self.padding_length,
@@ -177,10 +250,14 @@ class _SMILESDataset(Dataset):
         # NOTE: recover sample and index mappings
         self.sample_to_index_mapping = {}
         self.index_to_sample_mapping = {}
+
         for index in range(len(self._dataset)):
             dataset_index, sample_index = self._dataset.get_index_pair(index)
             dataset = self._dataset.datasets[dataset_index]
-            sample = dataset.index_to_sample_mapping[sample_index]
+            try:
+                sample = dataset.index_to_sample_mapping[sample_index]
+            except KeyError:
+                raise KeyError('Please remove duplicates from your .smi file.')
             self.sample_to_index_mapping[sample] = index
             self.index_to_sample_mapping[index] = sample
 
