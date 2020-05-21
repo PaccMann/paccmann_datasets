@@ -256,6 +256,176 @@ def tmap_plot(
     f.plot(file_name=plot_filename, path=plot_folder, template='smiles')
 
 
+# TODO This is a refactor of the original fn. to beu used in wider contexts
+def fareum_plot(
+    df: pd.DataFrame,
+    postions: List[List[float]],  # x, y[, z]
+    smiles_column: str = 'SMILES',
+    drugs_column: str = 'drugs',
+    categorical_columns: List[str] = [],
+    continous_columns: List[str] = [],
+    plot_folder: str = f'tmap_{datetime.now().strftime("%Y.%m.%d-%H.%M.%S")}',
+    plot_filename: str = 'tmap',
+    categorical_cmap: str = 'gist_rainbow',
+    continous_cmap: str = 'viridis',
+    shader: str = 'sphere',
+    lshforest_dim: int = 512,
+    lshforest_i: int = 32,
+    point_scale: int = 10,
+    thumbnail_titles: Union[Iterable[str], str] = None,
+    store_data: bool = True
+):
+    """TMAP plotting utility for molecule data.
+
+    Args:
+        df (pd.DataFrame): Data.
+        positions (List[List[float]])
+        smiles_column (str)
+        drugs_column (str)
+        categorical_columns (List[str], optional): Names of the
+            columns to be plotted that contain categorical values.
+            Defaults to [] (i.e. none).
+        continous_columns (List[str], optional): Names of the
+            dataframe columns to be plotted that contain
+            continous/numerical values. Defaults to [].
+        plot_folder (str, optional): Folder where to store the plot.
+            Defaults to `tmap_{datetime.now()}`.
+        plot_filename (str, optional): Defaults to `tmap`.
+        categorical_cmap (str, optional): Colormap for the categorical
+            entries. Defaults to `gist_rainbow`. Available colormaps
+            listed in the matplotlib documentation.
+        continous_cmap (str, optional): Colormap for the continous
+            entries. Defaults to `viridis`. Available colormaps listed
+            in the matplotlib documentation.
+        shader (str, optional): Shader for the nodes. Defaults to
+            `sphere`.
+        lshforest_dim (int, optional): Defaults to 512.
+        lshforest_i (int, optional): Defaults to 32.
+        point_scale (int, optional): Display sphere size. Defaults to 20
+        thumbnail_titles (Union[Iterable[str], str], optional): List of
+            titles for the thumbnails. If None it uses the SMILES as
+            titles. Defaults to None.
+        store_data (bool, optional): Store the TMAP tree. Defaults to
+            True.
+
+    Raises:
+        KeyError: If column name (entry in `categorical_columns` or
+        `categorical_columns`) is not in the dataframe.
+    """
+    # Check if all categories are in the dataframe
+    for cat in [*categorical_columns, *continous_columns]:
+        if cat not in df.columns:
+            raise KeyError(f'Unknown column name {cat}')
+
+    # Extact columns that will be plotted
+    categorical_values = [
+        list(map(str, df[col])) for col in categorical_columns
+    ]
+    continous_values = [
+        rank_and_normalize_field(df[col]) for col in continous_columns
+    ]
+
+    # Thubnails
+    drugs = df[drugs_column] if drugs_column in df.columns else None
+    thumbnail_titles = df[
+        thumbnail_titles
+    ] if thumbnail_titles in df.columns else thumbnail_titles
+
+    thumbnails = thumbnails_with_pubchem_reference(
+        df[smiles_column], drugs, thumbnail_titles
+    )
+
+    # Create categories for all the categorical columns
+    graph_categorical_labels = []
+    graph_categorical = []
+    bin_cmap = []
+    for cat in categorical_values:
+        _lab, _grp = Faerun.create_categories(cat)
+        graph_categorical_labels.append(_lab)
+        graph_categorical.append(_grp)
+        bin_cmap.append(plt.cm.get_cmap(categorical_cmap, len(set(_grp))))
+
+    # Layout settings
+    cfg = tm.LayoutConfiguration()
+    cfg.k = 20
+    cfg.sl_extra_scaling_steps = 10
+    # cfg.sl_repeats = 12
+    # cfg.mmm_repeats = 2
+    cfg.node_size = 50
+
+    # x, y, s, t, _ =
+
+    def _create_faerum_opts(options: list, lenghts: list) -> list:
+        """Helper function that creates a list of distint option
+        arguments for the categorical and the numerical variables.
+
+        Args:
+            options (list): Distinct options for categorical and & num.
+            lenghts (list): Lenghts of the different types of columns,
+                namely: lenght of categorical vars & lenght of the
+                numerical vars.
+
+        Returns:
+            list: [description]
+        """
+        out = []
+        for opt, l in zip(options, lenghts):
+            out.extend(l * [opt])
+        return out
+
+    types_columns_lengths = [len(categorical_values), len(continous_values)]
+    is_categorical = _create_faerum_opts([True, False], types_columns_lengths)
+
+    color_maps = [*bin_cmap, *(len(continous_values) * ['viridis'])]
+
+    params = {
+        'x': postions[0],
+        'y': postions[1],
+        'c': [*graph_categorical, *continous_values],
+        'labels': thumbnails
+    }
+    view = 'front'
+    if len(postions) > 2:
+        params['z'] = postions[2]
+        view = 'free'
+
+    f = Faerun(
+        clear_color='#222222',
+        coords=False,
+        view=view,
+        impress=(
+            'made with <a href="http://tmap.gdb.tools" target="_blank">tmap</a>'
+            '<br />and <a href="https://github.com/reymond-group/faerun-python"'
+            'target="_blank">faerun</a>'
+        )
+    )
+
+    f.add_scatter(
+        'molecules',
+        params,
+        shader='sphere',
+        colormap=color_maps,
+        point_scale=point_scale,
+        max_point_size=100,
+        categorical=is_categorical,
+        has_legend=True,
+        legend_labels=graph_categorical_labels,
+        selected_labels=['SMILES', 'Dashboard', 'Name'],
+        series_title=[*categorical_columns, *continous_columns],
+        max_legend_label=[
+            None,
+        ],
+        min_legend_label=[
+            None,
+        ],
+        title_index=2,
+        legend_title='',
+    )
+
+    os.makedirs(plot_folder, exist_ok=True)
+    f.plot(file_name=plot_filename, path=plot_folder, template='smiles')
+
+
 if __name__ == "__main__":
     logger.info('Running example TMAP plot with Paccmann data')
 
@@ -300,7 +470,7 @@ if __name__ == "__main__":
     df = mol_df[mol_df.cancer_site == site]
 
     # Plot
-    tmap(
+    tmap_plot(
         df,
         categorical_columns=['source'],
         continous_columns=[

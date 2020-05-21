@@ -14,7 +14,7 @@ def compute_tsne(
     number_components: int = 3,
     perplexity: int = 70,
     n_iter: int = 1000
-):
+) -> List[np.ndarray]:
     out = TSNE(
         n_components=number_components, perplexity=perplexity, n_iter=n_iter
     ).fit_transform(data)
@@ -22,13 +22,11 @@ def compute_tsne(
 
 
 def tsne_from_fingerprints(
-    data_file: str,
-    pandas_csv_params: dict = {},
+    df: pd.DataFrame,
     tsne_params: dict = {'number_components': 3},
     radius: int = 2,
     nBits: int = 256
-):
-    df = pd.read_csv(data_file, **pandas_csv_params)
+) -> List[np.ndarray]:
     fingerprints = []
     for val in df.SMILES.values:
         mol = Chem.MolFromSmiles(val)
@@ -43,14 +41,12 @@ def tsne_from_fingerprints(
 
 
 def tsne_from_properties_file(
-    data_file: str,
+    df: pd.DataFrame,
     properties_file: str,
-    pandas_csv_params: dict = {},
     tsne_params: dict = {'number_components': 3},
     radius: int = 2,
     nBits: int = 256
-):
-    df = pd.read_csv(data_file, **pandas_csv_params)
+) -> List[np.ndarray]:
     properties = _load_properties_file(properties_file)
     properties = _match_properties(properties, df)
 
@@ -62,13 +58,16 @@ def fareum_from_pandas(
     x: List[float],
     y: List[float],
     z: Optional[List[float]] = None,
-    c: List[float] = [],
-    smiles: List[str] = [],
-    names: List[str] = [],
-    pandas_csv_params: dict = {},
+    smiles_col: Optional[str] = None,
+    names_col: Optional[str] = None,
     plot_name: str = 'fareum_plot',
     plot_path: str = 'fareum'
 ):
+    smiles = names = None
+    if smiles_col in df.columns:
+        smiles = df[smiles_col]
+    if names_col in df.columns:
+        names = df[names_col]
 
     source_unique = df.source.unique()
     source_dict = {
@@ -88,16 +87,10 @@ def craete_fareum_params(
     y: List[float],
     z: Optional[List[float]] = None,
     c: List[float] = [],
-    smiles: List[str] = [],
-    names: List[str] = []
+    smiles: Optional[List[str]] = None,
+    names: Optional[List[str]] = None
 ):
-    params = {
-        'x': x,
-        'y': y,
-        'z': z,
-        'c': c,
-        'labels': [f'{i}__test__{i}' for i in smiles],
-    }
+    params = {'x': x, 'y': y, 'c': c if c else [0.5 for _ in range(len(x))]}
     if z is not None:
         params['z'] = z
 
@@ -136,7 +129,33 @@ def create_fareum_viz(
 
 
 if __name__ == "__main__":
-    # TODO Add loading functions and DATA_FILE path
+    from pytoda.visualizations.molecules.tmap_plotter import fareum_plot
+    DATA_FILE = os.path.expanduser(
+        '~/Box/Molecular_SysBio/data/paccmann/'
+        'paccmann_affinity/all_molecules.csv'
+    )
+    # ENCODE_FILE = os.path.expanduser(
+    #     '~/Box/Molecular_SysBio/data/paccmann/'
+    #     'paccmann_affinity/
+    # )
+
     df = pd.read_csv(DATA_FILE)
-    df.columns
-    df.rename(columns={'other': 'drugs'}, inplace=True)
+
+    # TODO Clean this file and tmap_plotter
+    output_tsne = tsne_from_fingerprints(df)
+
+    continous_columns = [
+        x for x in list(df.columns)
+        if x not in ['Unnamed: 0', 'source', 'SMILES', 'other']
+    ]
+
+    fareum_plot(
+        df,
+        output_tsne,
+        smiles_column='SMILES',
+        drugs_column='other',
+        categorical_columns=['source'],
+        continous_columns=continous_columns
+    )
+
+    print('Done')
