@@ -74,7 +74,7 @@ def rank_and_normalize_field(data: list) -> np.ndarray:
     return ss.rankdata(np.array(data)) / len(data)
 
 
-def tmap(
+def tmap_plot(
     df: pd.DataFrame,
     categorical_columns: List[str] = [],
     continous_columns: List[str] = [],
@@ -85,6 +85,7 @@ def tmap(
     shader: str = 'sphere',
     lshforest_dim: int = 512,
     lshforest_i: int = 32,
+    point_scale: int = 10,
     thumbnail_titles: Union[Iterable[str], str] = None,
     store_data: bool = True
 ):
@@ -111,6 +112,7 @@ def tmap(
             `sphere`.
         lshforest_dim (int, optional): Defaults to 512.
         lshforest_i (int, optional): Defaults to 32.
+        point_scale (int, optional): Display sphere size. Defaults to 20
         thumbnail_titles (Union[Iterable[str], str], optional): List of
             titles for the thumbnails. If None it uses the SMILES as
             titles. Defaults to None.
@@ -232,7 +234,7 @@ def tmap(
         },
         shader='sphere',
         colormap=color_maps,
-        point_scale=20,
+        point_scale=point_scale,
         max_point_size=100,
         categorical=is_categorical,
         has_legend=True,
