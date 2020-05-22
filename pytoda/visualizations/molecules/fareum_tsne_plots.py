@@ -5,6 +5,7 @@ from rdkit.Chem import AllChem
 from sklearn.manifold import TSNE
 from faerun import Faerun
 import numpy as np
+import umap
 
 from typing import Optional, List
 
@@ -40,17 +41,84 @@ def tsne_from_fingerprints(
     return compute_tsne(fingerprints, **tsne_params)
 
 
+def _load_properties_file(filename: str) -> dict:
+    data = {}
+    # NOTE Assuming that the ids could be unordered
+    # REVIEW Plaintext is probably not the best formate to store this data
+    with open(filename, 'r') as f:
+        for line in f.readlines():
+            idx, latent = line.split('\t')
+            latent = [float(x) for x in latent.split(',')]
+            data[int(idx)] = latent
+    return data
+
+
+def _match_properties(properties: dict, dataframe: pd.DataFrame) -> list:
+    data = []
+    # NOTE need to enforce (check) that the IDs are conserved between files
+    for i in dataframe.index:
+        # Should I account for those samples w/o data? (e.g. malformed SMILEs)
+        data.append(properties[i])
+    return data
+
+
 def tsne_from_properties_file(
     df: pd.DataFrame,
     properties_file: str,
     tsne_params: dict = {'number_components': 3},
+) -> List[np.ndarray]:
+    properties = _load_properties_file(properties_file)
+    properties_data = _match_properties(properties, df)
+
+    return compute_tsne(properties_data, **tsne_params)
+
+
+def compute_umap(
+    data: np.ndarray,
+    number_components: int = 3,
+    min_dist: float = 0.25,
+    n_neighbors: int = 50
+) -> List[np.ndarray]:
+    out = umap.UMAP(n_components=number_components).fit_transform(data)
+    return [out[:, i] for i in range(out.shape[1])]
+
+
+def umap_from_properties_file(
+    df: pd.DataFrame,
+    properties_file: str,
+    umap_params: dict = {
+        'number_components': 3,
+        'n_neighbors': 50,
+        'min_dist': 0.25
+    },
+) -> List[np.ndarray]:
+    properties = _load_properties_file(properties_file)
+    properties_data = _match_properties(properties, df)
+
+    return compute_umap(properties_data, **umap_params)
+
+
+def umap_from_fingerprints(
+    df: pd.DataFrame,
+    umap_params: dict = {
+        'number_components': 3,
+        'n_neighbors': 50,
+        'min_dist': 0.25
+    },
     radius: int = 2,
     nBits: int = 256
 ) -> List[np.ndarray]:
-    properties = _load_properties_file(properties_file)
-    properties = _match_properties(properties, df)
+    fingerprints = []
+    for val in df.SMILES.values:
+        mol = Chem.MolFromSmiles(val)
+        fingerprint = AllChem.GetMorganFingerprintAsBitVect(
+            mol, radius, nBits=nBits
+        )
+        fingerprint = [int(x) for x in fingerprint.ToBitString()]
+        fingerprints.append(fingerprint)
+    fingerprints = np.array(fingerprints)
 
-    return compute_tsne(properties, **tsne_params)
+    return compute_umap(fingerprints, **umap_params)
 
 
 def fareum_from_pandas(
@@ -134,28 +202,40 @@ if __name__ == "__main__":
         '~/Box/Molecular_SysBio/data/paccmann/'
         'paccmann_affinity/all_molecules.csv'
     )
-    # ENCODE_FILE = os.path.expanduser(
-    #     '~/Box/Molecular_SysBio/data/paccmann/'
-    #     'paccmann_affinity/
-    # )
+    ENCODE_FILE = os.path.expanduser(
+        '~/Box/Molecular_SysBio/data/paccmann/'
+        'paccmann_affinity/samples_latent_code.tsv'
+    )
 
     df = pd.read_csv(DATA_FILE)
 
     # TODO Clean this file and tmap_plotter
-    output_tsne = tsne_from_fingerprints(df)
 
     continous_columns = [
-        x for x in list(df.columns)
-        if x not in ['Unnamed: 0', 'source', 'SMILES', 'other']
+        x for x in list(df.columns) if x not in
+        ['Unnamed: 0', 'Unnamed: 0.1', 'source', 'SMILES', 'other']
     ]
 
+    output_tsne = tsne_from_fingerprints(df)
     fareum_plot(
         df,
         output_tsne,
         smiles_column='SMILES',
         drugs_column='other',
         categorical_columns=['source'],
-        continous_columns=continous_columns
+        continous_columns=continous_columns,
+        plot_filename='tsne_fingerprint'
+    )
+
+    output_tsne = tsne_from_properties_file(df, ENCODE_FILE)
+    fareum_plot(
+        df,
+        output_tsne,
+        smiles_column='SMILES',
+        drugs_column='other',
+        categorical_columns=['source'],
+        continous_columns=continous_columns,
+        plot_filename='tsne_latentcode'
     )
 
     print('Done')

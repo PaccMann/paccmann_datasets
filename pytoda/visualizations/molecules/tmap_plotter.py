@@ -264,11 +264,13 @@ def fareum_plot(
     drugs_column: str = 'drugs',
     categorical_columns: List[str] = [],
     continous_columns: List[str] = [],
+    sizes: List[int] = None, 
     plot_folder: str = f'tmap_{datetime.now().strftime("%Y.%m.%d-%H.%M.%S")}',
     plot_filename: str = 'tmap',
     categorical_cmap: str = 'gist_rainbow',
     continous_cmap: str = 'viridis',
     shader: str = 'sphere',
+    background_color: str = '#222222',
     lshforest_dim: int = 512,
     lshforest_i: int = 32,
     point_scale: int = 10,
@@ -343,7 +345,10 @@ def fareum_plot(
         _lab, _grp = Faerun.create_categories(cat)
         graph_categorical_labels.append(_lab)
         graph_categorical.append(_grp)
-        bin_cmap.append(plt.cm.get_cmap(categorical_cmap, len(set(_grp))))
+        if isinstance(categorical_cmap, list):
+            bin_cmap = categorical_cmap
+        else:
+            bin_cmap.append(plt.cm.get_cmap(categorical_cmap, len(set(_grp))))
 
     # Layout settings
     cfg = tm.LayoutConfiguration()
@@ -389,8 +394,11 @@ def fareum_plot(
         params['z'] = postions[2]
         view = 'free'
 
+    if sizes is not None:
+        params['s'] = sizes
+
     f = Faerun(
-        clear_color='#222222',
+        clear_color=background_color,
         coords=False,
         view=view,
         impress=(
