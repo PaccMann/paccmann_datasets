@@ -34,7 +34,7 @@ class _CsvEagerDataset(_CsvStatistics, DataFrameDataset):
         """Setup the datasource ready to collect statistics."""
         df = self.feature_fn(pd.read_csv(self.filepath, **self.kwargs))
         # IndexedDataset implementation
-        DataFrameDataset.__int__(self, df)  # base_dataset: test transformation on self.df (happens in TableDataset)
+        DataFrameDataset.__init__(self, df)  # base_dataset: test transformation on self.df (happens in TableDataset)
         self.min_max_scaler.fit(self.df.values)
         self.standardizer.fit(self.df.values)
         self.feature_list = self.df.columns.tolist()
