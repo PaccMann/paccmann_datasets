@@ -78,6 +78,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
+        backend: str = 'eager',
         name: str = 'protein-sequences',
         **kwargs
     ) -> None:
@@ -105,6 +106,8 @@ class ProteinSequenceDataset(DatasetDelegator):
                 Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
+            backend (str): memory management backend.
+                Defaults to eager, prefer speed over memory consumption.
             name (str): name of the ProteinSequenceDataset.
             kwargs (dict): additional arguments for dataset constructor.
         """
@@ -140,6 +143,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         self.randomize = randomize
         self.augment_by_revert = augment_by_revert
         self.device = device
+        self.backend = backend
 
         # setup dataset
         self._setup_dataset(**kwargs)
@@ -191,7 +195,6 @@ class ProteinSequenceDataset(DatasetDelegator):
 
     def _setup_dataset(self, **kwargs) -> None:
         """Setup the dataset."""
-        self.backend = 'eager'  # base_dataset: TODO
         self.dataset = protein_sequence_dataset(
             *self.filepaths, filetype=self.filetype, backend=self.backend,
             **kwargs

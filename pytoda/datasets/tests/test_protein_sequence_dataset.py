@@ -39,7 +39,7 @@ IQYYETRCDIKTESLLYEIKGDNNDEITKQITGTYLPKEFILDIASWISVEFYDKCNNII
 all_keys = ['ID3', 'ID1', 'ID2', 'ID4', 'Q6GZX0', 'Q91G88']
 
 
-class TestProteinSequenceDataset(unittest.TestCase):
+class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
     """Testing ProteinSequence dataset with eager backend."""
 
     def setUp(self):
@@ -57,14 +57,15 @@ class TestProteinSequenceDataset(unittest.TestCase):
                 protein_sequence_dataset = ProteinSequenceDataset(
                     a_test_file.filename,
                     another_test_file.filename,
+                    backend=self.backend
                 )
                 self.assertEqual(len(protein_sequence_dataset), 8)
 
         # Test parsing of .fasta file
-
         with TestFileContent(self.fasta_content) as a_test_file:
             protein_sequence_dataset = ProteinSequenceDataset(
-                a_test_file.filename, filetype='.fasta'
+                a_test_file.filename, filetype='.fasta',
+                backend=self.backend
             )
 
             self.assertEqual(len(protein_sequence_dataset), 2)
@@ -77,7 +78,8 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     a_test_file.filename,
                     another_test_file.filename,
                     padding=True,
-                    add_start_and_stop=True
+                    add_start_and_stop=True,
+                    backend=self.backend
                 )
                 pad_index = (
                     protein_sequence_dataset.protein_language.
@@ -139,7 +141,8 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     a_test_file.filename,
                     another_test_file.filename,
                     padding=False,
-                    add_start_and_stop=False
+                    add_start_and_stop=False,
+                    backend=self.backend
                 )
                 self.assertListEqual(
                     protein_sequence_dataset[0].numpy().flatten().tolist(),
@@ -161,6 +164,7 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     another_test_file.filename,
                     padding=True,
                     add_start_and_stop=False,
+                    backend=self.backend
                 )
                 self.assertListEqual(
                     protein_sequence_dataset[0].numpy().flatten().tolist(),
@@ -211,6 +215,7 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     amino_acid_dict='unirep',
                     padding=True,
                     add_start_and_stop=False,
+                    backend=self.backend
                 )
                 pad_index = (
                     protein_sequence_dataset.protein_language.
@@ -260,7 +265,8 @@ class TestProteinSequenceDataset(unittest.TestCase):
             protein_sequence_dataset = ProteinSequenceDataset(
                 a_test_file.filename,
                 filetype='.fasta',
-                add_start_and_stop=True
+                add_start_and_stop=True,
+                backend=self.backend
             )
 
             self.assertEqual(len(protein_sequence_dataset[1].tolist()), 206)
@@ -272,7 +278,8 @@ class TestProteinSequenceDataset(unittest.TestCase):
                 protein_sequence_dataset = ProteinSequenceDataset(
                     a_test_file.filename,
                     another_test_file.filename,
-                    add_start_and_stop=False
+                    add_start_and_stop=False,
+                    backend=self.backend
                 )
                 data_loader = DataLoader(
                     protein_sequence_dataset, batch_size=4, shuffle=True
@@ -285,7 +292,8 @@ class TestProteinSequenceDataset(unittest.TestCase):
                 protein_sequence_dataset = ProteinSequenceDataset(
                     a_test_file.filename,
                     another_test_file.filename,
-                    add_start_and_stop=True
+                    add_start_and_stop=True,
+                    backend=self.backend
                 )
                 data_loader = DataLoader(
                     protein_sequence_dataset, batch_size=4, shuffle=True
@@ -317,15 +325,15 @@ class TestProteinSequenceDataset(unittest.TestCase):
                 protein_sequence_ds = ProteinSequenceDataset(
                     a_test_file.filename,
                     another_test_file.filename,
-                    # backend=self.backend
+                    backend=self.backend
                 )
                 protein_sequence_ds_0 = ProteinSequenceDataset(
                     a_test_file.filename,
-                    # backend=self.backend
+                    backend=self.backend
                 )
                 protein_sequence_ds_1 = ProteinSequenceDataset(
                     another_test_file.filename,
-                    # backend=self.backend
+                    backend=self.backend
                 )
         all_smiles, all_keys = zip(*(
             pair.split('\t')
@@ -351,14 +359,25 @@ class TestProteinSequenceDataset(unittest.TestCase):
         duplicate_ds = protein_sequence_ds_0 + protein_sequence_ds_0
         self.assertTrue(duplicate_ds.has_duplicate_keys)
 
-        # ProteinSequenceDataset does not test and raise
+        # ProteinSequenceDataset tests and raises
         with TestFileContent(self.smi_content) as a_test_file:
             with self.assertRaises(KeyError):
                 protein_sequence_ds = ProteinSequenceDataset(
                     a_test_file.filename,
                     a_test_file.filename,
-                    # backend=self.backend
+                    backend=self.backend
                 )
+
+# NOTE: .fasta has no lazy support yet. TODO
+# class TestProteinSequenceDatasetLazyBackend(TestProteinSequenceDatasetEagerBackend):  # noqa
+#     """Testing ProteinSequence dataset with lazy backend."""
+
+#     def setUp(self):
+#         self.backend = 'lazy'
+#         print(f'backend is {self.backend}')
+#         self.smi_content = SMI_CONTENT
+#         self.smi_other_content = MORE_SMI_CONTENT
+#         self.fasta_content = FASTA_CONTENT
 
 
 if __name__ == '__main__':
