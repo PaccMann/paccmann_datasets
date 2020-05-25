@@ -71,6 +71,12 @@ class DatasetDelegator:
     def __add__(self, other):
         return _ConcatenatedDataset([self, other])
 
+    # explicit implementation to ensure use of top level __getitem__
+    # (possibly overloaded) vs using datasets.__getitem__
+    def get_item_from_key(self, key: Hashable) -> Any:
+        """Get datum mapping to the given sample identifier."""
+        return self.__getitem__(self.get_index(key))
+
     @staticmethod
     def _delegation_filter(method_name):
         """To remove unwanted attributes/methods from being delegated."
@@ -161,6 +167,8 @@ class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
             except KeyError:
                 continue
             break
+        else:
+            raise KeyError(f'key {key} not found in datasets.')
         # return index from index_pair
         if dataset_idx == 0:
             return sample_idx
@@ -168,7 +176,7 @@ class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
             return sample_idx + self.cumulative_sizes[dataset_idx - 1]
 
     def get_item_from_key(self, key: Hashable) -> Any:
-        """Get first datum mapping to the given sample identifier."""
+        """Get datum mapping to the given sample identifier."""
         return self.__getitem__(self.get_index(key))
 
     def keys(self):
