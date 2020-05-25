@@ -233,6 +233,67 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
                     if batch_index > 10:
                         break
 
+    def _test_indexed(self, ds, keys, index):
+        key = keys[index]
+        positive_index = index % len(ds)
+        # get_key (support for negative index?)
+        self.assertEqual(key, ds.get_key(positive_index))
+        self.assertEqual(key, ds.get_key(index))
+        # get_index
+        self.assertEqual(positive_index, ds.get_index(key))
+        # get_item_from_key
+        self.assertTrue(all(ds[index] == ds.get_item_from_key(key)))
+        # keys
+        self.assertSequenceEqual(keys, list(ds.keys()))
+        # duplicate keys
+        self.assertFalse(ds.has_duplicate_keys)
+
+    def test_all_base_for_indexed_methods(self):
+
+        with TestFileContent(self.content) as a_test_file:
+            with TestFileContent(self.other_content) as another_test_file:
+                smiles_dataset = SMILESDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    backend=self.backend
+                )
+                smiles_dataset_0 = SMILESDataset(
+                    a_test_file.filename,
+                    backend=self.backend
+                )
+                smiles_dataset_1 = SMILESDataset(
+                    another_test_file.filename,
+                    backend=self.backend
+                )
+        all_smiles, all_keys = zip(*(
+            pair.split('\t')
+            for pair
+            in self.content.split('\n') + self.other_content.split('\n')
+        ))
+
+        for ds, keys in [
+            (smiles_dataset, all_keys),
+            (smiles_dataset_0, all_keys[:4]),
+            (smiles_dataset_1, all_keys[4:]),
+            # no transformation on
+            # concat delegation to _SmiLazyDataset/_SmiEagerDataset
+            (smiles_dataset_0 + smiles_dataset_1, all_keys),
+        ]:
+            index = -1
+            self._test_indexed(ds, keys, index)
+
+        # duplicate
+        duplicate_ds = smiles_dataset_0 + smiles_dataset_0
+        self.assertTrue(duplicate_ds.has_duplicate_keys)
+
+        with TestFileContent(self.content) as a_test_file:
+            with self.assertRaises(KeyError):
+                smiles_dataset = SMILESDataset(
+                    a_test_file.filename,
+                    a_test_file.filename,
+                    backend=self.backend
+                )
+
 
 class TestSMILESDatasetLazyBackend(TestSMILESDatasetEagerBackend):
     """Testing SMILES dataset with lazy backend."""

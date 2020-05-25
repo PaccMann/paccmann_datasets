@@ -50,8 +50,8 @@ class Delegating(DatasetDelegator):
 
 
 class TestBaseDatasets(unittest.TestCase):
-    """Testing SMILES dataset with eager backend."""
-    length = 11
+    """Testing dataset for base methods."""
+    length = 11  # of a single dataset
     dims = 5
 
     def random_data(self, length, dims):
@@ -82,6 +82,7 @@ class TestBaseDatasets(unittest.TestCase):
         # delegated to IndexedDataset
         self.assertIn('get_item_from_key', ds_dir)
         self.assertIn('keys', ds_dir)
+        self.assertIn('has_duplicate_keys', ds_dir)
         # futile, as built-ins delegation needed hardcoding in DatasetDelegator
         self.assertIn('__len__', ds_dir)  # see test___len__
         self.assertIn('__getitem__', ds_dir)  # see test___getitem__
@@ -158,7 +159,7 @@ class TestBaseDatasets(unittest.TestCase):
         # keys
         self.assertSequenceEqual(keys, list(ds.keys()))
         # duplicate keys
-        self.assertFalse(ds.has_duplicate_keys
+        self.assertFalse(ds.has_duplicate_keys)
 
     def test_all_base_for_indexed_methods(self):
         (
@@ -190,16 +191,16 @@ class TestBaseDatasets(unittest.TestCase):
                 ds.get_key_pair(index)
             )
             # _ConcatenatedDataset is not a DatasetDelegator
-            self.assertNotIn('datasource', dir(ds))
+            self.assertNotIn('df', dir(ds))
 
-        # duplicate keys lookup returns first
         index == self.length + 1
         duplicate_ds = other_ds + other_ds
+        self.assertTrue(duplicate_ds.has_duplicate_keys)
+        # duplicate keys lookup returns first in this case
         self.assertNotEqual(
             index,
             duplicate_ds.get_index(duplicate_ds.get_key(index))
         )
-        self.assertTrue(duplicate_ds.has_duplicate_keys)
 
 
 if __name__ == '__main__':
