@@ -193,7 +193,8 @@ class ProteinSequenceDataset(DatasetDelegator):
         """Setup the dataset."""
         self.backend = 'eager'  # base_dataset: TODO
         self.dataset = protein_sequence_dataset(
-            *self.filepaths, self.filetype, self.backend, **kwargs
+            *self.filepaths, filetype=self.filetype, backend=self.backend,
+            **kwargs
         )
 
     def __getitem__(self, index: int) -> torch.tensor:

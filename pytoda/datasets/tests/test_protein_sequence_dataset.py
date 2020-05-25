@@ -8,22 +8,52 @@ from torch.utils.data import DataLoader
 from pytoda.datasets import ProteinSequenceDataset
 from pytoda.tests.utils import TestFileContent
 
+SMI_CONTENT = os.linesep.join(
+            [
+                'EGK	ID3',
+                'S	ID1',
+                'FGAAV	ID2',  # longest
+                'NCCS	ID4',
+            ]
+        )
+MORE_SMI_CONTENT = os.linesep.join(
+            [
+                'KGE	ID5',
+                'K	ID6',
+                'SCCN	ID7',
+                'K	ID8',
+            ]
+        )
+LONGEST = 5
+
+FASTA_CONTENT = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
+MQNPLPEVMSPEHDKRTTTPMSKEANKFIRELDKKPGDLAVVSDFVKRNTGKRLPIGKRS
+NLYVRICDLSGTIYMGETFILESWEELYLPEPTKMEVLGTLESCCGIPPFPEWIVMVGED
+QCVYAYGDEEILLFAYSVKQLVEEGIQETGISYKYPDDISDVDEEVLQQDEEIQKIRKKT
+REFVDKDAQEFQDFLNSLDASLLS
+>sp|Q91G88|006L_IIV6 Putative KilA-N domain-containing protein 006L OS=Invertebrate iridescent virus 6 OX=176652 GN=IIV6-006L PE=3 SV=1
+MDSLNEVCYEQIKGTFYKGLFGDFPLIVDKKTGCFNATKLCVLGGKRFVDWNKTLRSKKL
+IQYYETRCDIKTESLLYEIKGDNNDEITKQITGTYLPKEFILDIASWISVEFYDKCNNII
+"""
+
+all_keys = ['ID3', 'ID1', 'ID2', 'ID4', 'Q6GZX0', 'Q91G88']
+
 
 class TestProteinSequenceDataset(unittest.TestCase):
     """Testing ProteinSequence dataset with eager backend."""
 
+    def setUp(self):
+        self.backend = 'eager'
+        print(f'backend is {self.backend}')
+        self.smi_content = SMI_CONTENT
+        self.smi_other_content = MORE_SMI_CONTENT
+        self.fasta_content = FASTA_CONTENT
+
     def test___len__(self) -> None:
         """Test __len__."""
-        content = os.linesep.join(
-            [
-                'EGK	ID3',
-                'S	ID1',
-                'FGAAV	ID2',
-                'NCCS	ID4',
-            ]
-        )
-        with TestFileContent(content) as a_test_file:
-            with TestFileContent(content) as another_test_file:
+
+        with TestFileContent(self.smi_content) as a_test_file:
+            with TestFileContent(self.smi_other_content) as another_test_file:
                 protein_sequence_dataset = ProteinSequenceDataset(
                     a_test_file.filename,
                     another_test_file.filename,
@@ -31,17 +61,8 @@ class TestProteinSequenceDataset(unittest.TestCase):
                 self.assertEqual(len(protein_sequence_dataset), 8)
 
         # Test parsing of .fasta file
-        content = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
-        MQNPLPEVMSPEHDKRTTTPMSKEANKFIRELDKKPGDLAVVSDFVKRNTGKRLPIGKRS
-        NLYVRICDLSGTIYMGETFILESWEELYLPEPTKMEVLGTLESCCGIPPFPEWIVMVGED
-        QCVYAYGDEEILLFAYSVKQLVEEGIQETGISYKYPDDISDVDEEVLQQDEEIQKIRKKT
-        REFVDKDAQEFQDFLNSLDASLLS
-        >sp|Q91G88|006L_IIV6 Putative KilA-N domain-containing protein 006L OS=Invertebrate iridescent virus 6 OX=176652 GN=IIV6-006L PE=3 SV=1
-        MDSLNEVCYEQIKGTFYKGLFGDFPLIVDKKTGCFNATKLCVLGGKRFVDWNKTLRSKKL
-        IQYYETRCDIKTESLLYEIKGDNNDEITKQITGTYLPKEFILDIASWISVEFYDKCNNII
-        """
 
-        with TestFileContent(content) as a_test_file:
+        with TestFileContent(self.fasta_content) as a_test_file:
             protein_sequence_dataset = ProteinSequenceDataset(
                 a_test_file.filename, filetype='.fasta'
             )
@@ -50,16 +71,8 @@ class TestProteinSequenceDataset(unittest.TestCase):
 
     def test___getitem__(self) -> None:
         """Test __getitem__."""
-        content = os.linesep.join(
-            [
-                'EGK	ID3',
-                'S	ID1',
-                'FGAAV	ID2',
-                'NCCS	ID4',
-            ]
-        )
-        with TestFileContent(content) as a_test_file:
-            with TestFileContent(content) as another_test_file:
+        with TestFileContent(self.smi_content) as a_test_file:
+            with TestFileContent(self.smi_other_content) as another_test_file:
                 protein_sequence_dataset = ProteinSequenceDataset(
                     a_test_file.filename,
                     another_test_file.filename,
@@ -110,11 +123,18 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     ]
                 )
                 self.assertListEqual(
-                    protein_sequence_dataset[7].numpy().flatten().tolist(), [
+                    protein_sequence_dataset[3].numpy().flatten().tolist(), [
                         pad_index, start_index, n_index, c_index, c_index,
                         s_index, stop_index
                     ]
                 )
+                self.assertListEqual(
+                    protein_sequence_dataset[7].numpy().flatten().tolist(), [
+                        pad_index, pad_index, pad_index, pad_index,
+                        start_index, k_index, stop_index
+                    ]
+                )
+
                 protein_sequence_dataset = ProteinSequenceDataset(
                     a_test_file.filename,
                     another_test_file.filename,
@@ -126,8 +146,13 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     [e_index, g_index, k_index]
                 )
                 self.assertListEqual(
-                    protein_sequence_dataset[7].numpy().flatten().tolist(),
+                    protein_sequence_dataset[3].numpy().flatten().tolist(),
                     [n_index, c_index, c_index, s_index]
+                )
+                self.assertListEqual(
+                    protein_sequence_dataset[7].numpy().flatten().tolist(), [
+                        k_index
+                    ]
                 )
 
                 # Test padding but no start and stop token
@@ -142,8 +167,14 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     [pad_index, pad_index, e_index, g_index, k_index]
                 )
                 self.assertListEqual(
-                    protein_sequence_dataset[7].numpy().flatten().tolist(),
+                    protein_sequence_dataset[3].numpy().flatten().tolist(),
                     [pad_index, n_index, c_index, c_index, s_index]
+                )
+                self.assertListEqual(
+                    protein_sequence_dataset[7].numpy().flatten().tolist(), [
+                        pad_index, pad_index, pad_index, pad_index,
+                        k_index
+                    ]
                 )
 
                 # Test augmentation / order reversion
@@ -153,19 +184,19 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     augment_by_revert=True
                 )
 
-                for reverted_sequence in ['S', 'S', 'S', 'S']:
+                random.seed(42)
+                for reverted_sequence in ['KGE', 'EGK', 'EGK', 'EGK']:
                     token_indexes = (
-                        protein_sequence_dataset[1].numpy().flatten().tolist()
+                        protein_sequence_dataset[0].numpy().flatten().tolist()
                     )
                     sequence = (
                         protein_sequence_dataset.protein_language.
                         token_indexes_to_sequence(token_indexes)
                     )
                     self.assertEqual(sequence, reverted_sequence)
-                random.seed(42)
-                for reverted_sequence in ['KGE', 'EGK', 'EGK', 'EGK']:
+                for reverted_sequence in ['S', 'S', 'S', 'S']:
                     token_indexes = (
-                        protein_sequence_dataset[0].numpy().flatten().tolist()
+                        protein_sequence_dataset[1].numpy().flatten().tolist()
                     )
                     sequence = (
                         protein_sequence_dataset.protein_language.
@@ -214,22 +245,18 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     [pad_index, pad_index, e_index, g_index, k_index]
                 )
                 self.assertListEqual(
-                    protein_sequence_dataset[7].numpy().flatten().tolist(),
+                    protein_sequence_dataset[3].numpy().flatten().tolist(),
                     [pad_index, n_index, c_index, c_index, s_index]
+                )
+                self.assertListEqual(
+                    protein_sequence_dataset[7].numpy().flatten().tolist(), [
+                        pad_index, pad_index, pad_index, pad_index,
+                        k_index
+                    ]
                 )
 
         # Test parsing of .fasta file
-        content = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
-        MQNPLPEVMSPEHDKRTTTPMSKEANKFIRELDKKPGDLAVVSDFVKRNTGKRLPIGKRS
-        NLYVRICDLSGTIYMGETFILESWEELYLPEPTKMEVLGTLESCCGIPPFPEWIVMVGED
-        QCVYAYGDEEILLFAYSVKQLVEEGIQETGISYKYPDDISDVDEEVLQQDEEIQKIRKKT
-        REFVDKDAQEFQDFLNSLDASLLS
-        >sp|Q91G88|006L_IIV6 Putative KilA-N domain-containing protein 006L OS=Invertebrate iridescent virus 6 OX=176652 GN=IIV6-006L PE=3 SV=1
-        MDSLNEVCYEQIKGTFYKGLFGDFPLIVDKKTGCFNATKLCVLGGKRFVDWNKTLRSKKL
-        IQYYETRCDIKTESLLYEIKGDNNDEITKQITGTYLPKEFILDIASWISVEFYDKCNNII
-        """
-
-        with TestFileContent(content) as a_test_file:
+        with TestFileContent(self.fasta_content) as a_test_file:
             protein_sequence_dataset = ProteinSequenceDataset(
                 a_test_file.filename,
                 filetype='.fasta',
@@ -240,16 +267,8 @@ class TestProteinSequenceDataset(unittest.TestCase):
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
-        content = os.linesep.join(
-            [
-                'EGK	ID3',
-                'S	ID1',
-                'FGAAV	ID2',
-                'NCCS	ID4',
-            ]
-        )
-        with TestFileContent(content) as a_test_file:
-            with TestFileContent(content) as another_test_file:
+        with TestFileContent(self.smi_content) as a_test_file:
+            with TestFileContent(self.smi_other_content) as another_test_file:
                 protein_sequence_dataset = ProteinSequenceDataset(
                     a_test_file.filename,
                     another_test_file.filename,
@@ -275,6 +294,71 @@ class TestProteinSequenceDataset(unittest.TestCase):
                     self.assertEqual(batch.shape, (4, 7))
                     if batch_index > 10:
                         break
+
+    def _test_indexed(self, ds, keys, index):
+        key = keys[index]
+        positive_index = index % len(ds)
+        # get_key (support for negative index?)
+        self.assertEqual(key, ds.get_key(positive_index))
+        self.assertEqual(key, ds.get_key(index))
+        # get_index
+        self.assertEqual(positive_index, ds.get_index(key))
+        # get_item_from_key
+        self.assertTrue(all(ds[index] == ds.get_item_from_key(key)))
+        # keys
+        self.assertSequenceEqual(keys, list(ds.keys()))
+        # duplicate keys
+        self.assertFalse(ds.has_duplicate_keys)
+
+    def test_all_base_for_indexed_methods(self):
+
+        with TestFileContent(self.smi_content) as a_test_file:
+            with TestFileContent(self.smi_other_content) as another_test_file:
+                protein_sequence_ds = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    # backend=self.backend
+                )
+                protein_sequence_ds_0 = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    # backend=self.backend
+                )
+                protein_sequence_ds_1 = ProteinSequenceDataset(
+                    another_test_file.filename,
+                    # backend=self.backend
+                )
+        all_smiles, all_keys = zip(*(
+            pair.split('\t')
+            for pair
+            in (
+                self.smi_content.split('\n')
+                + self.smi_other_content.split('\n')
+            )
+        ))
+
+        for ds, keys in [
+            (protein_sequence_ds, all_keys),
+            (protein_sequence_ds_0, all_keys[:4]),
+            (protein_sequence_ds_1, all_keys[4:]),
+            # no transformation on
+            # concat delegation to _SmiLazyDataset/_SmiEagerDataset
+            (protein_sequence_ds_0 + protein_sequence_ds_1, all_keys),
+        ]:
+            index = -1
+            self._test_indexed(ds, keys, index)
+
+        # duplicate
+        duplicate_ds = protein_sequence_ds_0 + protein_sequence_ds_0
+        self.assertTrue(duplicate_ds.has_duplicate_keys)
+
+        # ProteinSequenceDataset does not test and raise
+        with TestFileContent(self.smi_content) as a_test_file:
+            with self.assertRaises(KeyError):
+                protein_sequence_ds = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    a_test_file.filename,
+                    # backend=self.backend
+                )
 
 
 if __name__ == '__main__':
