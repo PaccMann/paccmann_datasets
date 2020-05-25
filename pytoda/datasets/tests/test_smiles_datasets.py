@@ -286,6 +286,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
         duplicate_ds = smiles_dataset_0 + smiles_dataset_0
         self.assertTrue(duplicate_ds.has_duplicate_keys)
 
+        # SMILESDataset tests and raises
         with TestFileContent(self.content) as a_test_file:
             with self.assertRaises(KeyError):
                 smiles_dataset = SMILESDataset(
