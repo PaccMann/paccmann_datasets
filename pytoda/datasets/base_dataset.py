@@ -45,7 +45,7 @@ class IndexedDataset(Dataset):
             yield self.get_key(index)
 
     @property
-    def has_duplicate_keys(self):
+    def has_duplicate_keys(self) -> bool:
         """Check whether each key is unique."""
         return pd.Index(self.keys()).has_duplicates
 
@@ -67,7 +67,7 @@ class DatasetDelegator:
     def __getitem__(self, index: int):
         return self.dataset[index]
 
-      # base_dataset: returned dataset is not a Delegator
+    # returned dataset is not a Delegator
     def __add__(self, other):
         return _ConcatenatedDataset([self, other])
 
@@ -106,8 +106,6 @@ class DatasetDelegator:
     def __dir__(self):
         return dir(type(self)) + list(self.__dict__.keys()) + self._delegatable
 
-  # base_dataset: https://github.com/pytorch/pytorch/issues/32034
-
 
 class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
     """
@@ -134,8 +132,9 @@ class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
             idx (int): index in the concatenated dataset.
 
         Returns:
-            Tuple[int, int]: dataset and sample indexex.
+            Tuple[int, int]: dataset and sample index.
         """
+        # related request https://github.com/pytorch/pytorch/issues/32034
         if idx < 0:
             if -idx > len(self):
                 raise ValueError(

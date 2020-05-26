@@ -108,10 +108,10 @@ class SMILESDataset(DatasetDelegator):
             chunk_size=chunk_size
         )
         DatasetDelegator.__init__(self)  # delegate to self.dataset
-
-          # base_dataset: or was it the idea to hide most attributes in self.dataset? Then:
+          # base_dataset:
+          # This entire logic could happen in the _SMILESDataset
+          # (add name, smi_filepaths vs *smi_filepaths)
+          # or was it the idea to hide most attributes in self.dataset? Then:
           # - do not assign to self in _SMILESDataset
           # - adapt Delegator init to add specific attributes to delegatable
-          # base_dataset: test for these attributes:
-        # self.smiles_language = self.dataset.smiles_language
-        # self.sample_to_index_mapping = self.dataset.sample_to_index_mapping
+          #   e.g. smiles_language

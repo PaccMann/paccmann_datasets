@@ -5,11 +5,13 @@ from ..types import Hashable
 from .base_dataset import IndexedDataset
 
 
-class _FastaEagerDataset(IndexedDataset):  # base_dataset: needs test
+class _FastaEagerDataset(IndexedDataset):
     """
     .fasta dataset using eager loading.
 
     Suggested when handling datasets that can fit in the device memory.
+
+    Only supports uniprot fasta headers
     """
 
     def __init__(
@@ -39,7 +41,7 @@ class _FastaEagerDataset(IndexedDataset):  # base_dataset: needs test
                 self.ordered_keys.append(key)
                 self.samples.append(item['sequence'])
         except KeyError:
-            raise KeyError('Badly formatted .fasta file, no sequence found.')   # base_dataset: needs test, only supports uniprot fasta
+            raise KeyError('Badly formatted .fasta file, no sequence found.')
 
     def __len__(self) -> int:
         """Total number of samples."""

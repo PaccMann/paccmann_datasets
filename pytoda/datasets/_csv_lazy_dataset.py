@@ -55,7 +55,7 @@ class _CsvLazyDataset(IndexedDataset, _CacheDatasource, _CsvStatistics):
             self.standardizer.partial_fit(chunk.values)
             for key, row in chunk.iterrows():
                 self.cache[index] = row.values
-                self.key_to_index_mapping[key] = index  # base_dataset: TODO returned sample would be last of duplicate keys, not first!
+                self.key_to_index_mapping[key] = index
                 index += 1
                 self.ordered_keys.append(key)
 

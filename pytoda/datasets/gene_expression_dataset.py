@@ -70,4 +70,3 @@ class GeneExpressionDataset(DatasetDelegator):
         self.gene_list = self.dataset.feature_list
         self.number_of_features = len(self.gene_list)
         DatasetDelegator.__init__(self)  # delegate to self.dataset
-          # base_dataset: or was it the idea to hide most attributes

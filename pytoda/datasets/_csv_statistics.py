@@ -23,7 +23,7 @@ class _CsvStatistics:
                 Except from nrows.
 
         """
-          # base_datasets: why not nrows?
+          # base_dataset: why not nrows?
         self.filepath = filepath
         self.feature_list = feature_list
         self.min_max_scaler = MinMaxScaler()
@@ -73,7 +73,7 @@ def reduce_csv_statistics(
         )
     )
     # NOTE: sorting features appropriately
-    if not (feature_ordering is None):
+    if feature_ordering is not None:
         features = sorted(
             features, key=lambda feature: feature_ordering[feature]
         )
