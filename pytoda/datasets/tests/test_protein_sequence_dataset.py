@@ -12,7 +12,7 @@ SMI_CONTENT = os.linesep.join(
             [
                 'EGK	ID3',
                 'S	ID1',
-                'FGAAV	ID2',  # longest
+                'FGAAV	ID2',
                 'NCCS	ID4',
             ]
         )
@@ -24,7 +24,7 @@ MORE_SMI_CONTENT = os.linesep.join(
                 'K	ID8',
             ]
         )
-LONGEST = 5
+
 
 FASTA_CONTENT = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
 MQNPLPEVMSPEHDKRTTTPMSKEANKFIRELDKKPGDLAVVSDFVKRNTGKRLPIGKRS
@@ -34,7 +34,8 @@ REFVDKDAQEFQDFLNSLDASLLS
 >sp|Q91G88|006L_IIV6 Putative KilA-N domain-containing protein 006L OS=Invertebrate iridescent virus 6 OX=176652 GN=IIV6-006L PE=3 SV=1
 MDSLNEVCYEQIKGTFYKGLFGDFPLIVDKKTGCFNATKLCVLGGKRFVDWNKTLRSKKL
 IQYYETRCDIKTESLLYEIKGDNNDEITKQITGTYLPKEFILDIASWISVEFYDKCNNII
-"""
+>ignored without uniprot like header, i.e length here is 2.
+"""  # length 204, 120
 
 all_keys = ['ID3', 'ID1', 'ID2', 'ID4', 'Q6GZX0', 'Q91G88']
 
@@ -268,8 +269,10 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
                 add_start_and_stop=True,
                 backend=self.backend
             )
-
-            self.assertEqual(len(protein_sequence_dataset[1].tolist()), 206)
+            a_tokenized_sequence = protein_sequence_dataset[1].tolist()
+            self.assertEqual(len(a_tokenized_sequence), 206)
+            # padded to length + start + stop
+            self.assertEqual(sum(a_tokenized_sequence[:-123]), 0)
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
