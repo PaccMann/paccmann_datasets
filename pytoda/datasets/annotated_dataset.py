@@ -1,9 +1,12 @@
 """Implementation of AnnotatedDataset class."""
-import torch
+from copy import copy
+
 import pandas as pd
+import torch
+
+from ..types import AnnotatedData, Any, Hashable, List, Tuple, Union
 from .base_dataset import IndexedDataset
 from .dataframe_dataset import DataFrameDataset
-from ..types import AnnotatedData, Union, List, Hashable
 
 
 class AnnotatedDataset(DataFrameDataset):
@@ -132,3 +135,55 @@ class AnnotatedDataset(DataFrameDataset):
         # sample
         sample = self.datasource.get_item_from_key(key)
         return sample, labels_tensor
+
+
+def indexed(dataset) -> None:
+    """Change instances indexing behavior by returning index as well."""
+    default_getitem = dataset.__getitem__  # bound method
+    # default_from_key = dataset.get_item_from_key  # bound method
+
+    def return_item_index_tuple(self, index: int) -> Tuple[Any, int]:
+        return default_getitem(index), index
+
+    # def return_item_index_tuple_from_key(self, key: int) -> Tuple[Any, str]:
+    #     """prevents `get_item_from_key` to call new indexed __getitem__"""
+    #     return default_from_key(key), key
+
+    methods = {
+        '__getitem__': return_item_index_tuple,
+        # 'get_item_from_key': return_item_index_tuple_from_key
+    }
+
+    dataset.__class__ = type(
+        f'Indexed{type(dataset).__name__}',
+        (dataset.__class__,),
+        methods
+    )
+    # no return to not confuse about mutation
+
+
+def keyed(dataset) -> None:
+    """Change instances indexing behavior by returning key as well."""
+    default_getitem = dataset.__getitem__  # bound method
+    # default_from_key = dataset.get_item_from_key  # bound method
+
+    def return_item_key_tuple(self, index: int) -> Tuple[Any, str]:
+        return (
+            default_getitem(index),
+            dataset.get_key(index)
+        )
+
+    # def return_item_key_tuple_from_key(self, key: int) -> Tuple[Any, str]:
+    #     """prevents `get_item_from_key` to call new keyed __getitem__"""
+    #     return default_from_key(key), key
+
+    methods = {
+        '__getitem__': return_item_key_tuple,
+        # 'get_item_from_key': return_item_key_tuple_from_key
+    }
+    dataset.__class__ = type(
+        f'Keyed{type(dataset).__name__}',
+        (dataset.__class__,),
+        methods
+    )
+    # no return to not confuse about mutation

@@ -97,7 +97,7 @@ class DatasetDelegator:
     def _delegatable(self):
         return [o for o in dir(self.dataset) if self._delegation_filter(o)]
 
-    # delegation, i.e. in case method not defined in class or class hirarchy
+    # delegation, i.e. in case method not defined in class or class hierarchy
     def __getattr__(self, k):
         if k in self._delegatable:
             return getattr(self.dataset, k)
