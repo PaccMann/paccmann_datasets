@@ -156,6 +156,9 @@ class TestBaseDatasets(unittest.TestCase):
         self.assertEqual(positive_index, ds.get_index(key))
         # get_item_from_key
         self.assertTrue(all(ds[index] == ds.get_item_from_key(key)))
+        # in case of returning a tuple:
+        # for from_index, from_key in zip(ds[index], ds.get_item_from_key(key)):  # noqa
+        #     self.assertTrue(all(from_index == from_key))
         # keys
         self.assertSequenceEqual(keys, list(ds.keys()))
         # duplicate keys

@@ -22,7 +22,7 @@ class AnnotatedDataset(DataFrameDataset):
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
         **kwargs
-    ) -> None:  # TODO document string labels
+    ) -> None:
         """
         Initialize an annotated dataset via additional annotations dataframe.
         E.g. the  dataset could be SMILES and the annotations could be
@@ -118,8 +118,8 @@ class AnnotatedDataset(DataFrameDataset):
 
         Returns:
             AnnotatedData: a tuple containing two torch.tensors,
-                representing respectively: compound token indexes and labels for
-                the current sample.
+                representing respectively: compound token indexes and labels
+                for the current sample.
         """
         # sample selection
         selected_sample = self.df.loc[key, :]
