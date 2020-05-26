@@ -179,120 +179,142 @@ class TestChangeIndexingReturn(unittest.TestCase):
         """Test __getitem__ with index in dataset."""
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
-                smiles_dataset = SMILESDataset(
-                    smiles_file.filename,
-                    add_start_and_stop=True,
-                    backend='eager'
+                smiles_dataset = SMILESDataset(smiles_file.filename)
+                # default
+                default_annotated_dataset = AnnotatedDataset(
+                    annotation_file.filename, dataset=smiles_dataset
                 )
-                indexed_smiles_dataset = SMILESDataset(
-                    smiles_file.filename,
-                    add_start_and_stop=True,
-                    backend='eager'
-                )
-                indexed(indexed_smiles_dataset)
-                indexed_annotated_dataset = AnnotatedDataset(
-                    annotation_file.filename, dataset=smiles_dataset,
-                    index_col=0
-                )
-                indexed(indexed_annotated_dataset)
-
+                # outer
+                indexed_annotated_dataset = indexed(default_annotated_dataset)
+                # inner
                 annotated_dataset = AnnotatedDataset(
-                    annotation_file.filename, dataset=indexed_smiles_dataset,
-                    index_col=0
+                    annotation_file.filename, dataset=indexed(smiles_dataset)
                 )
 
+        # default
+        # relevant to check that `smiles_dataset` was not mutated from
+        # the `indexed(smiles_dataset)` call
+        smiles_tokens, labels = default_annotated_dataset[2]
+        self.check_CHEMBL602(smiles_tokens, labels)
+
+        # outer __getitem__
         (smiles_tokens, labels), sample_index = indexed_annotated_dataset[2]
         self.assertEqual(sample_index, 2)
-        # (smiles_tokens, labels), sample_index = (
-        #     indexed_annotated_dataset.get_item_from_key('CHEMBL602')
-        # )
-        # self.assertEqual(sample_index, 2)
+        self.check_CHEMBL602(smiles_tokens, labels)
+        # outer get_item_from_key
+        (smiles_tokens, labels), sample_index = (
+            indexed_annotated_dataset.get_item_from_key('CHEMBL602')
+        )
+        self.assertEqual(sample_index, 2)
+        self.check_CHEMBL602(smiles_tokens, labels)
 
-        # test first sample
+        # inner __getitem__
         (smiles_tokens, sample_index), labels = annotated_dataset[0]
         self.assertEqual(sample_index, 0)
-        # test last sample with different index in smiles_dataset
+        # inner __getitem__ with different index in smiles_dataset
         (smiles_tokens, sample_index), labels = annotated_dataset[2]
         self.assertEqual(sample_index, 3)
+        self.check_CHEMBL602(smiles_tokens, labels)
+        # inner get_item_from_key
         (smiles_tokens, sample_index), labels = (
             annotated_dataset.get_item_from_key('CHEMBL602')
         )
         self.assertEqual(sample_index, 3)
+        self.check_CHEMBL602(smiles_tokens, labels)
 
     def test_return_key(self) -> None:
         """Test __getitem__ with key in dataset."""
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
-                smiles_dataset = SMILESDataset(
-                    smiles_file.filename,
-                    add_start_and_stop=True,
-                    backend='eager'
+                smiles_dataset = SMILESDataset(smiles_file.filename)
+                # default
+                default_annotated_dataset = AnnotatedDataset(
+                    annotation_file.filename, dataset=smiles_dataset
                 )
-
-                keyed_smiles_dataset = SMILESDataset(
-                    smiles_file.filename,
-                    add_start_and_stop=True,
-                    backend='eager'
-                )
-                keyed(keyed_smiles_dataset)
-                keyed_annotated_dataset = AnnotatedDataset(
-                    annotation_file.filename, dataset=smiles_dataset,
-                    index_col=0
-                )
-                keyed(keyed_annotated_dataset)
-
+                # outer
+                keyed_annotated_dataset = keyed(default_annotated_dataset)
+                # inner
                 annotated_dataset = AnnotatedDataset(
-                    annotation_file.filename, dataset=keyed_smiles_dataset,
-                    index_col=0
+                    annotation_file.filename, dataset=keyed(smiles_dataset)
                 )
 
+        # default
+        # relevant to check that `smiles_dataset` was not mutated from
+        # the `keyed(smiles_dataset)` call
+        smiles_tokens, labels = default_annotated_dataset[2]
+        self.check_CHEMBL602(smiles_tokens, labels)
+
+        # outer __getitem__
         (smiles_tokens, labels), sample_key = keyed_annotated_dataset[2]
         self.assertEqual(sample_key, 'CHEMBL602')
-        # (smiles_tokens, labels), sample_key = (
-        #     keyed_annotated_dataset.get_item_from_key('CHEMBL602')
-        # )
-        # self.assertEqual(sample_key, 'CHEMBL602')
+        self.check_CHEMBL602(smiles_tokens, labels)
+        # outer get_item_from_key
+        (smiles_tokens, labels), sample_key = (
+            keyed_annotated_dataset.get_item_from_key('CHEMBL602')
+        )
+        self.assertEqual(sample_key, 'CHEMBL602')
+        self.check_CHEMBL602(smiles_tokens, labels)
 
-        # test first sample
+        # inner __getitem__
         (smiles_tokens, sample_key), labels = annotated_dataset[0]
         self.assertEqual(sample_key, 'CHEMBL545')
-        # test last sample with different index in smiles_dataset
+        # inner __getitem__ with different index in smiles_dataset
         (smiles_tokens, sample_key), labels = annotated_dataset[2]
         self.assertEqual(sample_key, 'CHEMBL602')
-        # (smiles_tokens, sample_key), labels = (
-        #     annotated_dataset.get_item_from_key('CHEMBL602')
-        # )
-        # self.assertEqual(sample_key, 'CHEMBL602')
+        self.check_CHEMBL602(smiles_tokens, labels)
+        # inner get_item_from_key
+        (smiles_tokens, sample_key), labels = (
+            annotated_dataset.get_item_from_key('CHEMBL602')
+        )
+        self.assertEqual(sample_key, 'CHEMBL602')
+        self.check_CHEMBL602(smiles_tokens, labels)
 
     def test_return_key_index_stacked(self) -> None:
         """Test __getitem__ with key in dataset."""
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
-                smiles_dataset = SMILESDataset(
+                smiles_dataset = keyed(indexed(SMILESDataset(
                     smiles_file.filename,
-                    add_start_and_stop=True,
-                    backend='eager'
-                )
-                indexed(smiles_dataset)
-                keyed(smiles_dataset)
-                annotated_dataset = AnnotatedDataset(
+                )))
+                annotated_dataset = indexed(keyed(AnnotatedDataset(
                     annotation_file.filename, dataset=smiles_dataset,
-                    index_col=0
-                )
-                indexed(annotated_dataset)
-                keyed(annotated_dataset)
+                )))
 
         (smiles_tokens, smiles_index), smiles_key = smiles_dataset[3]
         self.assertEqual(smiles_key, 'CHEMBL602')
         self.assertEqual(smiles_index, 3)
+        self.check_CHEMBL602(smiles_tokens)
+        (smiles_tokens, smiles_index), smiles_key = (
+            smiles_dataset.get_item_from_key('CHEMBL602')
+        )
+        self.assertEqual(smiles_key, 'CHEMBL602')
+        self.assertEqual(smiles_index, 3)
+        self.check_CHEMBL602(smiles_tokens)
+
         ((
-            ((smiles_tokens, smiles_index), smiles_key),
+            ((smiles_tokens, smiles_index), smiles_key),  # inner
             labels
-        ), annotation_index), annotation_key = annotated_dataset[2]
+        ), annotation_key), annotation_index = annotated_dataset[2]
         self.assertEqual(smiles_key, 'CHEMBL602')
         self.assertEqual(smiles_index, 3)
         self.assertEqual(annotation_index, 2)
         self.assertEqual(annotation_key, 'CHEMBL602')
+        ((
+            ((smiles_tokens, smiles_index), smiles_key),  # inner
+            labels
+        ), annotation_key), annotation_index = (
+            annotated_dataset.get_item_from_key('CHEMBL602')
+        )
+        self.assertEqual(smiles_key, 'CHEMBL602')
+        self.assertEqual(smiles_index, 3)
+        self.assertEqual(annotation_index, 2)
+        self.assertEqual(annotation_key, 'CHEMBL602')
+
+    def check_CHEMBL602(self, smiles_tokens, labels=None):
+        """Check indexing results lack unwanted index/key from hidden calls"""
+        self.assertEqual(len(smiles_tokens.numpy().flatten().tolist()), 4)
+        if labels is not None:
+            self.assertEqual(len(labels.numpy().flatten().tolist()), 2)
 
 
 if __name__ == '__main__':

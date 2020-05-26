@@ -95,12 +95,18 @@ class DatasetDelegator:
 
     @property
     def _delegatable(self):
-        return [o for o in dir(self.dataset) if self._delegation_filter(o)]
+        # call to self can lead to infinite loops, e.g. with copy
+        return [
+            o for o
+            in dir(super().__getattribute__('dataset'))
+            if self._delegation_filter(o)
+        ]
 
     # delegation, i.e. in case method not defined in class or class hierarchy
     def __getattr__(self, k):
-        if k in self._delegatable:
-            return getattr(self.dataset, k)
+        if k in super().__getattribute__('_delegatable'):
+            # call to self can lead to infinite loops, e.g. with copy
+            return getattr(super().__getattribute__('dataset'), k)
         raise AttributeError(k)
 
     def __dir__(self):

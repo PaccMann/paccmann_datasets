@@ -1,14 +1,14 @@
 """Testing basic ways to setup a dataset."""
 import unittest
 import uuid
+from copy import copy
+
 import numpy as np
 import pandas as pd
-from torch.utils.data import DataLoader
-from pytoda.datasets import (
-    IndexedDataset, DatasetDelegator,
-    _ConcatenatedDataset
-)
+from pytoda.datasets import (DatasetDelegator, IndexedDataset,
+                             _ConcatenatedDataset)
 from pytoda.types import Hashable
+from torch.utils.data import DataLoader
 
 
 class Indexed(IndexedDataset):
@@ -164,7 +164,7 @@ class TestBaseDatasets(unittest.TestCase):
         # duplicate keys
         self.assertFalse(ds.has_duplicate_keys)
 
-    def test_all_base_for_indexed_methods(self):
+    def test_all_base_for_indexed_methods_and_copy(self):
         (
             other_keys, _, other_ds
         ) = self.random_data(self.length, self.dims)
@@ -174,6 +174,11 @@ class TestBaseDatasets(unittest.TestCase):
             (self.a_2nd_ds, self.a_2nd_keys),
             (self.delegating_ds, self.a_1st_keys),
             (self.concat_ds, self.concat_keys),
+            # test shallow copy (not trivial with delegation)
+            (copy(self.a_1st_ds), self.a_1st_keys),
+            (copy(self.a_2nd_ds), self.a_2nd_keys),
+            (copy(self.delegating_ds), self.a_1st_keys),
+            (copy(self.concat_ds), self.concat_keys),
         ]:
             index = -1
             self._test_indexed(ds, keys, index)
