@@ -17,7 +17,7 @@ from ._smi_lazy_dataset import _SmiLazyDataset
 from .base_dataset import DatasetDelegator
 from .utils import concatenate_file_based_datasets
 
-logger = logging.getLogger('pytoda_smiles_dataset')
+logger = logging.getLogger(__name__)
 
 
 class _SMILESBaseDataset(DatasetDelegator):

@@ -10,7 +10,7 @@ from ..files import read_smi
 from ..types import FileList, Indexes, SMILESTokenizer, Tokens
 from .processing import SMILES_TOKENIZER, tokenize_smiles
 
-logger = logging.getLogger('pytoda_smiles_language')
+logger = logging.getLogger(__name__)
 
 
 class SMILESLanguage(object):
