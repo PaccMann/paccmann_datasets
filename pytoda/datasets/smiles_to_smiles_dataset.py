@@ -4,7 +4,10 @@ from torch.utils.data import Dataset
 from ..smiles.smiles_language import SMILESLanguage
 from ._smiles_eager_dataset import _SMILESEagerDataset
 from ._smiles_lazy_dataset import _SMILESLazyDataset
+from ..smiles.transforms import SMILESToTokenIndexes
 from ..types import FileList
+
+from typing import Callable, Union, Any, Optional
 
 SMILES_DATASET_IMPLEMENTATIONS = {
     'eager': _SMILESEagerDataset,
@@ -22,6 +25,7 @@ class SMILESToSMILESDataset(Dataset):
         input_smi_filepaths: FileList,
         target_smi_filepaths: FileList,
         smiles_language: SMILESLanguage = None,
+        huggingface_tokenizer: Optional[Any] = None,
         padding: bool = True,
         padding_length: int = None,
         add_start_and_stop: bool = False,
@@ -130,6 +134,26 @@ class SMILESToSMILESDataset(Dataset):
             raise ValueError(
                 'Lenght of input and target datasets do not match'
             )
+
+        if huggingface_tokenizer:
+            self.use_huggingfaces_tokenizer(huggingface_tokenizer)
+
+    def use_huggingfaces_tokenizer(self, tokenizer: Any):
+
+        def _tokenize_fn(sample: Any):
+            return tokenizer.encode(sample)
+
+        self.replace_smiles_to_token_index(self.input_dataset, _tokenize_fn)
+        self.replace_smiles_to_token_index(self.target_dataset, _tokenize_fn)
+
+    def replace_smiles_to_token_index(
+        self, dataset: Union[_SMILESEagerDataset, _SMILESLazyDataset],
+        new_transform: Callable
+    ):
+        compose_transforms = dataset.transform.transforms
+        for i, transform in enumerate(compose_transforms):
+            if isinstance(transform, SMILESToTokenIndexes):
+                compose_transforms[i] = new_transform
 
     def __len__(self) -> int:
         """Total number of samples."""
