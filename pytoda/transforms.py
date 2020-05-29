@@ -68,16 +68,27 @@ class LeftPadding(Transform):
 class ToTensor(Transform):
     """Transform token indexes to torch tensor."""
 
-    def __init__(self, device, dtype=torch.short) -> None:
+    def __init__(
+        self,
+        device: torch.device = (
+            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        ),
+        dtype: torch.dtype = torch.short
+    ) -> None:
         """
         Initialize a token indexes to tensor object.
 
         Args:
-            dtype (torch.dtype): data type. Defaults to torch.short.
             device (torch.device): device where the tensors are stored.
-            Defaults to gpu, if available.
+                Defaults to gpu, if available.
+            dtype (torch.dtype): data type. Defaults to torch.short.
         """
-        self.dtype = torch.short
+        if not isinstance(dtype, torch.dtype):
+            raise TypeError(f'Dtype must be torch.dtype not {type(dtype)}')
+        self.dtype = dtype
+
+        if not isinstance(device, torch.device):
+            raise TypeError(f'Device must be torch.device not {type(device)}')
         self.device = device
 
     def __call__(self, token_indexes: Indexes) -> torch.Tensor:
@@ -93,6 +104,50 @@ class ToTensor(Transform):
         return torch.tensor(
             token_indexes, dtype=self.dtype, device=self.device
         ).view(-1, 1).squeeze()
+
+
+class ListToTensor(Transform):
+    """
+    2D Version of ToTensor.
+    Transform a list of token indexes to torch tensor.
+    """
+
+    def __init__(
+        self,
+        device: torch.device = (
+            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        ),
+        dtype: torch.dtype = torch.float
+    ) -> None:
+        """
+        Initialize a token indexes to tensor object.
+
+        Args:
+            device (torch.device): device where the tensors are stored.
+                Defaults to gpu, if available.
+            dtype (torch.dtype): data type. Defaults to torch.float.
+        """
+        if not isinstance(dtype, torch.dtype):
+            raise TypeError(f'Dtype must be torch.dtype not {type(dtype)}')
+        self.dtype = dtype
+
+        if not isinstance(device, torch.device):
+            raise TypeError(f'Device must be torch.device not {type(device)}')
+        self.device = device
+
+    def __call__(self, token_indexes: Indexes) -> torch.Tensor:
+        """
+        Apply the transform.
+
+        Args:
+            token_indexes (Indexes): token indexes.
+
+        Returns:
+            torch.Tensor: tensor representation of the token indexes.
+        """
+        return torch.tensor(
+            token_indexes, dtype=self.dtype, device=self.device
+        )
 
 
 class Randomize(Transform):

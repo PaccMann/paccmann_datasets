@@ -16,7 +16,7 @@ from ..smiles.transforms import (
 from ..transforms import Compose, LeftPadding, Randomize, ToTensor
 from ..types import FileList
 
-logger = logging.getLogger('pytoda_smiles_dataset')
+logger = logging.getLogger(__name__)
 
 
 class _SMILESDataset(Dataset):

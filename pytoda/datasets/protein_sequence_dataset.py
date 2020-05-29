@@ -3,9 +3,10 @@ import torch
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
+from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from ..proteins.transforms import SequenceToTokenIndexes
 from ..transforms import (
-    AugmentByReversing, Compose, LeftPadding, Randomize, ToTensor
+    AugmentByReversing, Compose, LeftPadding, Randomize, ToTensor, ListToTensor
 )
 from ..types import FileList
 from ._fasta_eager_dataset import _FastaEagerDataset
@@ -44,6 +45,9 @@ class ProteinSequenceDataset(Dataset):
             filetype (str): From {.smi, .csv, .fasta, .fasta.gz}.
             protein_language (ProteinLanguage): a protein language or child
                 object. Defaults to None.
+                NOTE: ProteinFeatureLanguage objects cannot be created auto-
+                matically. If you want to use it, give it directly to the
+                constructor.
             amino_acid_dict (str): Type of dictionary used for amino acid
                 sequences. Defaults to 'iupac', alternative is 'unirep'.
             padding (bool): pad sequences to longest in the protein language.
@@ -58,7 +62,7 @@ class ProteinSequenceDataset(Dataset):
                 Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            name (str): name of the ProteinSequenceDataset.                
+            name (str): name of the ProteinSequenceDataset.       
         """
         Dataset.__init__(self)
         # Parse language object and data paths
@@ -75,7 +79,9 @@ class ProteinSequenceDataset(Dataset):
                 add_start_and_stop=add_start_and_stop
             )
         else:
-            self.protein_language = protein_language
+            self.protein_language = ProteinLanguage(
+                amino_acid_dict=amino_acid_dict
+            )
             assert (
                 add_start_and_stop == protein_language.add_start_and_stop
             ), f'add_start_and_stop was "{add_start_and_stop}", but given '
@@ -120,7 +126,14 @@ class ProteinSequenceDataset(Dataset):
                     padding_index=self.protein_language.token_to_index['<PAD>']
                 )
             ]
-        transforms += [ToTensor(device=self.device)]
+        if isinstance(self.protein_language, ProteinFeatureLanguage):
+            transforms += [ListToTensor(device=self.device)]
+        elif isinstance(self.protein_language, ProteinLanguage):
+            transforms += [ToTensor(device=self.device)]
+        else:
+            raise TypeError(
+                'Please choose either ProteinLanguage or ProteinFeatureLanguage'
+            )
         self.transform = Compose(transforms)
 
         # NOTE: recover sample and index mappings
