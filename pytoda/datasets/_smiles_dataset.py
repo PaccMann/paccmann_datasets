@@ -32,19 +32,19 @@ class _SMILESBaseDataset(DatasetDelegator):
         self,
         smi_filepaths: FileList,
         smiles_language: SMILESLanguage = None,
-        padding: bool = True,
-        padding_length: int = None,
-        add_start_and_stop: bool = False,
-        canonical: bool = False,
-        augment: bool = False,
-        kekulize: bool = False,
-        all_bonds_explicit: bool = False,
-        all_hs_explicit: bool = False,
-        randomize: bool = False,
-        remove_bonddir: bool = False,
-        remove_chirality: bool = False,
-        selfies: bool = False,
-        sanitize: bool = True,
+        # padding: bool = True,
+        # padding_length: int = None,
+        # add_start_and_stop: bool = False,
+        # canonical: bool = False,
+        # augment: bool = False,
+        # kekulize: bool = False,
+        # all_bonds_explicit: bool = False,
+        # all_hs_explicit: bool = False,
+        # randomize: bool = False,
+        # remove_bonddir: bool = False,
+        # remove_chirality: bool = False,
+        # selfies: bool = False,
+        # sanitize: bool = True,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
         chunk_size: int = 10000
@@ -179,44 +179,45 @@ class _SMILESBaseDataset(DatasetDelegator):
         num_tokens = len(self.smiles_language.token_to_index)
         self._setup_dataset()
 
+        # TODO separate class/method to find invalid smiles with transforms
         # If we use language transforms: add missing tokens to smiles language
-        if (
-            smiles_language is not None
-            and len(self.language_transforms.transforms) == 0
-        ):
-            logger.warning(
-                'WARNING: You operate in the fast-setup regime.\nIf you pass a'
-                ' SMILESLanguage object, but dont specify any SMILES language'
-                ' transform, no pass is given over all SMILES in '
-                f'{self.smi_filepaths}.\nCheck *yourself* that all SMILES '
-                'tokens are known to your SMILESLanguage object.'
-            )
+        # if (
+        #     smiles_language is not None
+        #     and len(self.language_transforms.transforms) == 0
+        # ):
+        #     logger.warning(
+        #         'WARNING: You operate in the fast-setup regime.\nIf you pass a'
+        #         ' SMILESLanguage object, but dont specify any SMILES language'
+        #         ' transform, no pass is given over all SMILES in '
+        #         f'{self.smi_filepaths}.\nCheck *yourself* that all SMILES '
+        #         'tokens are known to your SMILESLanguage object.'
+        #     )
 
-        if len(self.language_transforms.transforms) > 0:
+        # if len(self.language_transforms.transforms) > 0:
 
-            invalid_molecules = []
-            for index in range(len(self.dataset)):
-                self.smiles_language.add_smiles(
-                    self.language_transforms(self.dataset[index])
-                )
+        #     invalid_molecules = []
+        #     for index in range(len(self.dataset)):
+        #         self.smiles_language.add_smiles(
+        #             self.language_transforms(self.dataset[index])
+        #         )
 
-                if Chem.MolFromSmiles(self.dataset[index]) is None:
-                    invalid_molecules.append(index)
-            # Raise warning about invalid molecules
-            if len(invalid_molecules) > 0:
-                logger.warning(
-                    f'NOTE: We found {len(invalid_molecules)} invalid smiles. '
-                    'Check the warning trace. We recommend using '
-                    'pytoda.preprocessing.smi.smi_cleaner to remove the '
-                    'invalid SMILES in your .smi file.'
-                )
+        #         if Chem.MolFromSmiles(self.dataset[index]) is None:
+        #             invalid_molecules.append(index)
+        #     # Raise warning about invalid molecules
+        #     if len(invalid_molecules) > 0:
+        #         logger.warning(
+        #             f'NOTE: We found {len(invalid_molecules)} invalid smiles. '
+        #             'Check the warning trace. We recommend using '
+        #             'pytoda.preprocessing.smi.smi_cleaner to remove the '
+        #             'invalid SMILES in your .smi file.'
+        #         )
 
-            # Raise warning if new tokens were added.
-            if len(self.smiles_language.token_to_index) > num_tokens:
-                logger.warning(
-                    f'{len(self.smiles_language.token_to_index) - num_tokens}'
-                    ' new token(s) were added to SMILES language.'
-                )
+        #     # Raise warning if new tokens were added.
+        #     if len(self.smiles_language.token_to_index) > num_tokens:
+        #         logger.warning(
+        #             f'{len(self.smiles_language.token_to_index) - num_tokens}'
+        #             ' new token(s) were added to SMILES language.'
+        #         )
 
         transforms = language_transforms.copy()
         transforms += [

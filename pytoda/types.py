@@ -1,6 +1,8 @@
 """Type definitions."""
+from typing import (Any, Callable, Hashable, Iterable, Iterator, List,  # noqa
+                    Tuple, Union)
+
 import torch
-from typing import List, Callable, Any, Tuple, Union, Hashable, Iterator  # noqa
 
 Tokens = List[str]
 Indexes = List[int]

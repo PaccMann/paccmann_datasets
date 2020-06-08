@@ -4,17 +4,232 @@ import re
 
 import numpy as np
 import torch
+from torch.utils.data import Dataset
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from selfies import encoder
 
 import pytoda
 
-from ..transforms import Transform
-from ..types import Indexes
+from ..transforms import Transform, Compose, LeftPadding, Randomize, ToTensor
+from ..types import Indexes, Iterable
 from .smiles_language import SMILESLanguage
 
 logger = logging.getLogger('pytoda_SMILES_transforms')
+
+
+def TransformSMILES(Transform):
+
+    def __init__(
+        self,
+        canonical: bool = False,
+        augment: bool = False,
+        kekulize: bool = False,
+        all_bonds_explicit: bool = False,
+        all_hs_explicit: bool = False,
+        remove_bonddir: bool = False,
+        remove_chirality: bool = False,
+        selfies: bool = False,
+        sanitize: bool = True,
+    ):
+        """Setup a composition of SMILES to SMILES transformations.
+
+        Args:
+            canonical (bool, optional): performs canonicalization of SMILES
+            (one original string for one molecule). If True, then other
+            transformations (augment etc, see below) do not apply. Defaults to
+                False.
+            augment (bool, optional): perform SMILES augmentation. Defaults to
+                False.
+            kekulize (bool, optional): kekulizes SMILES (implicit aromaticity
+                only). Defaults to False.
+            all_bonds_explicit (bool, optional): makes all bonds explicit.
+                Defaults to False, only applies if kekulize is True.
+            all_hs_explicit (bool, optional): makes all hydrogens explicit.
+                Defaults to False, only applies if kekulize is True.
+            remove_bonddir (bool, optional): remove directional info of bonds.
+                Defaults to False.
+            remove_chirality (bool, optional): remove chirality information.
+                Defaults to False.
+            selfies (bool, optional): whether selfies is used instead of
+                smiles. Defaults to False.
+            sanitize (bool, optional): sanitize SMILES. Defaults to True.
+        """
+        self.canonical = canonical
+        self.augment = augment
+        self.kekulize = kekulize
+        self.all_bonds_explicit = all_bonds_explicit
+        self.all_hs_explicit = all_hs_explicit
+        self.remove_bonddir = remove_bonddir
+        self.remove_chirality = remove_chirality
+        self.selfies = selfies
+        self.sanitize = sanitize  # TODO improve docstring
+        # ?? Kekulize, check valencies, set aromaticity, conjugation and hybridization
+
+        # Build up composition from optional SMILES to SMILES transformations
+        smiles_transforms = []
+        if self.canonical:
+            smiles_transforms += [Canonicalization()]
+        else:
+            if self.remove_bonddir or self.remove_chirality:
+                smiles_transforms += [
+                    RemoveIsomery(
+                        bonddir=self.remove_bonddir,
+                        chirality=self.remove_chirality
+                    )
+                ]
+            if self.kekulize:
+                smiles_transforms += [
+                    Kekulize(
+                        all_bonds_explicit=self.all_bonds_explicit,
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
+                    )
+                ]
+            elif self.all_bonds_explicit or self.all_hs_explicit:
+                smiles_transforms += [
+                    NotKekulize(
+                        all_bonds_explicit=self.all_bonds_explicit,
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
+                    )
+                ]
+            if self.augment:
+                smiles_transforms += [
+                    Augment(
+                        kekule_smiles=self.kekulize,
+                        all_bonds_explicit=self.all_bonds_explicit,
+                        all_hs_explicit=self.all_hs_explicit,
+                        sanitize=self.sanitize
+                    )
+                ]
+            if self.selfies:
+                smiles_transforms += [Selfies()]
+
+        # can be used to test for smiles validity
+        self.transform_smiles = Compose(smiles_transforms)
+
+    def __call__(self, smiles: str) -> str:
+        """Transform a SMILES.
+
+        Args:
+            smiles (str): SMILES to be transformed
+
+        Returns:
+            str: SMILES
+        """
+        if len(self.transform_smiles.transforms) > 0:
+            return self.transform_smiles(smiles)
+        else:
+            return smiles
+
+    def __repr__(self) -> str:
+        """
+        Represent the transformation composition as a string.
+
+        Returns:
+            str: a string representing the composed transformation.
+        """
+        format_string = self.__class__.__name__ + '('
+        for transform in self.transform_smiles.transforms:
+            format_string += '\n'
+            format_string += '\t{}'.format(transform)
+        format_string += '\n)'
+        return format_string
+
+
+class TranslateSMILES():
+
+    def __init__(
+        self,
+        randomize: bool = False,
+        padding: bool = True,
+        padding_length: int = None,
+        add_start_and_stop: bool = False,
+    ):
+        self.randomize = randomize
+        self.padding = padding
+        self.augment = augment
+        self.padding_length = (
+            self.smiles_language.max_token_sequence_length
+            if padding_length is None else padding_length
+        )
+
+        transforms = language_transforms.copy()
+        transforms += [
+            SMILESToTokenIndexes(smiles_language=self.smiles_language)
+        ]
+        if self.randomize:
+            transforms += [Randomize()]
+        if self.padding:
+            if (
+                padding_length is None
+                and self.smiles_language.max_token_sequence_length >
+                self.padding_length
+            ):
+                logger.warning(
+                    f'Padding length of given SMILES Language was '
+                    f'{self.padding_length}. Following a pass over the dataset'
+                    f' the padding length was updated to '
+                    f'{self.smiles_language.max_token_sequence_length}. If you'
+                    f' wish to fix the padding length, pass it directly to the'
+                    ' constructor.'
+                )
+                self.padding_length = (
+                    self.smiles_language.max_token_sequence_length
+                )
+            transforms += [
+                LeftPadding(
+                    padding_length=self.padding_length,
+                    padding_index=self.smiles_language.padding_index
+                )
+            ]
+        transforms += [ToTensor(device=self.device)]
+        self.transform = Compose(transforms)
+    
+
+
+    def tokens_from_dataset(self, dataset: Iterable):  # TODO method for class inheriting from language
+        """Add missing tokens to the language from SMILES in the dataset.
+
+        Collects and warns about invalid SMILES, and warns on finding new
+        tokens.
+
+        Args:
+            dataset (Iterable): returning SMILES strings.
+        """
+        num_tokens = len(self.smiles_language.token_to_index)
+
+        # TODO call TransformSMILES
+        if len(self.smiles_transforms.transforms) > 0:
+            transform = self.smiles_transforms
+        else:
+            def transform(smiles): return smiles
+
+            self.invalid_molecules = []
+            for index, smiles in enumerate(dataset):
+                self.smiles_language.add_smiles(
+                    transform(smiles)
+                )
+
+                if Chem.MolFromSmiles(smiles) is None:
+                    self.invalid_molecules.append(tuple(index, smiles))
+            # Raise warning about invalid molecules
+            if len(self.invalid_molecules) > 0:
+                logger.warning(
+                    f'NOTE: We found {len(self.invalid_molecules)} invalid '
+                    'smiles. Check the warning trace and inspect the '
+                    'attribute `invalid_molecules`. To remove the invalid '
+                    'SMILES in your .smi file, we recommend using '
+                    '`pytoda.preprocessing.smi.smi_cleaner`.'
+                )
+
+            # Raise warning if new tokens were added.
+            if len(self.smiles_language.token_to_index) > num_tokens:
+                logger.warning(
+                    f'{len(self.smiles_language.token_to_index) - num_tokens}'
+                    ' new token(s) were added to SMILES language.'
+                )
 
 
 class SMILESToTokenIndexes(Transform):
