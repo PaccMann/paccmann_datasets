@@ -23,7 +23,7 @@ class SMILESLanguage(object):
     SMILESLanguage class.
 
     SMILESLanguage handle SMILES data defining the vocabulary and
-    utilities to manipulate it.
+    utilities to manipulate it, including encoding to token indexes.
     """
 
     def __init__(
@@ -31,7 +31,8 @@ class SMILESLanguage(object):
         name: str = 'smiles-language',
         smiles_tokenizer: SMILESTokenizer = (
             lambda smiles: tokenize_smiles(smiles, regexp=SMILES_TOKENIZER)
-        )
+        ),
+        **kwargs
     ) -> None:
         """
         Initialize SMILES language.
@@ -40,6 +41,7 @@ class SMILESLanguage(object):
             name (str): name of the SMILESLanguage.
             smiles_tokenizer (SMILESTokenizer): SMILES tokenization function.
                 Defaults to tokenize_smiles.
+            kwargs (dict): ignoring additional arguments.
         """
         self.name = name
         self.smiles_tokenizer = smiles_tokenizer
@@ -389,11 +391,8 @@ class SMILESEncoder(SMILESLanguage):
         sanitize: bool = True,
         randomize: bool = False,  #
         add_start_and_stop: bool = False,
-        start_index: int = 2,
-        stop_index: int = 3,
         padding: bool = True,
         padding_length: int = None,
-        padding_index: int = 0,
         device: torch.device = torch.
             device('cuda' if torch.cuda.is_available() else 'cpu'),
     ) -> None:
@@ -404,10 +403,36 @@ class SMILESEncoder(SMILESLanguage):
             name (str): name of the SMILESLanguage.
             smiles_tokenizer (SMILESTokenizer): SMILES tokenization function.
                 Defaults to tokenize_smiles.
-
+            canonical (bool): performs canonicalization of SMILES (one
+                original string for one molecule), if True, then other
+                transformations (augment etc, see below) do not apply
+            augment (bool): perform SMILES augmentation. Defaults to False.
+            kekulize (bool): kekulizes SMILES (implicit aromaticity only).
+                Defaults to False.
+            all_bonds_explicit (bool): Makes all bonds explicit. Defaults to
+                False, only applies if kekulize = True.
+            all_hs_explicit (bool): Makes all hydrogens explicit. Defaults to
+                False, only applies if kekulize = True.
+            randomize (bool): perform a true randomization of SMILES tokens.
+                Defaults to False.
+            remove_bonddir (bool): Remove directional info of bonds.
+                Defaults to False.
+            remove_chirality (bool): Remove chirality information.
+                Defaults to False.
+            selfies (bool): Whether selfies is used instead of smiles, defaults
+                to False.
+            sanitize (bool): Sanitize SMILES. Defaults to True.
+            add_start_and_stop (bool): add start and stop token indexes.
+                Defaults to False.
+            padding (bool): pad sequences to longest in the smiles language.
+                Defaults to True.
+            padding_length (int): padding to match manually set length,
+                applies only if padding is True. Defaults to None.
+            device (torch.device): device where the tensors are stored.
+                Defaults to gpu, if available.
         """
         super().__init__(self, name, smiles_tokenizer)
-        # TODO max_token_sequence_length
+
         self.canonical = canonical
         self.augment = augment
         self.kekulize = kekulize
@@ -420,11 +445,8 @@ class SMILESEncoder(SMILESLanguage):
 
         self.randomize = randomize
         self.add_start_and_stop = add_start_and_stop
-        self.start_index = start_index
-        self.stop_index = stop_index
         self.padding = padding
         self.padding_length = padding_length
-        self.padding_index = padding_index
         self.device = device
 
         if padding:

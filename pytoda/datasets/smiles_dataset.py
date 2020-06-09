@@ -1,117 +1,75 @@
-"""SMILESDataset module."""
-import torch
-from ..smiles.smiles_language import SMILESLanguage
-from ._smiles_dataset import _SMILESEagerDataset, _SMILESLazyDataset
-from ..types import FileList
-from .base_dataset import DatasetDelegator
+"""Implementation of _SMILESDataset."""
+import logging
 
-SMILES_DATASET_IMPLEMENTATIONS = {
-    'eager': _SMILESEagerDataset,
-    'lazy': _SMILESLazyDataset
+from ..types import FileList
+from ._smi_eager_dataset import _SmiEagerDataset
+from ._smi_lazy_dataset import _SmiLazyDataset
+from .base_dataset import DatasetDelegator
+from .utils import concatenate_file_based_datasets
+
+logger = logging.getLogger(__name__)
+
+
+SMILES_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
+    'eager': (_SmiEagerDataset, {'name'}),
+    'lazy': (_SmiLazyDataset, {'chunk_size', 'name'}),
 }
 
 
 class SMILESDataset(DatasetDelegator):
     """
-    SMILES dataset implementation.
+    SMILES dataset abstract definition.
+
+    The implementation is abstract and can be extend to define different
+    data loading policies.
     """
 
     def __init__(
         self,
         *smi_filepaths: FileList,
-        smiles_language: SMILESLanguage = None,
-        padding: bool = True,
-        padding_length: int = None,
-        add_start_and_stop: bool = False,
-        canonical: bool = False,
-        augment: bool = False,
-        kekulize: bool = False,
-        all_bonds_explicit: bool = False,
-        all_hs_explicit: bool = False,
-        randomize: bool = False,
-        remove_bonddir: bool = False,
-        remove_chirality: bool = False,
-        selfies: bool = False,
-        sanitize: bool = True,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
         backend: str = 'eager',
         name: str = 'smiles-dataset',
-        chunk_size: int = 10000,
+        **kwargs
     ) -> None:
         """
         Initialize a SMILES dataset.
 
         Args:
             smi_filepaths (FileList): paths to .smi files.
-            smiles_language (SMILESLanguage): a smiles language.
-                Defaults to None.
-            padding (bool): pad sequences to longest in the smiles language.
-                Defaults to True.
-            padding_length (int): manually sets number of applied paddings,
-                applies only if padding is True. Defaults to None.
-            add_start_and_stop (bool): add start and stop token indexes.
-                Defaults to False.
-            canonical (bool): performs canonicalization of SMILES (one
-                original string for one molecule), if True, then other
-                transformations (augment etc, see below) do not apply
-            augment (bool): perform SMILES augmentation. Defaults to False.
-            kekulize (bool): kekulizes SMILES (implicit aromaticity only).
-                Defaults to False.
-            all_bonds_explicit (bool): Makes all bonds explicit. Defaults to
-                False, only applies if kekulize = True.
-            all_hs_explicit (bool): Makes all hydrogens explicit. Defaults to
-                False, only applies if kekulize = True.
-            randomize (bool): perform a true randomization of SMILES tokens.
-                Defaults to False.
-            remove_bonddir (bool): Remove directional info of bonds.
-                Defaults to False.
-            remove_chirality (bool): Remove chirality information.
-                Defaults to False.
-            selfies (bool): Whether selfies is used instead of smiles, defaults
-                to False.
-            sanitize (bool): Sanitize SMILES. Defaults to True.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
+            name (str): name of the SMILESDataset.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
-            name (str): name of the SMILESDataset.
-            chunk_size (int): size of the chunks in case of lazy reading, is
-                ignored with 'eager' backend. Defaults to 10000.
+            kwargs (dict): additional arguments for dataset constructor.
 
+        TODO
+        NOTE: If the setup is too slow, consider skipping all SMILES language
+            transforms. To achieve this, set ALL following arguments to False:
+                - `canonical`
+                - `augment`
+                - `kekulize`
+                - `all_bonds_explicit`
+                - `all_hs_explicit`
+                - `remove_bonddir`
+                - `remove_chirality`
         """
+        # Parse language object and data paths
+        self.smi_filepaths = smi_filepaths
+        self.backend = backend
         self.name = name
-        if not (backend in SMILES_DATASET_IMPLEMENTATIONS):
-            raise RuntimeError(
-                'backend={} not supported! '.format(backend) +
-                'Select one in [{}]'.
-                format(','.join(SMILES_DATASET_IMPLEMENTATIONS.keys()))
-            )
-        self.dataset = SMILES_DATASET_IMPLEMENTATIONS[backend](
-            smi_filepaths=smi_filepaths,
-            smiles_language=smiles_language,
-            padding=padding,
-            padding_length=padding_length,
-            add_start_and_stop=add_start_and_stop,
-            canonical=canonical,
-            augment=augment,
-            kekulize=kekulize,
-            all_bonds_explicit=all_bonds_explicit,
-            all_hs_explicit=all_hs_explicit,
-            randomize=randomize,
-            remove_bonddir=remove_bonddir,
-            remove_chirality=remove_chirality,
-            selfies=selfies,
-            sanitize=sanitize,
-            device=device,
-            chunk_size=chunk_size
+
+        dataset_class, valid_keys = SMILES_DATASET_IMPLEMENTATIONS[
+            self.backend
+        ]
+        kwargs = dict(
+            (k, v) for k, v in self.kwargs.items() if k in valid_keys
         )
+
+        self.dataset = concatenate_file_based_datasets(
+            filepaths=self.smi_filepaths,
+            dataset_class=dataset_class,
+            **kwargs
+        )
+
         DatasetDelegator.__init__(self)  # delegate to self.dataset
-          # base_dataset:
-          # This entire logic could happen in the _SMILESDataset
-          # (add name, smi_filepaths vs *smi_filepaths)
-          # or was it the idea to hide most attributes in self.dataset? Then:
-          # - do not assign to self in _SMILESDataset
-          # - adapt Delegator init to add specific attributes to delegatable
-          #   e.g. smiles_language
+        if self.has_duplicate_keys:
+            raise KeyError('Please remove duplicates from your .smi file.')
