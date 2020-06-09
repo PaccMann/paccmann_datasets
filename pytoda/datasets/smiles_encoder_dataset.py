@@ -9,7 +9,7 @@ from .base_dataset import DatasetDelegator
 
 class SMILESEncoderDataset(DatasetDelegator):
     """
-    SMILES dataset implementation.
+    SMILES token indices dataset implementation.
     """
 
     def __init__(
@@ -35,11 +35,13 @@ class SMILESEncoderDataset(DatasetDelegator):
         ),
         backend: str = 'eager',
         name: str = 'smiles-encoder-dataset',
-        chunk_size: int = 10000,
         **kwargs
     ) -> None:
         """
-        Initialize a SMILES dataset.
+        Initialize a dataset providing token indices from source SMILES.
+
+        The datasets transformations on smiles and encodings can be adapted,
+        depending on the smiles_language used (see SMILESEncoder).
 
         Args:
             smi_filepaths (FileList): paths to .smi files.

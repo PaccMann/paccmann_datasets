@@ -134,9 +134,7 @@ class SMILESLanguage(object):
     def _load_counts(self, counts_file: str):
         """Restore token counts stored from a prior smiles_language."""
         with open(counts_file, encoding="utf-8") as fp:
-            self._token_count = Counter(
-                json.load(fp)
-            )
+            self._token_count = Counter(json.load(fp))
 
     def _save_counts(self, counts_file: str):
         with open(counts_file, 'w', encoding="utf-8") as fp:
@@ -394,7 +392,7 @@ class SMILESEncoder(SMILESLanguage):
         padding: bool = True,
         padding_length: int = None,
         device: torch.device = torch.
-            device('cuda' if torch.cuda.is_available() else 'cpu'),
+        device('cuda' if torch.cuda.is_available() else 'cpu'),
     ) -> None:
         """
         Initialize SMILES language.
@@ -486,19 +484,17 @@ class SMILESEncoder(SMILESLanguage):
             self.selfies,
             self.sanitize,
         )
-        (
-            self.transform_encoding,
-            self._get_total_number_of_tokens_fn
-        ) = compose_encoding_transforms(
-            self.randomize,
-            self.add_start_and_stop,
-            self.start_index,
-            self.stop_index,
-            self.padding,
-            self.padding_length,
-            self.padding_index,
-            self.device,
-        )
+        (self.transform_encoding,
+         self._get_total_number_of_tokens_fn) = compose_encoding_transforms(
+             self.randomize,
+             self.add_start_and_stop,
+             self.start_index,
+             self.stop_index,
+             self.padding,
+             self.padding_length,
+             self.padding_index,
+             self.device,
+         )
 
     def set_smiles_transforms(
         self,
@@ -512,15 +508,19 @@ class SMILESEncoder(SMILESLanguage):
         selfies=None,
         sanitize=None,
     ):
-        """Helper function to change specific steps of the transforms."""
+        """Helper function to reversibly change steps of the transforms."""
         self.transform_smiles = compose_smiles_transforms(
             canonical=canonical if canonical else self.canonical,
             augment=augment if augment else self.augment,
             kekulize=kekulize if kekulize else self.kekulize,
-            all_bonds_explicit=all_bonds_explicit if all_bonds_explicit else self.all_bonds_explicit,  # noqa
-            all_hs_explicit=all_hs_explicit if all_hs_explicit else self.all_hs_explicit,  # noqa
-            remove_bonddir=remove_bonddir if remove_bonddir else self.remove_bonddir,  # noqa
-            remove_chirality=remove_chirality if remove_chirality else self.remove_chirality,  # noqa
+            all_bonds_explicit=all_bonds_explicit
+            if all_bonds_explicit else self.all_bonds_explicit,
+            all_hs_explicit=all_hs_explicit
+            if all_hs_explicit else self.all_hs_explicit,
+            remove_bonddir=remove_bonddir
+            if remove_bonddir else self.remove_bonddir,
+            remove_chirality=remove_chirality
+            if remove_chirality else self.remove_chirality,
             selfies=selfies if selfies else self.selfies,
             sanitize=sanitize if sanitize else self.sanitize,
         )
@@ -533,14 +533,15 @@ class SMILESEncoder(SMILESLanguage):
         padding_length=None,
         device=None,
     ):
-        """Helper function to change specific steps of the transforms."""
+        """Helper function to reversibly change steps of the transforms."""
         if padding:
             padding_length = self._check_padding_length(
                 padding_length if padding_length else self.padding_length
             )
         self.transform_encodings = compose_encoding_transforms(
             randomize=randomize if randomize else self.randomize,
-            add_start_and_stop=add_start_and_stop if add_start_and_stop else self.add_start_and_stop,  # noqa
+            add_start_and_stop=add_start_and_stop
+            if add_start_and_stop else self.add_start_and_stop,
             start_index=self.start_index,
             stop_index=self.stop_index,
             padding=padding if padding else self.padding,
