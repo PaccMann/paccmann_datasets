@@ -28,6 +28,33 @@ class Transform(object):
         raise NotImplementedError
 
 
+class StartStop(Transform):
+    """Add start and stop token indexes at beginning and end of sequence."""
+
+    def __init__(self, start_index: int, stop_index: int):
+        """
+        Initialize a left padding token indexes object.
+
+        Args:
+            start_index (int): index of start token in vocabulary.
+            start_index (int): index of stop token in vocabulary.
+        """
+        self.start_index = start_index
+        self.start_index = stop_index
+
+    def __call__(self, token_indexes: Indexes) -> Indexes:
+        """
+        Apply the transform.
+
+        Args:
+            token_indexes (Indexes): token indexes.
+
+        Returns:
+            Indexes: Indexes representation with start and stop added.
+        """
+        return [self.start_index] + token_indexes + [self.stop_index]
+
+
 class LeftPadding(Transform):
     """Left pad token indexes."""
 
@@ -50,7 +77,8 @@ class LeftPadding(Transform):
             token_indexes (Indexes): token indexes.
 
         Returns:
-            Indexes: left padded indexes representation.
+            Indexes: indexes representation with given `padding_length`.
+                token_indexes is cut short or left padded with `padding_index`.
         """
         if self.padding_length < len(token_indexes):
             logger.warning(
@@ -230,3 +258,13 @@ class Compose(Transform):
             format_string += '\t{}'.format(transform)
         format_string += '\n)'
         return format_string
+
+def a(a: int = 5) -> Tuple[Compose, Callable]:
+    """[summary]
+
+    Args:
+        a (int, optional): [description]. Defaults to 5.
+
+    Returns:
+        Tuple[Compose, Callable]: [description]
+    """
