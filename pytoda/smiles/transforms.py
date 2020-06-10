@@ -11,8 +11,7 @@ from selfies import encoder as selfies_encoder
 
 from ..transforms import (Compose, LeftPadding, Randomize, StartStop, ToTensor,
                           Transform)
-from ..types import Indexes, Iterable, Callable, Tuple
-from .smiles_language import SMILESLanguage
+from ..types import Indexes, Callable, Tuple
 
 logger = logging.getLogger('pytoda_SMILES_transforms')
 
@@ -170,7 +169,7 @@ def compose_encoding_transforms(
 class SMILESToTokenIndexes(Transform):
     """Transform SMILES to token indexes using SMILES language."""
 
-    def __init__(self, smiles_language: SMILESLanguage) -> None:
+    def __init__(self, smiles_language: 'SMILESLanguage') -> None:
         """
         Initialize a SMILES to token indexes object.
 
