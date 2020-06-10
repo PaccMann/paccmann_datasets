@@ -238,7 +238,7 @@ class SMILESLanguage(object):
             smiles = self.transform_smiles(smiles)
             self.add_smiles(smiles)
             if Chem.MolFromSmiles(smiles) is None:  # fails e.g. for selfies
-                self.invalid_molecules.append(tuple(index, smiles))
+                self.invalid_molecules.append((index, smiles))
         # Raise warning about invalid molecules
         if len(self.invalid_molecules) > 0:
             logger.warning(
@@ -295,11 +295,11 @@ class SMILESLanguage(object):
         Returns:
             Indexes: indexes representation for the SMILES/SELFIES provided.
         """
-        return [
-            self.transform_encoding(self.token_to_index[token])
-            for token in self.smiles_tokenizer(smiles)
+        return self.transform_encoding([
+            self.token_to_index[token]
+            for token in self.smiles_tokenizer(self.transform_smiles(smiles))
             if token in self.token_to_index  # TODO Warning or Fail?
-        ]
+        ])
 
     def token_indexes_to_smiles(self, token_indexes: Indexes) -> str:
         """
@@ -428,9 +428,16 @@ class SMILESEncoder(SMILESLanguage):
                 applies only if padding is True. Defaults to None.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-        """
-        super().__init__(self, name, smiles_tokenizer)
 
+        NOTE:
+            After initialization, the smiles and encoding transforms need to
+            be set up still. See `set_initial_transforms`, or both
+            `set_smiles_transforms` and `set_encoding_transforms`.
+            This intermediate state allows adding SMILES to the language, which
+            might be necessary the definition of the encoding transforms.
+        """
+        super().__init__(name, smiles_tokenizer)
+        # smiles transforms
         self.canonical = canonical
         self.augment = augment
         self.kekulize = kekulize
@@ -440,35 +447,71 @@ class SMILESEncoder(SMILESLanguage):
         self.remove_chirality = remove_chirality
         self.selfies = selfies
         self.sanitize = sanitize
-
+        # encoding transforms
         self.randomize = randomize
+        self._set_token_len_fn(add_start_and_stop)
         self.add_start_and_stop = add_start_and_stop
         self.padding = padding
         self.padding_length = padding_length
         self.device = device
 
-        if padding:
-            self.padding_length = self._check_padding_length(padding_length)
+        # compose_encoding_transforms/set_encoding_transforms via
+        # set_initial_transforms is not yet called here, and transform_encoding
+        # is overloaded to draw attention and prevent silent failures.
+        # The reason is that the smiles transforms are set up for a pass
+        # on data, that is needed for the setup of encoding
+        # transforms without error on padding_length=None
 
-        self.set_initial_transforms()
-
-    def _check_padding_length(self, padding_length):
-        if padding_length is None:
-            if self.max_token_sequence_length == 0:
-                raise ValueError(
-                    'Padding with naive SMILESEncoder (no pass over data, '
-                    'finding longest SMILES) requires passing explicit '
-                    'padding_length argument.'
-                )
-            else:  # pad to known longest sequence
-                padding_length = self.max_token_sequence_length
-
-        if self.max_token_sequence_length > padding_length:
-            logger.warning(
-                f'From passing over the dataset the given padding length '
-                f'was found to trunkate some sequence of max length '
-                f'{self.max_token_sequence_length}.'
+        def transform_encoding(sdf):
+            raise IOError(
+                'Instance needs call to `set_initial_transforms()`, '
+                'or setting transform_smiles and transform_encoding '
+                'via other means.'
             )
+
+        # only now activate setter
+        self.__setattr__ = self.__setattr__postponed
+
+    def __setattr__postponed(self, name, value):
+        """Also updates the transforms."""
+        super().__setattr__(name, value)
+        if name in [
+            'canonical', 'augment', 'kekulize', 'all_bonds_explicit',
+            'all_hs_explicit', 'remove_bonddir', 'remove_chirality', 'selfies',
+            'sanitize', 'randomize', 'add_start_and_stop', 'start_index',
+            'stop_index', 'padding', 'padding_length', 'padding_index',
+            'device'
+        ]:
+            self.set_initial_transforms()
+        if name == 'add_start_and_stop':
+            self._set_token_len_fn(value)
+
+    def _set_token_len_fn(self, add_start_and_stop):
+        if add_start_and_stop:
+            self._get_total_number_of_tokens_fn = (
+                lambda tokens: len(tokens) + 2
+            )
+        else:
+            self._get_total_number_of_tokens_fn = len
+
+    def checked_padding_length(self, padding_length=None):
+        """Returns padding_length that does not trunkate any sequence."""
+        if padding_length is None:
+            # consider self by default
+            padding_length = self.padding_length
+
+        if self.max_token_sequence_length == 0:
+            raise ValueError(
+                'No check possible for naive SMILESEncoder. Instance needs'
+                ' a pass over the data, setting max_token_sequence_length.'
+                ' See for example `add_smis` or `add_dataset` methods.'
+            )
+
+        if padding_length is None:
+            return self.max_token_sequence_length
+        if self.max_token_sequence_length > padding_length:
+            return self.max_token_sequence_length
+
         return padding_length
 
     def set_initial_transforms(self):
@@ -484,8 +527,7 @@ class SMILESEncoder(SMILESLanguage):
             self.selfies,
             self.sanitize,
         )
-        (self.transform_encoding,
-         self._get_total_number_of_tokens_fn) = compose_encoding_transforms(
+        self.transform_encoding = compose_encoding_transforms(
              self.randomize,
              self.add_start_and_stop,
              self.start_index,
@@ -494,7 +536,8 @@ class SMILESEncoder(SMILESLanguage):
              self.padding_length,
              self.padding_index,
              self.device,
-         )
+        )
+        self._set_token_len_fn(self.add_start_and_stop)
 
     def set_smiles_transforms(
         self,
@@ -534,11 +577,7 @@ class SMILESEncoder(SMILESLanguage):
         device=None,
     ):
         """Helper function to reversibly change steps of the transforms."""
-        if padding:
-            padding_length = self._check_padding_length(
-                padding_length if padding_length else self.padding_length
-            )
-        self.transform_encodings = compose_encoding_transforms(
+        self.transform_encoding = compose_encoding_transforms(
             randomize=randomize if randomize else self.randomize,
             add_start_and_stop=add_start_and_stop
             if add_start_and_stop else self.add_start_and_stop,
@@ -549,3 +588,5 @@ class SMILESEncoder(SMILESLanguage):
             padding_index=self.padding_index,
             device=device if device else self.device,
         )
+        if add_start_and_stop is not None:
+            self._set_token_len_fn(add_start_and_stop)

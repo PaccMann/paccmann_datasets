@@ -73,7 +73,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                 d_index = smiles_dataset.smiles_language.token_to_index['-']
 
                 sample = 0
-                padding_len = smiles_dataset.padding_length - (
+                padding_len = smiles_dataset.smiles_language.padding_length - (
                     len(
                         # str from underlying concatenated _smi dataset
                         smiles_dataset.dataset.dataset[sample]
@@ -88,7 +88,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                 )
 
                 sample = 3
-                padding_len = smiles_dataset.padding_length - (
+                padding_len = smiles_dataset.smiles_language.padding_length - (
                     len(
                         # str from underlying concatenated _smi dataset
                         smiles_dataset.dataset.dataset[sample]
@@ -103,7 +103,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                 )
 
                 sample = 5
-                padding_len = smiles_dataset.padding_length - (
+                padding_len = smiles_dataset.smiles_language.padding_length - (
                     len(
                         # str from underlying concatenated _smi dataset
                         smiles_dataset.dataset.dataset[sample]
@@ -138,10 +138,10 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                     add_start_and_stop=True,
                     backend=self.backend
                 )
-                self.assertEqual(smiles_dataset.padding_length, self.longest+2)
+                self.assertEqual(smiles_dataset.smiles_language.padding_length, self.longest+2)
 
                 sample = 0
-                padding_len = smiles_dataset.padding_length - (
+                padding_len = smiles_dataset.smiles_language.padding_length - (
                     len(
                         # str from underlying concatenated _smi dataset
                         smiles_dataset.dataset.dataset[sample]
@@ -157,7 +157,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                 )
 
                 sample = 5
-                padding_len = smiles_dataset.padding_length - (
+                padding_len = smiles_dataset.smiles_language.padding_length - (
                     len(
                         # str from underlying concatenated _smi dataset
                         smiles_dataset.dataset.dataset[sample]

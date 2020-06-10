@@ -75,7 +75,8 @@ class TestBaseDatasets(unittest.TestCase):
         self.concat_keys = self.a_1st_keys + self.a_2nd_keys
 
     def test_delegation_dir(self):
-        ds_dir = dir(self.delegating_ds)
+        # stacking delegation
+        ds_dir = dir(Delegating(Delegating(self.delegating_ds)))
         # delegated to Indexed
         self.assertIn('get_key', ds_dir)
         self.assertIn('get_index', ds_dir)
@@ -88,7 +89,7 @@ class TestBaseDatasets(unittest.TestCase):
         self.assertIn('__getitem__', ds_dir)  # see test___getitem__
         self.assertIn('__add__', ds_dir)  # see tests on self.concat_ds
 
-        # no tests on implementation specific attributes
+        # no tests on implementation specific attributes here
 
     def test___len__(self) -> None:
         """Test __len__."""

@@ -98,7 +98,7 @@ class DatasetDelegator:
         # call to self can lead to infinite loops, e.g. with copy
         return [
             o for o
-            in dir(super().__getattribute__('dataset'))
+            in dir(super().__getattribute__('dataset'))  # other AttributeErrors are masked here if dataset is not set  # noqa
             if self._delegation_filter(o)
         ]
 

@@ -132,9 +132,13 @@ def compose_encoding_transforms(
             Defaults to gpu, if available.
 
     Returns:
-        Tuple[Compose, Callable]: transforms, `get_total_number_of_tokens_fn`
-            A Callable that applies composition of
-                transforms on token indices.
+        Compose: A Callable that applies composition of transforms on
+            token indices.
+
+    Note:
+            Transformations that change the number of tokens might need
+            special attention.
+            # TODO
             A Callable that given a sequence of naive tokens, i.e. before
                 applying the transforms defined here, computes the number of
                 implicit tokens after transforms (implicit because it's the
@@ -146,14 +150,11 @@ def compose_encoding_transforms(
     if randomize:
         encoding_transforms += [Randomize()]
     if add_start_and_stop:
-        def get_total_number_of_tokens_fn(tokens): return len(tokens) + 2
         encoding_transforms += [StartStop(start_index, stop_index)]
 
     if padding:
         if padding_length is None:
             raise ValueError('padding_length must be given when padding.')
-
-        def get_total_number_of_tokens_fn(tokens): return padding_length
 
         encoding_transforms += [
             LeftPadding(
@@ -163,7 +164,7 @@ def compose_encoding_transforms(
         ]
     # TODO conditional?
     encoding_transforms += [ToTensor(device=device)]
-    return Compose(encoding_transforms), get_total_number_of_tokens_fn
+    return Compose(encoding_transforms)
 
 
 class SMILESToTokenIndexes(Transform):

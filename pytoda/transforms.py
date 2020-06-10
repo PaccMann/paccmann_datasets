@@ -40,7 +40,7 @@ class StartStop(Transform):
             start_index (int): index of stop token in vocabulary.
         """
         self.start_index = start_index
-        self.start_index = stop_index
+        self.stop_index = stop_index
 
     def __call__(self, token_indexes: Indexes) -> Indexes:
         """

@@ -4,7 +4,7 @@ import logging
 import torch
 
 from ..smiles.processing import tokenize_selfies
-from ..smiles.smiles_language import SMILESEncoder, SMILESLanguage
+from ..smiles.smiles_language import SMILESEncoder
 from ..types import FileList
 from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
@@ -39,17 +39,6 @@ class SMILESDataset(DatasetDelegator):
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             kwargs (dict): additional arguments for dataset constructor.
-
-        TODO
-        NOTE: If the setup is too slow, consider skipping all SMILES language
-            transforms. To achieve this, set ALL following arguments to False:
-                - `canonical`
-                - `augment`
-                - `kekulize`
-                - `all_bonds_explicit`
-                - `all_hs_explicit`
-                - `remove_bonddir`
-                - `remove_chirality`
         """
         # Parse language object and data paths
         self.smi_filepaths = smi_filepaths
@@ -60,7 +49,7 @@ class SMILESDataset(DatasetDelegator):
             self.backend
         ]
         kwargs = dict(
-            (k, v) for k, v in self.kwargs.items() if k in valid_keys
+            (k, v) for k, v in kwargs.items() if k in valid_keys
         )
 
         self.dataset = concatenate_file_based_datasets(
@@ -80,7 +69,7 @@ class SMILESEncoderDataset(DatasetDelegator):
     def __init__(
         self,
         *smi_filepaths: FileList,
-        smiles_language: SMILESLanguage = None,
+        smiles_language: SMILESEncoder = None,
         canonical: bool = False,
         augment: bool = False,
         kekulize: bool = False,
@@ -139,8 +128,9 @@ class SMILESEncoderDataset(DatasetDelegator):
             padding_length (int): padding to match manually set length,
                 applies only if padding is True. Defaults to None.
             iterate_dataset (bool): whether to go through all SMILES in the
-                dataset to build/extend vocab, find longest sequence, etc.
-                Defaults to True.
+                dataset to build/extend vocab, find longest sequence, and
+                checks the passed padding length if applicable. Defaults to
+                True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
             backend (str): memory management backend.
@@ -151,7 +141,7 @@ class SMILESEncoderDataset(DatasetDelegator):
         """
         self.name = name
         self.dataset = SMILESDataset(
-            smi_filepaths=smi_filepaths,
+            *smi_filepaths,
             backend=backend,
             **kwargs
         )
@@ -186,6 +176,19 @@ class SMILESEncoderDataset(DatasetDelegator):
         if iterate_dataset:  # TODO why not iterate smis for selfies before?
             # uses the smiles transforms
             self.smiles_language.add_dataset(self.dataset)
+            self.smiles_language.set_smiles_transforms()  # TODO want/need?
+            self.smiles_language.add_dataset(self.dataset)
+            if padding:
+                checked_padding = self.smiles_language.checked_padding_length()
+                self.smiles_language.padding_length = checked_padding
+                if checked_padding != padding_length:
+                    logger.warning(
+                        'From passing over the dataset the given padding '
+                        f'length was set to {checked_padding} to not trunkate '
+                        'any sequences.'
+                    )
+
+        self.smiles_language.set_initial_transforms()
 
     def __getitem__(self, index: int) -> torch.tensor:
         """
