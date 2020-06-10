@@ -1,6 +1,6 @@
 """Initialize the dataset module."""
 from .base_dataset import IndexedDataset, DatasetDelegator, _ConcatenatedDataset  # noqa
-from .smiles_dataset import SMILESDataset  # noqa
+from .smiles_dataset import SMILESDataset, SMILESEncoderDataset  # noqa
 from .gene_expression_dataset import GeneExpressionDataset  # noqa
 from .drug_sensitivity_dataset import DrugSensitivityDataset  # noqa
 from .annotated_dataset import AnnotatedDataset, indexed, keyed  # noqa

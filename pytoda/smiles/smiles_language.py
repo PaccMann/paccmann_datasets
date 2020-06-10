@@ -143,11 +143,11 @@ class SMILESLanguage(object):
     def _load_max_token_sequence_length(self, max_len_file: str):
         """Restore max length stored from a prior smiles_language."""
         with open(max_len_file, encoding="utf-8") as fp:
-            self._max_token_sequence_length = int(fp.readline())
+            self.max_token_sequence_length = int(fp.readline())
 
     def _save_max_token_sequence_length(self, max_len_file: str):
         with open(max_len_file, 'w', encoding="utf-8") as fp:
-            fp.write(str(self._max_token_sequence_length))
+            fp.write(str(self.max_token_sequence_length))
 
     def _update_max_token_sequence_length(self, tokens: Tokens) -> None:
         """
