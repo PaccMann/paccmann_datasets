@@ -75,7 +75,8 @@ class RemoveIsomery(Transform):
         else:
             self._call_fn = lambda smiles: Chem.MolToSmiles(
                 Chem.MolFromSmiles(smiles, sanitize=sanitize),
-                isomericSmiles=False
+                isomericSmiles=False,
+                canonical=False
             )
 
     def _isomery_call_fn(self, smiles: str) -> str:
