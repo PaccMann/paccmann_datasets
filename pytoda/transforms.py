@@ -258,13 +258,3 @@ class Compose(Transform):
             format_string += '\t{}'.format(transform)
         format_string += '\n)'
         return format_string
-
-def a(a: int = 5) -> Tuple[Compose, Callable]:
-    """[summary]
-
-    Args:
-        a (int, optional): [description]. Defaults to 5.
-
-    Returns:
-        Tuple[Compose, Callable]: [description]
-    """

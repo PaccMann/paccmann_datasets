@@ -3,7 +3,7 @@ import unittest
 import os
 import numpy as np
 from torch.utils.data import DataLoader
-from pytoda.datasets import SMILESDataset
+from pytoda.datasets import SMILESEncoderDataset
 from pytoda.tests.utils import TestFileContent
 
 CONTENT = os.linesep.join(
@@ -25,7 +25,7 @@ MORE_CONTENT = os.linesep.join(
 LONGEST = 9
 
 
-class TestSMILESDatasetEagerBackend(unittest.TestCase):
+class TestSMILESEncoderDatasetEager(unittest.TestCase):
     """Testing SMILES dataset with eager backend."""
 
     def setUp(self):
@@ -40,7 +40,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
 
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
-                smiles_dataset = SMILESDataset(
+                smiles_dataset = SMILESEncoderDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     backend=self.backend
@@ -52,7 +52,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
 
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
-                smiles_dataset = SMILESDataset(
+                smiles_dataset = SMILESEncoderDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     padding=True,
@@ -117,7 +117,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
                     ]
                 )
 
-                smiles_dataset = SMILESDataset(
+                smiles_dataset = SMILESEncoderDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     padding=False,
@@ -132,7 +132,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
                     [c_index, o_index, c_index, c_index, o_index, c_index]
                 )
 
-                smiles_dataset = SMILESDataset(
+                smiles_dataset = SMILESEncoderDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     add_start_and_stop=True,
@@ -172,7 +172,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
                     ]
                 )
 
-                smiles_dataset = SMILESDataset(
+                smiles_dataset = SMILESEncoderDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     augment=True,
@@ -191,7 +191,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
                     )
                     self.assertEqual(smiles, randomized_smiles)
 
-                smiles_dataset = SMILESDataset(
+                smiles_dataset = SMILESEncoderDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     padding=False,
@@ -220,7 +220,7 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
         """Test data_loader."""
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
-                smiles_dataset = SMILESDataset(
+                smiles_dataset = SMILESEncoderDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     backend=self.backend
@@ -252,16 +252,16 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
 
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
-                smiles_dataset = SMILESDataset(
+                smiles_dataset = SMILESEncoderDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     backend=self.backend
                 )
-                smiles_dataset_0 = SMILESDataset(
+                smiles_dataset_0 = SMILESEncoderDataset(
                     a_test_file.filename,
                     backend=self.backend
                 )
-                smiles_dataset_1 = SMILESDataset(
+                smiles_dataset_1 = SMILESEncoderDataset(
                     another_test_file.filename,
                     backend=self.backend
                 )
@@ -286,17 +286,17 @@ class TestSMILESDatasetEagerBackend(unittest.TestCase):
         duplicate_ds = smiles_dataset_0 + smiles_dataset_0
         self.assertTrue(duplicate_ds.has_duplicate_keys)
 
-        # SMILESDataset tests and raises
+        # SMILESEncoderDataset tests and raises
         with TestFileContent(self.content) as a_test_file:
             with self.assertRaises(KeyError):
-                smiles_dataset = SMILESDataset(
+                smiles_dataset = SMILESEncoderDataset(
                     a_test_file.filename,
                     a_test_file.filename,
                     backend=self.backend
                 )
 
 
-class TestSMILESDatasetLazyBackend(TestSMILESDatasetEagerBackend):
+class TestSMILESEncoderDatasetLazy(TestSMILESEncoderDatasetEager):
     """Testing SMILES dataset with lazy backend."""
 
     def setUp(self):
