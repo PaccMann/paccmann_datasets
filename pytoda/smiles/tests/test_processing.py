@@ -1,7 +1,8 @@
 """Testing SMILES processing."""
 import unittest
 from pytoda.smiles.processing import (
-    tokenize_smiles, tokenize_selfies, kmer_smiles_tokenizer
+    tokenize_smiles, tokenize_selfies, kmer_smiles_tokenizer,
+    spe_smiles_tokenizer
 )
 from pytoda.smiles.transforms import Selfies
 
@@ -103,6 +104,17 @@ class TestProcessing(unittest.TestCase):
             self.assertListEqual(
                 kmer_smiles_tokenizer(s, k=k, stride=stride), gt
             )
+
+    def test_spe_smiles_tokenizer(self) -> None:
+        """Test spe_smiles_tokenizer."""
+        for smiles, ground_truth in [
+            (
+                'c1ccc(/C=C/[C@H](C)O)cc',
+                ['c1ccc(', '/C=C/', '[C@H](C)', 'O)', 'cc']
+            ), ('[O-][n+]1ccccc1S', ['[O-]', '[n+]1', 'ccccc1', 'S']),
+            ('c1snnc1-c1ccccn1', ['c1s', 'nnc1', '-', 'c1ccccn1'])
+        ]:
+            self.assertListEqual(spe_smiles_tokenizer(smiles), ground_truth)
 
     def test_tokenize_selfies(self) -> None:
         """Test tokenize_selfies."""
