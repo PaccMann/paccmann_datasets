@@ -1,17 +1,25 @@
 """SMILES processing utilities."""
+import codecs
 import logging
+import os
 import re
 
 from SmilesPE.pretokenizer import kmer_tokenizer
+from SmilesPE.tokenizer import SPE_Tokenizer
 
-from ..types import Tokens
+from pytoda.types import Tokens
+
+logger = logging.getLogger(__name__)
 
 # tokenizer
 SMILES_TOKENIZER = re.compile(
     r'(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|'
     r'-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])'
 )
-logger = logging.getLogger(__name__)
+spe_filepath = os.path.join(
+    os.path.dirname(__file__), 'metadata', 'spe_chembl.txt'
+)
+SPE_TOKENIZER = SPE_Tokenizer(codecs.open(spe_filepath))
 
 
 def tokenize_smiles(smiles: str, regexp=None) -> Tokens:
@@ -32,7 +40,10 @@ def tokenize_smiles(smiles: str, regexp=None) -> Tokens:
 def kmer_smiles_tokenizer(
     smiles: str, k: int, stride: int = 1, *args, **kwargs
 ) -> Tokens:
-    """K-Mer SMILES tokenization following SMILES PE (Li et al. 2020)
+    """K-Mer SMILES tokenization following SMILES PE (Li et al. 2020):
+        Li, Xinhao, and Denis Fourches. "SMILES Pair Encoding: A Data-Driven
+        Substructure Tokenization Algorithm for Deep Learning." (2020).
+
 
     Args:
         smiles (str): SMILES string to be tokenized.
@@ -47,6 +58,24 @@ def kmer_smiles_tokenizer(
     """
 
     return kmer_tokenizer(smiles, ngram=k, stride=stride, *args, **kwargs)
+
+
+def spe_smiles_tokenizer(smiles: str) -> Tokens:
+    """Pretrained SMILES Pair Encoding tokenizer following (Li et al. 2020).
+        Splits a SMILES into tokens of substructures of varying lengths,
+        depending on occurrence of tokens in ChEMBL dataset.
+
+        Li, Xinhao, and Denis Fourches. "SMILES Pair Encoding: A Data-Driven
+        Substructure Tokenization Algorithm for Deep Learning." (2020).
+
+    Args:
+        smiles (str): SMILES string to be tokenized.
+
+    Returns:
+        Tokens: SMILES tokenized into substructures (list of str).
+    """
+
+    return SPE_TOKENIZER.tokenize(smiles).split(' ')
 
 
 def tokenize_selfies(selfies: str) -> Tokens:
