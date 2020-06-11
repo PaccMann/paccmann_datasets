@@ -24,9 +24,7 @@ class SMILESLanguage(object):
     def __init__(
         self,
         name: str = 'smiles-language',
-        smiles_tokenizer: SMILESTokenizer = (
-            lambda smiles: tokenize_smiles(smiles, regexp=SMILES_TOKENIZER)
-        ),
+        smiles_tokenizer: SMILESTokenizer = tokenize_smiles,
         add_start_and_stop: bool = False
     ) -> None:
         """
