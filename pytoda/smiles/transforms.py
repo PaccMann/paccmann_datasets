@@ -136,16 +136,9 @@ def compose_encoding_transforms(
             token indices.
 
     Note:
-            Transformations that change the number of tokens might need
-            special attention.
-            # TODO
-            A Callable that given a sequence of naive tokens, i.e. before
-                applying the transforms defined here, computes the number of
-                implicit tokens after transforms (implicit because it's the
-                number of token indices, not actual tokens).
+        Transformations can change the number of tokens.
     """
     encoding_transforms = []
-    get_total_number_of_tokens_fn = len
 
     if randomize:
         encoding_transforms += [Randomize()]
@@ -153,9 +146,6 @@ def compose_encoding_transforms(
         encoding_transforms += [StartStop(start_index, stop_index)]
 
     if padding:
-        if padding_length is None:
-            raise ValueError('padding_length must be given when padding.')
-
         encoding_transforms += [
             LeftPadding(
                 padding_length=padding_length,

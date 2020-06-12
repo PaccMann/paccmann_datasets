@@ -80,17 +80,26 @@ class LeftPadding(Transform):
             Indexes: indexes representation with given `padding_length`.
                 token_indexes is cut short or left padded with `padding_index`.
         """
-        if self.padding_length < len(token_indexes):
-            logger.warning(
-                f'\n{token_indexes} is longer than padding length '
-                f'({self.padding_length}). End of string will be stripped off.'
-            )
-            return token_indexes[:self.padding_length]
-        else:
-            return (
-                (self.padding_length - len(token_indexes)) *
-                [self.padding_index] + token_indexes
-            )
+        try:
+            if self.padding_length < len(token_indexes):
+                logger.warning(
+                    f'\n{token_indexes} is longer than padding length '
+                    f'({self.padding_length}). End of string will be stripped '
+                    'off.'
+                )
+                return token_indexes[:self.padding_length]
+            else:
+                return (
+                    (self.padding_length - len(token_indexes)) *
+                    [self.padding_index] + token_indexes
+                )
+        except TypeError as e:
+            if self.padding_length is None:
+                raise TypeError(
+                    'padding_length=None was given but integer is required.'             
+                )
+            else:
+                raise e
 
 
 class ToTensor(Transform):

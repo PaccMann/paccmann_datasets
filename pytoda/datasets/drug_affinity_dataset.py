@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from ..types import DrugAffinityData
 from ..smiles.smiles_language import SMILESLanguage
 from ..proteins.protein_language import ProteinLanguage
-from .smiles_dataset import SMILESDataset
+from .smiles_dataset import SMILESEncoderDataset
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
@@ -115,7 +115,7 @@ class DrugAffinityDataset(Dataset):
         # backend
         self.backend = backend
         # SMILES
-        self.smiles_dataset = SMILESDataset(
+        self.smiles_dataset = SMILESEncoderDataset(
             self.smi_filepath,
             smiles_language=smiles_language,
             padding=smiles_padding,

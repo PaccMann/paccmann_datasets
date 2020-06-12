@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 import torch
 
-from pytoda.smiles.smiles_language import SMILESLanguage
+from pytoda.smiles.smiles_language import SMILESLanguage, SMILESEncoder
 from pytoda.smiles.transforms import (
     AugmentTensor, Kekulize, NotKekulize, RemoveIsomery
 )
@@ -161,7 +161,7 @@ class TestTransforms(unittest.TestCase):
         """Test AugmentTensor."""
 
         smiles = 'NCCS'
-        smiles_language = SMILESLanguage(add_start_and_stop=True)
+        smiles_language = SMILESEncoder(add_start_and_stop=True, padding=False)
         smiles_language.add_smiles(smiles)
 
         np.random.seed(0)

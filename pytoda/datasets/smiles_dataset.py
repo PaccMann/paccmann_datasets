@@ -178,17 +178,8 @@ class SMILESEncoderDataset(DatasetDelegator):
             self.smiles_language.add_dataset(self.dataset)
             self.smiles_language.set_smiles_transforms()  # TODO want/need?
             self.smiles_language.add_dataset(self.dataset)
-            if padding:
-                checked_padding = self.smiles_language.checked_padding_length()
-                self.smiles_language.padding_length = checked_padding
-                if checked_padding != padding_length:
-                    logger.warning(
-                        'From passing over the dataset the given padding '
-                        f'length was set to {checked_padding} to not trunkate '
-                        'any sequences.'
-                    )
-
-        self.smiles_language.set_initial_transforms()
+            if padding and padding_length is None:
+                self.smiles_language.set_max_padding()
 
     def __getitem__(self, index: int) -> torch.tensor:
         """
