@@ -2,9 +2,10 @@
 from typing import Iterable
 from .smiles_language import SMILESEncoder
 from .transforms import compose_encoding_transforms
-from ..types import Indexes
+from ..types import Indexes, delegate_kwargs
 
 
+# @delegate_kwargs
 class PolymerEncoder(SMILESEncoder):
     """
     PolymerEncoder class.
