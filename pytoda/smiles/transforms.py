@@ -104,7 +104,7 @@ def compose_encoding_transforms(
     add_start_and_stop: bool = False,
     start_index: int = 2,
     stop_index: int = 3,
-    padding: bool = True,
+    padding: bool = False,
     padding_length: int = None,
     padding_index: int = 0,
     device: torch.device = torch.

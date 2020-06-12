@@ -1,44 +1,49 @@
 """Polymer language handling."""
 from typing import Iterable
-from .smiles_language import SMILESLanguage
-from ..types import Indexes, SMILESTokenizer
-from .processing import tokenize_smiles, SMILES_TOKENIZER
+from .smiles_language import SMILESEncoder
+from .transforms import compose_encoding_transforms
+from ..types import Indexes
 
 
-class PolymerLanguage(SMILESLanguage):
+class PolymerEncoder(SMILESEncoder):
     """
-    PolymerLanguage class.
+    PolymerEncoder class.
 
-    PolymerLanguage is an extension of SMILESLanguage adding start and stop
-    tokens including special start and stop tokens per entity.
-    A polymer language is usually shared across several SMILES datasets.
+    PolymerEncoder is an extension of SMILESEncoder adding special start and
+    stop tokens per entity.
+    A polymer language is usually shared across several SMILES datasets (e.g.
+    different entity sources).
     """
 
     def __init__(
         self,
         entity_names: Iterable[str],
         name: str = 'polymer-language',
-        smiles_tokenizer: SMILESTokenizer = (
-            lambda smiles: tokenize_smiles(smiles, regexp=SMILES_TOKENIZER)
-        )
+        add_start_and_stop: bool = True,
+        **kwargs
     ) -> None:
         """
-        Initialize Polymer language.
+        Initialize Polymer language able to encode different entities.
 
         Args:
             entity_names (Iterable[str]): A list of entity names that the
                 polymer language can distinguish.
-            name (str): name of the PolymerLanguage.
-            smiles_tokenizer (SMILESTokenizer): SMILES tokenization function.
-                Defaults to tokenize_smiles.
+            name (str): name of the PolymerEncoder.
+            add_start_and_stop (bool): add start and stop token indexes.
+                Defaults to True.
+            kwargs (dict): additional parameters passed to SMILESEncoder.
         """
 
-        super().__init__(self, name, smiles_tokenizer)
+        super().__init__(
+            name=name,
+            add_start_and_stop=add_start_and_stop,
+            **kwargs
+        )
         self.entities = list(map(lambda x: x.capitalize(), entity_names))
-        # self.current_entity = self.entities[0]
-        self._get_total_number_of_tokens_fn = lambda tokens: len(tokens) + 2
+        self.current_entity = None
 
         # rebuild basic vocab to group special tokens
+        # required for `token_indexes_to_smiles`
         self.start_entity_tokens, self.stop_entity_tokens = (
             list(map(lambda x: '<' + x.upper() + '_' + s + '>', entity_names))
             for s in ['START', 'STOP']
@@ -67,6 +72,14 @@ class PolymerLanguage(SMILESLanguage):
             for index, token in self.index_to_token.items()
         }
 
+        self.reset_initial_transforms()
+
+    def _check_entity(self, entity: str) -> str:
+        entity_ = entity.capitalize()
+        if entity_ not in self.entities:
+            raise ValueError(f'Unknown entity was given ({entity_})')
+        return entity_
+
     def update_entity(self, entity: str) -> None:
         """
         Update the current entity of the Polymer language object
@@ -77,31 +90,39 @@ class PolymerLanguage(SMILESLanguage):
         Returns:
             None
         """
-        assert (
-            entity.capitalize() in self.entities
-        ), f'Unknown entity was given ({entity})'
-        self.current_entity = entity.capitalize()
+        self.current_entity = self._check_entity(entity)
+        self.reset_initial_transforms()
 
-    def smiles_to_token_indexes(self, smiles: str) -> Indexes:
+    def smiles_to_token_indexes(
+        self, smiles: str, entity: str = None
+    ) -> Indexes:
         """
-        Transform character-level SMILES into a sequence of token indexes with
-        start and stop tokens of current entity.
+        Transform character-level SMILES into a sequence of token indexes.
+
+        In case of add_start_stop, inserts entity specific tokens.
 
         Args:
             smiles (str): a SMILES (or SELFIES) representation.
+            entity (str): a chemical entity (e.g. 'Monomer'). Defaults to
+                None, where the current entity is used (initially the
+                SMILESEncoder default).  # TODO
 
         Returns:
             Indexes: indexes representation for the SMILES/SELFIES provided.
         """
-        return self.transform_encoding([
-            self.token_to_index['<' + self.current_entity.upper() + '_START>']
-        ] + [
-            self.token_to_index[token]
-            for token in self.smiles_tokenizer(self.transform_smiles(smiles))
-            if token in self.token_to_index
-        ] + [
-            self.token_to_index['<' + self.current_entity.upper() + '_STOP>']
-        ])
+        if entity is None:
+            # default behavior given by call to update_entity()
+            entity = self.current_entity
+        else:
+            entity = self._check_entity(entity)
+
+        return self.all_encoding_transforms[entity](
+            [
+                self.token_to_index[token] for token in
+                self.smiles_tokenizer(self.transform_smiles(smiles))
+                if token in self.token_to_index
+            ]
+        )
 
     def token_indexes_to_smiles(self, token_indexes: Indexes) -> str:
         """
@@ -122,3 +143,44 @@ class PolymerLanguage(SMILESLanguage):
                 if token_index > 3 + len(self.entities) * 2
             ]
         )
+
+    def reset_initial_transforms(self):
+        super().reset_initial_transforms()
+        if not hasattr(self, 'entities'):  # call from base
+            return
+        self.all_encoding_transforms = {
+            None: self.transform_encoding,
+        }
+        for entity in self.entities:
+            self.set_encoding_transforms(entity)
+
+    def set_encoding_transforms(
+        self,
+        entity,
+        randomize=None,
+        add_start_and_stop=None,
+        padding=None,
+        padding_length=None,
+        device=None,
+    ):
+        """
+        Helper function to reversibly change steps of the transforms, that
+        addresses entity specific start and stop tokens.
+        """
+        entity = self._check_entity(entity)
+        start_index = self.token_to_index['<' + entity.upper() + '_START>']
+        stop_index = self.token_to_index['<' + entity.upper() + '_STOP>']
+
+        self.all_encoding_transforms[entity] = compose_encoding_transforms(
+            randomize=randomize if randomize is not None else self.randomize,
+            add_start_and_stop=add_start_and_stop
+            if add_start_and_stop is not None else self.add_start_and_stop,
+            start_index=start_index,
+            stop_index=stop_index,
+            padding=padding if padding is not None else self.padding,
+            padding_length=padding_length,
+            padding_index=self.padding_index,
+            device=device if device is not None else self.device,
+        )
+        if add_start_and_stop is not None:
+            self._set_token_len_fn(add_start_and_stop)

@@ -1,21 +1,21 @@
-"""Testing PolymerLanguage."""
+"""Testing PolymerEncoder."""
 import unittest
 import os
-from pytoda.smiles.polymer_language import PolymerLanguage
+from pytoda.smiles.polymer_language import PolymerEncoder
 from pytoda.tests.utils import TestFileContent
 from pytoda.smiles.processing import tokenize_selfies
 from pytoda.smiles.transforms import Selfies
 
 
-class TestPolymerLanguage(unittest.TestCase):
-    """Testing PolymerLanguage."""
+class TestPolymerEncoder(unittest.TestCase):
+    """Testing PolymerEncoder."""
 
     def test__update_max_token_sequence_length(self) -> None:
         """Test _update_max_token_sequence_length."""
         smiles = 'CCO'
         entities = ['Initiator', 'Monomer', 'Catalyst']
-        polymer_language = PolymerLanguage(entity_names=entities)
-        self.assertEqual(polymer_language.max_token_sequence_length, 2)
+        polymer_language = PolymerEncoder(entity_names=entities)
+        self.assertEqual(polymer_language.max_token_sequence_length, 0)
         polymer_language.add_smiles(smiles)
         self.assertEqual(polymer_language.max_token_sequence_length, 5)
 
@@ -23,7 +23,7 @@ class TestPolymerLanguage(unittest.TestCase):
         """Test _update_language_dictionaries_with_tokens."""
         smiles = 'CCO'
         entities = ['Initiator', 'Monomer', 'Catalyst']
-        polymer_language = PolymerLanguage(entity_names=entities)
+        polymer_language = PolymerEncoder(entity_names=entities)
         polymer_language._update_language_dictionaries_with_tokens(
             polymer_language.smiles_tokenizer(smiles)
         )
@@ -46,7 +46,7 @@ class TestPolymerLanguage(unittest.TestCase):
         with TestFileContent(content) as a_test_file:
             with TestFileContent(content) as another_test_file:
                 entities = ['Initiator', 'Monomer', 'Catalyst']
-                polymer_language = PolymerLanguage(entity_names=entities)
+                polymer_language = PolymerEncoder(entity_names=entities)
                 polymer_language.add_smis(
                     [a_test_file.filename, another_test_file.filename]
                 )
@@ -64,7 +64,7 @@ class TestPolymerLanguage(unittest.TestCase):
         )
         with TestFileContent(content) as test_file:
             entities = ['Initiator', 'Monomer']
-            polymer_language = PolymerLanguage(entity_names=entities)
+            polymer_language = PolymerEncoder(entity_names=entities)
             polymer_language.add_smi(test_file.filename)
             self.assertEqual(polymer_language.number_of_tokens, 43)
 
@@ -72,7 +72,7 @@ class TestPolymerLanguage(unittest.TestCase):
         """Test add_smiles."""
         smiles = 'CCO'
         entities = ['Initiator', 'Monomer']
-        polymer_language = PolymerLanguage(entity_names=entities)
+        polymer_language = PolymerEncoder(entity_names=entities)
         polymer_language.add_smiles(smiles)
         self.assertEqual(polymer_language.number_of_tokens, 41)
 
@@ -81,14 +81,14 @@ class TestPolymerLanguage(unittest.TestCase):
 
         smiles = 'CCO'
         entities = ['Initiator', 'Monomer', 'Catalyst']
-        polymer_language = PolymerLanguage(entity_names=entities)
+        polymer_language = PolymerEncoder(entity_names=entities)
         polymer_language.add_smiles(smiles)
         token_indexes = [
             polymer_language.token_to_index[token] for token in smiles
         ]
         polymer_language.update_entity('monomer')
         self.assertListEqual(
-            polymer_language.smiles_to_token_indexes(smiles),
+            list(polymer_language.smiles_to_token_indexes(smiles)),
             [polymer_language.token_to_index['<MONOMER_START>']] +
             token_indexes +
             [polymer_language.token_to_index['<MONOMER_STOP>']]
@@ -102,7 +102,7 @@ class TestPolymerLanguage(unittest.TestCase):
         )
 
         # SELFIES
-        polymer_language = PolymerLanguage(
+        polymer_language = PolymerEncoder(
             entity_names=entities,
             smiles_tokenizer=lambda selfies: tokenize_selfies(selfies)
         )
@@ -125,7 +125,7 @@ class TestPolymerLanguage(unittest.TestCase):
         """Test token_indexes_to_smiles."""
         smiles = 'CCO'
         entities = ['Initiator', 'Monomer', 'Catalyst']
-        polymer_language = PolymerLanguage(entity_names=entities)
+        polymer_language = PolymerEncoder(entity_names=entities)
 
         polymer_language.add_smiles(smiles)
         token_indexes = [

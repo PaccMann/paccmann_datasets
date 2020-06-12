@@ -297,11 +297,13 @@ class SMILESLanguage(object):
         Returns:
             Indexes: indexes representation for the SMILES/SELFIES provided.
         """
-        return self.transform_encoding([
-            self.token_to_index[token]
-            for token in self.smiles_tokenizer(self.transform_smiles(smiles))
-            if token in self.token_to_index
-        ])
+        return self.transform_encoding(
+            [
+                self.token_to_index[token] for token in
+                self.smiles_tokenizer(self.transform_smiles(smiles))
+                if token in self.token_to_index
+            ]
+        )
 
     def token_indexes_to_smiles(self, token_indexes: Indexes) -> str:
         """
@@ -425,7 +427,7 @@ class SMILESEncoder(SMILESLanguage):
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
             padding (bool): pad sequences from the left to matching length.
-                Defaults to True.
+                Defaults to False.
             padding_length (int): common length of all token sequences,
                 applies only if padding is True. See `set_max_padding` to set
                 it to longest token sequence the smiles language encountered.
@@ -459,20 +461,26 @@ class SMILESEncoder(SMILESLanguage):
 
         self.reset_initial_transforms()
 
-        # only now 'activate' setter that updates the transforms
+        self._attributes_to_trigger_reset = [
+            'canonical', 'augment', 'kekulize', 'all_bonds_explicit',
+            'all_hs_explicit', 'remove_bonddir', 'remove_chirality',
+            'selfies', 'sanitize', 'randomize', 'add_start_and_stop',
+            'start_index', 'stop_index', 'padding', 'padding_length',
+            'padding_index', 'device'
+            ]  # could be updated in inheritance
+            # TODO does anybody ever assign new values to
+            # start_index, stop_index, padding_index
+            # what if vocab is weird?
+
+        # only now 'activate' setter that resets the transforms and warns on
+        # truncating padding_length
         self._initialized = True
 
     def __setattr__(self, name, value):
         """Also updates the transforms if the set attribute affects them."""
         super().__setattr__(name, value)
         if self.__dict__.get('_initialized'):
-            if name in [
-                'canonical', 'augment', 'kekulize', 'all_bonds_explicit',
-                'all_hs_explicit', 'remove_bonddir', 'remove_chirality',
-                'selfies', 'sanitize', 'randomize', 'add_start_and_stop',
-                'start_index', 'stop_index', 'padding', 'padding_length',
-                'padding_index', 'device'
-            ]:
+            if name in self._attributes_to_trigger_reset:
                 self.reset_initial_transforms()
             if name == 'padding_length' and self.padding:
                 if self.max_token_sequence_length > value:
@@ -556,19 +564,19 @@ class SMILESEncoder(SMILESLanguage):
     ):
         """Helper function to reversibly change steps of the transforms."""
         self.transform_smiles = compose_smiles_transforms(
-            canonical=canonical if canonical else self.canonical,
-            augment=augment if augment else self.augment,
-            kekulize=kekulize if kekulize else self.kekulize,
+            canonical=canonical if canonical is not None else self.canonical,
+            augment=augment if augment is not None else self.augment,
+            kekulize=kekulize if kekulize is not None else self.kekulize,
             all_bonds_explicit=all_bonds_explicit
-            if all_bonds_explicit else self.all_bonds_explicit,
+            if all_bonds_explicit is not None else self.all_bonds_explicit,
             all_hs_explicit=all_hs_explicit
-            if all_hs_explicit else self.all_hs_explicit,
+            if all_hs_explicit is not None else self.all_hs_explicit,
             remove_bonddir=remove_bonddir
-            if remove_bonddir else self.remove_bonddir,
+            if remove_bonddir is not None else self.remove_bonddir,
             remove_chirality=remove_chirality
-            if remove_chirality else self.remove_chirality,
-            selfies=selfies if selfies else self.selfies,
-            sanitize=sanitize if sanitize else self.sanitize,
+            if remove_chirality is not None else self.remove_chirality,
+            selfies=selfies if selfies is not None else self.selfies,
+            sanitize=sanitize if sanitize is not None else self.sanitize,
         )
 
     def set_encoding_transforms(
@@ -581,15 +589,15 @@ class SMILESEncoder(SMILESLanguage):
     ):
         """Helper function to reversibly change steps of the transforms."""
         self.transform_encoding = compose_encoding_transforms(
-            randomize=randomize if randomize else self.randomize,
+            randomize=randomize if randomize is not None else self.randomize,
             add_start_and_stop=add_start_and_stop
-            if add_start_and_stop else self.add_start_and_stop,
+            if add_start_and_stop is not None else self.add_start_and_stop,
             start_index=self.start_index,
             stop_index=self.stop_index,
-            padding=padding if padding else self.padding,
+            padding=padding if padding is not None else self.padding,
             padding_length=padding_length,
             padding_index=self.padding_index,
-            device=device if device else self.device,
+            device=device if device is not None else self.device,
         )
         if add_start_and_stop is not None:
             self._set_token_len_fn(add_start_and_stop)
