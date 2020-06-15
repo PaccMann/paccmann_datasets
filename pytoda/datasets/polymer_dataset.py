@@ -1,4 +1,4 @@
-"""PolymerDataset module."""
+"""PolymerEncoderDataset module."""
 from ..types import Iterable, List, Union, FileList
 
 import pandas as pd
@@ -10,18 +10,16 @@ from ..smiles.polymer_language import PolymerEncoder
 from .smiles_dataset import SMILESDataset
 
 
-class PolymerDataset(Dataset):
+class PolymerEncoderDataset(Dataset):
     """
-    Polymer dataset implementation.
+    Dataset of SMILES from multiple entities encoded as token indexes.
 
     Creates a tuple of SMILES datasets, one per given entity (i.e. molecule
     class, e.g monomer and catalysts).
-    The annotation df needs to have column names identical to entities.
+    Rows in the annotation df needs to have column names identical to entities,
+    mapping to SMILES in the datasets.
 
-    NOTE:
-    All SMILES dataset parameter can be controlled either separately for each
-    dataset (by iterable of correct length) or globally (bool/int).
-
+    Uses a PolymerEncoder
     """
 
     def __init__(
@@ -52,6 +50,9 @@ class PolymerDataset(Dataset):
     ) -> None:  # TODO why iterable str?
         """
         Initialize a Polymer dataset.
+
+        All SMILES dataset parameter can be controlled either separately for
+        each dataset (by iterable of correct length) or globally (bool/int).
 
         Args:
             smi_filepaths (FileList): paths to .smi files, one per entity
@@ -103,15 +104,14 @@ class PolymerDataset(Dataset):
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             kwargs (dict): additional arguments for dataset constructor.
+
         """
 
         self.device = device
         self.backend = backend
 
-        assert (
-            len(entity_names) == len(smi_filepaths)
-        ), 'Give 1 .smi file per entity'
-
+        if len(entity_names) != len(smi_filepaths):
+            raise ValueError('Give 1 .smi file per entity')
 
         # Setup parameter
         # NOTE: If a parameter that can be given as Union[Iterable[str], bool]
@@ -134,7 +134,7 @@ class PolymerDataset(Dataset):
         )
 
         if smiles_language is None:
-            self.smiles_language = PolymerEncoder(  # setting defaults
+            self.smiles_language = PolymerEncoder(  # defaults to add smiles
                 entity_names=entity_names,
                 padding=self.paddings[0],
                 padding_length=self.padding_lengths[0],
@@ -164,13 +164,8 @@ class PolymerDataset(Dataset):
                     selfies=self.selfies[index],
                     sanitize=self.sanitize[index],
                 )
-                self.smiles_language.set_encoding_transforms(
-                    entity,
-                    randomize=self.randomizes[index],
-                    add_start_and_stop=True,
-                    padding=self.paddings[index],
-                    padding_length=self.padding_lengths[index],
-                )
+                # set_encoding_transforms only after adding smiles
+
         else:
             self.smiles_language = smiles_language
 
@@ -181,16 +176,40 @@ class PolymerDataset(Dataset):
                 name=self.entities[index],
             ) for index, smi_filepath in enumerate(smi_filepaths)
         ]
-        """
-        Push the Polymer language configuration down to the smiles language
-        object associated to the dataset and to the tokenizer that use this
-        object.
-        """
+
         if iterate_dataset:
-            # iterate with default transform? i.e. current_entity=None
+            # without transforms
+            self.smiles_language.add_smis(smi_filepaths)
             for dataset in self.datasets:
                 self.smiles_language.update_entity(dataset.name)
                 self.smiles_language.add_dataset(dataset)
+            if padding and padding_length is None:
+                # take care, this will call a transform reset
+                self.smiles_language.set_max_padding()
+        self.smiles_language.current_entity = None
+
+        if smiles_language is None:
+            for index, entity in enumerate(entity_names):
+                # smiles_transforms might have been reset
+                self.smiles_language.set_smiles_transforms(
+                    entity,
+                    canonical=self.canonicals[index],
+                    augment=self.augments[index],
+                    kekulize=self.kekulizes[index],
+                    all_bonds_explicit=self.all_bonds_explicits[index],
+                    all_hs_explicit=self.all_hs_explicits[index],
+                    remove_bonddir=self.remove_bonddirs[index],
+                    remove_chirality=self.remove_chiralitys[index],
+                    selfies=self.selfies[index],
+                    sanitize=self.sanitize[index],
+                )
+                self.smiles_language.set_encoding_transforms(
+                    entity,
+                    randomize=self.randomizes[index],
+                    add_start_and_stop=True,
+                    padding=self.paddings[index],
+                    padding_length=self.padding_lengths[index],
+                )
 
         # Read and post-process the annotations dataframe
         self.annotations_filepath = annotations_filepath
@@ -269,7 +288,7 @@ class PolymerDataset(Dataset):
             dtype=torch.float,
             device=self.device
         )
-        # samples (SMILES)
+        # samples (SMILES token indexes)
         smiles_tensor = tuple(
             self.smiles_language.smiles_to_token_indexes(
                 dataset.get_item_from_key(selected_sample[dataset.name]),

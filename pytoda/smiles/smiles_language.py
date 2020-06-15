@@ -216,16 +216,17 @@ class SMILESLanguage(object):
         try:
             for chunk in read_smi(smi_filepath, chunk_size=chunk_size):
                 for smiles in chunk['SMILES']:
-                    self.add_smiles(self.transform_smiles(smiles))
+                    self.add_smiles(smiles)
         except Exception:
             raise KeyError(
-                ".smi file needs to have 2 columns, first with IDs, second "
-                "with SMILES."
+                ".smi file needs to have 2 columns, first with SMILES, second"
+                " with IDs."
             )
 
     def add_dataset(self, dataset: Iterable):
         """
         Add a set of SMILES from an iterable.
+        The smiles_transforms are applied here in contrast to adding from .smi.
 
         Collects and warns about invalid SMILES, and warns on finding new
         tokens.
@@ -239,7 +240,7 @@ class SMILESLanguage(object):
         for index, smiles in enumerate(dataset):
             smiles = self.transform_smiles(smiles)
             self.add_smiles(smiles)
-            if Chem.MolFromSmiles(smiles) is None:  # fails e.g. for selfies
+            if Chem.MolFromSmiles(smiles) is None:  # fails e.g. for selfies? TODO
                 self.invalid_molecules.append((index, smiles))
         # Raise warning about invalid molecules
         if len(self.invalid_molecules) > 0:
@@ -595,7 +596,8 @@ class SMILESEncoder(SMILESLanguage):
             start_index=self.start_index,
             stop_index=self.stop_index,
             padding=padding if padding is not None else self.padding,
-            padding_length=padding_length,
+            padding_length=padding_length
+            if padding_length is not None else self.padding_length,
             padding_index=self.padding_index,
             device=device if device is not None else self.device,
         )

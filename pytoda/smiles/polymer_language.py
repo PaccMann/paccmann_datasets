@@ -33,6 +33,12 @@ class PolymerEncoder(SMILESEncoder):
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to True.
             kwargs (dict): additional parameters passed to SMILESEncoder.
+
+        NOTE:
+            See `set_smiles_transforms` and `set_encoding_transforms` to change
+            the transforms temporarily and reset with
+            `reset_initial_transforms`. Assignment of class attributes
+            in the parameter list will trigger such a reset.
         """
 
         super().__init__(
@@ -156,6 +162,7 @@ class PolymerEncoder(SMILESEncoder):
             None: self.transform_encoding,
         }
         for entity in self.entities:
+            self.set_smiles_transforms(entity)
             self.set_encoding_transforms(entity)
 
     def set_smiles_transforms(
@@ -215,7 +222,8 @@ class PolymerEncoder(SMILESEncoder):
             start_index=start_index,
             stop_index=stop_index,
             padding=padding if padding is not None else self.padding,
-            padding_length=padding_length,
+            padding_length=padding_length
+            if padding_length is not None else self.padding_length,
             padding_index=self.padding_index,
             device=device if device is not None else self.device,
         )
