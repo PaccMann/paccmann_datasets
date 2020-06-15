@@ -1,14 +1,12 @@
 """PolymerDataset module."""
-from copy import deepcopy
-from typing import Hashable, Iterable, List, Union
+from ..types import Iterable, List, Union, FileList
 
 import pandas as pd
 import torch
 from numpy import iterable
 from torch.utils.data import Dataset
 
-from ..smiles.polymer_language import PolymerLanguage
-from ..smiles.transforms import SMILESToTokenIndexes
+from ..smiles.polymer_language import PolymerEncoder
 from .smiles_dataset import SMILESDataset
 
 
@@ -28,13 +26,11 @@ class PolymerDataset(Dataset):
 
     def __init__(
         self,
-        smi_filepaths: Iterable[str],
+        *smi_filepaths: FileList,
         entity_names: Iterable[str],
         annotations_filepath: str,
         annotations_column_names: Union[List[int], List[str]] = None,
-        smiles_language: PolymerLanguage = None,
-        padding: Union[Iterable[str], bool] = True,
-        padding_length: Union[Iterable[str], int] = None,
+        smiles_language: PolymerEncoder = None,
         canonical: Union[Iterable[str], bool] = False,
         augment: Union[Iterable[str], bool] = False,
         kekulize: Union[Iterable[str], bool] = False,
@@ -45,11 +41,15 @@ class PolymerDataset(Dataset):
         remove_chirality: Union[Iterable[str], bool] = False,
         selfies: Union[Iterable[str], bool] = False,
         sanitize: Union[Iterable[str], bool] = True,
+        padding: Union[Iterable[str], bool] = True,
+        padding_length: Union[Iterable[str], int] = None,
+        iterate_dataset: bool = True,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
-        backend: str = 'eager'
-    ) -> None:
+        backend: str = 'eager',
+        **kwargs
+    ) -> None:  # TODO why iterable str?
         """
         Initialize a Polymer dataset.
 
@@ -63,7 +63,7 @@ class PolymerDataset(Dataset):
                 (positional or strings) for the annotations. Defaults to None,
                 a.k.a. all the columns, except the entity_names are annotation
                 labels.
-            smiles_language (PolymerLanguage): a polymer language.
+            smiles_language (PolymerEncoder): a polymer language.
                 Defaults to None, in which case a new object is created.
             padding (Union[Iterable[str], bool]): pad sequences to longest in
                 the smiles language. Defaults to True. Controlled either for
@@ -94,10 +94,15 @@ class PolymerDataset(Dataset):
                 instead of smiles, defaults to False.
             sanitize (Union[Iterable[str], bool]): Sanitize SMILES.
                 Defaults to True.
+            iterate_dataset (bool): whether to go through all SMILES in the
+                dataset to build/extend vocab, find longest sequence, and
+                checks the passed padding length if applicable. Defaults to
+                True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
+            kwargs (dict): additional arguments for dataset constructor.
         """
 
         self.device = device
@@ -107,11 +112,6 @@ class PolymerDataset(Dataset):
             len(entity_names) == len(smi_filepaths)
         ), 'Give 1 .smi file per entity'
 
-        if smiles_language is None:
-            self.smiles_language = PolymerLanguage(entity_names=entity_names)
-        else:
-            self.smiles_language = smiles_language
-        self.entities = self.smiles_language.entities
 
         # Setup parameter
         # NOTE: If a parameter that can be given as Union[Iterable[str], bool]
@@ -124,33 +124,61 @@ class PolymerDataset(Dataset):
             self.remove_chiralitys, self.selfies, self.sanitize
         ) = map(
             (
-                lambda x: x if iterable(x) and len(x) == len(self.entities)
-                else [x] * len(self.entities)
+                lambda x: x if iterable(x) and len(x) == len(entity_names)
+                else [x] * len(entity_names)
             ), (
                 padding, padding_length, canonical, augment, kekulize,
                 all_bonds_explicit, all_hs_explicit, randomize, remove_bonddir,
                 remove_chirality, selfies, sanitize
             )
         )
-        # Create one SMILES dataset per chemical entity
+
+        if smiles_language is None:
+            self.smiles_language = PolymerEncoder(  # setting defaults
+                entity_names=entity_names,
+                padding=self.paddings[0],
+                padding_length=self.padding_lengths[0],
+                canonical=self.canonicals[0],
+                augment=self.augments[0],
+                kekulize=self.kekulizes[0],
+                all_bonds_explicit=self.all_bonds_explicits[0],
+                all_hs_explicit=self.all_hs_explicits[0],
+                randomize=self.randomizes[0],
+                remove_bonddir=self.remove_bonddirs[0],
+                remove_chirality=self.remove_chiralitys[0],
+                selfies=self.selfies[0],
+                sanitize=self.sanitize[0],
+                device=device,
+                add_start_and_stop=True,
+            )
+            for index, entity in enumerate(entity_names):
+                self.smiles_language.set_smiles_transforms(
+                    entity,
+                    canonical=self.canonicals[index],
+                    augment=self.augments[index],
+                    kekulize=self.kekulizes[index],
+                    all_bonds_explicit=self.all_bonds_explicits[index],
+                    all_hs_explicit=self.all_hs_explicits[index],
+                    remove_bonddir=self.remove_bonddirs[index],
+                    remove_chirality=self.remove_chiralitys[index],
+                    selfies=self.selfies[index],
+                    sanitize=self.sanitize[index],
+                )
+                self.smiles_language.set_encoding_transforms(
+                    entity,
+                    randomize=self.randomizes[index],
+                    add_start_and_stop=True,
+                    padding=self.paddings[index],
+                    padding_length=self.padding_lengths[index],
+                )
+        else:
+            self.smiles_language = smiles_language
+
+        self.entities = self.smiles_language.entities
         self.datasets = [
             SMILESDataset(
                 smi_filepath,
                 name=self.entities[index],
-                smiles_language=self.smiles_language,
-                padding=self.paddings[index],
-                padding_length=self.padding_lengths[index],
-                canonical=self.canonicals[index],
-                augment=self.augments[index],
-                kekulize=self.kekulizes[index],
-                all_bonds_explicit=self.all_bonds_explicits[index],
-                all_hs_explicit=self.all_hs_explicits[index],
-                randomize=self.randomizes[index],
-                remove_bonddir=self.remove_bonddirs[index],
-                remove_chirality=self.remove_chiralitys[index],
-                selfies=self.selfies[index],
-                sanitize=self.sanitize[index],
-                device=device
             ) for index, smi_filepath in enumerate(smi_filepaths)
         ]
         """
@@ -158,18 +186,11 @@ class PolymerDataset(Dataset):
         object associated to the dataset and to the tokenizer that use this
         object.
         """
-        for dataset in self.datasets:
-
-            dataset.smiles_language = deepcopy(self.smiles_language)
-            dataset.smiles_language.update_entity(dataset.name)
-            tokenizer_index = [
-                i for i, t in enumerate(dataset.transform.transforms)
-                if isinstance(t, SMILESToTokenIndexes)
-            ]
-            if len(tokenizer_index) > 0:
-                dataset.transform.transforms[
-                    tokenizer_index[-1]
-                ].smiles_language = dataset.smiles_language  # yapf: disable
+        if iterate_dataset:
+            # iterate with default transform? i.e. current_entity=None
+            for dataset in self.datasets:
+                self.smiles_language.update_entity(dataset.name)
+                self.smiles_language.add_dataset(dataset)
 
         # Read and post-process the annotations dataframe
         self.annotations_filepath = annotations_filepath
@@ -250,7 +271,10 @@ class PolymerDataset(Dataset):
         )
         # samples (SMILES)
         smiles_tensor = tuple(
-            dataset.get_item_from_key(selected_sample[dataset.name])
+            self.smiles_language.smiles_to_token_indexes(
+                dataset.get_item_from_key(selected_sample[dataset.name]),
+                dataset.name
+            )
             for dataset in self.datasets
         )  # yapf: disable
         return tuple([*smiles_tensor, labels_tensor])

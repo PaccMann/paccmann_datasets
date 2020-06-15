@@ -1,7 +1,7 @@
 """Polymer language handling."""
 from typing import Iterable
 from .smiles_language import SMILESEncoder
-from .transforms import compose_encoding_transforms
+from .transforms import compose_smiles_transforms, compose_encoding_transforms
 from ..types import Indexes, delegate_kwargs
 
 
@@ -149,11 +149,47 @@ class PolymerEncoder(SMILESEncoder):
         super().reset_initial_transforms()
         if not hasattr(self, 'entities'):  # call from base
             return
+        self.all_smiles_transforms = {
+            None: self.transform_smiles,
+        }
         self.all_encoding_transforms = {
             None: self.transform_encoding,
         }
         for entity in self.entities:
             self.set_encoding_transforms(entity)
+
+    def set_smiles_transforms(
+        self,
+        entity,
+        canonical=None,
+        augment=None,
+        kekulize=None,
+        all_bonds_explicit=None,
+        all_hs_explicit=None,
+        remove_bonddir=None,
+        remove_chirality=None,
+        selfies=None,
+        sanitize=None,
+    ):
+        """
+        Helper function to reversibly change the transforms per entity.
+        """
+        entity = self._check_entity(entity)
+        self.all_smiles_transforms[entity] = compose_smiles_transforms(
+            canonical=canonical if canonical is not None else self.canonical,
+            augment=augment if augment is not None else self.augment,
+            kekulize=kekulize if kekulize is not None else self.kekulize,
+            all_bonds_explicit=all_bonds_explicit
+            if all_bonds_explicit is not None else self.all_bonds_explicit,
+            all_hs_explicit=all_hs_explicit
+            if all_hs_explicit is not None else self.all_hs_explicit,
+            remove_bonddir=remove_bonddir
+            if remove_bonddir is not None else self.remove_bonddir,
+            remove_chirality=remove_chirality
+            if remove_chirality is not None else self.remove_chirality,
+            selfies=selfies if selfies is not None else self.selfies,
+            sanitize=sanitize if sanitize is not None else self.sanitize,
+        )
 
     def set_encoding_transforms(
         self,
@@ -165,8 +201,8 @@ class PolymerEncoder(SMILESEncoder):
         device=None,
     ):
         """
-        Helper function to reversibly change steps of the transforms, that
-        addresses entity specific start and stop tokens.
+        Helper function to reversibly change the transforms per entity.
+        Addresses entity specific start and stop tokens.
         """
         entity = self._check_entity(entity)
         start_index = self.token_to_index['<' + entity.upper() + '_START>']
