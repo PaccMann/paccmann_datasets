@@ -126,7 +126,9 @@ class PolymerEncoder(SMILESEncoder):
         return self.all_encoding_transforms[entity](
             [
                 self.token_to_index[token] for token in
-                self.smiles_tokenizer(self.transform_smiles(smiles))
+                self.smiles_tokenizer(
+                    self.all_smiles_transforms[entity](smiles)
+                )
                 if token in self.token_to_index
             ]
         )

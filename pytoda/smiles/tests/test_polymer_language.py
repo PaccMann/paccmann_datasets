@@ -95,7 +95,7 @@ class TestPolymerEncoder(unittest.TestCase):
         )
         polymer_language.update_entity('catalyst')
         self.assertListEqual(
-            polymer_language.smiles_to_token_indexes(smiles),
+            list(polymer_language.smiles_to_token_indexes(smiles)),
             [polymer_language.token_to_index['<CATALYST_START>']] +
             token_indexes +
             [polymer_language.token_to_index['<CATALYST_STOP>']]
@@ -115,7 +115,7 @@ class TestPolymerEncoder(unittest.TestCase):
         ]
         polymer_language.update_entity('monomer')
         self.assertListEqual(
-            polymer_language.smiles_to_token_indexes(selfies),
+            list(polymer_language.smiles_to_token_indexes(selfies)),
             [polymer_language.token_to_index['<MONOMER_START>']] +
             token_indexes +
             [polymer_language.token_to_index['<MONOMER_STOP>']]

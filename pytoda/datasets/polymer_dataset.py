@@ -183,7 +183,7 @@ class PolymerEncoderDataset(Dataset):
             for dataset in self.datasets:
                 self.smiles_language.update_entity(dataset.name)
                 self.smiles_language.add_dataset(dataset)
-            if padding and padding_length is None:
+            if padding and None in self.padding_lengths:
                 # take care, this will call a transform reset
                 self.smiles_language.set_max_padding()
         self.smiles_language.current_entity = None

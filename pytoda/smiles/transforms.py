@@ -496,7 +496,7 @@ class AugmentTensor(Transform):
         Returns:
             str: randomized SMILES representation.
         """
-
+        # TODO expects 2D Tensor as input, check for 1D.
         # Infer the padding type to ensure returning tensor of same shape.
         if self.smiles_language.padding_index in smiles_numerical.flatten():
 

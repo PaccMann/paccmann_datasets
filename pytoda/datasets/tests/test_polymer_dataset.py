@@ -123,7 +123,7 @@ class TestPolymerEncoderDataset(unittest.TestCase):
                     # test first sample
                     monomer, catalyst, labels = polymer_dataset[0]
 
-                    # CCO
+                    # CCO -> CH3CH2OH
                     self.assertEqual(
                         monomer.numpy().flatten().tolist(), [
                             pad_ind, pad_ind, monomer_start_ind, ch3_ind,
@@ -216,8 +216,9 @@ class TestPolymerEncoderDataset(unittest.TestCase):
                     monomer, catalyst, labels = polymer_dataset[0]
 
                     self.assertEqual(
-                        monomer.numpy().flatten().tolist(), [
-                            pad_ind, monomer_start_ind, c_ind, c_ind, o_ind,
+                        monomer.numpy().flatten().tolist(),
+                        [pad_ind] * 8 + [
+                            monomer_start_ind, c_ind, c_ind, o_ind,
                             monomer_stop_ind
                         ]
                     )
@@ -237,7 +238,8 @@ class TestPolymerEncoderDataset(unittest.TestCase):
                     monomer, catalyst, labels = polymer_dataset[2]
 
                     self.assertEqual(
-                        monomer.numpy().flatten().tolist(), [
+                        monomer.numpy().flatten().tolist(),
+                        [pad_ind] * 7 + [
                             monomer_start_ind, n_ind, c_ind, c_ind, s_ind,
                             monomer_stop_ind
                         ]
@@ -318,8 +320,9 @@ class TestPolymerEncoderDataset(unittest.TestCase):
                     monomer, catalyst, labels = polymer_dataset[0]
 
                     self.assertEqual(
-                        monomer.numpy().flatten().tolist(), [
-                            pad_ind, monomer_start_ind, c_ind, c_ind, o_ind,
+                        monomer.numpy().flatten().tolist(),
+                        [pad_ind] * 8 + [
+                            monomer_start_ind, c_ind, c_ind, o_ind,
                             monomer_stop_ind
                         ]
                     )
@@ -337,7 +340,8 @@ class TestPolymerEncoderDataset(unittest.TestCase):
                     monomer, catalyst, labels = polymer_dataset[2]
 
                     self.assertEqual(
-                        monomer.numpy().flatten().tolist(), [
+                        monomer.numpy().flatten().tolist(),
+                        [pad_ind] * 7 + [
                             monomer_start_ind, n_ind, c_ind, c_ind, s_ind,
                             monomer_stop_ind
                         ]

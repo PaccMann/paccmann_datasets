@@ -138,7 +138,10 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                     add_start_and_stop=True,
                     backend=self.backend
                 )
-                self.assertEqual(smiles_dataset.smiles_language.padding_length, self.longest+2)
+                self.assertEqual(
+                    smiles_dataset.smiles_language.padding_length,
+                    self.longest+2
+                )
 
                 sample = 0
                 padding_len = smiles_dataset.smiles_language.padding_length - (
