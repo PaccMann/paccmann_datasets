@@ -200,8 +200,8 @@ class ProteinProteinInteractionDataset(Dataset):
             )
         ), 'At least one given entity name was not found in labels_filepath.'
 
-        # NOTE: filter data based on the availability
-        # available_sequence_ids = []  # base_dataset: check for removal
+        # filter data based on the availability
+        masks = []
         mask = pd.Series(
             [True] * len(self.labels_df),
             index=self.labels_df.index
@@ -209,12 +209,15 @@ class ProteinProteinInteractionDataset(Dataset):
 
         for entity, dataset in zip(self.entities, self.datasets):
             # prune rows (in mask) with ids unavailable in respective dataset
-            mask = mask & self.labels_df[entity].isin(
-                set(dataset.keys())
-            )
-            # available_sequence_ids.append(set(self.labels_df.loc[mask, entity]))  # base_dataset: check for removal
+            local_mask = self.labels_df[entity].isin(set(dataset.keys()))
+            mask = mask & local_mask
+            masks.append(local_mask)
+
         self.labels_df = self.labels_df.loc[mask]
-        # self.available_sequence_ids = available_sequence_ids   # base_dataset: check for removal
+
+        # to investigate missing ids per entity
+        self.masks_df = pd.concat(masks, axis=1)
+        self.masks_df.columns = self.entities
 
         self.number_of_samples = len(self.labels_df)
 

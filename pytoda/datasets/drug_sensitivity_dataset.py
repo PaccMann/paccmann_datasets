@@ -159,20 +159,23 @@ class DrugSensitivityDataset(Dataset):
         self.drug_sensitivity_df = pd.read_csv(
             self.drug_sensitivity_filepath, index_col=0
         )
-        # NOTE: filter based on the availability
-        self.available_drugs = set(
-            self.smiles_dataset.keys()
-        ) & set(self.drug_sensitivity_df['drug'])
+        # filter data based on the availability
+        drug_mask = self.drug_sensitivity_df['drug'].isin(
+            set(self.smiles_dataset.keys())
+        )
+        profile_mask = self.drug_sensitivity_df['cell_line'].isin(
+            set(self.gene_expression_dataset.keys())
+        )
         self.drug_sensitivity_df = self.drug_sensitivity_df.loc[
-            self.drug_sensitivity_df['drug'].isin(self.available_drugs)]
-        self.available_profiles = set(
-            self.gene_expression_dataset.keys()
-        ) & set(self.drug_sensitivity_df['cell_line'])
-        self.drug_sensitivity_df = self.drug_sensitivity_df.loc[
-            self.drug_sensitivity_df['cell_line'].isin(
-                self.available_profiles
-            )]
+            drug_mask & profile_mask
+        ]
+
+        # to investigate missing ids per entity
+        self.masks_df = pd.concat([drug_mask, profile_mask], axis=1)
+        self.masks_df.columns = ['drug', 'cell_line']
+
         self.number_of_samples = len(self.drug_sensitivity_df)
+
         # NOTE: optional min-max scaling
         if self.drug_sensitivity_min_max:
             minimum = (

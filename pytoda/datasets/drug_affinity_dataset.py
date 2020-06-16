@@ -150,19 +150,20 @@ class DrugAffinityDataset(Dataset):
         self.drug_affinity_df = pd.read_csv(
             self.drug_affinity_filepath, index_col=0
         )
-        # NOTE: filter based on the availability
-        self.available_drugs = set(
-            self.smiles_dataset.keys()
-        ) & set(self.drug_affinity_df['ligand_name'])
+        # filter data based on the availability
+        drug_mask = self.drug_affinity_df['ligand_name'].isin(
+            set(self.smiles_dataset.keys())
+        )
+        sequence_mask = self.drug_affinity_df['sequence_id'].isin(
+            set(self.protein_sequence_dataset.keys())
+        )
         self.drug_affinity_df = self.drug_affinity_df.loc[
-            self.drug_affinity_df['ligand_name'].isin(self.available_drugs)]
-        self.available_sequences = set(
-            self.protein_sequence_dataset.keys()
-        ) & set(self.drug_affinity_df['sequence_id'])
-        self.drug_affinity_df = self.drug_affinity_df.loc[
-            self.drug_affinity_df['sequence_id'].isin(
-                self.available_sequences
-            )]
+            drug_mask & sequence_mask
+        ]
+        # to investigate missing ids per entity
+        self.masks_df = pd.concat([drug_mask, sequence_mask], axis=1)
+        self.masks_df.columns = ['ligand_name', 'sequence_id']
+
         self.number_of_samples = len(self.drug_affinity_df)
 
     def __len__(self) -> int:

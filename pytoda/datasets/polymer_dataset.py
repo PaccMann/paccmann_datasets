@@ -248,20 +248,25 @@ class PolymerEncoderDataset(Dataset):
         # get the number of labels
         self.number_of_tasks = len(self.labels)
 
-        # NOTE: filter data based on the availability
-        # available_entity_ids = []  # base_dataset: check for removal
+        # filter data based on the availability
+        masks = []
         mask = pd.Series(
             [True] * len(self.annotated_data_df),
             index=self.annotated_data_df.index
         )
         for entity, dataset in zip(self.entities, self.datasets):
             # prune rows (in mask) with ids unavailable in respective dataset
-            mask = mask & self.annotated_data_df[entity].isin(
+            local_mask = self.annotated_data_df[entity].isin(
                 set(dataset.keys())
             )
-            # available_entity_ids.append(set(self.annotated_data_df.loc[mask, entity]))  # base_dataset: check for removal
+            mask = mask & local_mask
+            masks.append(local_mask)
+
         self.annotated_data_df = self.annotated_data_df.loc[mask]
-        # self.available_entity_ids = available_entity_ids   # base_dataset: check for removal
+
+        # to investigate missing ids per entity
+        self.masks_df = pd.concat(masks, axis=1)
+        self.masks_df.columns = self.entities
 
     def __len__(self) -> Iterable[int]:
         """Total number of samples."""
