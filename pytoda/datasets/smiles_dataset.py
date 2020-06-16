@@ -173,10 +173,9 @@ class SMILESEncoderDataset(DatasetDelegator):
                 padding_length=padding_length,
                 device=device,
             )
-        if iterate_dataset:  # TODO why not iterate smis for selfies before?
+        if iterate_dataset:
+            self.smiles_language.add_smis(smi_filepaths)
             # uses the smiles transforms
-            self.smiles_language.add_dataset(self.dataset)
-            self.smiles_language.set_smiles_transforms()  # TODO want/need?
             self.smiles_language.add_dataset(self.dataset)
             if padding and padding_length is None:
                 self.smiles_language.set_max_padding()
