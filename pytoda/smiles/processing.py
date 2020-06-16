@@ -3,11 +3,11 @@ import codecs
 import logging
 import os
 import re
-
-from SmilesPE.pretokenizer import kmer_tokenizer
-from SmilesPE.tokenizer import SPE_Tokenizer
+from importlib import resources
 
 from pytoda.types import Tokens
+from SmilesPE.pretokenizer import kmer_tokenizer
+from SmilesPE.tokenizer import SPE_Tokenizer
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +16,9 @@ SMILES_TOKENIZER = re.compile(
     r'(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|'
     r'-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])'
 )
-spe_filepath = os.path.join(
-    os.path.dirname(__file__), 'metadata', 'spe_chembl.txt'
-)
-SPE_TOKENIZER = SPE_Tokenizer(codecs.open(spe_filepath))
+
+with resources.path('pytoda.smiles.metadata', 'spe_chembl.txt') as filepath:
+    SPE_TOKENIZER = SPE_Tokenizer(codecs.open(filepath))
 
 
 def tokenize_smiles(smiles: str, regexp=None) -> Tokens:
