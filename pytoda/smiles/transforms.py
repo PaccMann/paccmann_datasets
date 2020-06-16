@@ -448,6 +448,11 @@ class AugmentTensor(Transform):
         Returns:
             torch.Tensor: randomized SMILES representation.
         """
+        if type(smiles_numerical) == torch.Tensor:
+            if smiles_numerical.ndim == 2:
+                return self.__call__tensor(smiles_numerical)
+            elif smiles_numerical.ndim == 1:
+                smiles_numerical = smiles_numerical.numpy().flatten().tolist()
 
         if type(smiles_numerical) == list:
             smiles = self.smiles_language.token_indexes_to_smiles(
@@ -480,11 +485,10 @@ class AugmentTensor(Transform):
             return self.smiles_language.smiles_to_token_indexes(
                 augmented_smiles
             )
-        elif type(smiles_numerical) == torch.Tensor:
-            return self.__call__tensor(smiles_numerical)
 
-        else:
-            raise TypeError('Please pass either a torch.Tensor or a list.')
+        raise TypeError(
+            'Please pass either a torch.Tensor of ndim 1, 2 or alist.'
+        )
 
     def __call__tensor(self, smiles_numerical: torch.Tensor) -> str:
         """
@@ -529,20 +533,18 @@ class AugmentTensor(Transform):
 
             lenx = seq_len + 1
             while lenx > seq_len:
-                augmented_smiles = self.__call__(smiles.tolist())
+                augmented_smiles = self.__call__(smiles)
                 lenx = len(augmented_smiles)
             if padding:
-                pads = (
-                    [self.smiles_language.padding_index] *
-                    (seq_len - len(augmented_smiles))
+                pl = seq_len - len(augmented_smiles)
+                pad = (0, pl) if right_padding else (pl, 0)
+                augmented_smiles = torch.nn.functional.pad(
+                    augmented_smiles, pad,
+                    value=self.smiles_language.padding_index
                 )
-                if right_padding:
-                    augmented_smiles = augmented_smiles + pads
-                if left_padding:
-                    augmented_smiles = pads + augmented_smiles
 
             augmented.append(
-                torch.unsqueeze(torch.Tensor(augmented_smiles), 0)
+                torch.unsqueeze(augmented_smiles, 0)
             )
 
         augmented = torch.cat(augmented, dim=0)
