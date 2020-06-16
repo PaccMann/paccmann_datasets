@@ -2,10 +2,10 @@
 from upfp import parse_fasta
 
 from ..types import Hashable
-from .base_dataset import IndexedDataset
+from .base_dataset import KeyDataset
 
 
-class _FastaEagerDataset(IndexedDataset):
+class _FastaEagerDataset(KeyDataset):
     """
     .fasta dataset using eager loading.
 
@@ -25,7 +25,7 @@ class _FastaEagerDataset(IndexedDataset):
             gzipped (bool): Whether or not fasta file is zipped (.fasta.gz).
             name (str): type of dataset, used to index columns.
         """
-        IndexedDataset.__init__(self)
+        KeyDataset.__init__(self)
         self.fasta_filepath = fasta_filepath
         self.name = name
 

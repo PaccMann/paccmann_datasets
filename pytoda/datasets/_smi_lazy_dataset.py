@@ -1,11 +1,11 @@
 """Implementation of _SmiLazyDataset."""
 from ._cache_datasource import _CacheDatasource
-from .base_dataset import IndexedDataset
+from .base_dataset import KeyDataset
 from ..types import Hashable
 from ..files import read_smi
 
 
-class _SmiLazyDataset(IndexedDataset, _CacheDatasource):
+class _SmiLazyDataset(KeyDataset, _CacheDatasource):
     """
     .smi dataset using lazy loading.
 
@@ -25,7 +25,7 @@ class _SmiLazyDataset(IndexedDataset, _CacheDatasource):
             chunk_size (int): size of the chunks. Defaults to 10000.
         """
         _CacheDatasource.__init__(self)
-        IndexedDataset.__init__(self)
+        KeyDataset.__init__(self)
         self.smi_filepath = smi_filepath
         self.name = name
         self.chunk_size = chunk_size

@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 
 from ..types import AnnotatedData, Any, Hashable, List, Tuple, Union
-from .base_dataset import IndexedDataset
+from .base_dataset import KeyDataset
 from .dataframe_dataset import DataFrameDataset
 
 
@@ -18,7 +18,7 @@ class AnnotatedDataset(DataFrameDataset):
     def __init__(
         self,
         annotations_filepath: str,
-        dataset: IndexedDataset,
+        dataset: KeyDataset,
         annotation_index: Union[int, str] = -1,
         label_columns: Union[List[int], List[str]] = None,
         dtype: torch.dtype = torch.float,
@@ -36,7 +36,7 @@ class AnnotatedDataset(DataFrameDataset):
                 Currently, the supported formats are column separated files.
                 The default structure assumes that the last column contains an
                 id that is also used in the dataset provided.
-            dataset (IndexedDataset): instance of a IndexedDataset (supporting
+            dataset (KeyDataset): instance of a KeyDataset (supporting
                 label indices). E.g. a SMILESDataset
             annotation_index (Union[int, str]): positional or string for the
                 column containing the annotation index. Defaults to -1, a.k.a.

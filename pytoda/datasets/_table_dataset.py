@@ -129,7 +129,7 @@ class _TableDataset(DatasetDelegator):
         self._preprocess_dataset()
 
     def _setup_dataset(self) -> None:
-        """Setup IndexedDataset assigned to self.dataset for delegation."""
+        """Setup KeyDataset assigned to self.dataset for delegation."""
         raise NotImplementedError
 
     def _preprocess_dataset(self) -> None:
@@ -163,7 +163,7 @@ class _TableLazyDataset(_TableDataset):
     """
 
     def _setup_dataset(self) -> None:
-        """Setup IndexedDataset assigned to self.dataset for delegation."""
+        """Setup KeyDataset assigned to self.dataset for delegation."""
         self.dataset = concatenate_file_based_datasets(
             filepaths=self.filepaths,
             dataset_class=_CsvLazyDataset,
@@ -192,7 +192,7 @@ class _TableEagerDataset(_TableDataset):
     """
 
     def _setup_dataset(self) -> None:
-        """Setup IndexedDataset assigned to self.dataset for delegation."""
+        """Setup KeyDataset assigned to self.dataset for delegation."""
         self.dataset = concatenate_file_based_datasets(
             filepaths=self.filepaths,
             dataset_class=_CsvEagerDataset,

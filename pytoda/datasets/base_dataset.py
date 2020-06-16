@@ -7,7 +7,7 @@ from torch.utils.data import ConcatDataset, Dataset
 from ..types import Any, Hashable, Iterator, List, Tuple
 
 
-class IndexedDataset(Dataset):
+class KeyDataset(Dataset):
     """
     Base Class for Datsets with both integer index and sample identifier.
     Think .iloc versus .loc indexing.
@@ -25,7 +25,7 @@ class IndexedDataset(Dataset):
     be used, but there are no guarantees.
     """
     def __add__(self, other):
-        return _ConcatenatedDataset([self, other])
+        return ConcatKeyDataset([self, other])
 
     def get_key(self, index: int) -> Hashable:
         """Get sample identifier from integer index."""
@@ -52,7 +52,7 @@ class IndexedDataset(Dataset):
 
 class DatasetDelegator:
     """
-    Base class for IndexedDataset attribute accesses from `self.dataset`.
+    Base class for KeyDataset attribute accesses from `self.dataset`.
 
     The attributes/methods to delegate are stored to allow explicit filtering
     and addition to class documentation.
@@ -69,7 +69,7 @@ class DatasetDelegator:
 
     # returned dataset is not a Delegator
     def __add__(self, other):
-        return _ConcatenatedDataset([self, other])
+        return ConcatKeyDataset([self, other])
 
     # explicit implementation to ensure use of top level __getitem__
     # (possibly overloaded) vs using datasets.__getitem__
@@ -113,7 +113,7 @@ class DatasetDelegator:
         return dir(type(self)) + list(self.__dict__.keys()) + self._delegatable
 
 
-class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
+class ConcatKeyDataset(ConcatDataset, KeyDataset):
     """
     Extension of ConcatDataset with transparent indexing.
 
@@ -122,12 +122,12 @@ class _ConcatenatedDataset(ConcatDataset, IndexedDataset):
 
     def __init__(self, datasets: List[Dataset]):
         """
-        Initialize the _ConcatenatedDataset.
+        Initialize the ConcatKeyDataset.
 
         Args:
             datasets (List[Dataset]): a list of datasets.
         """
-        super(_ConcatenatedDataset, self).__init__(datasets)
+        super(ConcatKeyDataset, self).__init__(datasets)
         # __getitem__ and __len__ implementation from ConcatDataset
 
     def get_index_pair(self, idx: int) -> Tuple[int, int]:

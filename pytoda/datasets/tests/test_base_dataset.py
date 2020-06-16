@@ -5,13 +5,13 @@ from copy import copy
 
 import numpy as np
 import pandas as pd
-from pytoda.datasets import (DatasetDelegator, IndexedDataset,
-                             _ConcatenatedDataset)
+from pytoda.datasets import (DatasetDelegator, KeyDataset,
+                             ConcatKeyDataset)
 from pytoda.types import Hashable
 from torch.utils.data import DataLoader
 
 
-class Indexed(IndexedDataset):
+class Indexed(KeyDataset):
     """As DataFrameDataset but only implementing necessary methods"""
     def __init__(self, df):
         self.df = df
@@ -39,7 +39,7 @@ class Indexed(IndexedDataset):
             if len(indices) == 0:
                 raise KeyError
             else:
-                # key not unique, return first as _ConcatenatedDataset
+                # key not unique, return first as ConcatKeyDataset
                 return indices[0]
 
 
@@ -70,7 +70,7 @@ class TestBaseDatasets(unittest.TestCase):
 
         self.delegating_ds = Delegating(self.a_1st_ds)
 
-        # IndexedDataset.__add__ i.e. _ConcatenatedDataset
+        # KeyDataset.__add__ i.e. ConcatKeyDataset
         self.concat_ds = self.delegating_ds + self.a_2nd_ds
         self.concat_keys = self.a_1st_keys + self.a_2nd_keys
 
@@ -80,7 +80,7 @@ class TestBaseDatasets(unittest.TestCase):
         # delegated to Indexed
         self.assertIn('get_key', ds_dir)
         self.assertIn('get_index', ds_dir)
-        # delegated to IndexedDataset
+        # delegated to KeyDataset
         self.assertIn('get_item_from_key', ds_dir)
         self.assertIn('keys', ds_dir)
         self.assertIn('has_duplicate_keys', ds_dir)
@@ -185,7 +185,7 @@ class TestBaseDatasets(unittest.TestCase):
             self._test_indexed(ds, keys, index)
 
             # again with self delegation and concatenation
-            ds = _ConcatenatedDataset([Delegating(other_ds), Delegating(ds)])
+            ds = ConcatKeyDataset([Delegating(other_ds), Delegating(ds)])
             index = self.length + 1  # dataset_index == 1
             keys = other_keys + keys
             self._test_indexed(ds, keys, index)
@@ -199,7 +199,7 @@ class TestBaseDatasets(unittest.TestCase):
                 (1, keys[index]),
                 ds.get_key_pair(index)
             )
-            # _ConcatenatedDataset is not a DatasetDelegator
+            # ConcatKeyDataset is not a DatasetDelegator
             self.assertNotIn('df', dir(ds))
 
         index == self.length + 1

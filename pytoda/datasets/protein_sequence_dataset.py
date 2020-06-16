@@ -12,7 +12,7 @@ from ._fasta_eager_dataset import _FastaEagerDataset
 from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
 from .utils import concatenate_file_based_datasets
-from .base_dataset import DatasetDelegator, IndexedDataset
+from .base_dataset import DatasetDelegator, KeyDataset
 
 SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
     '.csv': {
@@ -34,7 +34,7 @@ SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
 
 def protein_sequence_dataset(
     *filepaths, filetype, backend, **kwargs
-) -> IndexedDataset:
+) -> KeyDataset:
     """Return a dataset of protein sequences."""
     try:
         # hardcoded factory

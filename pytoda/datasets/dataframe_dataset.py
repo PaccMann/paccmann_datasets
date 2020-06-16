@@ -1,11 +1,11 @@
-"""IndexedDataset for pandas DataFrames ."""
+"""KeyDataset for pandas DataFrames ."""
 import numpy as np
 import pandas as pd
-from .base_dataset import IndexedDataset
+from .base_dataset import KeyDataset
 from ..types import Hashable, Iterator
 
 
-class DataFrameDataset(IndexedDataset):
+class DataFrameDataset(KeyDataset):
     """
     Dataset from pandas.DataFrame
     """
@@ -45,7 +45,7 @@ class DataFrameDataset(IndexedDataset):
             if len(indices) == 0:
                 raise KeyError
             else:
-                # key not unique, return first as _ConcatenatedDataset
+                # key not unique, return first as ConcatKeyDataset
                 return indices[0]
 
     def get_item_from_key(self, key: Hashable) -> np.array:

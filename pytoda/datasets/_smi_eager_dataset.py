@@ -1,6 +1,6 @@
 """Implementation of _SmiEagerDataset."""
 from torch.utils.data import Dataset
-from .base_dataset import IndexedDataset
+from .base_dataset import KeyDataset
 from .dataframe_dataset import DataFrameDataset
 from ..files import read_smi
 from ..types import Any, Hashable

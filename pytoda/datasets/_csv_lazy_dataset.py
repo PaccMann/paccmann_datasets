@@ -6,7 +6,7 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 from ._cache_datasource import _CacheDatasource
-from .base_dataset import IndexedDataset
+from .base_dataset import KeyDataset
 from ._csv_statistics import _CsvStatistics
 from ..types import FeatureList, Hashable
 
@@ -20,7 +20,7 @@ def sizeof_fmt(num, suffix='B'):
     return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
-class _CsvLazyDataset(IndexedDataset, _CacheDatasource, _CsvStatistics):
+class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
     """
     .csv dataset using lazy loading.
 
@@ -63,7 +63,7 @@ class _CsvLazyDataset(IndexedDataset, _CacheDatasource, _CsvStatistics):
             self, filepath, feature_list=feature_list, **kwargs
         )  # calls setup_datasource
         _ = self.kwargs.pop('chunksize', None)  # not passing chunksize twice
-        IndexedDataset.__init__(self)
+        KeyDataset.__init__(self)
 
     def setup_datasource(self) -> None:
         """Setup the datasource ready to collect statistics."""

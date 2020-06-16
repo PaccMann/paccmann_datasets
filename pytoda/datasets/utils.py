@@ -2,7 +2,7 @@
 from torch.utils.data import Dataset
 
 from ..types import FileList
-from .base_dataset import _ConcatenatedDataset
+from .base_dataset import ConcatKeyDataset
 
 
 def concatenate_file_based_datasets(
@@ -19,6 +19,6 @@ def concatenate_file_based_datasets(
     Returns:
         Dataset: the concatenated dataset.
     """
-    return _ConcatenatedDataset(
+    return ConcatKeyDataset(
         datasets=[dataset_class(filepath, **kwargs) for filepath in filepaths]
     )
