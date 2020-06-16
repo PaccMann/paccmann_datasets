@@ -10,10 +10,11 @@ from selfies import decoder as selfies_decoder
 from selfies import encoder as selfies_encoder
 
 from ..files import read_smi
-from ..types import FileList, Indexes, Iterable, SMILESTokenizer, Tokens
+from ..transforms import Compose
+from ..types import (FileList, Indexes, Iterable, SMILESTokenizer, Tensor,
+                     Tokens, Union)
 from .processing import SMILES_TOKENIZER, tokenize_smiles
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
-from ..transforms import Compose
 
 logger = logging.getLogger(__name__)
 
@@ -288,7 +289,7 @@ class SMILESLanguage(object):
             self.index_to_token[self.number_of_tokens] = token
             self.number_of_tokens += 1
 
-    def smiles_to_token_indexes(self, smiles: str) -> Indexes:
+    def smiles_to_token_indexes(self, smiles: str) -> Union[Indexes, Tensor]:
         """
         Transform character-level SMILES into a sequence of token indexes.
 
@@ -296,7 +297,8 @@ class SMILESLanguage(object):
             smiles (str): a SMILES (or SELFIES) representation.
 
         Returns:
-            Indexes: indexes representation for the SMILES/SELFIES provided.
+            Union[Indexes, Tensor]: indexes representation for the
+                SMILES/SELFIES provided.
         """
         return self.transform_encoding(
             [
@@ -306,17 +308,22 @@ class SMILESLanguage(object):
             ]
         )
 
-    def token_indexes_to_smiles(self, token_indexes: Indexes) -> str:
+    def token_indexes_to_smiles(
+        self, token_indexes: Union[Indexes, Tensor]
+    ) -> str:
         """
         Transform a sequence of token indexes into SMILES, ignoring special
         tokens.
 
         Args:
-            token_indexes (Indexes): a sequence of token indexes.
+            token_indexes (Union[Indexes, Tensor]): Sequence of integers
+                representing tokens in vocabulary.
 
         Returns:
             str: a SMILES (or SELFIES) representation.
         """
+        token_indexes = self.tensor_to_indexes(token_indexes)
+
         return ''.join(
             [
                 self.index_to_token.get(token_index, '')
@@ -325,6 +332,28 @@ class SMILESLanguage(object):
                 if token_index > 3
             ]
         )
+
+    @staticmethod
+    def tensor_to_indexes(token_indexes: Union[Indexes, Tensor]) -> Indexes:
+        """Utility to get Indexes from Tensors.
+
+        Args:
+            token_indexes (Union[Indexes, Tensor]): from single SMILES.
+
+        Raises:
+            ValueError: in case the Tensor is not shaped correctly
+
+        Returns:
+            Indexes: list from Tensor or else the initial token_indexes.
+        """
+        if isinstance(token_indexes, torch.Tensor):
+            if token_indexes.ndim != 1:
+                raise ValueError(
+                    'Only token indexes for a single SMILES are supported'
+                )
+            return token_indexes.numpy().flatten().tolist()
+
+        return token_indexes
 
     def selfies_to_smiles(self, selfies: str) -> str:
         """

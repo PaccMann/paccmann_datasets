@@ -1,8 +1,9 @@
 """Polymer language handling."""
 from typing import Iterable
+
+from ..types import Indexes, Tensor, Union, delegate_kwargs
 from .smiles_language import SMILESEncoder
-from .transforms import compose_smiles_transforms, compose_encoding_transforms
-from ..types import Indexes, delegate_kwargs
+from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
 
 # @delegate_kwargs
@@ -102,7 +103,7 @@ class PolymerEncoder(SMILESEncoder):
 
     def smiles_to_token_indexes(
         self, smiles: str, entity: str = None
-    ) -> Indexes:
+    ) -> Union[Indexes, Tensor]:
         """
         Transform character-level SMILES into a sequence of token indexes.
 
@@ -115,7 +116,8 @@ class PolymerEncoder(SMILESEncoder):
                 SMILESEncoder default).  # TODO
 
         Returns:
-            Indexes: indexes representation for the SMILES/SELFIES provided.
+            Union[Indexes, Tensor]: indexes representation for the
+                SMILES/SELFIES provided.
         """
         if entity is None:
             # default behavior given by call to update_entity()
@@ -133,17 +135,21 @@ class PolymerEncoder(SMILESEncoder):
             ]
         )
 
-    def token_indexes_to_smiles(self, token_indexes: Indexes) -> str:
+    def token_indexes_to_smiles(
+        self, token_indexes: Union[Indexes, Tensor]
+    ) -> str:
         """
         Transform a sequence of token indexes into SMILES, ignoring special
         tokens.
 
         Args:
-            token_indexes (Indexes): a sequence of token indexes.
+            token_indexes (Union[Indexes, Tensor]): Sequence of integers
+                representing tokens in vocabulary.
 
         Returns:
-            str: a SMILES representation.
+            str: a SMILES (or SELFIES) representation.
         """
+        token_indexes = self.tensor_to_indexes(token_indexes)
         return ''.join(
             [
                 self.index_to_token.get(token_index, '')

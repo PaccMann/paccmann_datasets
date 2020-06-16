@@ -153,6 +153,28 @@ class TestSmilesLanguage(unittest.TestCase):
             smiles_language.token_indexes_to_smiles(token_indexes), 'CCO'
         )
 
+    def test_smiles_roundtrip(self) -> None:
+        """Test smiles_to_token_indexes and token_indexes_to_smiles."""
+        smiles = 'CCO'
+        smiles_language = SMILESLanguage()
+        smiles_language.add_smiles(smiles)
+
+        self.assertEqual(
+            smiles_language.token_indexes_to_smiles(
+                smiles_language.smiles_to_token_indexes('CCO')
+            ),
+            'CCO'
+        )
+
+        smiles_language = SMILESEncoder(add_start_and_stop=True)
+        smiles_language.add_smiles(smiles)
+        self.assertEqual(
+            smiles_language.token_indexes_to_smiles(
+                smiles_language.smiles_to_token_indexes('CCO')
+            ),
+            'CCO'
+        )
+
     def test_smiles_to_selfies(self) -> None:
         """Test smiles_to_selfies and selfies_to_smiles"""
         smiles = 'CCO'

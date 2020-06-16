@@ -11,7 +11,7 @@ from selfies import encoder as selfies_encoder
 
 from ..transforms import (Compose, LeftPadding, Randomize, StartStop, ToTensor,
                           Transform)
-from ..types import Indexes, Callable, Tuple
+from ..types import Callable, Indexes, Tensor, Tuple, Union
 
 logger = logging.getLogger('pytoda_SMILES_transforms')
 
@@ -169,7 +169,7 @@ class SMILESToTokenIndexes(Transform):
         """
         self.smiles_language = smiles_language
 
-    def __call__(self, smiles: str) -> Indexes:
+    def __call__(self, smiles: str) -> Union[Indexes, Tensor]:
         """
         Apply the SMILES tokenization transformation
 
@@ -437,7 +437,7 @@ class AugmentTensor(Transform):
             raise ValueError('Please pass a SMILES language object')
         self.smiles_language = smiles_language
 
-    def __call__(self, smiles_numerical: list) -> str:
+    def __call__(self, smiles_numerical: Union[Indexes, Tensor]) -> str:
         """
         Apply the transform.
 
@@ -490,7 +490,7 @@ class AugmentTensor(Transform):
             'Please pass either a torch.Tensor of ndim 1, 2 or alist.'
         )
 
-    def __call__tensor(self, smiles_numerical: torch.Tensor) -> str:
+    def __call__tensor(self, smiles_numerical: Tensor) -> str:
         """
         Wrapper of the transform for torch.Tensor.
 

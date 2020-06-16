@@ -2,15 +2,15 @@
 from typing import (
     Any,
     Callable,
-    Hashable,
-    Iterable,
-    Iterator,
+    Hashable,  # noqa
+    Iterable,  # noqa
+    Iterator,  # noqa
     List,  # noqa
     Tuple,
-    Union
+    Union  # noqa
 )
 import inspect
-import torch
+from torch import Tensor
 
 Tokens = List[str]
 Indexes = List[int]
@@ -19,9 +19,9 @@ FileList = List[str]
 GeneList = List[str]
 FeatureList = List[str]
 TransformList = List[Callable[[Any], Any]]
-DrugSensitivityData = Tuple[torch.tensor, torch.tensor, torch.tensor]
-DrugAffinityData = Tuple[torch.tensor, torch.tensor, torch.tensor]
-AnnotatedData = Tuple[torch.tensor, torch.tensor]
+DrugSensitivityData = Tuple[Tensor, Tensor, Tensor]
+DrugAffinityData = Tuple[Tensor, Tensor, Tensor]
+AnnotatedData = Tuple[Tensor, Tensor]
 
 
 def delegate_kwargs(to=None, keep=False):
