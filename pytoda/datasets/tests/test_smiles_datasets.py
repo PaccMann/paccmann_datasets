@@ -194,6 +194,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                     )
                     self.assertEqual(smiles, randomized_smiles)
 
+                print("\nExpected 'SMILES Parse Error' for selfies via rdkit:")
                 smiles_dataset = SMILESEncoderDataset(
                     a_test_file.filename,
                     another_test_file.filename,
