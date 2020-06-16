@@ -1,7 +1,7 @@
 """Polymer language handling."""
 from typing import Iterable
 
-from ..types import Indexes, Tensor, Union, delegate_kwargs
+from ..types import Indexes, Tensor, Union  # , delegate_kwargs
 from .smiles_language import SMILESEncoder
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 

@@ -29,25 +29,25 @@ class PolymerEncoderDataset(Dataset):
         annotations_filepath: str,
         annotations_column_names: Union[List[int], List[str]] = None,
         smiles_language: PolymerEncoder = None,
-        canonical: Union[Iterable[str], bool] = False,
-        augment: Union[Iterable[str], bool] = False,
-        kekulize: Union[Iterable[str], bool] = False,
-        all_bonds_explicit: Union[Iterable[str], bool] = False,
-        all_hs_explicit: Union[Iterable[str], bool] = False,
-        randomize: Union[Iterable[str], bool] = False,
-        remove_bonddir: Union[Iterable[str], bool] = False,
-        remove_chirality: Union[Iterable[str], bool] = False,
-        selfies: Union[Iterable[str], bool] = False,
-        sanitize: Union[Iterable[str], bool] = True,
-        padding: Union[Iterable[str], bool] = True,
-        padding_length: Union[Iterable[str], int] = None,
+        canonical: Union[Iterable[bool], bool] = False,
+        augment: Union[Iterable[bool], bool] = False,
+        kekulize: Union[Iterable[bool], bool] = False,
+        all_bonds_explicit: Union[Iterable[bool], bool] = False,
+        all_hs_explicit: Union[Iterable[bool], bool] = False,
+        randomize: Union[Iterable[bool], bool] = False,
+        remove_bonddir: Union[Iterable[bool], bool] = False,
+        remove_chirality: Union[Iterable[bool], bool] = False,
+        selfies: Union[Iterable[bool], bool] = False,
+        sanitize: Union[Iterable[bool], bool] = True,
+        padding: Union[Iterable[bool], bool] = True,
+        padding_length: Union[Iterable[int], int] = None,
         iterate_dataset: bool = True,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
         backend: str = 'eager',
         **kwargs
-    ) -> None:  # TODO why iterable str?
+    ) -> None:
         """
         Initialize a Polymer dataset.
 
@@ -66,34 +66,34 @@ class PolymerEncoderDataset(Dataset):
                 labels.
             smiles_language (PolymerEncoder): a polymer language.
                 Defaults to None, in which case a new object is created.
-            padding (Union[Iterable[str], bool]): pad sequences to longest in
+            padding (Union[Iterable[bool], bool]): pad sequences to longest in
                 the smiles language. Defaults to True. Controlled either for
                 each dataset separately (by iterable) or globally (bool).
-            padding_length (Union[Iterable[str], int]): manually sets number of
+            padding_length (Union[Iterable[int], int]): manually sets number of
                 applied paddings, applies only if padding is True. Defaults to
                 None. Controlled either for each dataset separately (by
                 iterable) or globally (int).
-            canonical (Union[Iterable[str], bool]): performs canonicalization
+            canonical (Union[Iterable[bool], bool]): performs canonicalization
                 of SMILES (one original string for one molecule), if True, then
                 other transformations (augment etc, see below) do not apply.
-            augment (Union[Iterable[str], bool]): perform SMILES augmentation.
+            augment (Union[Iterable[bool], bool]): perform SMILES augmentation.
                 Defaults to False.
-            kekulize (Union[Iterable[str], bool]): kekulizes SMILES
+            kekulize (Union[Iterable[bool], bool]): kekulizes SMILES
                 (implicit aromaticity only).
                 Defaults to False.
-            all_bonds_explicit (Union[Iterable[str], bool]): Makes all bonds
+            all_bonds_explicit (Union[Iterable[bool], bool]): Makes all bonds
                 explicit. Defaults to False, only applies if kekulize = True.
-            all_hs_explicit (Union[Iterable[str], bool]): Makes all hydrogens
+            all_hs_explicit (Union[Iterable[bool], bool]): Makes all hydrogens
                 explicit. Defaults to False, only applies if kekulize = True.
-            randomize (Union[Iterable[str], bool]): perform a true
+            randomize (Union[Iterable[bool], bool]): perform a true
                 randomization of SMILES tokens. Defaults to False.
-            remove_bonddir (Union[Iterable[str], bool]): Remove directional
+            remove_bonddir (Union[Iterable[bool], bool]): Remove directional
                 info of bonds. Defaults to False.
-            remove_chirality (Union[Iterable[str], bool]): Remove chirality
+            remove_chirality (Union[Iterable[bool], bool]): Remove chirality
                 information. Defaults to False.
-            selfies (Union[Iterable[str], bool]): Whether selfies is used
+            selfies (Union[Iterable[bool], bool]): Whether selfies is used
                 instead of smiles, defaults to False.
-            sanitize (Union[Iterable[str], bool]): Sanitize SMILES.
+            sanitize (Union[Iterable[bool], bool]): Sanitize SMILES.
                 Defaults to True.
             iterate_dataset (bool): whether to go through all SMILES in the
                 dataset to build/extend vocab, find longest sequence, and
@@ -105,6 +105,9 @@ class PolymerEncoderDataset(Dataset):
                 Defaults to eager, prefer speed over memory consumption.
             kwargs (dict): additional arguments for dataset constructor.
 
+        NOTE: If a parameter that can be given as Union[Iterable[bool], bool]
+        is given as Iterable[bool] of wrong length (!= len(entity_names)), the
+        first list item is used for all datasets.
         """
 
         self.device = device
@@ -114,9 +117,7 @@ class PolymerEncoderDataset(Dataset):
             raise ValueError('Give 1 .smi file per entity')
 
         # Setup parameter
-        # NOTE: If a parameter that can be given as Union[Iterable[str], bool]
-        # is given as Iterable[str] of wrong length (!= len(entity_names)), the
-        # first list item is used for all datasets.
+
         (
             self.paddings, self.padding_lengths, self.canonicals,
             self.augments, self.kekulizes, self.all_bonds_explicits,
