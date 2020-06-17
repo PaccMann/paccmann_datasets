@@ -1,10 +1,13 @@
 """Testing SMILESLanguage."""
-import unittest
 import os
-from pytoda.smiles.smiles_language import SMILESLanguage, SMILESEncoder
-from pytoda.tests.utils import TestFileContent
+import unittest
+import tempfile
+
 from pytoda.smiles.processing import tokenize_selfies
+from pytoda.smiles.smiles_language import SMILESEncoder, SMILESLanguage
 from pytoda.smiles.transforms import Selfies
+from pytoda.tests.utils import TestFileContent
+
 # from pytoda.transforms import StartStop # TODO
 
 
@@ -229,8 +232,30 @@ class TestSmilesLanguage(unittest.TestCase):
             list(smiles_language.smiles_to_token_indexes(smiles))
         )
 
-    def test_load_vocab(self):
-        pass
+    def test_vocab_roundtrip(self):
+        smiles = 'CCO'
+        source_language = SMILESLanguage()
+        source_language.add_smiles(smiles)
+        # to test
+        vocab = source_language.token_to_index
+        vocab_ = source_language.index_to_token
+        max_len = source_language.max_token_sequence_length
+        count = source_language.token_count
+        total = source_language.number_of_tokens
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            vocab_file = os.path.join(tempdir, 'vocab.json')
+            source_language.save_vocab(vocab_file)  # include_metadata=True
+
+            smiles_language = SMILESEncoder()
+            smiles_language.load_vocab(
+                vocab_file, include_metadata=True
+            )
+        self.assertSequenceEqual(vocab, smiles_language.token_to_index)
+        self.assertSequenceEqual(vocab_, smiles_language.index_to_token)
+        self.assertEqual(max_len, smiles_language.max_token_sequence_length)
+        self.assertSequenceEqual(count, smiles_language.token_count)
+        self.assertEqual(total, smiles_language.number_of_tokens)
 
 
 if __name__ == '__main__':

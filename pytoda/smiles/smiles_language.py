@@ -1,6 +1,7 @@
 """SMILES language handling."""
 import json
 import logging
+import warnings
 from collections import Counter
 
 import dill
@@ -13,7 +14,7 @@ from ..files import read_smi
 from ..transforms import Compose
 from ..types import (FileList, Indexes, Iterable, SMILESTokenizer, Tensor,
                      Tokens, Union)
-from .processing import SMILES_TOKENIZER, tokenize_smiles
+from .processing import SMILES_TOKENIZER, tokenize_smiles, tokenize_selfies
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
 logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ class SMILESLanguage(object):
         name: str = 'smiles-language',
         smiles_tokenizer: SMILESTokenizer = (
             lambda smiles: tokenize_smiles(smiles, regexp=SMILES_TOKENIZER)
-        )
+        ),
     ) -> None:
         """
         Initialize SMILES language.
@@ -56,8 +57,8 @@ class SMILESLanguage(object):
         self.unknown_index = 1
         self.start_index = 2
         self.stop_index = 3
-        self._token_count = Counter()
-        self.index_to_token = {
+        self.token_count = Counter()
+        self.special_indexes = {
             self.padding_index: self.padding_token,
             self.unknown_index: self.unknown_token,
             self.start_index: self.start_token,
@@ -69,10 +70,13 @@ class SMILESLanguage(object):
             enumerate(
                 list('()') + list(map(str, range(1, 10))) +
                 list('%{}'.format(index) for index in range(10, 30)),
-                start=len(self.index_to_token)
+                start=len(self.special_indexes)
             )
         )
-        self.index_to_token.update(additional_indexes_to_token)
+        self.index_to_token = {
+            **self.special_indexes,
+            **additional_indexes_to_token
+        }
         self.number_of_tokens = len(self.index_to_token)
         self.token_to_index = {
             token: index
@@ -97,6 +101,10 @@ class SMILESLanguage(object):
         Returns:
             SMILESLanguage: the loaded SMILES language object.
         """
+        warnings.warn(
+            "Loading languages will use a text file in the future",
+            FutureWarning
+        )
         with open(filepath, 'rb') as f:
             smiles_language = dill.load(f)
         return smiles_language
@@ -120,6 +128,10 @@ class SMILESLanguage(object):
         Args:
             filepath (str): path where to save the SMILESLanguage.
         """
+        warnings.warn(
+            "Saving languages will only store a text file in the future",
+            FutureWarning
+        )
         SMILESLanguage.dump(self, filepath)
 
     def load_vocab(self, vocab_file: str, include_metadata: bool = False):
@@ -137,7 +149,7 @@ class SMILESLanguage(object):
         with open(vocab_file, encoding="utf-8") as fp:
             loaded_dict = json.load(fp)
         # encoder
-        self.token_to_index = loaded_dict.token_to_index
+        self.token_to_index = self._check_specials(loaded_dict['vocab'])
         # decoder
         self.index_to_token = {v: k for k, v in self.token_to_index.items()}
         self.number_of_tokens = len(self.index_to_token)
@@ -146,41 +158,97 @@ class SMILESLanguage(object):
                 self.max_token_sequence_length = loaded_dict[
                     'max_token_sequence_length'
                 ]
-                self._token_count = Counter(loaded_dict['_token_count'])
+                self.token_count = Counter(loaded_dict['token_count'])
             except KeyError:
                 raise KeyError('The .json does not contain metadata.')
 
+    def _check_specials(self, vocab):
+        """Check that defined special tokens match class definitions."""
+        for index, token in self.special_indexes.items():
+            try:
+                if vocab[token] != index:
+                    warnings.warn(
+                        f'The vocab does not have matching special tokens: '
+                        f'{token} is {vocab[token]}, but was defined as '
+                        f'{index}.',
+                    )
+            except KeyError:
+                warnings.warn(
+                    f'The vocab is missing a special token: {token}.',
+                )
+        return vocab
+
     def save_vocab(
-        self, vocab_file: str, include_metadata: bool = False
+        self, vocab_file: str, include_metadata: bool = True
     ) -> None:
-        """[summary]
+        """Save the vocabulary mapping tokens to indexes to file.
 
         Args:
-            vocab_file (str): a .json with at least a 'vocab' field to write.
+            vocab_file (str): a .json with at least a 'vocab' field.
             include_metadata (bool, optional): Also load information on data
                 added to the language (token counts, max length).
-                Defaults to False.
+                Defaults to True.
         """
         save_dict = {'vocab': self.token_to_index}
         if include_metadata:
             save_dict.update({
                 'max_token_sequence_length': self.max_token_sequence_length,
-                '_token_count': self._token_count
+                'token_count': self.token_count
             })
         with open(vocab_file, 'w', encoding="utf-8") as fp:
-            json.dump(save_dict, fp)
+            json.dump(save_dict, fp, indent=4)
 
-    def _load_legacy_vocab(
+    def _load_vocab_from_pickled_language(
         self, filepath: str, include_metadata: bool = False
     ) -> None:
+        """Save the vocabulary mapping tokens to indexes from file.
+
+        Args:
+            filepath (str): path to the dump of the SMILESLanguage.
+            include_metadata (bool, optional): Also load information on data
+                added to the language (token counts, max length).
+                Defaults to False.
+        """
         a_language = self.load(filepath)
         # encoder
-        self.token_to_index = a_language.token_to_index
+        self.token_to_index = self._check_specials(a_language.token_to_index)
         # decoder
         self.index_to_token = {v: k for k, v in self.token_to_index.items()}
+        self.number_of_tokens = len(self.index_to_token)
+
         if include_metadata:
             self.max_token_sequence_length = a_language.max_token_sequence_length  # noqa
-            self._token_count = a_language._token_count
+            self.token_count = a_language.token_count
+
+    def _legacy_load_vocab_from_pickled_language(
+        self, filepath: str, include_metadata: bool = False
+    ) -> None:
+        """Save the vocabulary mapping tokens to indexes from legacy file.
+
+        Args:
+            filepath (str): path to the dump of the SMILESLanguage.
+            include_metadata (bool, optional): Also load information on data
+                added to the language (token counts, max length).
+                Defaults to False.
+        """
+        warnings.warn(
+            "Loading from legacy languages will be deprecated",
+            DeprecationWarning
+        )
+        a_language = self.load(filepath)
+        # encoder
+        # missing special tokens
+        self.token_to_index = a_language.token_to_index
+        self.token_to_index.update({
+            t: i for i, t in self.special_indexes.items()
+        })
+        # decoder
+        self.index_to_token = {v: k for k, v in self.token_to_index.items()}
+        self.number_of_tokens = len(self.index_to_token)
+
+        if include_metadata:
+            self.max_token_sequence_length = a_language.max_token_sequence_length  # noqa
+            self.token_count = a_language._token_count
 
     def _update_max_token_sequence_length(self, tokens: Tokens) -> None:
         """
@@ -213,7 +281,7 @@ class SMILESLanguage(object):
             )
         )
         # update language
-        self._token_count += tokens_counter
+        self.token_count += tokens_counter
         self.index_to_token.update(index_to_token)
         self.token_to_index.update(
             {token: index
@@ -312,10 +380,10 @@ class SMILESLanguage(object):
             token (str): a token.
         """
         if token in self.token_to_index:
-            self._token_count[token] += 1
+            self.token_count[token] += 1
         else:
             self.token_to_index[token] = self.number_of_tokens
-            self._token_count[token] = 1
+            self.token_count[token] = 1
             self.index_to_token[self.number_of_tokens] = token
             self.number_of_tokens += 1
 
@@ -359,7 +427,7 @@ class SMILESLanguage(object):
                 self.index_to_token.get(token_index, '')
                 for token_index in token_indexes
                 # consider only valid SMILES token indexes
-                if token_index > 3
+                if token_index not in self.special_indexes
             ]
         )
 
@@ -428,6 +496,22 @@ class SMILESLanguage(object):
                 'the SMILES instead'
             )
             return smiles
+
+
+class SELFIESLanguage(SMILESLanguage):
+    """
+    SELFIESLanguage is a SMILESLanguage with a different default tokenizer.
+
+    SMILESLanguage handle SMILES data defining the vocabulary and
+    utilities to manipulate it, including encoding to token indexes.
+    """
+
+    def __init__(
+        self,
+        name: str = 'selfies-language',
+        smiles_tokenizer: SMILESTokenizer = tokenize_selfies,
+    ) -> None:
+        super().__init__(name=name, smiles_tokenizer=smiles_tokenizer)
 
 
 class SMILESEncoder(SMILESLanguage):

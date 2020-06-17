@@ -51,29 +51,31 @@ class PolymerEncoder(SMILESEncoder):
         self.current_entity = None
 
         # rebuild basic vocab to group special tokens
-        # required for `token_indexes_to_smiles`
         self.start_entity_tokens, self.stop_entity_tokens = (
             list(map(lambda x: '<' + x.upper() + '_' + s + '>', entity_names))
             for s in ['START', 'STOP']
         )
 
-        self.index_to_token = {
-            self.padding_index: self.padding_token,
-            self.unknown_index: self.unknown_token,
-            self.start_index: self.start_token,
-            self.stop_index: self.stop_token,
-        }
+        # required for `token_indexes_to_smiles`
+        self.special_indexes.update(
+            enumerate(
+                self.start_entity_tokens + self.stop_entity_tokens,
+                start=len(self.special_indexes)
+            )
+        )
         # NOTE: include augmentation characters, paranthesis and numbers for
         #    rings
         additional_indexes_to_token = dict(
             enumerate(
-                self.start_entity_tokens + self.stop_entity_tokens +
                 list('()') + list(map(str, range(1, 10))) +
                 list('%{}'.format(index) for index in range(10, 30)),
-                start=len(self.index_to_token)
+                start=len(self.special_indexes)
             )
         )
-        self.index_to_token.update(additional_indexes_to_token)
+        self.index_to_token = {
+            **self.special_indexes,
+            **additional_indexes_to_token
+        }
         self.number_of_tokens = len(self.index_to_token)
         self.token_to_index = {
             token: index
@@ -132,30 +134,6 @@ class PolymerEncoder(SMILESEncoder):
                     self.all_smiles_transforms[entity](smiles)
                 )
                 if token in self.token_to_index
-            ]
-        )
-
-    def token_indexes_to_smiles(
-        self, token_indexes: Union[Indexes, Tensor]
-    ) -> str:
-        """
-        Transform a sequence of token indexes into SMILES, ignoring special
-        tokens.
-
-        Args:
-            token_indexes (Union[Indexes, Tensor]): Sequence of integers
-                representing tokens in vocabulary.
-
-        Returns:
-            str: a SMILES (or SELFIES) representation.
-        """
-        token_indexes = self.tensor_to_indexes(token_indexes)
-        return ''.join(
-            [
-                self.index_to_token.get(token_index, '')
-                for token_index in token_indexes
-                # consider only valid SMILES token indexes
-                if token_index > 3 + len(self.entities) * 2
             ]
         )
 
