@@ -122,35 +122,65 @@ class SMILESLanguage(object):
         """
         SMILESLanguage.dump(self, filepath)
 
-    def load_vocab(self, vocab_file: str):
-        """Load a vocabulary mapping from token to token indices."""
-        # encoder
+    def load_vocab(self, vocab_file: str, include_metadata: bool = False):
+        """Load a vocabulary mapping from token to token indices.
+
+        Args:
+            vocab_file (str): a .json with at least a 'vocab' field to load.
+            include_metadata (bool, optional): Also load information on data
+                added to the language (token counts, max length).
+                Defaults to False.
+
+        Raises:
+            KeyError: The vocab file might not contain metadata.
+        """
         with open(vocab_file, encoding="utf-8") as fp:
-            self.token_to_index = json.load(fp)
+            loaded_dict = json.load(fp)
+        # encoder
+        self.token_to_index = loaded_dict.token_to_index
         # decoder
         self.index_to_token = {v: k for k, v in self.token_to_index.items()}
+        self.number_of_tokens = len(self.index_to_token)
+        if include_metadata:
+            try:
+                self.max_token_sequence_length = loaded_dict[
+                    'max_token_sequence_length'
+                ]
+                self._token_count = Counter(loaded_dict['_token_count'])
+            except KeyError:
+                raise KeyError('The .json does not contain metadata.')
 
-    def save_vocab(self, vocab_file: str):
+    def save_vocab(
+        self, vocab_file: str, include_metadata: bool = False
+    ) -> None:
+        """[summary]
+
+        Args:
+            vocab_file (str): a .json with at least a 'vocab' field to write.
+            include_metadata (bool, optional): Also load information on data
+                added to the language (token counts, max length).
+                Defaults to False.
+        """
+        save_dict = {'vocab': self.token_to_index}
+        if include_metadata:
+            save_dict.update({
+                'max_token_sequence_length': self.max_token_sequence_length,
+                '_token_count': self._token_count
+            })
         with open(vocab_file, 'w', encoding="utf-8") as fp:
-            json.dump(self.token_to_index, fp)
+            json.dump(save_dict, fp)
 
-    def _load_counts(self, counts_file: str):
-        """Restore token counts stored from a prior smiles_language."""
-        with open(counts_file, encoding="utf-8") as fp:
-            self._token_count = Counter(json.load(fp))
-
-    def _save_counts(self, counts_file: str):
-        with open(counts_file, 'w', encoding="utf-8") as fp:
-            json.dump(self._token_count, fp)
-
-    def _load_max_token_sequence_length(self, max_len_file: str):
-        """Restore max length stored from a prior smiles_language."""
-        with open(max_len_file, encoding="utf-8") as fp:
-            self.max_token_sequence_length = int(fp.readline())
-
-    def _save_max_token_sequence_length(self, max_len_file: str):
-        with open(max_len_file, 'w', encoding="utf-8") as fp:
-            fp.write(str(self.max_token_sequence_length))
+    def _load_legacy_vocab(
+        self, filepath: str, include_metadata: bool = False
+    ) -> None:
+        a_language = self.load(filepath)
+        # encoder
+        self.token_to_index = a_language.token_to_index
+        # decoder
+        self.index_to_token = {v: k for k, v in self.token_to_index.items()}
+        if include_metadata:
+            self.max_token_sequence_length = a_language.max_token_sequence_length  # noqa
+            self._token_count = a_language._token_count
 
     def _update_max_token_sequence_length(self, tokens: Tokens) -> None:
         """

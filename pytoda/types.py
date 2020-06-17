@@ -1,13 +1,13 @@
 """Type definitions."""
-from typing import (
+from typing import (  # noqa
     Any,
     Callable,
-    Hashable,  # noqa
-    Iterable,  # noqa
-    Iterator,  # noqa
-    List,  # noqa
+    Hashable,
+    Iterable,
+    Iterator,
+    List,
     Tuple,
-    Union  # noqa
+    Union
 )
 import inspect
 from torch import Tensor

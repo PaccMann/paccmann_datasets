@@ -229,6 +229,9 @@ class TestSmilesLanguage(unittest.TestCase):
             list(smiles_language.smiles_to_token_indexes(smiles))
         )
 
+    def test_load_vocab(self):
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -96,7 +96,7 @@ class LeftPadding(Transform):
         except TypeError as e:
             if self.padding_length is None:
                 raise TypeError(
-                    'padding_length=None was given but integer is required.'             
+                    'padding_length=None was given but integer is required.'
                 )
             else:
                 raise e
