@@ -79,6 +79,7 @@ class ProteinSequenceDataset(DatasetDelegator):
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
         backend: str = 'eager',
+        iterate_dataset: bool = False,
         name: str = 'protein-sequences',
         **kwargs
     ) -> None:
@@ -106,6 +107,10 @@ class ProteinSequenceDataset(DatasetDelegator):
                 Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
+            iterate_dataset (bool): whether to go through all items in the
+                dataset to extend/build vocab, find longest sequence, and
+                checks the passed padding length if applicable. Defaults to
+                False.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             name (str): name of the ProteinSequenceDataset.
@@ -115,10 +120,20 @@ class ProteinSequenceDataset(DatasetDelegator):
         # Parse language object and data paths
         self.filepaths = filepaths
         self.filetype = filetype
+        self.backend = backend
+
         assert (
             filetype in ['.csv', '.smi', '.fasta', '.fasta.gz']
         ), f'Unknown filetype given {filetype}'
         self.name = name
+
+        # setup dataset
+        self._setup_dataset(**kwargs)
+        DatasetDelegator.__init__(self)  # delegate to self.dataset
+        if self.has_duplicate_keys:
+            raise KeyError(
+                f'Please remove duplicates from your {self.filetype} file.'
+            )
 
         if protein_language is None:
             self.protein_language = ProteinLanguage(
@@ -134,6 +149,11 @@ class ProteinSequenceDataset(DatasetDelegator):
             ), f'add_start_and_stop was "{add_start_and_stop}", but given '
             f'Protein Language has {protein_language.add_start_and_stop}.'
 
+        if iterate_dataset:
+            for sequence in self.dataset:
+                # sets max_token_sequence_length
+                self.protein_language.add_sequence(sequence)
+
         # Set up transformation paramater
         self.padding = padding
         self.padding_length = self.padding_length = (
@@ -143,15 +163,6 @@ class ProteinSequenceDataset(DatasetDelegator):
         self.randomize = randomize
         self.augment_by_revert = augment_by_revert
         self.device = device
-        self.backend = backend
-
-        # setup dataset
-        self._setup_dataset(**kwargs)
-        DatasetDelegator.__init__(self)  # delegate to self.dataset
-        if self.has_duplicate_keys:
-            raise KeyError(
-                f'Please remove duplicates from your {self.filetype} file.'
-            )
 
         # Build up cascade of Protein transformations
         # Below transformations are optional

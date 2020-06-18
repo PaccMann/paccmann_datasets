@@ -1,1 +1,1 @@
-from .smiles_language import SMILESLanguage  # noqa
+from .smiles_language import SMILESLanguage, SMILESEncoder  # noqa

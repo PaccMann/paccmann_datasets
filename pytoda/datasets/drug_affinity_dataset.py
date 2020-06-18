@@ -32,6 +32,7 @@ class DrugAffinityDataset(Dataset):
         smiles_randomize: bool = False,
         smiles_remove_bonddir: bool = False,
         smiles_remove_chirality: bool = False,
+        smiles_vocab_file: str = None,
         smiles_selfies: bool = False,
         protein_language: ProteinLanguage = None,
         protein_amino_acid_dict: str = 'iupac',
@@ -43,6 +44,7 @@ class DrugAffinityDataset(Dataset):
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
+        iterate_dataset: bool = True,
         backend: str = 'eager',
     ) -> None:
         """
@@ -58,6 +60,9 @@ class DrugAffinityDataset(Dataset):
             drug_affinity_dtype (torch.dtype): drug affinity data type.
                 Defaults to torch.int.
             smiles_language (SMILESLanguage): a smiles language.
+                Defaults to None.
+            smiles_vocab_file (str): Optional .json to load vocabulary. Tries
+                to load metadata if `iterate_dataset` is False.
                 Defaults to None.
             smiles_padding (bool): pad sequences to longest in the smiles
                 language. Defaults to True.
@@ -100,6 +105,13 @@ class DrugAffinityDataset(Dataset):
                 sequence tokens. Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
+            protein_vocab_file (str): Optional .json to load vocabulary. Tries
+                to load metadata if `iterate_dataset` is False.
+                Defaults to None.
+            iterate_dataset (bool): whether to go through all items in the
+                dataset to extend/build vocab, find longest sequence, and
+                checks the passed padding length if applicable. Defaults to
+                True.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
                 Note that at the moment only the smiles dataset implement both
@@ -118,19 +130,22 @@ class DrugAffinityDataset(Dataset):
         self.smiles_dataset = SMILESEncoderDataset(
             self.smi_filepath,
             smiles_language=smiles_language,
-            padding=smiles_padding,
-            padding_length=smiles_padding_length,
-            add_start_and_stop=smiles_add_start_and_stop,
-            augment=smiles_augment,
             canonical=smiles_canonical,
+            augment=smiles_augment,
             kekulize=smiles_kekulize,
             all_bonds_explicit=smiles_all_bonds_explicit,
             all_hs_explicit=smiles_all_hs_explicit,
-            randomize=smiles_randomize,
             remove_bonddir=smiles_remove_bonddir,
             remove_chirality=smiles_remove_chirality,
             selfies=smiles_selfies,
+            # sanitize=True,
+            padding=smiles_padding,
+            padding_length=smiles_padding_length,
+            add_start_and_stop=smiles_add_start_and_stop,
+            randomize=smiles_randomize,
             device=self.device,
+            vocab_file=smiles_vocab_file,
+            iterate_dataset=iterate_dataset,
             backend=self.backend
         )
         # protein sequences
@@ -143,7 +158,8 @@ class DrugAffinityDataset(Dataset):
             add_start_and_stop=protein_add_start_and_stop,
             augment_by_revert=protein_augment_by_revert,
             randomize=protein_randomize,
-            device=self.device
+            device=self.device,
+            iterate_dataset=iterate_dataset,
         )
         # drug affinity
         self.drug_affinity_dtype = drug_affinity_dtype

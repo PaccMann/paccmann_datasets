@@ -4,7 +4,7 @@ import logging
 import torch
 
 from ..smiles.processing import tokenize_selfies
-from ..smiles.smiles_language import SMILESEncoder
+from ..smiles.smiles_language import SMILESLanguage, SMILESEncoder
 from ..types import FileList
 from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
@@ -69,7 +69,7 @@ class SMILESEncoderDataset(DatasetDelegator):
     def __init__(
         self,
         *smi_filepaths: FileList,
-        smiles_language: SMILESEncoder = None,
+        smiles_language: SMILESLanguage = None,
         canonical: bool = False,
         augment: bool = False,
         kekulize: bool = False,
@@ -83,10 +83,11 @@ class SMILESEncoderDataset(DatasetDelegator):
         add_start_and_stop: bool = False,
         padding: bool = True,
         padding_length: int = None,
-        iterate_dataset: bool = True,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
+        vocab_file: str = None,
+        iterate_dataset: bool = True,
         backend: str = 'eager',
         name: str = 'smiles-encoder-dataset',
         **kwargs
@@ -99,7 +100,7 @@ class SMILESEncoderDataset(DatasetDelegator):
 
         Args:
             smi_filepaths (FileList): paths to .smi files.
-            smiles_language (SMILESEncoder): a smiles language that transforms
+            smiles_language (SMILESLanguage): a smiles language that transforms
                 and encodes SMILES to token indices. Defaults to None, where
                 a SMILESEncoder is instantited with the following arguments.
             canonical (bool): performs canonicalization of SMILES (one
@@ -127,12 +128,14 @@ class SMILESEncoderDataset(DatasetDelegator):
                 Defaults to True.
             padding_length (int): padding to match manually set length,
                 applies only if padding is True. Defaults to None.
-            iterate_dataset (bool): whether to go through all SMILES in the
-                dataset to build/extend vocab, find longest sequence, and
-                checks the passed padding length if applicable. Defaults to
-                True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
+            vocab_file (str): Optional .json to load vocabulary. Tries to load
+                metadata if `iterate_dataset` is False. Defaults to None.
+            iterate_dataset (bool): whether to go through all SMILES in the
+                dataset to extend/build vocab, find longest sequence, and
+                checks the passed padding length if applicable. Defaults to
+                True.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             name (str): name of the SMILESEncoderDataset.
@@ -154,7 +157,7 @@ class SMILESEncoderDataset(DatasetDelegator):
             if selfies:
                 language_kwargs = dict(
                     name='selfies-language',
-                    smiles_tokenizer=lambda selfies: tokenize_selfies(selfies)
+                    smiles_tokenizer=tokenize_selfies
                 )
             self.smiles_language = SMILESEncoder(
                 **language_kwargs,
@@ -173,12 +176,26 @@ class SMILESEncoderDataset(DatasetDelegator):
                 padding_length=padding_length,
                 device=device,
             )
+
+        if vocab_file:
+            self.smiles_language.load_vocab(
+                vocab_file,
+                include_metadata=not iterate_dataset
+            )
+
         if iterate_dataset:
             self.smiles_language.add_smis(smi_filepaths)
             # uses the smiles transforms
             self.smiles_language.add_dataset(self.dataset)
             if padding and padding_length is None:
-                self.smiles_language.set_max_padding()
+                try:
+                    self.smiles_language.set_max_padding()
+                except AttributeError:
+                    raise TypeError(
+                        'Setting a maximum padding length requires a '
+                        'smiles_language with `set_max_padding` method. See '
+                        '`SMILESEncoder`.'
+                    )
 
     def __getitem__(self, index: int) -> torch.tensor:
         """

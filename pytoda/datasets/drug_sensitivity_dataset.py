@@ -34,6 +34,8 @@ class DrugSensitivityDataset(Dataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
+        vocab_file: str = None,
+        iterate_dataset: bool = True,
         gene_list: GeneList = None,
         gene_expression_standardize: bool = True,
         gene_expression_min_max: bool = False,
@@ -90,6 +92,12 @@ class DrugSensitivityDataset(Dataset):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
+            vocab_file (str): Optional .json to load vocabulary. Tries to load
+                metadata if `iterate_dataset` is False. Defaults to None.
+            iterate_dataset (bool): whether to go through all SMILES in the
+                dataset to extend/build vocab, find longest sequence, and
+                checks the passed padding length if applicable. Defaults to
+                True.
             gene_list (GeneList): a list of genes.
             gene_expression_standardize (bool): perform gene expression
                 data standardization. Defaults to True.
@@ -122,19 +130,22 @@ class DrugSensitivityDataset(Dataset):
         self.smiles_dataset = SMILESEncoderDataset(
             self.smi_filepath,
             smiles_language=smiles_language,
-            padding=padding,
-            padding_length=padding_length,
-            add_start_and_stop=add_start_and_stop,
             augment=augment,
             canonical=canonical,
             kekulize=kekulize,
             all_bonds_explicit=all_bonds_explicit,
             all_hs_explicit=all_hs_explicit,
-            randomize=randomize,
             remove_bonddir=remove_bonddir,
             remove_chirality=remove_chirality,
             selfies=selfies,
+            # sanitize=True,
+            randomize=randomize,
+            padding=padding,
+            padding_length=padding_length,
+            add_start_and_stop=add_start_and_stop,
             device=self.device,
+            vocab_file=vocab_file,
+            iterate_dataset=iterate_dataset,
             backend=self.backend
         )
         # gene expression

@@ -8,8 +8,6 @@ from pytoda.smiles.smiles_language import SMILESEncoder, SMILESLanguage
 from pytoda.smiles.transforms import Selfies
 from pytoda.tests.utils import TestFileContent
 
-# from pytoda.transforms import StartStop # TODO
-
 
 class TestSmilesLanguage(unittest.TestCase):
     """Testing SMILESLanguage."""

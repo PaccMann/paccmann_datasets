@@ -612,9 +612,6 @@ class SMILESEncoder(SMILESLanguage):
             'start_index', 'stop_index', 'padding', 'padding_length',
             'padding_index', 'device'
             ]  # could be updated in inheritance
-            # TODO does anybody ever assign new values to
-            # start_index, stop_index, padding_index
-            # what if vocab is weird?
 
         # only now 'activate' setter that resets the transforms and warns on
         # truncating padding_length
