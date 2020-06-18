@@ -137,18 +137,17 @@ class TestTransforms(unittest.TestCase):
     def test_remove_isomery(self) -> None:
         """Test RemoveIsomery."""
 
-        for bonddir, chirality, smiles, ground_truth, sanitize in zip(
+        for bonddir, chirality, smiles, ground_truth in zip(
             [False, False, True, True],
             [False, True, False, True],
-            4 * ['C/C=C/C[C@H](O)Cc1ccccc1'],
+            4 * ['c1ccc(/C=C/[C@H](C)O)cc1'],
             [
-                'C/C=C/C[C@H](O)Cc1ccccc1', 'C/C=C/CC(O)Cc1ccccc1',
-                'CC=CC[C@H](O)Cc1ccccc1', 'CC=CCC(O)Cc1ccccc1'
+                'c1ccc(/C=C/[C@H](C)O)cc1', 'c1ccc(/C=C/C(C)O)cc1',
+                'c1ccc(C=C[C@H](C)O)cc1', 'c1ccc(C=CC(C)O)cc1'
             ],
-            [True, False]
         ):  # yapf: disable
             transform = RemoveIsomery(
-                bonddir=bonddir, chirality=chirality, sanitize=sanitize
+                bonddir=bonddir, chirality=chirality, sanitize=True
             )
             self.assertEqual(transform(smiles), ground_truth)
 

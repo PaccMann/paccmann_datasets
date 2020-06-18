@@ -35,9 +35,7 @@ class SMILESLanguage(object):
     def __init__(
         self,
         name: str = 'smiles-language',
-        smiles_tokenizer: SMILESTokenizer = (
-            lambda smiles: tokenize_smiles(smiles, regexp=SMILES_TOKENIZER)
-        ),
+        smiles_tokenizer: SMILESTokenizer = tokenize_smiles,
     ) -> None:
         """
         Initialize SMILES language.
