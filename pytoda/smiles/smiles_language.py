@@ -83,7 +83,7 @@ class SMILESLanguage(object):
             for index, token in self.index_to_token.items()
         }
 
-        # updated when adding smiles
+        # updated when adding smiles (or loading vocab including metadata)
         self.max_token_sequence_length = 0
         # updated by transformations, e.g. padding
         self._get_total_number_of_tokens_fn = len
