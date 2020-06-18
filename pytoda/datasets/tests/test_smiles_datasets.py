@@ -1,10 +1,13 @@
 """Testing SMILES dataset with lazy backend."""
-import unittest
+import json
 import os
+import unittest
+from importlib import resources
+
 import numpy as np
-from torch.utils.data import DataLoader
 from pytoda.datasets import SMILESEncoderDataset
 from pytoda.tests.utils import TestFileContent
+from torch.utils.data import DataLoader
 
 CONTENT = os.linesep.join(
     [
@@ -298,6 +301,45 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                     a_test_file.filename,
                     backend=self.backend
                 )
+
+    def test_loaded_vocab__getitem__(self) -> None:
+        """Test __getitem__."""
+
+        with TestFileContent(self.content) as a_test_file:
+            with TestFileContent(self.other_content) as another_test_file:
+                with resources.path(
+                    'pytoda.smiles.metadata', 'vocab_chembl_gdsc_ccle.json'
+                ) as vocab_file:
+                    smiles_dataset = SMILESEncoderDataset(
+                        a_test_file.filename,
+                        another_test_file.filename,
+                        padding=True,
+                        vocab_file=vocab_file,
+                        iterate_dataset=False,
+                    )
+                    with open(vocab_file, encoding="utf-8") as fp:
+                        max_length = json.load(fp)[
+                            'max_token_sequence_length'
+                        ]
+            pad_index = smiles_dataset.smiles_language.padding_index
+            c_index = smiles_dataset.smiles_language.token_to_index['C']
+            o_index = smiles_dataset.smiles_language.token_to_index['O']
+
+            self.assertEqual(
+                max_length,
+                smiles_dataset.smiles_language.padding_length
+            )
+            sample = 0
+            padding_len = smiles_dataset.smiles_language.padding_length - (
+                len(
+                    # str from underlying concatenated _smi dataset
+                    smiles_dataset.dataset.dataset[sample]
+                )
+            )
+            self.assertListEqual(
+                smiles_dataset[sample].numpy().flatten().tolist(),
+                [pad_index] * padding_len + [c_index, c_index, o_index]
+            )
 
 
 class TestSMILESEncoderDatasetLazy(TestSMILESEncoderDatasetEager):

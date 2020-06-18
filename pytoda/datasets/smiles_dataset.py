@@ -187,7 +187,10 @@ class SMILESEncoderDataset(DatasetDelegator):
             self.smiles_language.add_smis(smi_filepaths)
             # uses the smiles transforms
             self.smiles_language.add_dataset(self.dataset)
-            if padding and padding_length is None:
+
+        if padding and padding_length is None:
+            # max_sequence_token_length set somehow
+            if vocab_file or iterate_dataset:
                 try:
                     self.smiles_language.set_max_padding()
                 except AttributeError:
