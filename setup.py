@@ -25,7 +25,7 @@ setup(
     license='MIT',
     install_requires=[
         'numpy', 'scikit-learn', 'pandas', 'torch>=1.0.0', 'diskcache', 'dill',
-        'selfies', 'upfp'
+        'selfies', 'upfp', 'SmilesPE>=0.0.3'
     ],
     classifiers=[
         'Intended Audience :: Developers',
@@ -36,5 +36,6 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     packages=find_packages(),
+    package_data={'pytoda': ['smiles/metadata/*']},
     scripts=scripts
 )
