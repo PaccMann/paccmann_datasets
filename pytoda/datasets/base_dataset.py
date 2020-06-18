@@ -93,9 +93,11 @@ class DatasetDelegator:
         else:
             return True
 
+    # call super().__getattribute__ is needed in place of self, as
+    # calls to self could  lead to infinite loops, e.g. with copy
+
     @property
     def _delegatable(self):
-        # call to self can lead to infinite loops, e.g. with copy
         return [
             o for o
             in dir(super().__getattribute__('dataset'))  # other AttributeErrors are masked here if dataset is not set  # noqa
@@ -105,7 +107,6 @@ class DatasetDelegator:
     # delegation, i.e. in case method not defined in class or class hierarchy
     def __getattr__(self, k):
         if k in super().__getattribute__('_delegatable'):
-            # call to self can lead to infinite loops, e.g. with copy
             return getattr(super().__getattribute__('dataset'), k)
         raise AttributeError(k)
 
