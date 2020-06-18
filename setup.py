@@ -36,5 +36,6 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     packages=find_packages(),
+    package_data={'pytoda': ['smiles/metadata/*']},
     scripts=scripts
 )
