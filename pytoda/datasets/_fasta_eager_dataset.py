@@ -55,8 +55,7 @@ class _FastaEagerDataset(KeyDataset):
             index (int): index of the sample to fetch.
 
         Returns:
-            torch.tensor: a torch tensor of token indexes,
-                for the current sample.
+            str: a sequence in the FASTA file.
         """
         return self.samples[index]
 

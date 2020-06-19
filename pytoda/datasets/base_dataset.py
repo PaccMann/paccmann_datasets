@@ -40,7 +40,7 @@ class KeyDataset(Dataset):
         return self.__getitem__(self.get_index(key))
 
     def keys(self) -> Iterator:
-        """Default iterator of keys by iterating over dataset indeces."""
+        """Default iterator of keys by iterating over dataset indices."""
         for index in range(len(self)):
             yield self.get_key(index)
 
