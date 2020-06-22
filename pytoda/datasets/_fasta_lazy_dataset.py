@@ -1,5 +1,6 @@
 """Implementation of _FastaLazyDataset."""
 from pyfaidx import Fasta
+from itertools import islice
 
 from ..types import Hashable, Callable, Iterator
 from .base_dataset import KeyDataset, DatasetDelegator
@@ -10,24 +11,23 @@ class _FastaLazyDataset(KeyDataset):
     .fasta dataset using lazy loading via pyfaidx, which creates a small flat
     index file ".fai".
 
-    Suggested when handling datasets that can fit in the device memory.
-
-    Only supports uniprot fasta headers
+    Suggested when handling fasta without uniprot headers and datasets that
+    can't fit in the device memory.
     """
 
     def __init__(
         self, fasta_filepath: str,
         name: str = 'Sequence',
-        key_function: Callable[str, str] = lambda x: x,
+        key_function: Callable[[str], str] = lambda x: x,
         **kwargs
 
     ) -> None:
-        """[summary]
+        """Initialize a .fasta dataset. with .fai index file.
 
         Args:
             fasta_filepath (str): path to .fasta file.
             name (str, optional): type of dataset. Defaults to 'Sequence'.
-            key_function (Callable[str, str], optional): function returning a
+            key_function (Callable[[str], str], optional): function returning a
                 unique key given the FASTA sequence header. Defaults to
                 identity.
             kwargs (dict): Additional parameters passed to pyfaidx.Fasta class.
@@ -51,6 +51,10 @@ class _FastaLazyDataset(KeyDataset):
             key: index for index, key in enumerate(self.datasource.keys())
         }
 
+    def __len__(self) -> int:
+        """Total number of samples."""
+        return len(self.datasource.records)
+
     def __getitem__(self, index: int) -> str:
         """
         Generates one sample of data.
@@ -61,15 +65,16 @@ class _FastaLazyDataset(KeyDataset):
         Returns:
             str: a sequence in the FASTA file.
         """
-        return str(self.datasource[index])
+        # Fasta class indexes via key too, but iterates full keys
+        return self.get_item_from_key(self.get_key(index))
 
     def get_item_from_key(self, key: Hashable) -> str:
         """Get item via sample identifier"""
-        return str(self.datasource[key])
+        return str(self.datasource.records[key])
 
     def get_key(self, index: int) -> Hashable:
         """Get sample identifier from integer index."""
-        return self.datasource[index].name
+        return next(islice(self.datasource.keys(), index, None))
 
     def get_index(self, key: Hashable) -> int:
         """Get index for first datum mapping to the given sample identifier."""
