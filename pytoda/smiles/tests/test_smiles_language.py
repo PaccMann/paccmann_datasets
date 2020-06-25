@@ -4,7 +4,7 @@ import unittest
 import tempfile
 
 from pytoda.smiles.processing import tokenize_selfies
-from pytoda.smiles.smiles_language import SMILESEncoder, SMILESLanguage
+from pytoda.smiles.smiles_language import SMILESTokenizer, SMILESLanguage
 from pytoda.smiles.transforms import Selfies
 from pytoda.tests.utils import TestFileContent
 
@@ -19,7 +19,7 @@ class TestSmilesLanguage(unittest.TestCase):
         self.assertEqual(smiles_language.max_token_sequence_length, 0)
         smiles_language.add_smiles(smiles)
         self.assertEqual(smiles_language.max_token_sequence_length, 3)
-        smiles_language = SMILESEncoder(add_start_and_stop=True)
+        smiles_language = SMILESTokenizer(add_start_and_stop=True)
         self.assertEqual(smiles_language.max_token_sequence_length, 0)
         smiles_language.add_smiles(smiles)
         self.assertEqual(smiles_language.max_token_sequence_length, 5)
@@ -95,7 +95,7 @@ class TestSmilesLanguage(unittest.TestCase):
         self.assertListEqual(
             smiles_language.smiles_to_token_indexes(smiles), token_indexes
         )
-        smiles_language = SMILESEncoder(add_start_and_stop=True, padding=True)
+        smiles_language = SMILESTokenizer(add_start_and_stop=True, padding=True)
         # fail with no padding_length defined
         with self.assertRaises(TypeError):
             smiles_language.smiles_to_token_indexes(smiles)
@@ -122,7 +122,7 @@ class TestSmilesLanguage(unittest.TestCase):
         self.assertListEqual(
             smiles_language.smiles_to_token_indexes(selfies), token_indexes
         )
-        smiles_language = SMILESEncoder(
+        smiles_language = SMILESTokenizer(
             add_start_and_stop=True,
             smiles_tokenizer=lambda selfies: tokenize_selfies(selfies)
         )
@@ -148,7 +148,7 @@ class TestSmilesLanguage(unittest.TestCase):
             [smiles_language.start_index] + token_indexes +
             [smiles_language.stop_index]
         )
-        smiles_language = SMILESEncoder(add_start_and_stop=True)
+        smiles_language = SMILESTokenizer(add_start_and_stop=True)
         smiles_language.add_smiles(smiles)
         self.assertEqual(
             smiles_language.token_indexes_to_smiles(token_indexes), 'CCO'
@@ -167,7 +167,7 @@ class TestSmilesLanguage(unittest.TestCase):
             'CCO'
         )
 
-        smiles_language = SMILESEncoder(add_start_and_stop=True)
+        smiles_language = SMILESTokenizer(add_start_and_stop=True)
         smiles_language.add_smiles(smiles)
         self.assertEqual(
             smiles_language.token_indexes_to_smiles(
@@ -193,7 +193,7 @@ class TestSmilesLanguage(unittest.TestCase):
     def test_transform_changes(self):
         """Test update of transforms on parameter assignment"""
         smiles = 'CCO'
-        smiles_language = SMILESEncoder()
+        smiles_language = SMILESTokenizer()
         self.assertEqual(smiles_language.max_token_sequence_length, 0)
 
         smiles_language.add_smiles(smiles)
@@ -245,7 +245,7 @@ class TestSmilesLanguage(unittest.TestCase):
             vocab_file = os.path.join(tempdir, 'vocab.json')
             source_language.save_vocab(vocab_file)  # include_metadata=True
 
-            smiles_language = SMILESEncoder()
+            smiles_language = SMILESTokenizer()
             smiles_language.load_vocab(
                 vocab_file, include_metadata=True
             )

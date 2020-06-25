@@ -4,7 +4,7 @@ import logging
 import torch
 
 from ..smiles.processing import tokenize_selfies
-from ..smiles.smiles_language import SMILESLanguage, SMILESEncoder
+from ..smiles.smiles_language import SMILESLanguage, SMILESTokenizer
 from ..types import FileList
 from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
@@ -63,7 +63,7 @@ class SMILESDataset(DatasetDelegator):
             raise KeyError('Please remove duplicates from your .smi file.')
 
 
-class SMILESEncoderDataset(DatasetDelegator):
+class SMILESTokenizerDataset(DatasetDelegator):
     """ Dataset of token indices from SMILES. """
 
     def __init__(
@@ -96,13 +96,13 @@ class SMILESEncoderDataset(DatasetDelegator):
         Initialize a dataset providing token indices from source SMILES.
 
         The datasets transformations on smiles and encodings can be adapted,
-        depending on the smiles_language used (see SMILESEncoder).
+        depending on the smiles_language used (see SMILESTokenizer).
 
         Args:
             smi_filepaths (FileList): paths to .smi files.
             smiles_language (SMILESLanguage): a smiles language that transforms
                 and encodes SMILES to token indices. Defaults to None, where
-                a SMILESEncoder is instantited with the following arguments.
+                a SMILESTokenizer is instantited with the following arguments.
             canonical (bool): performs canonicalization of SMILES (one
                 original string for one molecule), if True, then other
                 transformations (augment etc, see below) do not apply
@@ -138,7 +138,7 @@ class SMILESEncoderDataset(DatasetDelegator):
                 True.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
-            name (str): name of the SMILESEncoderDataset.
+            name (str): name of the SMILESTokenizerDataset.
             kwargs (dict): additional arguments for dataset constructor.
 
         """
@@ -159,7 +159,7 @@ class SMILESEncoderDataset(DatasetDelegator):
                     name='selfies-language',
                     smiles_tokenizer=tokenize_selfies
                 )
-            self.smiles_language = SMILESEncoder(
+            self.smiles_language = SMILESTokenizer(
                 **language_kwargs,
                 canonical=canonical,
                 augment=augment,
@@ -197,7 +197,7 @@ class SMILESEncoderDataset(DatasetDelegator):
                     raise TypeError(
                         'Setting a maximum padding length requires a '
                         'smiles_language with `set_max_padding` method. See '
-                        '`SMILESEncoder`.'
+                        '`SMILESTokenizer`.'
                     )
 
     def __getitem__(self, index: int) -> torch.tensor:

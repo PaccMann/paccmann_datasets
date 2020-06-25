@@ -1,4 +1,4 @@
-"""PolymerEncoderDataset module."""
+"""PolymerTokenizerDataset module."""
 from ..types import Iterable, List, Union, FileList
 
 import pandas as pd
@@ -6,11 +6,11 @@ import torch
 from numpy import iterable
 from torch.utils.data import Dataset
 
-from ..smiles.polymer_language import PolymerEncoder
+from ..smiles.polymer_language import PolymerTokenizer
 from .smiles_dataset import SMILESDataset
 
 
-class PolymerEncoderDataset(Dataset):
+class PolymerTokenizerDataset(Dataset):
     """
     Dataset of SMILES from multiple entities encoded as token indexes.
 
@@ -19,7 +19,7 @@ class PolymerEncoderDataset(Dataset):
     Rows in the annotation df needs to have column names identical to entities,
     mapping to SMILES in the datasets.
 
-    Uses a PolymerEncoder
+    Uses a PolymerTokenizer
     """
 
     def __init__(
@@ -28,7 +28,7 @@ class PolymerEncoderDataset(Dataset):
         entity_names: Iterable[str],
         annotations_filepath: str,
         annotations_column_names: Union[List[int], List[str]] = None,
-        smiles_language: PolymerEncoder = None,
+        smiles_language: PolymerTokenizer = None,
         canonical: Union[Iterable[bool], bool] = False,
         augment: Union[Iterable[bool], bool] = False,
         kekulize: Union[Iterable[bool], bool] = False,
@@ -64,7 +64,7 @@ class PolymerEncoderDataset(Dataset):
                 (positional or strings) for the annotations. Defaults to None,
                 a.k.a. all the columns, except the entity_names are annotation
                 labels.
-            smiles_language (PolymerEncoder): a polymer language.
+            smiles_language (PolymerTokenizer): a polymer language.
                 Defaults to None, in which case a new object is created.
             padding (Union[Iterable[bool], bool]): pad sequences to longest in
                 the smiles language. Defaults to True. Controlled either for
@@ -135,7 +135,7 @@ class PolymerEncoderDataset(Dataset):
         )
 
         if smiles_language is None:
-            self.smiles_language = PolymerEncoder(  # defaults to add smiles
+            self.smiles_language = PolymerTokenizer(  # defaults to add smiles
                 entity_names=entity_names,
                 padding=self.paddings[0],
                 padding_length=self.padding_lengths[0],

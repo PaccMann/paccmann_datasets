@@ -4,7 +4,7 @@ import pandas as pd
 from torch.utils.data import Dataset
 from ..types import GeneList, DrugSensitivityData
 from ..smiles.smiles_language import SMILESLanguage
-from .smiles_dataset import SMILESEncoderDataset
+from .smiles_dataset import SMILESTokenizerDataset
 from .gene_expression_dataset import GeneExpressionDataset
 
 
@@ -127,7 +127,7 @@ class DrugSensitivityDataset(Dataset):
         # backend
         self.backend = backend
         # SMILES
-        self.smiles_dataset = SMILESEncoderDataset(
+        self.smiles_dataset = SMILESTokenizerDataset(
             self.smi_filepath,
             smiles_language=smiles_language,
             augment=augment,

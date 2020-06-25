@@ -5,7 +5,7 @@ import unittest
 from importlib import resources
 
 import numpy as np
-from pytoda.datasets import SMILESEncoderDataset
+from pytoda.datasets import SMILESTokenizerDataset
 from pytoda.tests.utils import TestFileContent
 from torch.utils.data import DataLoader
 
@@ -28,7 +28,7 @@ MORE_CONTENT = os.linesep.join(
 LONGEST = 9
 
 
-class TestSMILESEncoderDatasetEager(unittest.TestCase):
+class TestSMILESTokenizerDatasetEager(unittest.TestCase):
     """Testing SMILES dataset with eager backend."""
 
     def setUp(self):
@@ -43,7 +43,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
 
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     backend=self.backend
@@ -55,7 +55,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
 
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     padding=True,
@@ -120,7 +120,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                     ]
                 )
 
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     padding=False,
@@ -135,7 +135,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                     [c_index, o_index, c_index, c_index, o_index, c_index]
                 )
 
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     add_start_and_stop=True,
@@ -178,7 +178,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                     ]
                 )
 
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     augment=True,
@@ -198,7 +198,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                     self.assertEqual(smiles, randomized_smiles)
 
                 print("\nExpected 'SMILES Parse Error' for selfies via rdkit:")
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     padding=False,
@@ -227,7 +227,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
         """Test data_loader."""
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     backend=self.backend
@@ -259,16 +259,16 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
 
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     backend=self.backend
                 )
-                smiles_dataset_0 = SMILESEncoderDataset(
+                smiles_dataset_0 = SMILESTokenizerDataset(
                     a_test_file.filename,
                     backend=self.backend
                 )
-                smiles_dataset_1 = SMILESEncoderDataset(
+                smiles_dataset_1 = SMILESTokenizerDataset(
                     another_test_file.filename,
                     backend=self.backend
                 )
@@ -293,10 +293,10 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
         duplicate_ds = smiles_dataset_0 + smiles_dataset_0
         self.assertTrue(duplicate_ds.has_duplicate_keys)
 
-        # SMILESEncoderDataset tests and raises
+        # SMILESTokenizerDataset tests and raises
         with TestFileContent(self.content) as a_test_file:
             with self.assertRaises(KeyError):
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     a_test_file.filename,
                     backend=self.backend
@@ -310,7 +310,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
                 with resources.path(
                     'pytoda.smiles.metadata', 'vocab_chembl_gdsc_ccle.json'
                 ) as vocab_file:
-                    smiles_dataset = SMILESEncoderDataset(
+                    smiles_dataset = SMILESTokenizerDataset(
                         a_test_file.filename,
                         another_test_file.filename,
                         padding=True,
@@ -342,7 +342,7 @@ class TestSMILESEncoderDatasetEager(unittest.TestCase):
             )
 
 
-class TestSMILESEncoderDatasetLazy(TestSMILESEncoderDatasetEager):
+class TestSMILESTokenizerDatasetLazy(TestSMILESTokenizerDatasetEager):
     """Testing SMILES dataset with lazy backend."""
 
     def setUp(self):

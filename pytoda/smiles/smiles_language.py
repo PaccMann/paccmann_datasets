@@ -512,9 +512,9 @@ class SELFIESLanguage(SMILESLanguage):
         super().__init__(name=name, smiles_tokenizer=smiles_tokenizer)
 
 
-class SMILESEncoder(SMILESLanguage):
+class SMILESTokenizer(SMILESLanguage):
     """
-    SMILESEncoder class, based on SMILESLanguage applying transforms and
+    SMILESTokenizer class, based on SMILESLanguage applying transforms and
     and encoding of SMILES string to sequence of token indices.
     """
 
@@ -655,7 +655,7 @@ class SMILESEncoder(SMILESLanguage):
         """
         if self.max_token_sequence_length == 0:
             raise UnknownMaxLengthError(
-                'No check possible for naive SMILESEncoder. Instance needs '
+                'No check possible for naive SMILESTokenizer. Instance needs '
                 'a pass over the data, setting max_token_sequence_length. '
                 'See for example `add_smis`, `add_dataset` or `add_smiles` '
                 'methods.'
