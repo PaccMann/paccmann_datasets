@@ -198,3 +198,6 @@ class ConcatKeyDataset(TransparentConcatDataset, KeyDataset):
                 yield key
 
     # default has_duplicate_keys via keys()
+
+
+AnyBaseDataset = Union[KeyDataset, DatasetDelegator, ConcatKeyDataset]

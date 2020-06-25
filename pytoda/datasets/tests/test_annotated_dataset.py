@@ -1,8 +1,11 @@
 """Testing AnnotatedDataset dataset with eager backend."""
-import unittest
 import os
+import unittest
+
 import numpy as np
-from pytoda.datasets import AnnotatedDataset, SMILESTokenizerDataset, indexed, keyed
+
+from pytoda.datasets import (AnnotatedDataset, SMILESTokenizerDataset, indexed,
+                             keyed)
 from pytoda.tests.utils import TestFileContent
 
 # must contain all keys in annotated

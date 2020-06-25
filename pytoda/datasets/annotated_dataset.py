@@ -1,10 +1,8 @@
 """Implementation of AnnotatedDataset class."""
-from copy import copy
-
 import pandas as pd
 import torch
 
-from ..types import AnnotatedData, Any, Hashable, List, Tuple, Union
+from ..types import AnnotatedData, Hashable, List, Union
 from .base_dataset import KeyDataset
 from .dataframe_dataset import DataFrameDataset
 
@@ -135,66 +133,3 @@ class AnnotatedDataset(DataFrameDataset):
         # sample
         sample = self.datasource.get_item_from_key(key)
         return sample, labels_tensor
-
-
-def indexed(dataset: KeyDataset) -> KeyDataset:
-    """
-    Returns mutated shallow copy of passed dataset instance, where indexing
-    behavior is changed to additionally returning index.
-    """
-    default_getitem = dataset.__getitem__  # bound method
-    default_from_key = dataset.get_item_from_key  # bound method
-
-    def return_item_index_tuple(self, index: int) -> Tuple[Any, int]:
-        return default_getitem(index), index
-
-    def return_item_index_tuple_from_key(
-        self, key: Hashable
-    ) -> Tuple[Any, int]:
-        """prevents `get_item_from_key` to call new indexed __getitem__"""
-        return default_from_key(key), dataset.get_index(key)
-
-    methods = {
-        '__getitem__': return_item_index_tuple,
-        'get_item_from_key': return_item_index_tuple_from_key
-    }
-    ds = copy(dataset)
-    ds.__class__ = type(
-        f'Indexed{type(dataset).__name__}',
-        (dataset.__class__,),
-        methods
-    )
-    return ds
-
-
-def keyed(dataset: KeyDataset) -> KeyDataset:
-    """
-    Returns mutated shallow copy of passed dataset instance, where indexing
-    behavior is changed to additionally returning key.
-    """
-    default_getitem = dataset.__getitem__  # bound method
-    default_from_key = dataset.get_item_from_key  # bound method
-
-    def return_item_key_tuple(self, index: int) -> Tuple[Any, Hashable]:
-        return (
-            default_getitem(index),
-            dataset.get_key(index)
-        )
-
-    def return_item_key_tuple_from_key(
-        self, key: Hashable
-    ) -> Tuple[Any, Hashable]:
-        """prevents `get_item_from_key` to call new keyed __getitem__"""
-        return default_from_key(key), key
-
-    methods = {
-        '__getitem__': return_item_key_tuple,
-        'get_item_from_key': return_item_key_tuple_from_key
-    }
-    ds = copy(dataset)
-    ds.__class__ = type(
-        f'Keyed{type(dataset).__name__}',
-        (dataset.__class__,),
-        methods
-    )
-    return ds
