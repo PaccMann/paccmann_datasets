@@ -137,8 +137,11 @@ class AnnotatedDataset(DataFrameDataset):
         return sample, labels_tensor
 
 
-def indexed(dataset) -> 'MutatedShallowCopy':
-    """Change instances indexing behavior by returning index as well."""
+def indexed(dataset: KeyDataset) -> KeyDataset:
+    """
+    Returns mutated shallow copy of passed dataset instance, where indexing
+    behavior is changed to additionally returning index.
+    """
     default_getitem = dataset.__getitem__  # bound method
     default_from_key = dataset.get_item_from_key  # bound method
 
@@ -164,8 +167,11 @@ def indexed(dataset) -> 'MutatedShallowCopy':
     return ds
 
 
-def keyed(dataset) -> 'MutatedShallowCopy':
-    """Change instances indexing behavior by returning key as well."""
+def keyed(dataset: KeyDataset) -> KeyDataset:
+    """
+    Returns mutated shallow copy of passed dataset instance, where indexing
+    behavior is changed to additionally returning key.
+    """
     default_getitem = dataset.__getitem__  # bound method
     default_from_key = dataset.get_item_from_key  # bound method
 
