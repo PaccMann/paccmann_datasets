@@ -1,10 +1,9 @@
 """Implementation of base classes working with datasets."""
 import bisect
+
 import pandas as pd
-
 from torch.utils.data import ConcatDataset, Dataset
-
-from ..types import Any, Hashable, Iterator, List, Tuple
+from ..types import Any, Hashable, Iterator, List, Tuple, Union
 
 
 class KeyDataset(Dataset):
@@ -114,22 +113,10 @@ class DatasetDelegator:
         return dir(type(self)) + list(self.__dict__.keys()) + self._delegatable
 
 
-class ConcatKeyDataset(ConcatDataset, KeyDataset):
-    """
-    Extension of ConcatDataset with transparent indexing.
-
-    The keys are expected to be unique. If there are duplicate keys, on lookup
-    the first one found will be used by default."""
-
+class TransparentConcatDataset(ConcatDataset):
+    """Extension of ConcatDataset with transparent indexing."""
     def __init__(self, datasets: List[Dataset]):
-        """
-        Initialize the ConcatKeyDataset.
-
-        Args:
-            datasets (List[Dataset]): a list of datasets.
-        """
-        super(ConcatKeyDataset, self).__init__(datasets)
-        # __getitem__ and __len__ implementation from ConcatDataset
+        super().__init__(datasets)
 
     def get_index_pair(self, idx: int) -> Tuple[int, int]:
         """
@@ -154,6 +141,25 @@ class ConcatKeyDataset(ConcatDataset, KeyDataset):
         else:
             sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
         return (dataset_idx, sample_idx)
+
+
+class ConcatKeyDataset(TransparentConcatDataset, KeyDataset):
+    """
+    Extension of ConcatDataset with transparent indexing supporting KeyDataset
+
+    The keys are expected to be unique. If there are duplicate keys, on lookup
+    the first one found will be used by default.
+    """
+
+    def __init__(self, datasets: List[KeyDataset]):
+        """
+        Initialize the ConcatKeyDataset.
+
+        Args:
+            datasets (List[KeyDataset]): a list of datasets.
+        """
+        super().__init__(datasets)
+        # __getitem__ and __len__ implementation from ConcatDataset
 
     # the following require dataset to implement get_key and get_index
     def get_key_pair(self, index: int) -> Tuple[int, Hashable]:
@@ -190,3 +196,8 @@ class ConcatKeyDataset(ConcatDataset, KeyDataset):
         for dataset in self.datasets:
             for key in dataset.keys():
                 yield key
+
+    @property
+    def has_duplicate_keys(self) -> bool:
+        """Check whether each key is unique."""
+        return any(ds.has_duplicate_keys for ds in self.datasets)
