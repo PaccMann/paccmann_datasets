@@ -337,7 +337,7 @@ class SMILESLanguage(object):
         for index, smiles in enumerate(dataset):
             smiles = self.transform_smiles(smiles)
             self.add_smiles(smiles)
-            if Chem.MolFromSmiles(smiles) is None:  # fails e.g. for selfies? TODO
+            if Chem.MolFromSmiles(smiles) is None:  # happens for all selfies
                 self.invalid_molecules.append((index, smiles))
         # Raise warning about invalid molecules
         if len(self.invalid_molecules) > 0:
@@ -346,7 +346,8 @@ class SMILESLanguage(object):
                 'smiles. Check the warning trace and inspect the  attribute '
                 '`invalid_molecules`. To remove invalid  SMILES in your .smi '
                 'file, we recommend using '
-                '`pytoda.preprocessing.smi.smi_cleaner`.'
+                '`pytoda.preprocessing.smi.smi_cleaner`. SELFIES are expected '
+                'to be listed here.'
             )
 
         # Raise warning if new tokens were added.
