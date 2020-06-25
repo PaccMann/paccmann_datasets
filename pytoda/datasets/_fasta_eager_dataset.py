@@ -70,7 +70,7 @@ class _FastaEagerDataset(KeyDataset):
 
     @property
     def has_duplicate_keys(self):
-        return len(self.samples) != len(self.key_to_index_mapping)
+        return len(self.ordered_keys) != len(self.key_to_index_mapping)
 
     def keys(self):
         return iter(self.ordered_keys)

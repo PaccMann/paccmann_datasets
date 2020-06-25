@@ -197,7 +197,4 @@ class ConcatKeyDataset(TransparentConcatDataset, KeyDataset):
             for key in dataset.keys():
                 yield key
 
-    @property
-    def has_duplicate_keys(self) -> bool:
-        """Check whether each key is unique."""
-        return any(ds.has_duplicate_keys for ds in self.datasets)
+    # default has_duplicate_keys via keys()
