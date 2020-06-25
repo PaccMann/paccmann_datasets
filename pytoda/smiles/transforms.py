@@ -109,7 +109,7 @@ def compose_encoding_transforms(
     padding_index: int = 0,
     device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
-) -> Tuple[Compose, Callable]:
+) -> Compose:
     """Setup a composition of token indices to token indices transformations.
 
     Args:
