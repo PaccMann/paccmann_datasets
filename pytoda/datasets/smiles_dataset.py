@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 
 
 SMILES_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
-    'eager': (_SmiEagerDataset, {'name'}),
-    'lazy': (_SmiLazyDataset, {'chunk_size', 'name'}),
-}
+    'eager': (_SmiEagerDataset, {'index_col', 'names'}),
+    'lazy': (_SmiLazyDataset, {'chunk_size', 'index_col', 'names'}),
+}  # name cannot be passed
 
 
 class SMILESDataset(DatasetDelegator):
@@ -51,6 +51,7 @@ class SMILESDataset(DatasetDelegator):
         kwargs = dict(
             (k, v) for k, v in kwargs.items() if k in valid_keys
         )
+        kwargs['name'] = 'SMILES'
 
         self.dataset = concatenate_file_based_datasets(
             filepaths=self.smi_filepaths,

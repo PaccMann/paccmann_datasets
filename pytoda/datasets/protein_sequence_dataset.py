@@ -16,20 +16,20 @@ from .base_dataset import DatasetDelegator, KeyDataset
 
 SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
     '.csv': {
-        'eager': (_SmiEagerDataset, {'name'}),
-        'lazy': (_SmiLazyDataset, {'chunk_size', 'name'}),
-    },  # base_dataset: how to support not .smi formatted csv? At least warn?
+        'eager': (_SmiEagerDataset, {'index_col', 'names'}),
+        'lazy': (_SmiLazyDataset, {'chunk_size', 'index_col', 'names'}),
+        },  # base_dataset: how to support not .smi formatted csv? At least warn?
     '.smi': {
-        'eager': (_SmiEagerDataset, {'name'}),
-        'lazy': (_SmiLazyDataset, {'chunk_size', 'name'}),
-    },
+        'eager': (_SmiEagerDataset, {'index_col', 'names'}),
+        'lazy': (_SmiLazyDataset, {'chunk_size', 'index_col', 'names'}),
+        },
     '.fasta': {
-        'eager': (_FastaEagerDataset, {'gzipped', 'name'}),
-    },
+            'eager': (_FastaEagerDataset, {'gzipped'}),
+        },
     '.fasta.gz': {
-        'eager': (_FastaEagerDataset, {'gzipped', 'name'}),
-    },
-}
+            'eager': (_FastaEagerDataset, {'gzipped'}),
+        },
+}  # name cannot be passed, set to 'Sequence'
 
 
 def protein_sequence_dataset(
@@ -47,9 +47,9 @@ def protein_sequence_dataset(
         )
 
     kwargs['gzipped'] = True if filetype == '.fasta.gz' else False
-    kwargs['name'] = 'Sequence'
     # prune unsupported arguments
     kwargs = dict((k, v) for k, v in kwargs.items() if k in valid_keys)
+    kwargs['name'] = 'Sequence'
 
     return concatenate_file_based_datasets(
         filepaths=filepaths,
