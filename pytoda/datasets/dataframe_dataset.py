@@ -7,7 +7,7 @@ from ..types import Hashable, Iterator
 
 class DataFrameDataset(KeyDataset):
     """
-    Dataset from pandas.DataFrame
+    Dataset of rows from pandas.DataFrame
     """
     def __init__(self, df: pd.DataFrame):
         super(DataFrameDataset).__init__()
