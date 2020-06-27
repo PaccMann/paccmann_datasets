@@ -288,36 +288,60 @@ class SMILESLanguage(object):
         self.number_of_tokens += len(index_to_token)
 
     def add_smis(
-        self, smi_filepaths: FileList, chunk_size: int = 100000
+        self, smi_filepaths: FileList, index_col: int = 1,
+        chunk_size: int = 10000, name: str = 'SMILES',
+        names: Iterable[str] = None
     ) -> None:
         """
         Add a set of SMILES from a list of .smi files.
 
         Args:
             smi_filepaths (FileList): a list of paths to .smi files.
-            chunk_size (int): number of rows to read in a chunk.
-                Defaults to 100000.
+            index_col (int): Data column used for indexing, defaults to 1.
+            chunk_size (int): size of the chunks. Defaults to 10000.
+            name (str): type of dataset, used to index columns in smi, and must
+                be in names. Defaults to 'SMILES'.
+            names (Iterable[str]): User-assigned names given to the columns.
+                Defaults to `[name]`.
         """
         for smi_filepath in smi_filepaths:
-            self.add_smi(smi_filepath, chunk_size=chunk_size)
+            self.add_smi(
+                smi_filepath, index_col=index_col,
+                chunk_size=chunk_size, name=name, names=names
+            )
 
-    def add_smi(self, smi_filepath: str, chunk_size: int = 100000) -> None:
+    def add_smi(
+        self, smi_filepath: str, index_col: int = 1,
+        chunk_size: int = 10000, name: str = 'SMILES',
+        names: Iterable[str] = None
+    ) -> None:
         """
         Add a set of SMILES from a .smi file.
 
         Args:
             smi_filepath (str): path to the .smi file.
+            index_col (int): Data column used for indexing, defaults to 1.
             chunk_size (int): number of rows to read in a chunk.
                 Defaults to 100000.
+            name (str): type of dataset, used to index columns in smi, and must
+                be in names. Defaults to 'SMILES'.
+            names (Iterable[str]): User-assigned names given to the columns.
+                Defaults to `[name]`.
         """
+        names = names or [name]
         try:
-            for chunk in read_smi(smi_filepath, chunk_size=chunk_size):
-                for smiles in chunk['SMILES']:
+            for chunk in read_smi(
+                smi_filepath, index_col=index_col, chunk_size=chunk_size,
+                names=names
+            ):
+                for smiles in chunk[name]:
                     self.add_smiles(smiles)
-        except Exception:
+        except IndexError:
+            raise IndexError('There must be one name per column in names.')
+        except KeyError as error:
             raise KeyError(
-                ".smi file needs to have 2 columns, first with SMILES, second"
-                " with IDs."
+                f'{str(error)}. Check index_col and that name {name} is in '
+                f' names {names}'
             )
 
     def add_dataset(self, dataset: Iterable):

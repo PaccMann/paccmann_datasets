@@ -48,15 +48,15 @@ class SMILESDataset(DatasetDelegator):
         dataset_class, valid_keys = SMILES_DATASET_IMPLEMENTATIONS[
             self.backend
         ]
-        kwargs = dict(
+        self.kwargs = dict(
             (k, v) for k, v in kwargs.items() if k in valid_keys
         )
-        kwargs['name'] = 'SMILES'
+        self.kwargs['name'] = 'SMILES'
 
         self.dataset = concatenate_file_based_datasets(
             filepaths=self.smi_filepaths,
             dataset_class=dataset_class,
-            **kwargs
+            **self.kwargs
         )
 
         DatasetDelegator.__init__(self)  # delegate to self.dataset
@@ -185,7 +185,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
             )
 
         if iterate_dataset:
-            self.smiles_language.add_smis(smi_filepaths)
+            self.smiles_language.add_smis(smi_filepaths, **self.kwargs)
             # uses the smiles transforms
             self.smiles_language.add_dataset(self.dataset)
 

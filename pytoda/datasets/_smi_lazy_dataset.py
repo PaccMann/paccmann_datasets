@@ -30,7 +30,7 @@ class _SmiLazyDataset(KeyDataset, _CacheDatasource):
             names (Iterable[str]): User-assigned names given to the columns.
                 Defaults to `[name]`.
         """
-        _CacheDatasource.__init__(self)
+        _CacheDatasource.__init__(self, fit_size_limit_filepath=smi_filepath)
         KeyDataset.__init__(self)
         self.smi_filepath = smi_filepath
         self.name = name
@@ -41,8 +41,8 @@ class _SmiLazyDataset(KeyDataset, _CacheDatasource):
         index = 0
         self.ordered_keys = []
         for chunk in read_smi(
-            self.smi_filepath, chunk_size=self.chunk_size,
-            index_col=self.index_col, names=self.names
+            self.smi_filepath, index_col=self.index_col,
+            chunk_size=self.chunk_size, names=self.names
         ):
             for key, row in chunk.iterrows():
                 self.cache[index] = row[self.name]

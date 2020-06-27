@@ -175,12 +175,13 @@ class PolymerTokenizerDataset(Dataset):
             SMILESDataset(
                 smi_filepath,
                 name=self.entities[index],
+                **kwargs
             ) for index, smi_filepath in enumerate(smi_filepaths)
         ]
 
         if iterate_dataset:
             # without transforms
-            self.smiles_language.add_smis(smi_filepaths)
+            self.smiles_language.add_smis(smi_filepaths, **kwargs)
             for dataset in self.datasets:
                 self.smiles_language.update_entity(dataset.name)
                 self.smiles_language.add_dataset(dataset)
