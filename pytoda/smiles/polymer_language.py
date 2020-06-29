@@ -101,7 +101,6 @@ class PolymerTokenizer(SMILESTokenizer):
             None
         """
         self.current_entity = self._check_entity(entity)
-        self.reset_initial_transforms()
 
     def smiles_to_token_indexes(
         self, smiles: str, entity: str = None
