@@ -9,7 +9,6 @@ from ..types import Any, Hashable, Iterator, List, Tuple, Union
 class KeyDataset(Dataset):
     """
     Base Class for Datsets with both integer index and item identifier key.
-    Think .iloc versus .loc indexing.
 
     Implicit abstract methods are:
     `__len__(self)` https://github.com/pytorch/pytorch/blob/66a20c259b3b2063e59102ab23f3fb34fc819455/torch/utils/data/sampler.py#L23
