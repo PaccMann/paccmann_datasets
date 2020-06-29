@@ -61,11 +61,11 @@ class _FastaEagerDataset(KeyDataset):
         return self.samples[index]
 
     def get_key(self, index: int) -> Hashable:
-        """Get sample identifier from integer index."""
+        """Get key from integer index."""
         return self.ordered_keys[index]
 
     def get_index(self, key: Hashable) -> int:
-        """Get index for first datum mapping to the given sample identifier."""
+        """Get index for first datum mapping to the given key."""
         return self.key_to_index_mapping[key]
 
     @property

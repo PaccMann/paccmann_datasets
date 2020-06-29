@@ -30,11 +30,11 @@ class DataFrameDataset(KeyDataset):
         return self.df.iloc[index].values
 
     def get_key(self, index: int) -> Hashable:
-        """Get sample identifier from integer index."""
+        """Get key from integer index."""
         return self.df.index[index]
 
     def get_index(self, key: Hashable) -> int:
-        """Get index for first datum mapping to the given sample identifier."""
+        """Get index for first datum mapping to the given key."""
         # item will raise if not single value (deprecated in pandas)
         try:
             indices = np.nonzero(
@@ -49,7 +49,7 @@ class DataFrameDataset(KeyDataset):
                 return indices[0]
 
     def get_item_from_key(self, key: Hashable) -> np.array:
-        """Get item via sample identifier"""
+        """Get item via key"""
         return self.df.loc[key, :].values
 
     def keys(self) -> Iterator:

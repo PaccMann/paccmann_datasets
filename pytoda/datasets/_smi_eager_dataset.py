@@ -51,5 +51,5 @@ class _SmiEagerDataset(DataFrameDataset):
         return self.df.iloc[index][self.name]
 
     def get_item_from_key(self, key: Hashable) -> Any:
-        """Get item via sample identifier"""
+        """Get item via key"""
         return self.df.loc[key, self.name]

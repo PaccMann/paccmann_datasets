@@ -21,7 +21,7 @@ FeatureList = List[str]
 TransformList = List[Callable[[Any], Any]]
 DrugSensitivityData = Tuple[Tensor, Tensor, Tensor]
 DrugAffinityData = Tuple[Tensor, Tensor, Tensor]
-AnnotatedData = Tuple[Tensor, Tensor]
+AnnotatedData = Tuple[Any, Tensor]
 
 
 def delegate_kwargs(to=None, keep=False):
