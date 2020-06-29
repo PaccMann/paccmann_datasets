@@ -11,7 +11,8 @@ class _CsvStatistics:
     """.csv abstract setup for dataset statistics."""
 
     def __init__(
-        self, filepath: str, feature_list: FeatureList = None, **kwargs
+        self, filepath: str, feature_list: FeatureList = None,
+        pandas_dtype=None, **kwargs
     ) -> None:
         """
         Initialize a .csv dataset.
@@ -19,6 +20,9 @@ class _CsvStatistics:
         Args:
             filepath (str): path to .csv file.
             feature_list (FeatureList): a list of features. Defaults to None.
+            pandas_dtype (str, type, dict): Optional parameter added to
+                kwargs (and passed to pd.read_csv) as 'dtype'. Defaults to
+                    None.
             kwargs (dict): additional parameters for pd.read_csv.
                 Except from nrows.
 
@@ -29,6 +33,7 @@ class _CsvStatistics:
         self.min_max_scaler = MinMaxScaler()
         self.standardizer = StandardScaler()
         self.kwargs = copy.deepcopy(kwargs)
+        self.kwargs['dtype'] = pandas_dtype
         if self.feature_list is not None:
             # NOTE: zeros denote missing value
             self.feature_fn = lambda df: df.T.reindex(self.feature_list
