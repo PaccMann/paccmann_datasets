@@ -34,6 +34,7 @@ class DrugSensitivityDataset(Dataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
+        sanitize: bool = True,
         vocab_file: str = None,
         iterate_dataset: bool = True,
         gene_list: GeneList = None,
@@ -92,6 +93,8 @@ class DrugSensitivityDataset(Dataset):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
+            sanitize (bool): RDKit sanitization of the molecule.
+                Defaults to True.
             vocab_file (str): Optional .json to load vocabulary. Tries to load
                 metadata if `iterate_dataset` is False. Defaults to None.
             iterate_dataset (bool): whether to go through all SMILES in the
@@ -138,7 +141,7 @@ class DrugSensitivityDataset(Dataset):
             remove_bonddir=remove_bonddir,
             remove_chirality=remove_chirality,
             selfies=selfies,
-            # sanitize=True,
+            sanitize=sanitize,
             randomize=randomize,
             padding=padding,
             padding_length=padding_length,

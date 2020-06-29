@@ -122,7 +122,8 @@ class SMILESTokenizerDataset(DatasetDelegator):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
-            sanitize (bool): Sanitize SMILES. Defaults to True.
+            sanitize (bool): RDKit sanitization of the molecule.
+                Defaults to True.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to False.
             padding (bool): pad sequences to longest in the smiles language.

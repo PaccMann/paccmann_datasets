@@ -93,8 +93,8 @@ class PolymerTokenizerDataset(Dataset):
                 information. Defaults to False.
             selfies (Union[Iterable[bool], bool]): Whether selfies is used
                 instead of smiles, defaults to False.
-            sanitize (Union[Iterable[bool], bool]): Sanitize SMILES.
-                Defaults to True.
+            sanitize (Union[Iterable[bool], bool]): sanitize (bool): RDKit
+                sanitization of the molecule. Defaults to True.
             iterate_dataset (bool): whether to go through all SMILES in the
                 dataset to build/extend vocab, find longest sequence, and
                 checks the passed padding length if applicable. Defaults to
