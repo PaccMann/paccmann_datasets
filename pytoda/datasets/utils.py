@@ -2,7 +2,19 @@
 from copy import copy
 
 from ..types import FileList, Any, Hashable, Tuple
-from .base_dataset import KeyDataset, ConcatKeyDataset, AnyBaseDataset
+from .base_dataset import ConcatKeyDataset, AnyBaseDataset
+
+
+def sizeof_fmt(num, suffix='B'):
+    """
+    Human readable file size.
+    Source: https://stackoverflow.com/a/1094933
+    """
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
 def concatenate_file_based_datasets(
@@ -20,7 +32,7 @@ def concatenate_file_based_datasets(
             still be used like a `pytoda.datasets.TransparentConcatDataset`,
             but methods depending on key lookup will fail.
         kwargs (dict): additional arguments for
-            dataset_class.__init__(self, filepath, **kwargs).
+            dataset_class.__init__(filepath, **kwargs).
     Returns:
         ConcatKeyDataset: the concatenated dataset.
     """
