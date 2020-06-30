@@ -9,6 +9,7 @@ from ..transforms import (
 )
 from ..types import FileList
 from ._fasta_eager_dataset import _FastaEagerDataset
+from ._fasta_lazy_dataset import _FastaLazyDataset
 from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
 from .utils import concatenate_file_based_datasets
@@ -18,18 +19,35 @@ SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
     '.csv': {
         'eager': (_SmiEagerDataset, {'index_col', 'names'}),
         'lazy': (_SmiLazyDataset, {'chunk_size', 'index_col', 'names'}),
-        },  # .smi like .csv
+    },  # .smi like .csv
     '.smi': {
         'eager': (_SmiEagerDataset, {'index_col', 'names'}),
         'lazy': (_SmiLazyDataset, {'chunk_size', 'index_col', 'names'}),
-        },
+    },
     '.fasta': {
-            'eager': (_FastaEagerDataset, {'gzipped'}),
-        },
+        'eager': (_FastaEagerDataset, {'gzipped', 'name'}),
+        'lazy': (_FastaLazyDataset, {
+            'name',
+            # args to pyfaidx.Fasta
+            'default_seq', 'key_function', 'as_raw', 'strict_bounds',
+            'read_ahead', 'mutable', 'split_char', 'duplicate_action',
+            'filt_function', 'one_based_attributes', 'read_long_names',
+            'sequence_always_upper', 'rebuild', 'build_index'
+        })
+    },
     '.fasta.gz': {
-            'eager': (_FastaEagerDataset, {'gzipped'}),
-        },
-}  # name cannot be passed, set to 'Sequence'
+        'eager': (_FastaEagerDataset, {'gzipped', 'name'}),
+        # requires Biopython installation
+        'lazy': (_FastaLazyDataset, {
+            'name',
+            # args to pyfaidx.Fasta
+            'default_seq', 'key_function', 'as_raw', 'strict_bounds',
+            'read_ahead', 'mutable', 'split_char', 'duplicate_action',
+            'filt_function', 'one_based_attributes', 'read_long_names',
+            'sequence_always_upper', 'rebuild', 'build_index'
+        })
+    },
+}
 
 
 def protein_sequence_dataset(

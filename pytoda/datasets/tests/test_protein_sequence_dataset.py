@@ -26,7 +26,7 @@ MORE_SMI_CONTENT = os.linesep.join(
         )
 
 
-FASTA_CONTENT = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
+FASTA_CONTENT_UNIPROT = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
 MQNPLPEVMSPEHDKRTTTPMSKEANKFIRELDKKPGDLAVVSDFVKRNTGKRLPIGKRS
 NLYVRICDLSGTIYMGETFILESWEELYLPEPTKMEVLGTLESCCGIPPFPEWIVMVGED
 QCVYAYGDEEILLFAYSVKQLVEEGIQETGISYKYPDDISDVDEEVLQQDEEIQKIRKKT
@@ -34,8 +34,11 @@ REFVDKDAQEFQDFLNSLDASLLS
 >sp|Q91G88|006L_IIV6 Putative KilA-N domain-containing protein 006L OS=Invertebrate iridescent virus 6 OX=176652 GN=IIV6-006L PE=3 SV=1
 MDSLNEVCYEQIKGTFYKGLFGDFPLIVDKKTGCFNATKLCVLGGKRFVDWNKTLRSKKL
 IQYYETRCDIKTESLLYEIKGDNNDEITKQITGTYLPKEFILDIASWISVEFYDKCNNII
->ignored without uniprot like header, i.e length here is 2.
 """  # length 204, 120
+
+FASTA_CONTENT_GENERIC = FASTA_CONTENT_UNIPROT + r""">generic_header eager upfp would concat to sequence above.
+LLLLLLLLLLLLLLLL
+"""  # length 16
 
 all_keys = ['ID3', 'ID1', 'ID2', 'ID4', 'Q6GZX0', 'Q91G88']
 
@@ -48,9 +51,10 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
         print(f'backend is {self.backend}')
         self.smi_content = SMI_CONTENT
         self.smi_other_content = MORE_SMI_CONTENT
-        self.fasta_content = FASTA_CONTENT
+        # would fail with FASTA_CONTENT_GENERIC
+        self.fasta_content = FASTA_CONTENT_UNIPROT
 
-    def test___len__(self) -> None:
+    def test___len__smi(self) -> None:
         """Test __len__."""
 
         with TestFileContent(self.smi_content) as a_test_file:
@@ -62,13 +66,14 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
                 )
                 self.assertEqual(len(protein_sequence_dataset), 8)
 
-        # Test parsing of .fasta file
+    def test___len__fasta(self) -> None:
+        """Test __len__."""
         with TestFileContent(self.fasta_content) as a_test_file:
             protein_sequence_dataset = ProteinSequenceDataset(
                 a_test_file.filename, filetype='.fasta',
                 backend=self.backend
             )
-
+            # eager only uniprot headers
             self.assertEqual(len(protein_sequence_dataset), 2)
 
     def test___getitem__(self) -> None:
@@ -371,16 +376,26 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
                     backend=self.backend
                 )
 
-# NOTE: .fasta has no lazy support yet. TODO
-# class TestProteinSequenceDatasetLazyBackend(TestProteinSequenceDatasetEagerBackend):  # noqa
-#     """Testing ProteinSequence dataset with lazy backend."""
 
-#     def setUp(self):
-#         self.backend = 'lazy'
-#         print(f'backend is {self.backend}')
-#         self.smi_content = SMI_CONTENT
-#         self.smi_other_content = MORE_SMI_CONTENT
-#         self.fasta_content = FASTA_CONTENT
+class TestProteinSequenceDatasetLazyBackend(TestProteinSequenceDatasetEagerBackend):  # noqa
+    """Testing ProteinSequence dataset with lazy backend."""
+
+    def setUp(self):
+        self.backend = 'lazy'
+        print(f'backend is {self.backend}')
+        self.smi_content = SMI_CONTENT
+        self.smi_other_content = MORE_SMI_CONTENT
+        self.fasta_content = FASTA_CONTENT_GENERIC
+
+    def test___len__fasta(self) -> None:
+        """Test __len__."""
+        with TestFileContent(self.fasta_content) as a_test_file:
+            protein_sequence_dataset = ProteinSequenceDataset(
+                a_test_file.filename, filetype='.fasta',
+                backend=self.backend
+            )
+            # generic sequences
+            self.assertEqual(len(protein_sequence_dataset), 3)
 
 
 if __name__ == '__main__':
