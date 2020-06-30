@@ -66,9 +66,9 @@ def reduce_csv_statistics(
             feature order preservation when multiple datasets are passed.
             Defaults to None, where features are string sorted.
     Returns:
-        Tuple[list, np.array, np.array, np.array, np.array]: updated
+        Tuple[FeatureList, np.array, np.array, np.array, np.array]: updated
             statistics with the following components:
-                features (list): List of features sorted by feature_ordering.
+                features (FeatureList): List of common, ordered features.
                 maximum (np.array): Maximum per feature.
                 minimum (np.array): Minimum per feature.
                 mean (np.array): Mean per feature.
