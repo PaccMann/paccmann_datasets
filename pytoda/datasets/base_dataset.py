@@ -1,16 +1,14 @@
 """Implementation of base classes working with datasets."""
 import bisect
+
 import pandas as pd
-
 from torch.utils.data import ConcatDataset, Dataset
-
-from ..types import Any, Hashable, Iterator, List, Tuple
+from ..types import Any, Hashable, Iterator, List, Tuple, Union
 
 
 class KeyDataset(Dataset):
     """
-    Base Class for Datsets with both integer index and sample identifier.
-    Think .iloc versus .loc indexing.
+    Base Class for Datsets with both integer index and item identifier key.
 
     Implicit abstract methods are:
     `__len__(self)` https://github.com/pytorch/pytorch/blob/66a20c259b3b2063e59102ab23f3fb34fc819455/torch/utils/data/sampler.py#L23
@@ -28,15 +26,15 @@ class KeyDataset(Dataset):
         return ConcatKeyDataset([self, other])
 
     def get_key(self, index: int) -> Hashable:
-        """Get sample identifier from integer index."""
+        """Get key from integer index."""
         raise NotImplementedError
 
     def get_index(self, key: Hashable) -> int:
-        """Get index for first datum mapping to the given sample identifier."""
+        """Get index for first datum mapping to the given key."""
         raise NotImplementedError
 
     def get_item_from_key(self, key: Hashable) -> Any:
-        """Get item via sample identifier"""
+        """Get item via key"""
         return self.__getitem__(self.get_index(key))
 
     def keys(self) -> Iterator:
@@ -74,7 +72,7 @@ class DatasetDelegator:
     # explicit implementation to ensure use of top level __getitem__
     # (possibly overloaded) vs using datasets.__getitem__
     def get_item_from_key(self, key: Hashable) -> Any:
-        """Get datum mapping to the given sample identifier."""
+        """Get datum mapping to the given key."""
         return self.__getitem__(self.get_index(key))
 
     @staticmethod
@@ -114,22 +112,10 @@ class DatasetDelegator:
         return dir(type(self)) + list(self.__dict__.keys()) + self._delegatable
 
 
-class ConcatKeyDataset(ConcatDataset, KeyDataset):
-    """
-    Extension of ConcatDataset with transparent indexing.
-
-    The keys are expected to be unique. If there are duplicate keys, on lookup
-    the first one found will be used by default."""
-
+class TransparentConcatDataset(ConcatDataset):
+    """Extension of ConcatDataset with transparent indexing."""
     def __init__(self, datasets: List[Dataset]):
-        """
-        Initialize the ConcatKeyDataset.
-
-        Args:
-            datasets (List[Dataset]): a list of datasets.
-        """
-        super(ConcatKeyDataset, self).__init__(datasets)
-        # __getitem__ and __len__ implementation from ConcatDataset
+        super().__init__(datasets)
 
     def get_index_pair(self, idx: int) -> Tuple[int, int]:
         """
@@ -155,18 +141,37 @@ class ConcatKeyDataset(ConcatDataset, KeyDataset):
             sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
         return (dataset_idx, sample_idx)
 
+
+class ConcatKeyDataset(TransparentConcatDataset, KeyDataset):
+    """
+    Extension of ConcatDataset with transparent indexing supporting KeyDataset
+
+    The keys are expected to be unique. If there are duplicate keys, on lookup
+    the first one found will be used by default.
+    """
+
+    def __init__(self, datasets: List[KeyDataset]):
+        """
+        Initialize the ConcatKeyDataset.
+
+        Args:
+            datasets (List[KeyDataset]): a list of datasets.
+        """
+        super().__init__(datasets)
+        # __getitem__ and __len__ implementation from ConcatDataset
+
     # the following require dataset to implement get_key and get_index
     def get_key_pair(self, index: int) -> Tuple[int, Hashable]:
-        """Get dataset index sample identifier from integer index."""
+        """Get dataset index key from integer index."""
         dataset_idx, sample_idx = self.get_index_pair(index)
         return dataset_idx, self.datasets[dataset_idx].get_key(sample_idx)
 
     def get_key(self, index: int) -> Hashable:
-        """Get sample identifier from integer index."""
+        """Get key from integer index."""
         return self.get_key_pair(index)[1]
 
     def get_index(self, key: Hashable) -> int:
-        """Get index for first datum mapping to the given sample identifier."""
+        """Get index for first datum mapping to the given key."""
         for dataset_idx, dataset in enumerate(self.datasets):
             try:
                 sample_idx = dataset.get_index(key)
@@ -182,7 +187,7 @@ class ConcatKeyDataset(ConcatDataset, KeyDataset):
             return sample_idx + self.cumulative_sizes[dataset_idx - 1]
 
     def get_item_from_key(self, key: Hashable) -> Any:
-        """Get datum mapping to the given sample identifier."""
+        """Get datum mapping to the given key."""
         return self.__getitem__(self.get_index(key))
 
     def keys(self):
@@ -190,3 +195,8 @@ class ConcatKeyDataset(ConcatDataset, KeyDataset):
         for dataset in self.datasets:
             for key in dataset.keys():
                 yield key
+
+    # default has_duplicate_keys via keys()
+
+
+AnyBaseDataset = Union[KeyDataset, DatasetDelegator, ConcatKeyDataset]

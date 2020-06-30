@@ -67,7 +67,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 instance, e.g. ProteinFeatureLanguage. Defaults to None,
                 creating a default instance.
             amino_acid_dict (str): The type of amino acid dictionary to map
-                sequence tokens to a number. Defaults to 'iupac', alternative
+                each sequence token to a unique number. Defaults to 'iupac', alternative
                 is 'unirep'.
             paddings (Union[bool, Iterable[bool]]): pad sequences to longest in
                 the protein language. Defaults to True.

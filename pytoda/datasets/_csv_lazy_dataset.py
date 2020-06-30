@@ -1,6 +1,4 @@
 """Implementation of _CsvLazyDataset."""
-import os
-import warnings
 from collections import OrderedDict
 
 import numpy as np
@@ -9,15 +7,6 @@ from ._cache_datasource import _CacheDatasource
 from .base_dataset import KeyDataset
 from ._csv_statistics import _CsvStatistics
 from ..types import FeatureList, Hashable
-
-
-def sizeof_fmt(num, suffix='B'):
-    """Source: https://stackoverflow.com/a/1094933"""
-    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
-        if abs(num) < 1024.0:
-            return "%3.1f%s%s" % (num, unit, suffix)
-        num /= 1024.0
-    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 
 class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
@@ -44,21 +33,11 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
             feature_list (FeatureList): a list of features. Defaults to None.
             chunk_size (int): size of the chunks. Defaults to 10000.
             kwargs (dict): additional parameters for pd.read_csv.
-                Except from nrows and chunksize.
+                The argument chunksize is ignored in favor of chunck_size.
         """
         self.chunk_size = chunk_size
 
-        size_limit = 1073741824  # default limit of 1GiB from diskcash
-        file_size = os.path.getsize(filepath)
-        if file_size > size_limit:
-            size_limit = file_size
-            message = (
-                f'Temporary directory for caching can be up to {size_limit} '
-                f'bytes ({sizeof_fmt(size_limit)}) large to fit data.'
-            )
-            # ResourceWarning is usually filtered by default
-            warnings.warn(message, ResourceWarning)
-        _CacheDatasource.__init__(self)
+        _CacheDatasource.__init__(self, fit_size_limit_filepath=filepath)
         _CsvStatistics.__init__(
             self, filepath, feature_list=feature_list, **kwargs
         )  # calls setup_datasource
@@ -112,11 +91,11 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
         return self.cache[index]
 
     def get_key(self, index: int) -> Hashable:
-        """Get sample identifier from integer index."""
+        """Get key from integer index."""
         return self.ordered_keys[index]
 
     def get_index(self, key: Hashable) -> int:
-        """Get index for first datum mapping to the given sample identifier."""
+        """Get index for first datum mapping to the given key."""
         return self.key_to_index_mapping[key]
 
     def keys(self):

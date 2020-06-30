@@ -5,14 +5,15 @@ from copy import copy
 
 import numpy as np
 import pandas as pd
-from pytoda.datasets import (DatasetDelegator, KeyDataset,
-                             ConcatKeyDataset)
-from pytoda.types import Hashable
 from torch.utils.data import DataLoader
+
+from pytoda.datasets import (ConcatKeyDataset, DatasetDelegator, KeyDataset,
+                             indexed, keyed)
+from pytoda.types import Hashable
 
 
 class Indexed(KeyDataset):
-    """As DataFrameDataset but only implementing necessary methods"""
+    """As DataFrameDataset but only implementing necessary methods."""
     def __init__(self, df):
         self.df = df
         super().__init__()
@@ -24,11 +25,11 @@ class Indexed(KeyDataset):
         return self.df.iloc[index].values
 
     def get_key(self, index: int) -> Hashable:
-        """Get sample identifier from integer index."""
+        """Get key from integer index."""
         return self.df.index[index]
 
     def get_index(self, key: Hashable) -> int:
-        """Get index for first datum mapping to the given sample identifier."""
+        """Get index for first datum mapping to the given key."""
         # item will raise if not single value (deprecated in pandas)
         try:
             indices = np.nonzero(
@@ -44,7 +45,7 @@ class Indexed(KeyDataset):
 
 
 class Delegating(DatasetDelegator):
-    """NOT implementing methods (and only built-ins from inheritance)"""
+    """NOT implementing methods (and only built-ins from inheritance)."""
     def __init__(self, data):
         self.dataset = data
 
@@ -74,6 +75,10 @@ class TestBaseDatasets(unittest.TestCase):
         self.concat_ds = self.delegating_ds + self.a_2nd_ds
         self.concat_keys = self.a_1st_keys + self.a_2nd_keys
 
+    def assertListedEqual(self, listable1, listable2):
+        """Easier comparison between arrays, series and or lists."""
+        self.assertListEqual(list(listable1), list(listable2))
+
     def test_delegation_dir(self):
         # stacking delegation
         ds_dir = dir(Delegating(Delegating(self.delegating_ds)))
@@ -100,21 +105,46 @@ class TestBaseDatasets(unittest.TestCase):
 
     def test___getitem__(self) -> None:
         """Test __getitem__."""
-        # Tracing(self.a_2nd_df)[0]
 
         i = 0
-        self.assertTrue(all(self.a_1st_ds[i] == self.a_1st_df.iloc[i]))
-        self.assertTrue(all(self.a_2nd_ds[i] == self.a_2nd_df.iloc[i]))
-        self.assertTrue(all(self.delegating_ds[i] == self.a_1st_df.iloc[i]))
+        self.assertListedEqual(self.a_1st_ds[i], self.a_1st_df.iloc[i])
+        self.assertListedEqual(self.a_2nd_ds[i], self.a_2nd_df.iloc[i])
+        self.assertListedEqual(self.delegating_ds[i], self.a_1st_df.iloc[i])
         # first in datasets
-        self.assertTrue(all(self.concat_ds[i] == self.a_1st_df.iloc[i]))
+        self.assertListedEqual(self.concat_ds[i], self.a_1st_df.iloc[i])
 
         i = -1
-        self.assertTrue(all(self.a_1st_ds[i] == self.a_1st_df.iloc[i]))
-        self.assertTrue(all(self.a_2nd_ds[i] == self.a_2nd_df.iloc[i]))
-        self.assertTrue(all(self.delegating_ds[i] == self.a_1st_df.iloc[i]))
+        self.assertListedEqual(self.a_1st_ds[i], self.a_1st_df.iloc[i])
+        self.assertListedEqual(self.a_2nd_ds[i], self.a_2nd_df.iloc[i])
+        self.assertListedEqual(self.delegating_ds[i], self.a_1st_df.iloc[i])
         # last in datasets
-        self.assertTrue(all(self.concat_ds[i] == self.a_2nd_df.iloc[i]))
+        self.assertListedEqual(self.concat_ds[i], self.a_2nd_df.iloc[i])
+
+    def _test__getitem__modified(self, mutate_copy) -> None:
+        """Test __getitem__ returning tuple with item first."""
+        for i in [0, -1]:
+            self.assertListedEqual(
+                mutate_copy(self.a_1st_ds)[i][0], self.a_1st_df.iloc[i]
+            )
+            self.assertListedEqual(
+                mutate_copy(self.a_2nd_ds)[i][0], self.a_2nd_df.iloc[i]
+            )
+            self.assertListedEqual(
+                mutate_copy(self.delegating_ds)[i][0], self.a_1st_df.iloc[i]
+            )
+
+        # first in datasets
+        self.assertListedEqual(
+            mutate_copy(self.concat_ds)[0][0], self.a_1st_df.iloc[0]
+        )
+        # last in datasets
+        self.assertListedEqual(
+            mutate_copy(self.concat_ds)[-1][0], self.a_2nd_df.iloc[-1]
+        )
+    
+    def test__getitem__mutating_utils(self):
+        self._test__getitem__modified(mutate_copy=indexed)
+        self._test__getitem__modified(mutate_copy=keyed)
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
@@ -147,7 +177,7 @@ class TestBaseDatasets(unittest.TestCase):
             else:
                 self.assertEqual(batch.shape, (batch_size, self.dims))
 
-    def _test_indexed(self, ds, keys, index):
+    def _test_item_independent(self, ds, keys, index):
         key = keys[index]
         positive_index = index % len(ds)
         # get_key (support for negative index?)
@@ -155,15 +185,64 @@ class TestBaseDatasets(unittest.TestCase):
         self.assertEqual(key, ds.get_key(index))
         # get_index
         self.assertEqual(positive_index, ds.get_index(key))
-        # get_item_from_key
-        self.assertTrue(all(ds[index] == ds.get_item_from_key(key)))
-        # in case of returning a tuple:
-        # for from_index, from_key in zip(ds[index], ds.get_item_from_key(key)):  # noqa
-        #     self.assertTrue(all(from_index == from_key))
         # keys
-        self.assertSequenceEqual(keys, list(ds.keys()))
+        self.assertListedEqual(keys, ds.keys())
         # duplicate keys
         self.assertFalse(ds.has_duplicate_keys)
+
+    def _test_base_methods(self, ds, keys, index):
+        key = keys[index]
+        self._test_item_independent(ds, keys, index)
+        # get_item_from_key
+        self.assertListedEqual(ds[index], ds.get_item_from_key(key))
+        # in case of returning a tuple:
+        # for from_index, from_key in zip(ds[index], ds.get_item_from_key(key)):  # noqa
+        #     self.assertListedEqual(from_index, from_key)
+
+    def _test_keyed_util(self, ds, keys, index):
+        ds_ = keyed(ds)
+        key = keys[index]
+        self._test_item_independent(ds_, keys, index)
+
+        # modified methods
+        item_of_i, k_of_i = ds_[index]
+        item_of_k, k_of_k = ds_.get_item_from_key(key)
+
+        # get_item_from_key
+        self.assertListedEqual(item_of_i, item_of_k)
+        self.assertTrue(key == k_of_i and key == k_of_k)
+
+    def _test_indexed_util(self, ds, keys, index):
+        ds_ = indexed(ds)
+        key = keys[index]
+        positive_index = index % len(ds_)
+        self._test_item_independent(ds_, keys, index)
+
+        # modified methods
+        item_of_i, i_of_i = ds_[index]
+        item_of_k, i_of_k = ds_.get_item_from_key(key)
+
+        # get_item_from_key
+        self.assertListedEqual(item_of_i, item_of_k)
+        self.assertTrue(positive_index == i_of_i and positive_index == i_of_k)
+
+    def _test_stacked_indexed_keyed_util(self, ds, keys, index):
+        ds_ = indexed(keyed(indexed(ds)))
+        key = keys[index]
+        positive_index = index % len(ds_)
+        self._test_item_independent(ds_, keys, index)
+
+        # modified methods
+        (((item_of_i, i_of_i0), k_of_i), i_of_i1) = ds_[index]
+        (((item_of_k, i_of_k0), k_of_k), i_of_k1) = ds_.get_item_from_key(key)
+
+        # get_item_from_key
+        self.assertListedEqual(item_of_i, item_of_k)
+        self.assertTrue(key == k_of_i and key == k_of_k)
+        self.assertTrue(
+            positive_index == i_of_i0 and positive_index == i_of_i1 and
+            positive_index == i_of_k0 and positive_index == i_of_k1
+        )
 
     def test_all_base_for_indexed_methods_and_copy(self):
         (
@@ -182,13 +261,19 @@ class TestBaseDatasets(unittest.TestCase):
             (copy(self.concat_ds), self.concat_keys),
         ]:
             index = -1
-            self._test_indexed(ds, keys, index)
+            self._test_indexed_util(ds, keys, index)
+            self._test_keyed_util(ds, keys, index)
+            self._test_stacked_indexed_keyed_util(ds, keys, index)
+            self._test_base_methods(ds, keys, index)
 
             # again with self delegation and concatenation
             ds = ConcatKeyDataset([Delegating(other_ds), Delegating(ds)])
             index = self.length + 1  # dataset_index == 1
             keys = other_keys + keys
-            self._test_indexed(ds, keys, index)
+            self._test_indexed_util(ds, keys, index)
+            self._test_keyed_util(ds, keys, index)
+            self._test_stacked_indexed_keyed_util(ds, keys, index)
+            self._test_base_methods(ds, keys, index)
             # get_index_pair
             self.assertTupleEqual(
                 (1, index-self.length),

@@ -54,6 +54,9 @@ class TestDrugSensitivityDatasetEagerBackend(unittest.TestCase):
                         drug_sensitivity_file.filename,
                         smiles_file.filename,
                         gene_expression_file.filename,
+                        gene_expression_kwargs={
+                            'pandas_dtype': {'genes': str}
+                        },
                         backend=self.backend
                     )
 
@@ -135,6 +138,9 @@ class TestDrugSensitivityDatasetLazyBackend(TestDrugSensitivityDatasetEagerBacke
                         drug_sensitivity_file.filename,
                         smiles_file.filename,
                         gene_expression_file.filename,
+                        gene_expression_kwargs={
+                            'pandas_dtype': {'genes': str}
+                        },
                         backend=self.backend
                     )
 

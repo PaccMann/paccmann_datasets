@@ -1,8 +1,11 @@
 """Testing AnnotatedDataset dataset with eager backend."""
-import unittest
 import os
+import unittest
+
 import numpy as np
-from pytoda.datasets import AnnotatedDataset, SMILESEncoderDataset, indexed, keyed
+
+from pytoda.datasets import (AnnotatedDataset, SMILESTokenizerDataset, indexed,
+                             keyed)
 from pytoda.tests.utils import TestFileContent
 
 # must contain all keys in annotated
@@ -35,7 +38,7 @@ class TestAnnotatedDataset(unittest.TestCase):
         """Test __getitem__."""
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     smiles_file.filename,
                     add_start_and_stop=True,
                     backend='eager'
@@ -77,7 +80,7 @@ class TestAnnotatedDataset(unittest.TestCase):
         """Test __getitem__ with index in the annotation file."""
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     smiles_file.filename,
                     add_start_and_stop=True,
                     backend='eager'
@@ -136,7 +139,7 @@ class TestAnnotatedDataset(unittest.TestCase):
 
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
-                smiles_dataset = SMILESEncoderDataset(
+                smiles_dataset = SMILESTokenizerDataset(
                     smiles_file.filename,
                     add_start_and_stop=True,
                     backend='eager'
@@ -179,7 +182,7 @@ class TestChangeIndexingReturn(unittest.TestCase):
         """Test __getitem__ with index in dataset."""
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
-                smiles_dataset = SMILESEncoderDataset(smiles_file.filename)
+                smiles_dataset = SMILESTokenizerDataset(smiles_file.filename)
                 # default
                 default_annotated_dataset = AnnotatedDataset(
                     annotation_file.filename, dataset=smiles_dataset
@@ -226,7 +229,7 @@ class TestChangeIndexingReturn(unittest.TestCase):
         """Test __getitem__ with key in dataset."""
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
-                smiles_dataset = SMILESEncoderDataset(smiles_file.filename)
+                smiles_dataset = SMILESTokenizerDataset(smiles_file.filename)
                 # default
                 default_annotated_dataset = AnnotatedDataset(
                     annotation_file.filename, dataset=smiles_dataset
@@ -273,7 +276,7 @@ class TestChangeIndexingReturn(unittest.TestCase):
         """Test __getitem__ with key in dataset."""
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
-                smiles_dataset = keyed(indexed(SMILESEncoderDataset(
+                smiles_dataset = keyed(indexed(SMILESTokenizerDataset(
                     smiles_file.filename,
                 )))
                 annotated_dataset = indexed(keyed(AnnotatedDataset(

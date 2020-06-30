@@ -5,7 +5,7 @@ from collections import OrderedDict
 import pandas as pd
 import torch
 
-from ..types import FeatureList, FileList
+from ..types import FeatureList, FileList, Union
 from ._csv_statistics import reduce_csv_statistics
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
@@ -149,8 +149,7 @@ class _TableDataset(DatasetDelegator):
         """
         return torch.tensor(
             self.dataset[index], dtype=self.dtype, device=self.device
-        )  # base_dataset: TODO torch.tensor needed? Dataloader should take care of this.
-        # if not we can remove this
+        )
 
 
 class _TableLazyDataset(_TableDataset):
@@ -197,7 +196,6 @@ class _TableEagerDataset(_TableDataset):
             filepaths=self.filepaths,
             dataset_class=_CsvEagerDataset,
             feature_list=self.feature_list,
-            dtype={'cell_line': str},
             **self.kwargs
         )
 

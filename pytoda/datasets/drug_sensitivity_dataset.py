@@ -4,7 +4,7 @@ import pandas as pd
 from torch.utils.data import Dataset
 from ..types import GeneList, DrugSensitivityData
 from ..smiles.smiles_language import SMILESLanguage
-from .smiles_dataset import SMILESEncoderDataset
+from .smiles_dataset import SMILESTokenizerDataset
 from .gene_expression_dataset import GeneExpressionDataset
 
 
@@ -34,6 +34,7 @@ class DrugSensitivityDataset(Dataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
+        sanitize: bool = True,
         vocab_file: str = None,
         iterate_dataset: bool = True,
         gene_list: GeneList = None,
@@ -92,6 +93,8 @@ class DrugSensitivityDataset(Dataset):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
+            sanitize (bool): RDKit sanitization of the molecule.
+                Defaults to True.
             vocab_file (str): Optional .json to load vocabulary. Tries to load
                 metadata if `iterate_dataset` is False. Defaults to None.
             iterate_dataset (bool): whether to go through all SMILES in the
@@ -127,7 +130,7 @@ class DrugSensitivityDataset(Dataset):
         # backend
         self.backend = backend
         # SMILES
-        self.smiles_dataset = SMILESEncoderDataset(
+        self.smiles_dataset = SMILESTokenizerDataset(
             self.smi_filepath,
             smiles_language=smiles_language,
             augment=augment,
@@ -138,7 +141,7 @@ class DrugSensitivityDataset(Dataset):
             remove_bonddir=remove_bonddir,
             remove_chirality=remove_chirality,
             selfies=selfies,
-            # sanitize=True,
+            sanitize=sanitize,
             randomize=randomize,
             padding=padding,
             padding_length=padding_length,

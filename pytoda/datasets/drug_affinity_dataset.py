@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from ..types import DrugAffinityData
 from ..smiles.smiles_language import SMILESLanguage
 from ..proteins.protein_language import ProteinLanguage
-from .smiles_dataset import SMILESEncoderDataset
+from .smiles_dataset import SMILESTokenizerDataset
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
@@ -34,6 +34,7 @@ class DrugAffinityDataset(Dataset):
         smiles_remove_chirality: bool = False,
         smiles_vocab_file: str = None,
         smiles_selfies: bool = False,
+        smiles_sanitize: bool = True,
         protein_language: ProteinLanguage = None,
         protein_amino_acid_dict: str = 'iupac',
         protein_padding: bool = True,
@@ -89,6 +90,8 @@ class DrugAffinityDataset(Dataset):
                 Defaults to False.
             smiles_selfies (bool): Whether selfies is used instead of smiles.
                 Default to False.
+            smiles_sanitize (bool): RDKit sanitization of the molecule.
+                Defaults to True.
             protein_language (ProteinLanguage): protein language.
                 Defaults to None, a.k.a., build it from scratch.
             protein_amino_acid_dict (str): Amino acid dictionary.
@@ -127,7 +130,7 @@ class DrugAffinityDataset(Dataset):
         # backend
         self.backend = backend
         # SMILES
-        self.smiles_dataset = SMILESEncoderDataset(
+        self.smiles_dataset = SMILESTokenizerDataset(
             self.smi_filepath,
             smiles_language=smiles_language,
             canonical=smiles_canonical,
@@ -138,7 +141,7 @@ class DrugAffinityDataset(Dataset):
             remove_bonddir=smiles_remove_bonddir,
             remove_chirality=smiles_remove_chirality,
             selfies=smiles_selfies,
-            # sanitize=True,
+            sanitize=smiles_sanitize,
             padding=smiles_padding,
             padding_length=smiles_padding_length,
             add_start_and_stop=smiles_add_start_and_stop,

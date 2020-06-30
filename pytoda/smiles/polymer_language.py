@@ -2,16 +2,16 @@
 from typing import Iterable
 
 from ..types import Indexes, Tensor, Union  # , delegate_kwargs
-from .smiles_language import SMILESEncoder
+from .smiles_language import SMILESTokenizer
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
 
 # @delegate_kwargs
-class PolymerEncoder(SMILESEncoder):
+class PolymerTokenizer(SMILESTokenizer):
     """
-    PolymerEncoder class.
+    PolymerTokenizer class.
 
-    PolymerEncoder is an extension of SMILESEncoder adding special start and
+    PolymerTokenizer is an extension of SMILESTokenizer adding special start and
     stop tokens per entity.
     A polymer language is usually shared across several SMILES datasets (e.g.
     different entity sources).
@@ -30,10 +30,10 @@ class PolymerEncoder(SMILESEncoder):
         Args:
             entity_names (Iterable[str]): A list of entity names that the
                 polymer language can distinguish.
-            name (str): name of the PolymerEncoder.
+            name (str): name of the PolymerTokenizer.
             add_start_and_stop (bool): add start and stop token indexes.
                 Defaults to True.
-            kwargs (dict): additional parameters passed to SMILESEncoder.
+            kwargs (dict): additional parameters passed to SMILESTokenizer.
 
         NOTE:
             See `set_smiles_transforms` and `set_encoding_transforms` to change
@@ -96,12 +96,8 @@ class PolymerEncoder(SMILESEncoder):
 
         Args:
             entity (str): a chemical entity (e.g. 'Monomer').
-
-        Returns:
-            None
         """
         self.current_entity = self._check_entity(entity)
-        self.reset_initial_transforms()
 
     def smiles_to_token_indexes(
         self, smiles: str, entity: str = None
@@ -115,7 +111,7 @@ class PolymerEncoder(SMILESEncoder):
             smiles (str): a SMILES (or SELFIES) representation.
             entity (str): a chemical entity (e.g. 'Monomer'). Defaults to
                 None, where the current entity is used (initially the
-                SMILESEncoder default).  # TODO
+                SMILESTokenizer default).
 
         Returns:
             Union[Indexes, Tensor]: indexes representation for the
@@ -138,6 +134,10 @@ class PolymerEncoder(SMILESEncoder):
         )
 
     def reset_initial_transforms(self):
+        """
+        Reset smiles and token indices transforms as on initialization,
+        including entity specific transforms.
+        """
         super().reset_initial_transforms()
         if not hasattr(self, 'entities'):  # call from base
             return

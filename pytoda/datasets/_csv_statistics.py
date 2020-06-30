@@ -11,7 +11,8 @@ class _CsvStatistics:
     """.csv abstract setup for dataset statistics."""
 
     def __init__(
-        self, filepath: str, feature_list: FeatureList = None, **kwargs
+        self, filepath: str, feature_list: FeatureList = None,
+        pandas_dtype=None, **kwargs
     ) -> None:
         """
         Initialize a .csv dataset.
@@ -19,21 +20,22 @@ class _CsvStatistics:
         Args:
             filepath (str): path to .csv file.
             feature_list (FeatureList): a list of features. Defaults to None.
+            pandas_dtype (str, type, dict): Optional parameter added to
+                kwargs (and passed to pd.read_csv) as 'dtype'. Defaults to
+                    None.
             kwargs (dict): additional parameters for pd.read_csv.
-                Except from nrows.
 
         """
-          # base_dataset: why not nrows?
         self.filepath = filepath
         self.feature_list = feature_list
         self.min_max_scaler = MinMaxScaler()
         self.standardizer = StandardScaler()
         self.kwargs = copy.deepcopy(kwargs)
+        self.kwargs['dtype'] = pandas_dtype
         if self.feature_list is not None:
             # NOTE: zeros denote missing value
-            self.feature_fn = lambda df: df.T.reindex(
-                self.feature_list
-            ).T.fillna(0.0)
+            self.feature_fn = lambda df: df.T.reindex(self.feature_list
+                                                      ).T.fillna(0.0)
         else:
             self.feature_fn = lambda df: df
         self.setup_datasource()
@@ -49,7 +51,8 @@ class _CsvStatistics:
 
 def reduce_csv_statistics(
     csv_datasets: List[_CsvStatistics],
-    feature_list: FeatureList = None,  # base_dataset: check for deprecation of argument
+    feature_list:
+    FeatureList = None,  # base_dataset: check for deprecation of argument
     feature_ordering: dict = None,
 ) -> Tuple[np.array, np.array, np.array, np.array]:
     """
@@ -61,8 +64,14 @@ def reduce_csv_statistics(
         feature_ordering (dict): a dictionary used to sort features by key.
             Defaults to None, a.k.a. sorting the strings.
     Returns:
-        Tuple[np.array, np.array, np.array, np.array]: updated
-            statistics.
+        Tuple[list, np.array, np.array, np.array, np.array]: updated
+            statistics with the following components:
+                features (list): List of features sorted by feature_ordering.
+                maximum (np.array): Maximum per feature.
+                minimum (np.array): Minimum per feature.
+                mean (np.array): Mean per feature.
+                std (np.array): Standard deviation per feature.
+
     """
     features = list(
         reduce(

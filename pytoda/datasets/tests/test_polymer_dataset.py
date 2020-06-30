@@ -2,11 +2,11 @@
 import unittest
 import os
 import numpy as np
-from pytoda.datasets import PolymerEncoderDataset
+from pytoda.datasets import PolymerTokenizerDataset
 from pytoda.tests.utils import TestFileContent
 
 
-class TestPolymerEncoderDataset(unittest.TestCase):
+class TestPolymerTokenizerDataset(unittest.TestCase):
     """Testing annotated dataset."""
 
     def test___len__(self) -> None:
@@ -42,7 +42,7 @@ class TestPolymerEncoderDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerEncoderDataset(
+                    polymer_dataset = PolymerTokenizerDataset(
                         *[
                             a_test_file.filename, another_test_file.filename
                         ],
@@ -82,7 +82,7 @@ class TestPolymerEncoderDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerEncoderDataset(
+                    polymer_dataset = PolymerTokenizerDataset(
                         *[
                             a_test_file.filename, another_test_file.filename
                         ],
@@ -181,7 +181,7 @@ class TestPolymerEncoderDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerEncoderDataset(
+                    polymer_dataset = PolymerTokenizerDataset(
                         *[
                             a_test_file.filename, another_test_file.filename
                         ],
@@ -285,7 +285,7 @@ class TestPolymerEncoderDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerEncoderDataset(
+                    polymer_dataset = PolymerTokenizerDataset(
                         *[
                             a_test_file.filename, another_test_file.filename
                         ],

@@ -80,7 +80,7 @@ For more examples see other repositories in the [PaccMann organization](https://
 
 ## Export the vocabulary of smiles languages created with older versions of `pytoda`
 
-The example [vocab_from_legacy_language.py](./vocab_from_legacy_language.py) loads a pickled `SMILESLanguage` object of an older class and assigns the data to the [refactored](../pytoda/smiles/smiles_language.py) class, so the vocabulary of tokens can be saved.
+The example [vocab_from_legacy_language.py](./vocab_from_legacy_language.py) loads a pickled `SMILESLanguage` object created with `pytoda<=0.1.0` and assigns the data to the [refactored](../pytoda/smiles/smiles_language.py) class (`pytoda>=0.2.0`), so the vocabulary of tokens can be saved.
 
 ```console
 (pytoda) $ python examples/vocab_from_legacy_language.py -h

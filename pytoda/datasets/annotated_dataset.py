@@ -1,11 +1,9 @@
 """Implementation of AnnotatedDataset class."""
-from copy import copy
-
 import pandas as pd
 import torch
 
-from ..types import AnnotatedData, Any, Hashable, List, Tuple, Union
-from .base_dataset import KeyDataset
+from ..types import AnnotatedData, Hashable, List, Union
+from .base_dataset import AnyBaseDataset
 from .dataframe_dataset import DataFrameDataset
 
 
@@ -18,7 +16,7 @@ class AnnotatedDataset(DataFrameDataset):
     def __init__(
         self,
         annotations_filepath: str,
-        dataset: KeyDataset,
+        dataset: AnyBaseDataset,
         annotation_index: Union[int, str] = -1,
         label_columns: Union[List[int], List[str]] = None,
         dtype: torch.dtype = torch.float,
@@ -36,16 +34,17 @@ class AnnotatedDataset(DataFrameDataset):
                 Currently, the supported formats are column separated files.
                 The default structure assumes that the last column contains an
                 id that is also used in the dataset provided.
-            dataset (KeyDataset): instance of a KeyDataset (supporting
-                label indices). E.g. a SMILESDataset
+            dataset (AnyBaseDataset): instance of a AnyBaseDataset (supporting
+                key lookup API of KeyDataset), e.g. a SMILESDataset.
             annotation_index (Union[int, str]): positional or string for the
-                column containing the annotation index. Defaults to -1, a.k.a.
-                the last column.
+                column containing the annotation index of keys to get items in
+                the passed dataset. Defaults to -1, i.e. the last column.
             label_columns (Union[List[int], List[str]]): indexes (positional
                 or strings) for the annotations. Defaults to None, a.k.a. all
                 the columns, except the annotation index, are considered
                 annotation labels.
-            dtype (torch.dtype): data type. Defaults to torch.float.
+            dtype (torch.dtype): torch data type for labels. Defaults to
+                torch.float.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
             kwargs (dict): additional parameter for pd.read_csv.
@@ -53,6 +52,7 @@ class AnnotatedDataset(DataFrameDataset):
         self.device = device
         self.annotations_filepath = annotations_filepath
         self.datasource = dataset
+        self.dtype = dtype
 
         # processing of the dataframe for dataset setup
         df = pd.read_csv(
@@ -66,11 +66,6 @@ class AnnotatedDataset(DataFrameDataset):
             self.annotation_index = annotation_index
         else:
             raise RuntimeError('annotation_index should be int or str.')
-        # set the index explicitly
-        df = df.set_index(
-            self.annotation_index
-        )
-        DataFrameDataset.__init__(self, df)
 
         # handle labels
         if label_columns is None:
@@ -88,107 +83,52 @@ class AnnotatedDataset(DataFrameDataset):
         # get the number of labels
         self.number_of_tasks = len(self.labels)
 
+        # set the index explicitly, and discard non label columns
+        df = df.set_index(
+            self.annotation_index
+        )[self.labels]
+        DataFrameDataset.__init__(self, df)
+
     def __getitem__(self, index: int) -> AnnotatedData:
         """
-        Generates one sample of data.
+        Get key from integer index.
 
         Args:
-            index (int): index of the sample to fetch.
+            index (int): index annotations to get key and annotation labels,
+                where the key is used to fetch the item.
 
         Returns:
-            AnnotatedData: a tuple containing two torch.tensors,
-                representing respectively: compound token indexes and labels
-                for the current sample.
+            AnnotatedData: a tuple containing the item itself (with type
+                depending on passed dataset) and a torch.tensor of
+                labels for the current item.
         """
         # sample selection
         selected_sample = self.df.iloc[index]
-        # label
-        labels_tensor = torch.tensor(
-            list(selected_sample[self.labels].values),  # base_dataset: why selecting self.labels here and not for all in __init__? want to change self.labels on the instance?
-            dtype=torch.float,
-            device=self.device
-        )
-        # sample
-        sample = self.datasource.get_item_from_key(selected_sample.name)
-        return sample, labels_tensor
+        return self._make_return_tuple(selected_sample)
 
     def get_item_from_key(self, key: Hashable) -> AnnotatedData:
         """
-        Generates one sample of data.
+        Get item via key.
 
         Args:
-            index (int): index of the sample to fetch.
+            key (Hashable): key of the item and annotations to fetch.
 
         Returns:
-            AnnotatedData: a tuple containing two torch.tensors,
-                representing respectively: compound token indexes and labels
-                for the current sample.
+            AnnotatedData: a tuple containing the item itself (with type
+                depending on passed dataset) and a torch.tensor of
+                labels for the current item.
         """
         # sample selection
         selected_sample = self.df.loc[key, :]
+        return self._make_return_tuple(selected_sample)
+
+    def _make_return_tuple(self, lables_series: pd.Series) -> AnnotatedData:
+        # sample
+        sample = self.datasource.get_item_from_key(lables_series.name)
         # label
         labels_tensor = torch.tensor(
-            list(selected_sample[self.labels].values),
-            dtype=torch.float,
+            list(lables_series.values),
+            dtype=self.dtype,
             device=self.device
         )
-        # sample
-        sample = self.datasource.get_item_from_key(key)
         return sample, labels_tensor
-
-
-def indexed(dataset) -> 'MutatedShallowCopy':
-    """Change instances indexing behavior by returning index as well."""
-    default_getitem = dataset.__getitem__  # bound method
-    default_from_key = dataset.get_item_from_key  # bound method
-
-    def return_item_index_tuple(self, index: int) -> Tuple[Any, int]:
-        return default_getitem(index), index
-
-    def return_item_index_tuple_from_key(
-        self, key: Hashable
-    ) -> Tuple[Any, int]:
-        """prevents `get_item_from_key` to call new indexed __getitem__"""
-        return default_from_key(key), dataset.get_index(key)
-
-    methods = {
-        '__getitem__': return_item_index_tuple,
-        'get_item_from_key': return_item_index_tuple_from_key
-    }
-    ds = copy(dataset)
-    ds.__class__ = type(
-        f'Indexed{type(dataset).__name__}',
-        (dataset.__class__,),
-        methods
-    )
-    return ds
-
-
-def keyed(dataset) -> 'MutatedShallowCopy':
-    """Change instances indexing behavior by returning key as well."""
-    default_getitem = dataset.__getitem__  # bound method
-    default_from_key = dataset.get_item_from_key  # bound method
-
-    def return_item_key_tuple(self, index: int) -> Tuple[Any, Hashable]:
-        return (
-            default_getitem(index),
-            dataset.get_key(index)
-        )
-
-    def return_item_key_tuple_from_key(
-        self, key: Hashable
-    ) -> Tuple[Any, Hashable]:
-        """prevents `get_item_from_key` to call new keyed __getitem__"""
-        return default_from_key(key), key
-
-    methods = {
-        '__getitem__': return_item_key_tuple,
-        'get_item_from_key': return_item_key_tuple_from_key
-    }
-    ds = copy(dataset)
-    ds.__class__ = type(
-        f'Keyed{type(dataset).__name__}',
-        (dataset.__class__,),
-        methods
-    )
-    return ds

@@ -31,8 +31,8 @@ def compose_smiles_transforms(
 
     Args:
         canonical (bool, optional): performs canonicalization of SMILES
-        (one original string for one molecule). If True, then other
-        transformations (augment etc, see below) do not apply. Defaults to
+            (one original string for one molecule). If True, then other
+            transformations (augment etc, see below) do not apply. Defaults to
             False.
         augment (bool, optional): perform SMILES augmentation. Defaults to
             False.
@@ -48,13 +48,12 @@ def compose_smiles_transforms(
             Defaults to False.
         selfies (bool, optional): whether selfies is used instead of
             smiles. Defaults to False.
-        sanitize (bool, optional): sanitize SMILES. Defaults to True.
+        sanitize (bool, optional): RDKit sanitization of the molecule.
+            Defaults to True.
 
     Returns:
         Compose: A Callable that applies composition of SMILES transforms.
     """
-    # TODO improve sanitize docstring
-    # ?? Kekulize, check valencies, set aromaticity, conjugation and hybridization
 
     # Build up composition from optional SMILES to SMILES transformations
     smiles_transforms = []
@@ -109,7 +108,7 @@ def compose_encoding_transforms(
     padding_index: int = 0,
     device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
-) -> Tuple[Compose, Callable]:
+) -> Compose:
     """Setup a composition of token indices to token indices transformations.
 
     Args:
@@ -501,7 +500,6 @@ class AugmentTensor(Transform):
         Returns:
             str: randomized SMILES representation.
         """
-        # TODO expects 2D Tensor as input, check for 1D.
         # Infer the padding type to ensure returning tensor of same shape.
         if self.smiles_language.padding_index in smiles_numerical.flatten():
 

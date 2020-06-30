@@ -24,7 +24,6 @@ class _CsvEagerDataset(_CsvStatistics, DataFrameDataset):
             filepath (str): path to .csv file.
             feature_list (FeatureList): a list of features. Defaults to None.
             kwargs (dict): additional parameters for pd.read_csv.
-                Except from nrows.
         """
         _CsvStatistics.__init__(
             self, filepath, feature_list=feature_list, **kwargs
