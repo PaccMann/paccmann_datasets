@@ -96,9 +96,6 @@ class PolymerTokenizer(SMILESTokenizer):
 
         Args:
             entity (str): a chemical entity (e.g. 'Monomer').
-
-        Returns:
-            None
         """
         self.current_entity = self._check_entity(entity)
 
@@ -114,7 +111,7 @@ class PolymerTokenizer(SMILESTokenizer):
             smiles (str): a SMILES (or SELFIES) representation.
             entity (str): a chemical entity (e.g. 'Monomer'). Defaults to
                 None, where the current entity is used (initially the
-                SMILESTokenizer default).  # TODO
+                SMILESTokenizer default).
 
         Returns:
             Union[Indexes, Tensor]: indexes representation for the
@@ -137,6 +134,10 @@ class PolymerTokenizer(SMILESTokenizer):
         )
 
     def reset_initial_transforms(self):
+        """
+        Reset smiles and token indices transforms as on initialization,
+        including entity specific transforms.
+        """
         super().reset_initial_transforms()
         if not hasattr(self, 'entities'):  # call from base
             return

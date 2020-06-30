@@ -690,7 +690,7 @@ class SMILESTokenizer(SMILESLanguage):
         self.padding_length = self.max_token_sequence_length
 
     def reset_initial_transforms(self):
-        """reset smiles and token indices transforms as on initialization."""
+        """Reset smiles and token indices transforms as on initialization."""
         self.transform_smiles = compose_smiles_transforms(
             self.canonical,
             self.augment,
