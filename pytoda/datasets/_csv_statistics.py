@@ -45,24 +45,26 @@ class _CsvStatistics:
         self.std = self.standardizer.scale_
 
     def setup_datasource(self) -> None:
-        """Setup the datasource computing statistics."""
+        """
+        Setup the datasource, compute statistics, and define feature_mapping
+        (to order).
+        """
         raise NotImplementedError
 
 
 def reduce_csv_statistics(
     csv_datasets: List[_CsvStatistics],
     feature_list:
-    FeatureList = None,  # base_dataset: check for deprecation of argument
-    feature_ordering: dict = None,
+    FeatureList = None,
 ) -> Tuple[np.array, np.array, np.array, np.array]:
     """
     Reduce datasets statistics.
 
     Args:
         csv_datasets (List[_CsvStatistics]): list of .csv datasets.
-        feature_list (FeatureList): a list of features. Defaults to None.
-        feature_ordering (dict): a dictionary used to sort features by key.
-            Defaults to None, a.k.a. sorting the strings.
+        feature_list (FeatureList): a list of features important to guarantee
+            feature order preservation when multiple datasets are passed.
+            Defaults to None, where features are string sorted.
     Returns:
         Tuple[list, np.array, np.array, np.array, np.array]: updated
             statistics with the following components:
@@ -73,6 +75,7 @@ def reduce_csv_statistics(
                 std (np.array): Standard deviation per feature.
 
     """
+    # collected common features
     features = list(
         reduce(
             lambda a_set, another_set: a_set & another_set, [
@@ -81,18 +84,24 @@ def reduce_csv_statistics(
             ]
         )
     )
-    # NOTE: sorting features appropriately
-    if feature_ordering is not None:
+
+    if feature_list is not None:
+        # to sort features by key
+        feature_ordering = {
+            feature: index
+            for index, feature in enumerate(feature_list)
+        }
         features = sorted(
             features, key=lambda feature: feature_ordering[feature]
         )
     else:
+        # sorting the strings
         features = sorted(features)
     maximums, minimums, means, stds, sample_numbers = zip(
         *[
             (
                 # NOTE: here we ensure that we pick the statistics
-                # in the right order
+                # in the right order via indexes
                 csv_dataset.max[csv_dataset.feature_mapping[features].values],
                 csv_dataset.min[csv_dataset.feature_mapping[features].values],
                 csv_dataset.mean[csv_dataset.feature_mapping[features].values],

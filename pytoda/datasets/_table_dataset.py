@@ -54,15 +54,6 @@ class _TableDataset(DatasetDelegator):
         self.processing = {}
         self.filepaths = filepaths
         self.feature_list = feature_list
-        if self.feature_list is not None:
-            # NOTE: important to guarantee feature order preservation when
-            # multiple datasets are passed
-            self.feature_ordering = {
-                feature: index
-                for index, feature in enumerate(self.feature_list)
-            }
-        else:
-            self.feature_ordering = None
         self.standardize = standardize
         self.min_max = min_max
         self.processing_parameters = processing_parameters
@@ -85,7 +76,7 @@ class _TableDataset(DatasetDelegator):
         (  # yapf:disable
             self.feature_list, self.max, self.min, self.mean, self.std
         ) = reduce_csv_statistics(
-            self.dataset.datasets, self.feature_list, self.feature_ordering
+            self.dataset.datasets, self.feature_list
         )
 
         # NOTE: adapt feature list, mapping and function
@@ -129,7 +120,9 @@ class _TableDataset(DatasetDelegator):
         self._preprocess_dataset()
 
     def _setup_dataset(self) -> None:
-        """Setup KeyDataset assigned to self.dataset for delegation."""
+        """
+        Setup KeyDataset assigned to self.dataset for delegation.
+        Defines feature_mapping and fits statistics."""
         raise NotImplementedError
 
     def _preprocess_dataset(self) -> None:

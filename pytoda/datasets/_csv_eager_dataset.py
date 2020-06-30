@@ -30,7 +30,10 @@ class _CsvEagerDataset(_CsvStatistics, DataFrameDataset):
         )  # calls setup_datasource
 
     def setup_datasource(self) -> None:
-        """Setup the datasource ready to collect statistics."""
+        """
+        Setup the datasource, compute statistics, and define feature_mapping
+        (to order).
+        """
         df = self.feature_fn(pd.read_csv(self.filepath, **self.kwargs))
         # KeyDataset implementation, sets self.df
         DataFrameDataset.__init__(self, df)

@@ -151,7 +151,7 @@ def compose_encoding_transforms(
                 padding_index=padding_index
             )
         ]
-    # TODO conditional?
+
     encoding_transforms += [ToTensor(device=device)]
     return Compose(encoding_transforms)
 

@@ -45,7 +45,10 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
         KeyDataset.__init__(self)
 
     def setup_datasource(self) -> None:
-        """Setup the datasource ready to collect statistics."""
+        """
+        Setup the datasource, compute statistics, and define feature_mapping
+        (to order).
+        """
         self.key_to_index_mapping = {}
         index = 0
         self.ordered_keys = []
