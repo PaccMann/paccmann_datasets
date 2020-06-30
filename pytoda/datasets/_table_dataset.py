@@ -149,8 +149,7 @@ class _TableDataset(DatasetDelegator):
         """
         return torch.tensor(
             self.dataset[index], dtype=self.dtype, device=self.device
-        )  # base_dataset: TODO torch.tensor needed? Dataloader should take care of this.
-        # if not we can remove this
+        )
 
 
 class _TableLazyDataset(_TableDataset):

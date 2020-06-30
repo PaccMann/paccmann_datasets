@@ -18,7 +18,7 @@ SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
     '.csv': {
         'eager': (_SmiEagerDataset, {'index_col', 'names'}),
         'lazy': (_SmiLazyDataset, {'chunk_size', 'index_col', 'names'}),
-        },  # base_dataset: how to support not .smi formatted csv? At least warn?
+        },  # .smi like .csv
     '.smi': {
         'eager': (_SmiEagerDataset, {'index_col', 'names'}),
         'lazy': (_SmiLazyDataset, {'chunk_size', 'index_col', 'names'}),
