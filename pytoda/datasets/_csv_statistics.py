@@ -24,10 +24,8 @@ class _CsvStatistics:
                 kwargs (and passed to pd.read_csv) as 'dtype'. Defaults to
                     None.
             kwargs (dict): additional parameters for pd.read_csv.
-                Except from nrows.
 
         """
-        # base_dataset: why not nrows?
         self.filepath = filepath
         self.feature_list = feature_list
         self.min_max_scaler = MinMaxScaler()
@@ -66,7 +64,7 @@ def reduce_csv_statistics(
         feature_ordering (dict): a dictionary used to sort features by key.
             Defaults to None, a.k.a. sorting the strings.
     Returns:
-        Tuple[list, np.array, np.array, np.array]: updated
+        Tuple[list, np.array, np.array, np.array, np.array]: updated
             statistics with the following components:
                 features (list): List of features sorted by feature_ordering.
                 maximum (np.array): Maximum per feature.

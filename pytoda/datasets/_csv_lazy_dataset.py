@@ -33,7 +33,7 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
             feature_list (FeatureList): a list of features. Defaults to None.
             chunk_size (int): size of the chunks. Defaults to 10000.
             kwargs (dict): additional parameters for pd.read_csv.
-                Except from nrows and chunksize.
+                The argument chunksize is ignored in favor of chunck_size.
         """
         self.chunk_size = chunk_size
 
