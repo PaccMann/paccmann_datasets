@@ -80,7 +80,7 @@ class _FastaLazyDataset(KeyDataset):
         return self.key_to_index_mapping[key]
 
     def keys(self) -> Iterator:
-        """Default iterator of keys by iterating over dataset indices."""
+        """Default iterator of keys by iterating over dataset indexes."""
         return iter(self.datasource.keys())
 
     @property

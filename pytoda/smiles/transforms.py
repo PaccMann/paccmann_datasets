@@ -109,7 +109,7 @@ def compose_encoding_transforms(
     device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
 ) -> Compose:
-    """Setup a composition of token indices to token indices transformations.
+    """Setup a composition of token indexes to token indexes transformations.
 
     Args:
         randomize (bool, optional): perform a true randomization of
@@ -132,7 +132,7 @@ def compose_encoding_transforms(
 
     Returns:
         Compose: A Callable that applies composition of transforms on
-            token indices.
+            token indexes.
 
     Note:
         Transformations can change the number of tokens.

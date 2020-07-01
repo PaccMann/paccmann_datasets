@@ -133,7 +133,7 @@ class SMILESLanguage(object):
         SMILESLanguage.dump(self, filepath)
 
     def load_vocab(self, vocab_file: str, include_metadata: bool = False):
-        """Load a vocabulary mapping from token to token indices.
+        """Load a vocabulary mapping from token to token indexes.
 
         Args:
             vocab_file (str): a .json with at least a 'vocab' field to load.
@@ -540,7 +540,7 @@ class SELFIESLanguage(SMILESLanguage):
 class SMILESTokenizer(SMILESLanguage):
     """
     SMILESTokenizer class, based on SMILESLanguage applying transforms and
-    and encoding of SMILES string to sequence of token indices.
+    and encoding of SMILES string to sequence of token indexes.
     """
 
     def __init__(
@@ -660,7 +660,7 @@ class SMILESTokenizer(SMILESLanguage):
         Defines a Callable that given a sequence of naive tokens, i.e. before
         applying the encoding transforms, computes the number of
         implicit tokens after transforms (implicit because it's the
-        number of token indices, not actual tokens).
+        number of token indexes, not actual tokens).
         """
         if add_start_and_stop:
             self._get_total_number_of_tokens_fn = (
@@ -690,7 +690,7 @@ class SMILESTokenizer(SMILESLanguage):
         self.padding_length = self.max_token_sequence_length
 
     def reset_initial_transforms(self):
-        """Reset smiles and token indices transforms as on initialization."""
+        """Reset smiles and token indexes transforms as on initialization."""
         self.transform_smiles = compose_smiles_transforms(
             self.canonical,
             self.augment,

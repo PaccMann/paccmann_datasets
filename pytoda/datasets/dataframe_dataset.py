@@ -37,16 +37,16 @@ class DataFrameDataset(KeyDataset):
         """Get index for first datum mapping to the given key."""
         # item will raise if not single value (deprecated in pandas)
         try:
-            indices = np.nonzero(
+            indexes = np.nonzero(
                 self.df.index == key
             )[0]
-            return indices.item()
+            return indexes.item()
         except ValueError:
-            if len(indices) == 0:
+            if len(indexes) == 0:
                 raise KeyError
             else:
                 # key not unique, return first as ConcatKeyDataset
-                return indices[0]
+                return indexes[0]
 
     def get_item_from_key(self, key: Hashable) -> np.array:
         """Get item via key"""

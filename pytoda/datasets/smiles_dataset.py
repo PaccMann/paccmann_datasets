@@ -65,7 +65,7 @@ class SMILESDataset(DatasetDelegator):
 
 
 class SMILESTokenizerDataset(DatasetDelegator):
-    """ Dataset of token indices from SMILES. """
+    """ Dataset of token indexes from SMILES. """
 
     def __init__(
         self,
@@ -94,7 +94,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
         **kwargs
     ) -> None:
         """
-        Initialize a dataset providing token indices from source SMILES.
+        Initialize a dataset providing token indexes from source SMILES.
 
         The datasets transformations on smiles and encodings can be adapted,
         depending on the smiles_language used (see SMILESTokenizer).
@@ -102,7 +102,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
         Args:
             smi_filepaths (FileList): paths to .smi files.
             smiles_language (SMILESLanguage): a smiles language that transforms
-                and encodes SMILES to token indices. Defaults to None, where
+                and encodes SMILES to token indexes. Defaults to None, where
                 a SMILESTokenizer is instantited with the following arguments.
             canonical (bool): performs canonicalization of SMILES (one
                 original string for one molecule), if True, then other

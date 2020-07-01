@@ -135,7 +135,7 @@ class PolymerTokenizer(SMILESTokenizer):
 
     def reset_initial_transforms(self):
         """
-        Reset smiles and token indices transforms as on initialization,
+        Reset smiles and token indexes transforms as on initialization,
         including entity specific transforms.
         """
         super().reset_initial_transforms()
