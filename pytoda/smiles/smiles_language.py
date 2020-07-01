@@ -12,9 +12,9 @@ from selfies import encoder as selfies_encoder
 
 from ..files import read_smi
 from ..transforms import Compose
-from ..types import (FileList, Indexes, Iterable, SMILESTokenizer, Tensor,
-                     Tokens, Union)
-from .processing import SMILES_TOKENIZER, tokenize_smiles, tokenize_selfies
+from ..types import (FileList, Indexes, Iterable, Sequence, SMILESTokenizer,
+                     Tensor, Tokens, Union)
+from .processing import SMILES_TOKENIZER, tokenize_selfies, tokenize_smiles
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
 logger = logging.getLogger(__name__)
@@ -290,7 +290,7 @@ class SMILESLanguage(object):
     def add_smis(
         self, smi_filepaths: FileList, index_col: int = 1,
         chunk_size: int = 10000, name: str = 'SMILES',
-        names: Iterable[str] = None
+        names: Sequence[str] = None
     ) -> None:
         """
         Add a set of SMILES from a list of .smi files.
@@ -301,7 +301,7 @@ class SMILESLanguage(object):
             chunk_size (int): size of the chunks. Defaults to 10000.
             name (str): type of dataset, used to index columns in smi, and must
                 be in names. Defaults to 'SMILES'.
-            names (Iterable[str]): User-assigned names given to the columns.
+            names (Sequence[str]): User-assigned names given to the columns.
                 Defaults to `[name]`.
         """
         for smi_filepath in smi_filepaths:
@@ -313,7 +313,7 @@ class SMILESLanguage(object):
     def add_smi(
         self, smi_filepath: str, index_col: int = 1,
         chunk_size: int = 10000, name: str = 'SMILES',
-        names: Iterable[str] = None
+        names: Sequence[str] = None
     ) -> None:
         """
         Add a set of SMILES from a .smi file.
@@ -325,7 +325,7 @@ class SMILESLanguage(object):
                 Defaults to 100000.
             name (str): type of dataset, used to index columns in smi, and must
                 be in names. Defaults to 'SMILES'.
-            names (Iterable[str]): User-assigned names given to the columns.
+            names (Sequence[str]): User-assigned names given to the columns.
                 Defaults to `[name]`.
         """
         names = names or [name]

@@ -11,7 +11,7 @@ from selfies import encoder as selfies_encoder
 
 from ..transforms import (Compose, LeftPadding, Randomize, StartStop, ToTensor,
                           Transform)
-from ..types import Callable, Indexes, Tensor, Tuple, Union
+from ..types import Indexes, Tensor, Union
 
 logger = logging.getLogger('pytoda_SMILES_transforms')
 

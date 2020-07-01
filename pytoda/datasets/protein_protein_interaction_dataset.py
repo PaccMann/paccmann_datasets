@@ -26,11 +26,11 @@ class ProteinProteinInteractionDataset(Dataset):
         annotations_column_names: Union[List[int], List[str]] = None,
         protein_language: ProteinLanguage = None,
         amino_acid_dict: str = 'iupac',
-        paddings: Union[bool, Iterable[bool]] = True,
-        padding_lengths: Union[int, Iterable[int]] = None,
-        add_start_and_stops: Union[bool, Iterable[bool]] = False,
-        augment_by_reverts: Union[bool, Iterable[bool]] = False,
-        randomizes: Union[bool, Iterable[bool]] = False,
+        paddings: Union[bool, Sequence[bool]] = True,
+        padding_lengths: Union[int, Sequence[int]] = None,
+        add_start_and_stops: Union[bool, Sequence[bool]] = False,
+        augment_by_reverts: Union[bool, Sequence[bool]] = False,
+        randomizes: Union[bool, Sequence[bool]] = False,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         )
@@ -39,13 +39,13 @@ class ProteinProteinInteractionDataset(Dataset):
         Initialize a protein protein interactiondataset.
 
         Args:
-            sequence_filepaths (Iterable[str]):
+            sequence_filepaths (Union[FileList, Sequence[FileList]]):
                 paths to .smi (also as .csv) or .fasta (.gz) file for protein
                 sequences. For each item in the iterable, one protein sequence
-                dataset is created. Iterables can be nested, i.e. each protein
+                dataset is created. Sequences can be nested, i.e. each protein
                 sequence dataset can be created from an iterable of filepaths
                 of same type, see sequence_filetypes.
-            entity_names (Iterable[str]): List of protein sequence entities,
+            entity_names (Sequence[str]): List of protein sequence entities,
                 e.g. ['Peptides', 'T-Cell-Receptors']. These names should be
                 column names of the labels_filepaths in order respective to
                 sequence_filepaths.
@@ -53,7 +53,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 labels.
             sequence_filetypes (Union[str, List[str]]): the filetypes of the
                 sequence files. Can either be a str if all files have identical
-                types or an Iterable if different entities have different
+                types or an Sequence if different entities have different
                 types. Different types across the same entity are not
                 supported. Supported formats are {.smi, .csv, .fasta,
                 .fasta.gz}. Default is `infer`, i.e. filetypes are inferred
@@ -68,15 +68,15 @@ class ProteinProteinInteractionDataset(Dataset):
             amino_acid_dict (str): The type of amino acid dictionary to map
                 each sequence token to a unique number. Defaults to 'iupac', alternative
                 is 'unirep'.
-            paddings (Union[bool, Iterable[bool]]): pad sequences to longest in
+            paddings (Union[bool, Sequence[bool]]): pad sequences to longest in
                 the protein language. Defaults to True.
-            padding_lengths (Union[int, Iterable[int]]): manually sets number
+            padding_lengths (Union[int, Sequence[int]]): manually sets number
                 of applied paddings (only if padding = True). Defaults to None.
-            add_start_and_stops (Union[bool, Iterable[bool]]): add start and
+            add_start_and_stops (Union[bool, Sequence[bool]]): add start and
                 stop token indexes.  Defaults to False.
-            augment_by_reverts (Union[bool, Iterable[bool]]): perform a
+            augment_by_reverts (Union[bool, Sequence[bool]]): perform a
                 stochastic reversion of the amino acid sequence.
-            randomizes (Union[bool, Iterable[bool]]): perform a true
+            randomizes (Union[bool, Sequence[bool]]): perform a true
                 randomization of the amino acid sequences. Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
@@ -101,14 +101,11 @@ class ProteinProteinInteractionDataset(Dataset):
             self.filetypes = list(
                 map(lambda x: '.' + x[0].split('.')[-1], sequence_filepaths)
             )
-
         elif sequence_filetypes in ['.smi', '.csv', '.fasta', '.fasta.gz']:
             self.filetypes = [sequence_filetypes] * len(self.entities)
         elif len(sequence_filetypes) == len(self.entities) and all(
-            map(
-                lambda x: x in ['.smi', '.csv', '.fasta', '.fasta.gz'],
-                sequence_filetypes
-            )
+            x in ['.smi', '.csv', '.fasta', '.fasta.gz']
+            for x in sequence_filetypes
         ):
             self.filetypes = sequence_filetypes
         else:

@@ -1,12 +1,11 @@
 """PolymerTokenizerDataset module."""
-from ..types import Iterable, List, Union, FileList
-
 import pandas as pd
 import torch
 from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..smiles.polymer_language import PolymerTokenizer
+from ..types import List, Sequence, Tuple, Union, Tensor
 from .smiles_dataset import SMILESDataset
 
 
@@ -25,22 +24,22 @@ class PolymerTokenizerDataset(Dataset):
     def __init__(
         self,
         *smi_filepaths: str,
-        entity_names: Iterable[str],
+        entity_names: Sequence[str],
         annotations_filepath: str,
         annotations_column_names: Union[List[int], List[str]] = None,
         smiles_language: PolymerTokenizer = None,
-        canonical: Union[Iterable[bool], bool] = False,
-        augment: Union[Iterable[bool], bool] = False,
-        kekulize: Union[Iterable[bool], bool] = False,
-        all_bonds_explicit: Union[Iterable[bool], bool] = False,
-        all_hs_explicit: Union[Iterable[bool], bool] = False,
-        randomize: Union[Iterable[bool], bool] = False,
-        remove_bonddir: Union[Iterable[bool], bool] = False,
-        remove_chirality: Union[Iterable[bool], bool] = False,
-        selfies: Union[Iterable[bool], bool] = False,
-        sanitize: Union[Iterable[bool], bool] = True,
-        padding: Union[Iterable[bool], bool] = True,
-        padding_length: Union[Iterable[int], int] = None,
+        canonical: Union[Sequence[bool], bool] = False,
+        augment: Union[Sequence[bool], bool] = False,
+        kekulize: Union[Sequence[bool], bool] = False,
+        all_bonds_explicit: Union[Sequence[bool], bool] = False,
+        all_hs_explicit: Union[Sequence[bool], bool] = False,
+        randomize: Union[Sequence[bool], bool] = False,
+        remove_bonddir: Union[Sequence[bool], bool] = False,
+        remove_chirality: Union[Sequence[bool], bool] = False,
+        selfies: Union[Sequence[bool], bool] = False,
+        sanitize: Union[Sequence[bool], bool] = True,
+        padding: Union[Sequence[bool], bool] = True,
+        padding_length: Union[Sequence[int], int] = None,
         iterate_dataset: bool = True,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -56,7 +55,7 @@ class PolymerTokenizerDataset(Dataset):
 
         Args:
             smi_filepaths (FileList): paths to .smi files, one per entity
-            entity_names (Iterable[str]): List of chemical entities.
+            entity_names (Sequence[str]): List of chemical entities.
             annotations_filepath (str): Path to .csv with the IDs of the
                 chemical entities and their properties. Needs to have one
                 column per entity name.
@@ -66,34 +65,34 @@ class PolymerTokenizerDataset(Dataset):
                 labels.
             smiles_language (PolymerTokenizer): a polymer language.
                 Defaults to None, in which case a new object is created.
-            padding (Union[Iterable[bool], bool]): pad sequences to longest in
+            padding (Union[Sequence[bool], bool]): pad sequences to longest in
                 the smiles language. Defaults to True. Controlled either for
                 each dataset separately (by iterable) or globally (bool).
-            padding_length (Union[Iterable[int], int]): manually sets number of
+            padding_length (Union[Sequence[int], int]): manually sets number of
                 applied paddings, applies only if padding is True. Defaults to
                 None. Controlled either for each dataset separately (by
                 iterable) or globally (int).
-            canonical (Union[Iterable[bool], bool]): performs canonicalization
+            canonical (Union[Sequence[bool], bool]): performs canonicalization
                 of SMILES (one original string for one molecule), if True, then
                 other transformations (augment etc, see below) do not apply.
-            augment (Union[Iterable[bool], bool]): perform SMILES augmentation.
+            augment (Union[Sequence[bool], bool]): perform SMILES augmentation.
                 Defaults to False.
-            kekulize (Union[Iterable[bool], bool]): kekulizes SMILES
+            kekulize (Union[Sequence[bool], bool]): kekulizes SMILES
                 (implicit aromaticity only).
                 Defaults to False.
-            all_bonds_explicit (Union[Iterable[bool], bool]): Makes all bonds
+            all_bonds_explicit (Union[Sequence[bool], bool]): Makes all bonds
                 explicit. Defaults to False, only applies if kekulize = True.
-            all_hs_explicit (Union[Iterable[bool], bool]): Makes all hydrogens
+            all_hs_explicit (Union[Sequence[bool], bool]): Makes all hydrogens
                 explicit. Defaults to False, only applies if kekulize = True.
-            randomize (Union[Iterable[bool], bool]): perform a true
+            randomize (Union[Sequence[bool], bool]): perform a true
                 randomization of SMILES tokens. Defaults to False.
-            remove_bonddir (Union[Iterable[bool], bool]): Remove directional
+            remove_bonddir (Union[Sequence[bool], bool]): Remove directional
                 info of bonds. Defaults to False.
-            remove_chirality (Union[Iterable[bool], bool]): Remove chirality
+            remove_chirality (Union[Sequence[bool], bool]): Remove chirality
                 information. Defaults to False.
-            selfies (Union[Iterable[bool], bool]): Whether selfies is used
+            selfies (Union[Sequence[bool], bool]): Whether selfies is used
                 instead of smiles, defaults to False.
-            sanitize (Union[Iterable[bool], bool]): sanitize (bool): RDKit
+            sanitize (Union[Sequence[bool], bool]): sanitize (bool): RDKit
                 sanitization of the molecule. Defaults to True.
             iterate_dataset (bool): whether to go through all SMILES in the
                 dataset to build/extend vocab, find longest sequence, and
@@ -105,8 +104,8 @@ class PolymerTokenizerDataset(Dataset):
                 Defaults to eager, prefer speed over memory consumption.
             kwargs (dict): additional arguments for dataset constructor.
 
-        NOTE: If a parameter that can be given as Union[Iterable[bool], bool]
-        is given as Iterable[bool] of wrong length (!= len(entity_names)), the
+        NOTE: If a parameter that can be given as Union[Sequence[bool], bool]
+        is given as Sequence[bool] of wrong length (!= len(entity_names)), the
         first list item is used for all datasets.
         """
 
@@ -269,11 +268,11 @@ class PolymerTokenizerDataset(Dataset):
         self.masks_df = pd.concat(masks, axis=1)
         self.masks_df.columns = self.entities
 
-    def __len__(self) -> Iterable[int]:
+    def __len__(self) -> int:
         """Total number of samples."""
         return len(self.annotated_data_df)
 
-    def __getitem__(self, index: int) -> Iterable[torch.tensor]:
+    def __getitem__(self, index: int) -> Tuple[Tensor]:
         """
         Generates one sample of data.
 
@@ -296,11 +295,11 @@ class PolymerTokenizerDataset(Dataset):
             device=self.device
         )
         # samples (SMILES token indexes)
-        smiles_tensor = tuple(
+        smiles_tensors = tuple(
             self.smiles_language.smiles_to_token_indexes(
                 dataset.get_item_from_key(selected_sample[dataset.name]),
                 dataset.name
             )
             for dataset in self.datasets
         )  # yapf: disable
-        return tuple([*smiles_tensor, labels_tensor])
+        return tuple([*smiles_tensors, labels_tensor])

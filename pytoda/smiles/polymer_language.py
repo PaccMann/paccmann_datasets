@@ -1,5 +1,5 @@
 """Polymer language handling."""
-from typing import Iterable
+from typing import Sequence
 
 from ..types import Indexes, Tensor, Union  # , delegate_kwargs
 from .smiles_language import SMILESTokenizer
@@ -19,7 +19,7 @@ class PolymerTokenizer(SMILESTokenizer):
 
     def __init__(
         self,
-        entity_names: Iterable[str],
+        entity_names: Sequence[str],
         name: str = 'polymer-language',
         add_start_and_stop: bool = True,
         **kwargs
@@ -28,7 +28,7 @@ class PolymerTokenizer(SMILESTokenizer):
         Initialize Polymer language able to encode different entities.
 
         Args:
-            entity_names (Iterable[str]): A list of entity names that the
+            entity_names (Sequence[str]): A list of entity names that the
                 polymer language can distinguish.
             name (str): name of the PolymerTokenizer.
             add_start_and_stop (bool): add start and stop token indexes.

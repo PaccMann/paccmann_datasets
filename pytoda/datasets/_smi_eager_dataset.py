@@ -1,9 +1,7 @@
 """Implementation of _SmiEagerDataset."""
-from torch.utils.data import Dataset
-from .base_dataset import KeyDataset
-from .dataframe_dataset import DataFrameDataset
 from ..files import read_smi
-from ..types import Any, Hashable, Iterable
+from ..types import Any, Hashable, Sequence
+from .dataframe_dataset import DataFrameDataset
 
 
 class _SmiEagerDataset(DataFrameDataset):
@@ -16,7 +14,7 @@ class _SmiEagerDataset(DataFrameDataset):
 
     def __init__(
         self, smi_filepath: str, index_col: int = 1, name: str = 'SMILES',
-        names: Iterable[str] = None
+        names: Sequence[str] = None
     ) -> None:
         """
         Initialize a .smi dataset.
@@ -26,7 +24,7 @@ class _SmiEagerDataset(DataFrameDataset):
             index_col (int): Data column used for indexing, defaults to 1.
             name (str): type of dataset, used to index columns in smi, and must
                 be in names. Defaults to 'SMILES'.
-            names (Iterable[str]): User-assigned names given to the columns.
+            names (Sequence[str]): User-assigned names given to the columns.
                 Defaults to `[name]`.
         """
         self.smi_filepath = smi_filepath

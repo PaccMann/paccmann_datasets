@@ -27,6 +27,7 @@ MORE_CONTENT = os.linesep.join(
 )
 LONGEST = 9
 
+
 class TestSMILESTokenizerDatasetEager(unittest.TestCase):
     """Testing SMILES dataset with eager backend."""
 

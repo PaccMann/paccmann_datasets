@@ -1,8 +1,8 @@
 """Implementation of _SmiLazyDataset."""
+from ..files import read_smi
+from ..types import Hashable, Sequence
 from ._cache_datasource import _CacheDatasource
 from .base_dataset import KeyDataset
-from ..types import Hashable, Iterable
-from ..files import read_smi
 
 
 class _SmiLazyDataset(KeyDataset, _CacheDatasource):
@@ -16,7 +16,7 @@ class _SmiLazyDataset(KeyDataset, _CacheDatasource):
 
     def __init__(
         self, smi_filepath: str, index_col: int = 1, chunk_size: int = 10000,
-        name: str = 'SMILES', names: Iterable[str] = None
+        name: str = 'SMILES', names: Sequence[str] = None
     ) -> None:
         """
         Initialize a .smi dataset.
@@ -27,7 +27,7 @@ class _SmiLazyDataset(KeyDataset, _CacheDatasource):
             chunk_size (int): size of the chunks. Defaults to 10000.
             name (str): type of dataset, used to index columns in smi, and must
                 be in names. Defaults to 'SMILES'.
-            names (Iterable[str]): User-assigned names given to the columns.
+            names (Sequence[str]): User-assigned names given to the columns.
                 Defaults to `[name]`.
         """
         _CacheDatasource.__init__(self, fit_size_limit_filepath=smi_filepath)
