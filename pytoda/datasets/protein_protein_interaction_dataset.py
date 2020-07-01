@@ -1,12 +1,11 @@
 """Implementation of ProteinProteinInteractionDataset."""
-from typing import Iterable, List, Union
-
 import pandas as pd
 import torch
 from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
+from ..types import FileList, Iterable, List, Sequence, Union
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
@@ -20,8 +19,8 @@ class ProteinProteinInteractionDataset(Dataset):
 
     def __init__(
         self,
-        sequence_filepaths: Iterable[Union[str, Iterable]],
-        entity_names: Iterable[str],
+        sequence_filepaths: Union[FileList, Sequence[FileList]],
+        entity_names: Sequence[str],
         labels_filepath: str,
         sequence_filetypes: Union[str, List[str]] = 'infer',
         annotations_column_names: Union[List[int], List[str]] = None,
@@ -40,7 +39,7 @@ class ProteinProteinInteractionDataset(Dataset):
         Initialize a protein protein interactiondataset.
 
         Args:
-            sequence_filepaths (Iterable[Union[str, Iterable]]):
+            sequence_filepaths (Iterable[str]):
                 paths to .smi (also as .csv) or .fasta (.gz) file for protein
                 sequences. For each item in the iterable, one protein sequence
                 dataset is created. Iterables can be nested, i.e. each protein
@@ -90,10 +89,17 @@ class ProteinProteinInteractionDataset(Dataset):
         self.labels_filepath = labels_filepath
         self.entities = list(map(lambda x: x.capitalize(), entity_names))
 
-        #  Data type of sequence files
+        # wrap single filepath per entity to treat equally as iterable (*args)
+        self.sequence_filepaths = [
+                [filepath]
+                if isinstance(filepath, str)
+                else filepath
+                for filepath in sequence_filepaths
+        ]
+        #  Data type of first sequence files per entity
         if sequence_filetypes == 'infer':
             self.filetypes = list(
-                map(lambda x: '.' + x.split('.')[-1], sequence_filepaths)
+                map(lambda x: '.' + x[0].split('.')[-1], sequence_filepaths)
             )
 
         elif sequence_filetypes in ['.smi', '.csv', '.fasta', '.fasta.gz']:
@@ -137,14 +143,6 @@ class ProteinProteinInteractionDataset(Dataset):
                 ) and all(self.add_start_and_stops
                           ) == any(self.add_start_and_stops)
             ), 'Inconsistencies found in add_start_and_stop.'
-
-        # wrap single filepath per entity to treat equally as iterable (*args)
-        self.sequence_filepaths = [
-                [filepath]
-                if isinstance(filepath, str)
-                else filepath
-                for filepath in sequence_filepaths
-        ]
 
         # Create protein sequence datasets
         self.datasets = [

@@ -25,7 +25,7 @@ class SMILESDataset(DatasetDelegator):
 
     def __init__(
         self,
-        *smi_filepaths: FileList,
+        *smi_filepaths: str,
         backend: str = 'eager',
         name: str = 'smiles-dataset',
         **kwargs
@@ -69,7 +69,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
 
     def __init__(
         self,
-        *smi_filepaths: FileList,
+        *smi_filepaths: str,
         smiles_language: SMILESLanguage = None,
         canonical: bool = False,
         augment: bool = False,

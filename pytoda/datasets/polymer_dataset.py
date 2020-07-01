@@ -24,7 +24,7 @@ class PolymerTokenizerDataset(Dataset):
 
     def __init__(
         self,
-        *smi_filepaths: FileList,
+        *smi_filepaths: str,
         entity_names: Iterable[str],
         annotations_filepath: str,
         annotations_column_names: Union[List[int], List[str]] = None,

@@ -51,7 +51,7 @@ SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
 
 
 def protein_sequence_dataset(
-    *filepaths, filetype, backend, **kwargs
+    *filepaths: str, filetype: str, backend: str, **kwargs
 ) -> KeyDataset:
     """Return a dataset of protein sequences."""
     try:
@@ -84,7 +84,7 @@ class ProteinSequenceDataset(DatasetDelegator):
 
     def __init__(
         self,
-        *filepaths: FileList,
+        *filepaths: str,
         filetype: str = '.smi',
         protein_language: ProteinLanguage = None,
         amino_acid_dict: str = 'iupac',
@@ -105,7 +105,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         Initialize a Protein Sequence dataset.
 
         Args:
-            filepaths (FileList): paths to .smi, .csv/.fasta/.fasta.gz file
+            *filepaths (FileList): paths to .smi, .csv/.fasta/.fasta.gz file
                 with the sequences.
             filetype (str): From {.smi, .csv, .fasta, .fasta.gz}.
             protein_language (ProteinLanguage): a ProteinLanguage (or child)

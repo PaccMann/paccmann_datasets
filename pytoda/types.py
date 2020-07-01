@@ -1,21 +1,14 @@
 """Type definitions."""
-from typing import (  # noqa
-    Any,
-    Callable,
-    Hashable,
-    Iterable,
-    Iterator,
-    List,
-    Tuple,
-    Union
-)
 import inspect
+from typing import (Any, Callable, Hashable, Iterable, Iterator, List,  # noqa
+                    Sequence, Tuple, Union)
+
 from torch import Tensor
 
 Tokens = List[str]
 Indexes = List[int]
 SMILESTokenizer = Callable[[str], Tokens]
-FileList = List[str]
+FileList = Sequence[str]  # often passed on as Tuple via *args
 GeneList = List[str]
 FeatureList = List[str]
 TransformList = List[Callable[[Any], Any]]
