@@ -6,7 +6,7 @@ from .dataframe_dataset import DataFrameDataset
 from ..types import FeatureList
 
 
-class _CsvEagerDataset(_CsvStatistics, DataFrameDataset):
+class _CsvEagerDataset(DataFrameDataset, _CsvStatistics):
     """
     .csv dataset using eager loading.
 
