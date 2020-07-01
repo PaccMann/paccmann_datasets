@@ -3,7 +3,7 @@ from pyfaidx import Fasta
 from itertools import islice
 
 from ..types import Hashable, Callable, Iterator
-from .base_dataset import KeyDataset, DatasetDelegator
+from .base_dataset import KeyDataset
 
 
 class _FastaLazyDataset(KeyDataset):
@@ -44,7 +44,6 @@ class _FastaLazyDataset(KeyDataset):
             as_raw=False,
             **kwargs
         )
-        DatasetDelegator.__init__(self)
         KeyDataset.__init__(self)
 
         self.key_to_index_mapping = {
@@ -82,7 +81,7 @@ class _FastaLazyDataset(KeyDataset):
 
     def keys(self) -> Iterator:
         """Default iterator of keys by iterating over dataset indices."""
-        return self.datasource.keys()
+        return iter(self.datasource.keys())
 
     @property
     def has_duplicate_keys(self):

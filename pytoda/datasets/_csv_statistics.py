@@ -1,10 +1,10 @@
 """Abstract implementation of _CsvStatistics."""
 import copy
 import numpy as np
+import pandas as pd
 from functools import reduce
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from typing import List, Tuple
-from ..types import FeatureList
+from ..types import List, Tuple, FeatureList
 
 
 class _CsvStatistics:
@@ -38,17 +38,22 @@ class _CsvStatistics:
                                                       ).T.fillna(0.0)
         else:
             self.feature_fn = lambda df: df
-        self.setup_datasource()
+        self.feature_mapping = self.setup_datasource()
         self.max = self.min_max_scaler.data_max_
         self.min = self.min_max_scaler.data_min_
         self.mean = self.standardizer.mean_
         self.std = self.standardizer.scale_
 
-    def setup_datasource(self) -> None:
+    def setup_datasource(self) -> pd.Series:
         """
-        Setup the datasource, compute statistics, and define feature_mapping
-        (to order).
+        Setup the datasource and compute statistics.
+
+        Returns:
+            pd.Series: feature_mapping of feature name to index in items.
         """
+        raise NotImplementedError
+
+    def __len__(self) -> int:
         raise NotImplementedError
 
 
@@ -56,7 +61,7 @@ def reduce_csv_statistics(
     csv_datasets: List[_CsvStatistics],
     feature_list:
     FeatureList = None,
-) -> Tuple[np.array, np.array, np.array, np.array]:
+) -> Tuple[FeatureList, np.array, np.array, np.array, np.array]:
     """
     Reduce datasets statistics.
 

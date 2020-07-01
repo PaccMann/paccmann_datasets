@@ -48,7 +48,7 @@ class KeyDataset(Dataset):
         return pd.Index(self.keys()).has_duplicates
 
 
-class DatasetDelegator:
+class DatasetDelegator(Dataset):
     """
     Base class for KeyDataset attribute accesses from `self.dataset`.
 
@@ -59,7 +59,7 @@ class DatasetDelegator:
     """
     # built-in methods need to be defined explicitly
     # https://stackoverflow.com/a/57589213
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.dataset)
 
     def __getitem__(self, index: int):
@@ -150,12 +150,12 @@ class ConcatKeyDataset(TransparentConcatDataset, KeyDataset):
     the first one found will be used by default.
     """
 
-    def __init__(self, datasets: List[KeyDataset]):
+    def __init__(self, datasets: List['AnyBaseDataset']):
         """
         Initialize the ConcatKeyDataset.
 
         Args:
-            datasets (List[KeyDataset]): a list of datasets.
+            datasets (List[AnyBaseDataset]): a list of datasets.
         """
         super().__init__(datasets)
         # __getitem__ and __len__ implementation from ConcatDataset
@@ -190,7 +190,7 @@ class ConcatKeyDataset(TransparentConcatDataset, KeyDataset):
         """Get datum mapping to the given key."""
         return self.__getitem__(self.get_index(key))
 
-    def keys(self):
+    def keys(self) -> Iterator:
         """Default generator of keys by iterating over dataset."""
         for dataset in self.datasets:
             for key in dataset.keys():

@@ -44,10 +44,12 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
         _ = self.kwargs.pop('chunksize', None)  # not passing chunksize twice
         KeyDataset.__init__(self)
 
-    def setup_datasource(self) -> None:
+    def setup_datasource(self) -> pd.Series:
         """
-        Setup the datasource, compute statistics, and define feature_mapping
-        (to order).
+        Setup the datasource and compute statistics.
+
+        Returns:
+            pd.Series: feature_mapping of feature name to index in items.
         """
         self.key_to_index_mapping = {}
         index = 0
@@ -66,7 +68,9 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
 
         self.number_of_samples = len(self.ordered_keys)
         self.feature_list = chunk.columns.tolist()
-        self.feature_mapping = pd.Series(
+        self.feature_fn = lambda sample: sample[self.feature_mapping[
+            self.feature_list].values]
+        return pd.Series(
             OrderedDict(
                 [
                     (feature, index)
@@ -74,8 +78,6 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
                 ]
             )
         )
-        self.feature_fn = lambda sample: sample[self.feature_mapping[
-            self.feature_list].values]
 
     def __len__(self) -> int:
         """Total number of samples."""

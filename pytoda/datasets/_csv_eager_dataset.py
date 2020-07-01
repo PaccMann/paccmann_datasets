@@ -29,10 +29,12 @@ class _CsvEagerDataset(_CsvStatistics, DataFrameDataset):
             self, filepath, feature_list=feature_list, **kwargs
         )  # calls setup_datasource
 
-    def setup_datasource(self) -> None:
+    def setup_datasource(self) -> pd.Series:
         """
-        Setup the datasource, compute statistics, and define feature_mapping
-        (to order).
+        Setup the datasource and compute statistics.
+
+        Returns:
+            pd.Series: feature_mapping of feature name to index in items.
         """
         df = self.feature_fn(pd.read_csv(self.filepath, **self.kwargs))
         # KeyDataset implementation, sets self.df
@@ -40,7 +42,9 @@ class _CsvEagerDataset(_CsvStatistics, DataFrameDataset):
         self.min_max_scaler.fit(self.df.values)
         self.standardizer.fit(self.df.values)
         self.feature_list = self.df.columns.tolist()
-        self.feature_mapping = pd.Series(
+        self.feature_fn = lambda df: df[self.feature_list]
+
+        return pd.Series(
             OrderedDict(
                 [
                     (feature, index)
@@ -48,4 +52,3 @@ class _CsvEagerDataset(_CsvStatistics, DataFrameDataset):
                 ]
             )
         )
-        self.feature_fn = lambda df: df[self.feature_list]

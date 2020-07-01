@@ -5,7 +5,7 @@ from collections import OrderedDict
 import pandas as pd
 import torch
 
-from ..types import FeatureList, FileList, Union
+from ..types import FeatureList, FileList, Tensor
 from ._csv_statistics import reduce_csv_statistics
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
@@ -129,7 +129,7 @@ class _TableDataset(DatasetDelegator):
         """Preprocess the dataset."""
         raise NotImplementedError
 
-    def __getitem__(self, index: int) -> torch.tensor:
+    def __getitem__(self, index: int) -> Tensor:
         """
         Generates one sample of data.
 
