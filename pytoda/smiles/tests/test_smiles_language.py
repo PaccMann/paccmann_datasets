@@ -246,7 +246,7 @@ class TestSmilesLanguage(unittest.TestCase):
             source_language.save_vocab(vocab_file)  # include_metadata=True
 
             smiles_language = SMILESTokenizer()
-            smiles_language.load_vocab(
+            smiles_language.load_vocabulary(
                 vocab_file, include_metadata=True
             )
         self.assertSequenceEqual(vocab, smiles_language.token_to_index)

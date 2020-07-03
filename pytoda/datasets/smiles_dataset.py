@@ -180,7 +180,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
             )
 
         if vocab_file:
-            self.smiles_language.load_vocab(
+            self.smiles_language.load_vocabulary(
                 vocab_file,
                 include_metadata=not iterate_dataset
             )

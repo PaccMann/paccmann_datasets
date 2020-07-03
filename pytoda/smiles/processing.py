@@ -1,11 +1,10 @@
 """SMILES processing utilities."""
 import codecs
 import logging
-import os
 import re
 from importlib import resources
 
-from pytoda.types import Tokens
+from ..types import Tokens, Tokenizer, Dict
 from SmilesPE.pretokenizer import kmer_tokenizer
 from SmilesPE.tokenizer import SPE_Tokenizer
 
@@ -36,7 +35,7 @@ def tokenize_smiles(smiles: str, regexp=SMILES_TOKENIZER) -> Tokens:
 
 
 def kmer_smiles_tokenizer(
-    smiles: str, k: int, stride: int = 1, *args, **kwargs
+    smiles: str, k: int = 2, stride: int = 1, *args, **kwargs
 ) -> Tokens:
     """K-Mer SMILES tokenization following SMILES PE (Li et al. 2020):
         Li, Xinhao, and Denis Fourches. "SMILES Pair Encoding: A Data-Driven
@@ -45,7 +44,8 @@ def kmer_smiles_tokenizer(
 
     Args:
         smiles (str): SMILES string to be tokenized.
-        k (int): Positive integer denoting the tuple/k-gram lengths.
+        k (int): Positive integer denoting the tuple/k-gram lengths. Defaults
+            to 2 (bigrams).
         stride (int, optional): Stride used for k-mer generation. Higher values
             result in less tokens. Defaults to 1 (densely overlapping).
         args (): Optional arguments for `kmer_tokenizer`.
@@ -98,3 +98,11 @@ def tokenize_selfies(selfies: str) -> Tokens:
     except Exception:
         logger.warning(f'Error in tokenizing {selfies}. Returning empty list.')
         return ['']
+
+
+TOKENIZER_FUNCTIONS: Dict[str, Tokenizer] = {
+    'smiles': tokenize_smiles,
+    'kmer_smiles': kmer_smiles_tokenizer,
+    'spe_smiles': spe_smiles_tokenizer,
+    'selfies': tokenize_selfies,
+}

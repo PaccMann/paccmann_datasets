@@ -1,7 +1,7 @@
 """Type definitions."""
 import inspect
-from typing import (Any, Callable, Hashable, Iterable, Iterator, List,  # noqa
-                    Sequence, Tuple, Union)
+from typing import (Any, Callable, Dict, Hashable, Iterable, Iterator,  # noqa
+                    List, Mapping, Sequence, Tuple, Union)
 
 from torch import Tensor
 

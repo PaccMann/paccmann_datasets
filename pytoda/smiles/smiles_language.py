@@ -1,6 +1,23 @@
+# Copyright 2020 Matteo Manica, Jannis Born, Ali Oskooei, Joris Cadow
+# Most parts of this file are Licenced under the MIT Licence.
+# Specifically the functions from_pretrained and save_pretrained are derivative
+# works with sources under the following licence:
+# Copyright 2018 The Open AI Team Authors and The HuggingFace Inc. team.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use these functions except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """SMILES language handling."""
 import json
 import logging
+import os
 import warnings
 from collections import Counter
 
@@ -12,12 +29,24 @@ from selfies import encoder as selfies_encoder
 
 from ..files import read_smi
 from ..transforms import Compose
-from ..types import (Files, Indexes, Iterable, Sequence, Tokenizer,
-                     Tensor, Tokens, Union)
-from .processing import tokenize_selfies, tokenize_smiles
+from ..types import (Files, Indexes, Iterable, Mapping, Sequence, Tensor,
+                     Tokenizer, Tokens, Union)
+from .processing import TOKENIZER_FUNCTIONS, tokenize_selfies, tokenize_smiles
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
 logger = logging.getLogger(__name__)
+
+
+
+# mimicry of huggingface tokenizers
+# see PreTrainedTokenizer
+VOCAB_FILES_NAMES = {
+    'vocab_file': 'vocab.json'
+}
+# see PreTrainedTokenizerBase
+TOKENIZER_CONFIG_FILE = 'tokenizer_config.json'
+# our
+TOKEN_COUNTS_FILE = 'token_counts.json'
 
 
 class UnknownMaxLengthError(RuntimeError):
@@ -31,22 +60,35 @@ class SMILESLanguage(object):
     SMILESLanguage handle SMILES data defining the vocabulary and
     utilities to manipulate it, including encoding to token indexes.
     """
+    vocab_files_names = VOCAB_FILES_NAMES
 
     def __init__(
         self,
         name: str = 'smiles-language',
         smiles_tokenizer: Tokenizer = tokenize_smiles,
+        tokenizer_name: str = None,  # Literal only in python 3.8
+        vocab_file: str = None,
+        max_token_sequence_length: int = 0
     ) -> None:
         """
         Initialize SMILES language.
 
         Args:
             name (str): name of the SMILESLanguage.
-            smiles_tokenizer (Tokenizer): SMILES tokenization function.
-                Defaults to tokenize_smiles.
+            smiles_tokenizer (Tokenizer): optional SMILES tokenization
+                function. Defaults to tokenize_smiles, but tokenizer_name takes
+                precedence when found in available TOKENIZER_FUNCTIONS.
+            tokenizer_name (str): optional name mapping to Tokenizer. Defaults
+                to None, i.e. using default smiles_tokenizer.
+            vocab_file (str): optional filepath to vocab.json.
+            max_token_sequence_length (int): initial value for keeping track
+                of longest sequence. Defaults to 0.
         """
         self.name = name
-        self.smiles_tokenizer = smiles_tokenizer
+        self.tokenizer_name = tokenizer_name
+        self.smiles_tokenizer = TOKENIZER_FUNCTIONS.get(
+            tokenizer_name, default=smiles_tokenizer
+        )
         self.padding_token = '<PAD>'
         self.unknown_token = '<UNK>'
         self.start_token = '<START>'
@@ -81,8 +123,11 @@ class SMILESLanguage(object):
             for index, token in self.index_to_token.items()
         }
 
-        # updated when adding smiles (or loading vocab including metadata)
-        self.max_token_sequence_length = 0
+        if vocab_file:
+            self.load_vocabulary(vocab_file)
+
+        # updated when adding smiles
+        self.max_token_sequence_length = max_token_sequence_length
         # updated by transformations, e.g. padding
         self._get_total_number_of_tokens_fn = len
         self.transform_smiles = Compose([])  # identity
@@ -100,7 +145,7 @@ class SMILESLanguage(object):
             SMILESLanguage: the loaded SMILES language object.
         """
         warnings.warn(
-            "Loading languages will use a text file in the future",
+            "Loading languages will use a text files in the future",
             FutureWarning
         )
         with open(filepath, 'rb') as f:
@@ -127,38 +172,99 @@ class SMILESLanguage(object):
             filepath (str): path where to save the SMILESLanguage.
         """
         warnings.warn(
-            "Saving languages will only store a text file in the future",
+            "Saving languages will only store a text files in the future",
             FutureWarning
         )
         SMILESLanguage.dump(self, filepath)
 
-    def load_vocab(self, vocab_file: str, include_metadata: bool = False):
+    def load_vocabulary(self, vocab_file: str):
         """Load a vocabulary mapping from token to token indexes.
 
         Args:
             vocab_file (str): a .json with at least a 'vocab' field to load.
-            include_metadata (bool, optional): Also load information on data
-                added to the language (token counts, max length).
-                Defaults to False.
-
-        Raises:
-            KeyError: The vocab file might not contain metadata.
+            # include_metadata (bool, optional): Also load information on data
+            #     added to the language (token counts, max length).
+            #     Defaults to False.
         """
         with open(vocab_file, encoding="utf-8") as fp:
-            loaded_dict = json.load(fp)
+            vocab = json.load(fp)
         # encoder
-        self.token_to_index = self._check_specials(loaded_dict['vocab'])
+        self.token_to_index = self._check_specials(vocab)
         # decoder
         self.index_to_token = {v: k for k, v in self.token_to_index.items()}
         self.number_of_tokens = len(self.index_to_token)
-        if include_metadata:
-            try:
-                self.max_token_sequence_length = loaded_dict[
-                    'max_token_sequence_length'
-                ]
-                self.token_count = Counter(loaded_dict['token_count'])
-            except KeyError:
-                raise KeyError('The .json does not contain metadata.')
+
+    @classmethod
+    def from_pretrained(cls, pretrained_path, **kwargs):
+        # directory with vocab files
+        # not handling ADDED_TOKENS_FILE or SPECIAL_TOKENS_MAP_FILE
+        # only handle case of files on disk here
+        # but include handling optional counts
+        resolved_vocab_files = {}
+
+        additional_files_names = {
+            'tokenizer_config_file': TOKENIZER_CONFIG_FILE,
+            'token_counts_file': TOKEN_COUNTS_FILE,
+        }
+
+        # Look for the tokenizer main vocabulary files
+        # and the additional tokens files
+        if os.path.isdir(pretrained_path):
+            for file_id, file_name in {
+                **cls.vocab_files_names, **additional_files_names
+            }.items():
+                full_file_name = os.path.join(pretrained_path, file_name)
+                if not os.path.exists(full_file_name):
+                    logger.info(
+                        "Didn't find file {}. We won't load it.".format(
+                            full_file_name
+                        )
+                    )
+                    full_file_name = None
+
+                resolved_vocab_files[file_id] = full_file_name
+
+        # Prepare tokenizer initialization kwargs
+        # Did we saved some inputs and kwargs to reload ?
+        tokenizer_config_file = resolved_vocab_files.pop(
+            'tokenizer_config_file', None
+        )
+        if tokenizer_config_file is not None:
+            with open(tokenizer_config_file, encoding='utf-8') as config_file:
+                init_kwargs = json.load(config_file)
+            # saved_init_inputs = init_kwargs.pop('init_inputs', ())
+            # if not init_inputs:
+            #     init_inputs = saved_init_inputs
+        else:
+            init_kwargs = {}
+
+        # Update with newly provided kwargs
+        init_kwargs.update(kwargs)
+
+        token_counts_file = resolved_vocab_files.pop("token_counts_file", None)
+
+        # adds remaining (i.e. vocab_file) to kwargs
+        for args_name, file_path in resolved_vocab_files.items():
+            if args_name not in init_kwargs:
+                init_kwargs[args_name] = file_path
+
+        # Instantiate tokenizer.
+        try:
+            tokenizer = cls(*init_inputs, **init_kwargs)
+        except OSError:
+            raise OSError(
+                'Unable to load vocabulary from file. '
+                'Please check that the provided vocabulary is accessible '
+                'and not corrupted.'
+            )
+        if token_counts_file is not None:
+            with open(token_counts_file, encoding='utf-8') as counts_file:
+                tokenizer.token_count = Counter(json.load(counts_file))
+
+        return tokenizer
+
+    # @classmethod
+    # def _from_pretrained(cls, pretrained_model_name_or_path, *init_inputs, **kwargs):
 
     def _check_specials(self, vocab):
         """Check that defined special tokens match class definitions."""
@@ -176,7 +282,7 @@ class SMILESLanguage(object):
                 )
         return vocab
 
-    def save_vocab(
+    def save_vocabulary(
         self, vocab_file: str, include_metadata: bool = True
     ) -> None:
         """Save the vocabulary mapping tokens to indexes to file.
@@ -196,7 +302,10 @@ class SMILESLanguage(object):
         with open(vocab_file, 'w', encoding="utf-8") as fp:
             json.dump(save_dict, fp, indent=4)
 
-    def _load_vocab_from_pickled_language(
+    def save_pretrained(self, save_directory):
+        pass
+
+    def _load_vocabulary_from_pickled_language(
         self, filepath: str, include_metadata: bool = False
     ) -> None:
         """Save the vocabulary mapping tokens to indexes from file.
@@ -218,7 +327,7 @@ class SMILESLanguage(object):
             self.max_token_sequence_length = a_language.max_token_sequence_length  # noqa
             self.token_count = a_language.token_count
 
-    def _legacy_load_vocab_from_pickled_language(
+    def _legacy_load_vocabulary_from_pickled_language(
         self, filepath: str, include_metadata: bool = False
     ) -> None:
         """Save the vocabulary mapping tokens to indexes from legacy file.
@@ -288,7 +397,7 @@ class SMILESLanguage(object):
         self.number_of_tokens += len(index_to_token)
 
     def add_smis(
-        self, smi_filepaths: FileList, index_col: int = 1,
+        self, smi_filepaths: Files, index_col: int = 1,
         chunk_size: int = 10000, name: str = 'SMILES',
         names: Sequence[str] = None
     ) -> None:
@@ -296,7 +405,7 @@ class SMILESLanguage(object):
         Add a set of SMILES from a list of .smi files.
 
         Args:
-            smi_filepaths (FileList): a list of paths to .smi files.
+            smi_filepaths (Files): a list of paths to .smi files.
             index_col (int): Data column used for indexing, defaults to 1.
             chunk_size (int): size of the chunks. Defaults to 10000.
             name (str): type of dataset, used to index columns in smi, and must
