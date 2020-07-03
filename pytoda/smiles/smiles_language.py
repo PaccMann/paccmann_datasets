@@ -12,9 +12,9 @@ from selfies import encoder as selfies_encoder
 
 from ..files import read_smi
 from ..transforms import Compose
-from ..types import (FileList, Indexes, Iterable, Sequence, SMILESTokenizer,
+from ..types import (Files, Indexes, Iterable, Sequence, Tokenizer,
                      Tensor, Tokens, Union)
-from .processing import SMILES_TOKENIZER, tokenize_selfies, tokenize_smiles
+from .processing import tokenize_selfies, tokenize_smiles
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
 logger = logging.getLogger(__name__)
@@ -35,14 +35,14 @@ class SMILESLanguage(object):
     def __init__(
         self,
         name: str = 'smiles-language',
-        smiles_tokenizer: SMILESTokenizer = tokenize_smiles,
+        smiles_tokenizer: Tokenizer = tokenize_smiles,
     ) -> None:
         """
         Initialize SMILES language.
 
         Args:
             name (str): name of the SMILESLanguage.
-            smiles_tokenizer (SMILESTokenizer): SMILES tokenization function.
+            smiles_tokenizer (Tokenizer): SMILES tokenization function.
                 Defaults to tokenize_smiles.
         """
         self.name = name
@@ -532,7 +532,7 @@ class SELFIESLanguage(SMILESLanguage):
     def __init__(
         self,
         name: str = 'selfies-language',
-        smiles_tokenizer: SMILESTokenizer = tokenize_selfies,
+        smiles_tokenizer: Tokenizer = tokenize_selfies,
     ) -> None:
         super().__init__(name=name, smiles_tokenizer=smiles_tokenizer)
 
@@ -546,9 +546,7 @@ class SMILESTokenizer(SMILESLanguage):
     def __init__(
         self,
         name: str = 'smiles-language',
-        smiles_tokenizer: SMILESTokenizer = (
-            lambda smiles: tokenize_smiles(smiles, regexp=SMILES_TOKENIZER)
-        ),
+        smiles_tokenizer: Tokenizer = tokenize_smiles,
         canonical: bool = False,  #
         augment: bool = False,
         kekulize: bool = False,

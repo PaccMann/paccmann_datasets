@@ -7,10 +7,10 @@ from torch import Tensor
 
 Tokens = List[str]
 Indexes = List[int]
-SMILESTokenizer = Callable[[str], Tokens]
-FileList = Sequence[str]  # often passed on as Tuple via *args
-GeneList = List[str]
+Tokenizer = Callable[[str], Tokens]
+Files = Sequence[str]  # often passed on as Tuple via *args
 FeatureList = List[str]
+GeneList = FeatureList
 TransformList = List[Callable[[Any], Any]]
 DrugSensitivityData = Tuple[Tensor, Tensor, Tensor]
 DrugAffinityData = Tuple[Tensor, Tensor, Tensor]

@@ -2,7 +2,7 @@
 import torch
 from .base_dataset import DatasetDelegator
 from ._table_dataset import _TableEagerDataset, _TableLazyDataset
-from ..types import FileList, GeneList
+from ..types import Files, GeneList
 
 TABLE_DATASET_IMPLEMENTATIONS = {
     'eager': _TableEagerDataset,
@@ -17,7 +17,7 @@ class GeneExpressionDataset(DatasetDelegator):
 
     def __init__(
         self,
-        *gene_expression_filepaths: FileList,
+        *gene_expression_filepaths: str,
         gene_list: GeneList = None,
         standardize: bool = True,
         min_max: bool = False,
@@ -33,7 +33,7 @@ class GeneExpressionDataset(DatasetDelegator):
         Initialize a gene expression dataset.
 
         Args:
-            gene_expression_filepaths (FileList): paths to .csv files.
+            gene_expression_filepaths (Files): paths to .csv files.
                 Currently, the only supported format is .csv, with gene
                 profiles on rows and gene names as columns.
             gene_list (GeneList): a list of genes. Defaults to None.

@@ -7,7 +7,7 @@ from ..proteins.transforms import SequenceToTokenIndexes
 from ..transforms import (
     AugmentByReversing, Compose, LeftPadding, Randomize, ToTensor, ListToTensor
 )
-from ..types import FileList
+from ..types import Files
 from ._fasta_eager_dataset import _FastaEagerDataset
 from ._fasta_lazy_dataset import _FastaLazyDataset
 from ._smi_eager_dataset import _SmiEagerDataset
@@ -105,7 +105,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         Initialize a Protein Sequence dataset.
 
         Args:
-            *filepaths (FileList): paths to .smi, .csv/.fasta/.fasta.gz file
+            *filepaths (Files): paths to .smi, .csv/.fasta/.fasta.gz file
                 with the sequences.
             filetype (str): From {.smi, .csv, .fasta, .fasta.gz}.
             protein_language (ProteinLanguage): a ProteinLanguage (or child)

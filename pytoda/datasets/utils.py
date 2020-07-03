@@ -1,7 +1,7 @@
 """Utils for the dataset module."""
 from copy import copy
 
-from ..types import FileList, Any, Hashable, Tuple
+from ..types import Files, Any, Hashable, Tuple
 from .base_dataset import ConcatKeyDataset, AnyBaseDataset
 
 
@@ -18,14 +18,14 @@ def sizeof_fmt(num, suffix='B'):
 
 
 def concatenate_file_based_datasets(
-    filepaths: FileList, dataset_class: type, **kwargs
+    filepaths: Files, dataset_class: type, **kwargs
 ) -> ConcatKeyDataset:
     """
     Concatenate file-based datasets into a single one, with the ability to
         get the source dataset of items.
 
     Args:
-        filepaths (FileList): list of filepaths.
+        filepaths (Files): list of filepaths.
         dataset_class (type): dataset class reading from file.
             Supports KeyDataset and DatasetDelegator.
             For pure torch.utils.data.Dataset the returned instance can

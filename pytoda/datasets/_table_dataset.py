@@ -5,7 +5,7 @@ from collections import OrderedDict
 import pandas as pd
 import torch
 
-from ..types import FeatureList, FileList, Tensor
+from ..types import FeatureList, Files, Tensor
 from ._csv_statistics import reduce_csv_statistics
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
@@ -23,7 +23,7 @@ class _TableDataset(DatasetDelegator):
 
     def __init__(
         self,
-        filepaths: FileList,
+        filepaths: Files,
         feature_list: FeatureList = None,
         standardize: bool = True,
         min_max: bool = False,
@@ -38,7 +38,7 @@ class _TableDataset(DatasetDelegator):
         Initialize a table dataset.
 
         Args:
-            filepaths (FileList): paths to .csv files.
+            filepaths (Files): paths to .csv files.
             feature_list (GeneList): a list of features. Defaults to None.
             standardize (bool): perform data standardization. Defaults to True.
             min_max (bool): perform min-max scaling. Defaults to False.

@@ -5,7 +5,7 @@ from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
-from ..types import FileList, Iterable, List, Sequence, Union
+from ..types import Files, Iterable, List, Sequence, Union
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
@@ -19,7 +19,7 @@ class ProteinProteinInteractionDataset(Dataset):
 
     def __init__(
         self,
-        sequence_filepaths: Union[FileList, Sequence[FileList]],
+        sequence_filepaths: Union[Files, Sequence[Files]],
         entity_names: Sequence[str],
         labels_filepath: str,
         sequence_filetypes: Union[str, List[str]] = 'infer',
@@ -39,7 +39,7 @@ class ProteinProteinInteractionDataset(Dataset):
         Initialize a protein protein interactiondataset.
 
         Args:
-            sequence_filepaths (Union[FileList, Sequence[FileList]]):
+            sequence_filepaths (Union[Files, Sequence[Files]]):
                 paths to .smi (also as .csv) or .fasta (.gz) file for protein
                 sequences. For each item in the iterable, one protein sequence
                 dataset is created. Sequences can be nested, i.e. each protein

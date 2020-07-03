@@ -5,7 +5,7 @@ import torch
 
 from ..smiles.processing import tokenize_selfies
 from ..smiles.smiles_language import SMILESLanguage, SMILESTokenizer
-from ..types import FileList
+from ..types import Files
 from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
 from .base_dataset import DatasetDelegator
@@ -34,7 +34,7 @@ class SMILESDataset(DatasetDelegator):
         Initialize a SMILES dataset.
 
         Args:
-            smi_filepaths (FileList): paths to .smi files.
+            smi_filepaths (Files): paths to .smi files.
             name (str): name of the SMILESDataset.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
@@ -100,7 +100,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
         depending on the smiles_language used (see SMILESTokenizer).
 
         Args:
-            smi_filepaths (FileList): paths to .smi files.
+            smi_filepaths (Files): paths to .smi files.
             smiles_language (SMILESLanguage): a smiles language that transforms
                 and encodes SMILES to token indexes. Defaults to None, where
                 a SMILESTokenizer is instantited with the following arguments.

@@ -54,7 +54,7 @@ class PolymerTokenizerDataset(Dataset):
         each dataset (by iterable of correct length) or globally (bool/int).
 
         Args:
-            smi_filepaths (FileList): paths to .smi files, one per entity
+            smi_filepaths (Files): paths to .smi files, one per entity
             entity_names (Sequence[str]): List of chemical entities.
             annotations_filepath (str): Path to .csv with the IDs of the
                 chemical entities and their properties. Needs to have one
