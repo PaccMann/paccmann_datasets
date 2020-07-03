@@ -633,17 +633,28 @@ class SMILESLanguage(object):
 class SELFIESLanguage(SMILESLanguage):
     """
     SELFIESLanguage is a SMILESLanguage with a different default tokenizer.
-
-    SMILESLanguage handle SMILES data defining the vocabulary and
-    utilities to manipulate it, including encoding to token indexes.
     """
 
     def __init__(
         self,
         name: str = 'selfies-language',
-        smiles_tokenizer: Tokenizer = tokenize_selfies,
+        vocab_file: str = None,
+        max_token_sequence_length: int = 0
     ) -> None:
-        super().__init__(name=name, smiles_tokenizer=smiles_tokenizer)
+        """
+        Initialize SMILES language.
+
+        Args:
+            name (str): name of the SMILESLanguage.
+            vocab_file (str): optional filepath to vocab.json.
+            max_token_sequence_length (int): initial value for keeping track
+                of longest sequence. Defaults to 0.
+        """
+        super().__init__(
+            name=name, tokenizer_name='selfies', vocab_file=vocab_file,
+            max_token_sequence_length=max_token_sequence_length
+        )
+        # use SMILESLanguage.from_pretrained
 
 
 class SMILESTokenizer(SMILESLanguage):
@@ -656,6 +667,9 @@ class SMILESTokenizer(SMILESLanguage):
         self,
         name: str = 'smiles-language',
         smiles_tokenizer: Tokenizer = tokenize_smiles,
+        tokenizer_name: str = None,
+        vocab_file: str = None,
+        max_token_sequence_length: int = 0,
         canonical: bool = False,  #
         augment: bool = False,
         kekulize: bool = False,
@@ -677,8 +691,14 @@ class SMILESTokenizer(SMILESLanguage):
 
         Args:
             name (str): name of the SMILESLanguage.
-            smiles_tokenizer (SMILESTokenizer): SMILES tokenization function.
-                Defaults to tokenize_smiles.
+            smiles_tokenizer (Tokenizer): optional SMILES tokenization
+                function. Defaults to tokenize_smiles, but tokenizer_name takes
+                precedence when found in available TOKENIZER_FUNCTIONS.
+            tokenizer_name (str): optional name mapping to Tokenizer. Defaults
+                to None, i.e. using default smiles_tokenizer.
+            vocab_file (str): optional filepath to vocab.json.
+            max_token_sequence_length (int): initial value for keeping track
+                of longest sequence. Defaults to 0.
             canonical (bool): performs canonicalization of SMILES (one
                 original string for one molecule), if True, then other
                 transformations (augment etc, see below) do not apply
