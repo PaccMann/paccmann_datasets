@@ -32,7 +32,7 @@ def create_smiles_language(
             if smi_filename.endswith('.smi')
         ]
     )
-    smiles_language.save_vocab(vocab_filepath, include_metadata=True)
+    smiles_language.save_vocabulary(vocab_filepath, include_metadata=True)
 
 
 if __name__ == '__main__':

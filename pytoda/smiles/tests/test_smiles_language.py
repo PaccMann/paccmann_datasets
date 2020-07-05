@@ -241,18 +241,25 @@ class TestSmilesLanguage(unittest.TestCase):
         count = source_language.token_count
         total = source_language.number_of_tokens
 
+        # just vocab
         with tempfile.TemporaryDirectory() as tempdir:
-            vocab_file = os.path.join(tempdir, 'vocab.json')
-            source_language.save_vocab(vocab_file)  # include_metadata=True
+            source_language.save_vocabulary(tempdir)
 
             smiles_language = SMILESTokenizer()
-            smiles_language.load_vocabulary(
-                vocab_file, include_metadata=True
-            )
-        self.assertSequenceEqual(vocab, smiles_language.token_to_index)
-        self.assertSequenceEqual(vocab_, smiles_language.index_to_token)
+            smiles_language.load_vocabulary(tempdir)
+        self.assertDictEqual(vocab, smiles_language.token_to_index)
+        self.assertDictEqual(vocab_, smiles_language.index_to_token)
+
+        # pretrained
+        with tempfile.TemporaryDirectory() as tempdir:
+            source_language.save_pretrained(tempdir)
+
+            smiles_language = SMILESTokenizer.from_pretrained(tempdir)
+        self.assertDictEqual(vocab, smiles_language.token_to_index)
+        self.assertDictEqual(vocab_, smiles_language.index_to_token)
+
         self.assertEqual(max_len, smiles_language.max_token_sequence_length)
-        self.assertSequenceEqual(count, smiles_language.token_count)
+        self.assertDictEqual(count, smiles_language.token_count)
         self.assertEqual(total, smiles_language.number_of_tokens)
 
 

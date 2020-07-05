@@ -311,7 +311,7 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
                 with resources.path(
-                    'pytoda.smiles.metadata', 'vocab_chembl_gdsc_ccle.json'
+                    'pytoda.smiles.metadata.tokenizer_chembl_gdsc_ccle'  # TODO
                 ) as vocab_file:
                     smiles_dataset = SMILESTokenizerDataset(
                         a_test_file.filename,

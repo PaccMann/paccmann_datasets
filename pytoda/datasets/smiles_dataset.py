@@ -132,8 +132,8 @@ class SMILESTokenizerDataset(DatasetDelegator):
                 applies only if padding is True. Defaults to None.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            vocab_file (str): Optional .json to load vocabulary. Tries to load
-                metadata if `iterate_dataset` is False. Defaults to None.
+            vocab_file (str): Optional .json to load vocabulary. Defaults to
+                None.
             iterate_dataset (bool): whether to go through all SMILES in the
                 dataset to extend/build vocab, find longest sequence, and
                 checks the passed padding length if applicable. Defaults to
@@ -180,10 +180,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
             )
 
         if vocab_file:
-            self.smiles_language.load_vocabulary(
-                vocab_file,
-                include_metadata=not iterate_dataset
-            )
+            self.smiles_language.load_vocabulary(vocab_file)
 
         if iterate_dataset:
             self.smiles_language.add_smis(smi_filepaths, **self.kwargs)

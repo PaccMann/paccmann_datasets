@@ -47,7 +47,7 @@ VOCAB_FILES_NAMES = {
 # see PreTrainedTokenizerBase
 TOKENIZER_CONFIG_FILE = 'tokenizer_config.json'
 # our
-TOKEN_COUNTS_FILE = 'token_counts.json'
+TOKEN_COUNTS_FILE = 'token_count.json'
 
 
 class UnknownMaxLengthError(RuntimeError):
@@ -205,7 +205,7 @@ class SMILESLanguage(object):
             vocab_file (str): a .json with tokens mapping to index. Can also
                 be path to directory.
         """
-        if os.isdir(vocab_file):
+        if os.path.isdir(vocab_file):
             vocab_file = os.path.join(
                 vocab_file, self.vocab_files_names['vocab_file']
             )
@@ -244,7 +244,7 @@ class SMILESLanguage(object):
 
         additional_files_names = {
             'tokenizer_config_file': TOKENIZER_CONFIG_FILE,
-            'token_counts_file': TOKEN_COUNTS_FILE,
+            'token_count_file': TOKEN_COUNTS_FILE,
         }
 
         # Look for the tokenizer main vocabulary files
@@ -280,7 +280,7 @@ class SMILESLanguage(object):
         # Update with newly provided kwargs
         init_kwargs.update(kwargs)
 
-        token_counts_file = resolved_vocab_files.pop("token_counts_file", None)
+        token_count_file = resolved_vocab_files.pop("token_count_file", None)
 
         # adds remaining (i.e. vocab_file) to kwargs
         for args_name, file_path in resolved_vocab_files.items():
@@ -296,8 +296,8 @@ class SMILESLanguage(object):
                 'Please check that the provided vocabulary is accessible '
                 'and not corrupted.'
             )
-        if token_counts_file is not None:
-            with open(token_counts_file, encoding='utf-8') as counts_file:
+        if token_count_file is not None:
+            with open(token_count_file, encoding='utf-8') as counts_file:
                 tokenizer.token_count = Counter(json.load(counts_file))
 
         # set args and kwargs explicitly here.
@@ -313,7 +313,7 @@ class SMILESLanguage(object):
             vocab_file (str): a .json to save tokens mapping to index. Can also
                 be path to directory.
         """
-        if os.isdir(vocab_file):
+        if os.path.isdir(vocab_file):
             vocab_file = os.path.join(
                 vocab_file, self.vocab_files_names['vocab_file']
             )
@@ -354,7 +354,7 @@ class SMILESLanguage(object):
             json.dump(tokenizer_config, fp=fp, ensure_ascii=False, indent=4)
 
         with open(tokenizer_counts_file, 'w', encoding='utf-8') as fp:
-            json.dump(self.token_counts, fp=fp, ensure_ascii=False, indent=4)
+            json.dump(self.token_count, fp=fp, ensure_ascii=False, indent=4)
 
         vocab_files = self.save_vocabulary(save_directory)
 
@@ -423,6 +423,9 @@ class SMILESLanguage(object):
         total_number_of_tokens = self._get_total_number_of_tokens_fn(tokens)
         if total_number_of_tokens > self.max_token_sequence_length:
             self.max_token_sequence_length = total_number_of_tokens
+            self.init_kwargs[
+                'max_token_sequence_length'
+            ] = total_number_of_tokens
 
     def _update_language_dictionaries_with_tokens(
         self, tokens: Tokens
@@ -792,7 +795,13 @@ class SMILESTokenizer(SMILESLanguage):
             `reset_initial_transforms`. Assignment of class attributes
             in the parameter list will trigger such a reset.
         """
-        super().__init__(name, smiles_tokenizer)
+        super().__init__(
+            name=name,
+            smiles_tokenizer=smiles_tokenizer,
+            tokenizer_name=tokenizer_name,
+            vocab_file=vocab_file,
+            max_token_sequence_length=max_token_sequence_length
+        )
         # smiles transforms
         self.canonical = canonical
         self.augment = augment
@@ -836,7 +845,7 @@ class SMILESTokenizer(SMILESLanguage):
         if self.__dict__.get('_initialized'):
             if name in self._attributes_to_trigger_reset:
                 self.reset_initial_transforms()
-                if name in self.init_attributes:
+                if name in self._init_attributes:
                     self.init_kwargs[name] = value
             if name == 'padding_length' and self.padding:
                 if self.max_token_sequence_length > value:
