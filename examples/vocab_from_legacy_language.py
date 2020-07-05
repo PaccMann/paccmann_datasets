@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # parse arguments
     args = parser.parse_args()
     smiles_language = SMILESLanguage()
-    smiles_language._legacy_load_vocabulary_from_pickled_language(
+    smiles_language._legacy_from_pickled_language(
         args.smiles_language_filepath, include_metadata=True
     )
     smiles_language.save_vocab(args.vocab_filepath, include_metadata=True)

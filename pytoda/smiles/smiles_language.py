@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """SMILES language handling."""
+import copy
 import json
 import logging
 import os
@@ -30,7 +31,7 @@ from selfies import encoder as selfies_encoder
 from ..files import read_smi
 from ..transforms import Compose
 from ..types import (Files, Indexes, Iterable, Mapping, Sequence, Tensor,
-                     Tokenizer, Tokens, Union)
+                     Tokenizer, Tokens, Tuple, Union)
 from .processing import TOKENIZER_FUNCTIONS, tokenize_selfies, tokenize_smiles
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
@@ -78,17 +79,28 @@ class SMILESLanguage(object):
             smiles_tokenizer (Tokenizer): optional SMILES tokenization
                 function. Defaults to tokenize_smiles, but tokenizer_name takes
                 precedence when found in available TOKENIZER_FUNCTIONS.
-            tokenizer_name (str): optional name mapping to Tokenizer. Defaults
-                to None, i.e. using default smiles_tokenizer.
-            vocab_file (str): optional filepath to vocab.json.
+            tokenizer_name (str): name, mapping to Tokenizer used to save and
+                restore object from text files. Defaults to None, i.e.
+                using default smiles_tokenizer.
+            vocab_file (str): optional filepath to vocab json or directory
+                containing it.
             max_token_sequence_length (int): initial value for keeping track
                 of longest sequence. Defaults to 0.
         """
         self.name = name
         self.tokenizer_name = tokenizer_name
+        if (
+            tokenizer_name is not None and
+            tokenizer_name not in TOKENIZER_FUNCTIONS
+        ):
+            logger.info(
+                f'Given tokenizer_name {tokenizer_name} was not found, using'
+                'default tokenizer function.'
+            )
         self.smiles_tokenizer = TOKENIZER_FUNCTIONS.get(
-            tokenizer_name, default=smiles_tokenizer
+            tokenizer_name, smiles_tokenizer
         )
+
         self.padding_token = '<PAD>'
         self.unknown_token = '<UNK>'
         self.start_token = '<START>'
@@ -130,6 +142,15 @@ class SMILESLanguage(object):
         self.max_token_sequence_length = max_token_sequence_length
         # updated by transformations, e.g. padding
         self._get_total_number_of_tokens_fn = len
+
+        # inputs and kwargs for saving and re-loading (TOKENIZER_CONFIG_FILE)
+        # (see ``from_pretrained`` and ``save_pretrained``)
+        self.init_inputs = ()
+        self.init_kwargs = {
+            'name': self.name, 'tokenizer_name': self.tokenizer_name,
+            'max_token_sequence_length': self.max_token_sequence_length,
+        }
+
         self.transform_smiles = Compose([])  # identity
         self.transform_encoding = Compose([])
 
@@ -181,11 +202,14 @@ class SMILESLanguage(object):
         """Load a vocabulary mapping from token to token indexes.
 
         Args:
-            vocab_file (str): a .json with at least a 'vocab' field to load.
-            # include_metadata (bool, optional): Also load information on data
-            #     added to the language (token counts, max length).
-            #     Defaults to False.
+            vocab_file (str): a .json with tokens mapping to index. Can also
+                be path to directory.
         """
+        if os.isdir(vocab_file):
+            vocab_file = os.path.join(
+                vocab_file, self.vocab_files_names['vocab_file']
+            )
+
         with open(vocab_file, encoding="utf-8") as fp:
             vocab = json.load(fp)
         # encoder
@@ -194,8 +218,24 @@ class SMILESLanguage(object):
         self.index_to_token = {v: k for k, v in self.token_to_index.items()}
         self.number_of_tokens = len(self.index_to_token)
 
+    def _check_specials(self, vocab):
+        """Check that defined special tokens match class definitions."""
+        for index, token in self.special_indexes.items():
+            try:
+                if vocab[token] != index:
+                    warnings.warn(
+                        f'The vocab does not have matching special tokens: '
+                        f'{token} is {vocab[token]}, but was defined as '
+                        f'{index}.',
+                    )
+            except KeyError:
+                warnings.warn(
+                    f'The vocab is missing a special token: {token}.',
+                )
+        return vocab
+
     @classmethod
-    def from_pretrained(cls, pretrained_path, **kwargs):
+    def from_pretrained(cls, pretrained_path, *init_inputs, **kwargs):
         # directory with vocab files
         # not handling ADDED_TOKENS_FILE or SPECIAL_TOKENS_MAP_FILE
         # only handle case of files on disk here
@@ -225,16 +265,15 @@ class SMILESLanguage(object):
                 resolved_vocab_files[file_id] = full_file_name
 
         # Prepare tokenizer initialization kwargs
-        # Did we saved some inputs and kwargs to reload ?
         tokenizer_config_file = resolved_vocab_files.pop(
             'tokenizer_config_file', None
         )
         if tokenizer_config_file is not None:
             with open(tokenizer_config_file, encoding='utf-8') as config_file:
                 init_kwargs = json.load(config_file)
-            # saved_init_inputs = init_kwargs.pop('init_inputs', ())
-            # if not init_inputs:
-            #     init_inputs = saved_init_inputs
+            saved_init_inputs = init_kwargs.pop("init_inputs", ())
+            if not init_inputs:
+                init_inputs = saved_init_inputs
         else:
             init_kwargs = {}
 
@@ -261,49 +300,65 @@ class SMILESLanguage(object):
             with open(token_counts_file, encoding='utf-8') as counts_file:
                 tokenizer.token_count = Counter(json.load(counts_file))
 
+        # set args and kwargs explicitly here.
+        tokenizer.init_inputs = init_inputs
+        tokenizer.init_kwargs = init_kwargs
+
         return tokenizer
 
-    # @classmethod
-    # def _from_pretrained(cls, pretrained_model_name_or_path, *init_inputs, **kwargs):
-
-    def _check_specials(self, vocab):
-        """Check that defined special tokens match class definitions."""
-        for index, token in self.special_indexes.items():
-            try:
-                if vocab[token] != index:
-                    warnings.warn(
-                        f'The vocab does not have matching special tokens: '
-                        f'{token} is {vocab[token]}, but was defined as '
-                        f'{index}.',
-                    )
-            except KeyError:
-                warnings.warn(
-                    f'The vocab is missing a special token: {token}.',
-                )
-        return vocab
-
-    def save_vocabulary(
-        self, vocab_file: str, include_metadata: bool = True
-    ) -> None:
+    def save_vocabulary(self, vocab_file: str) -> Tuple[str]:
         """Save the vocabulary mapping tokens to indexes to file.
 
         Args:
-            vocab_file (str): a .json with at least a 'vocab' field.
-            include_metadata (bool, optional): Also load information on data
-                added to the language (token counts, max length).
-                Defaults to True.
+            vocab_file (str): a .json to save tokens mapping to index. Can also
+                be path to directory.
         """
-        save_dict = {'vocab': self.token_to_index}
-        if include_metadata:
-            save_dict.update({
-                'max_token_sequence_length': self.max_token_sequence_length,
-                'token_count': self.token_count
-            })
+        if os.isdir(vocab_file):
+            vocab_file = os.path.join(
+                vocab_file, self.vocab_files_names['vocab_file']
+            )
+
         with open(vocab_file, 'w', encoding="utf-8") as fp:
-            json.dump(save_dict, fp, indent=4)
+            json.dump(self.token_to_index, fp, indent=4)
+
+        return (vocab_file,)
 
     def save_pretrained(self, save_directory):
-        pass
+        """Save the tokenizer vocabulary files together with
+        tokenizer instantiation positional and keywords inputs.
+
+        This method make sure the full tokenizer can then be re-loaded
+        using the `from_pretrained` class method.
+        """
+        if not os.path.isdir(save_directory):
+            # TODO raise?
+            logger.error('Saving directory ({}) should be a directory'.format(
+                save_directory
+            ))
+            return
+
+        tokenizer_config_file = os.path.join(
+            save_directory, TOKENIZER_CONFIG_FILE
+        )
+        tokenizer_counts_file = os.path.join(
+            save_directory, TOKEN_COUNTS_FILE
+        )
+
+        tokenizer_config = copy.deepcopy(self.init_kwargs)
+        if len(self.init_inputs) > 0:
+            tokenizer_config['init_inputs'] = copy.deepcopy(self.init_inputs)
+        for file_id in self.vocab_files_names.keys():
+            tokenizer_config.pop(file_id, None)
+
+        with open(tokenizer_config_file, 'w', encoding='utf-8') as fp:
+            json.dump(tokenizer_config, fp=fp, ensure_ascii=False, indent=4)
+
+        with open(tokenizer_counts_file, 'w', encoding='utf-8') as fp:
+            json.dump(self.token_counts, fp=fp, ensure_ascii=False, indent=4)
+
+        vocab_files = self.save_vocabulary(save_directory)
+
+        return vocab_files + (tokenizer_counts_file,)
 
     def _load_vocabulary_from_pickled_language(
         self, filepath: str, include_metadata: bool = False
@@ -646,7 +701,8 @@ class SELFIESLanguage(SMILESLanguage):
 
         Args:
             name (str): name of the SMILESLanguage.
-            vocab_file (str): optional filepath to vocab.json.
+            vocab_file (str): optional filepath to vocab json or directory
+                containing it.
             max_token_sequence_length (int): initial value for keeping track
                 of longest sequence. Defaults to 0.
         """
@@ -696,7 +752,8 @@ class SMILESTokenizer(SMILESLanguage):
                 precedence when found in available TOKENIZER_FUNCTIONS.
             tokenizer_name (str): optional name mapping to Tokenizer. Defaults
                 to None, i.e. using default smiles_tokenizer.
-            vocab_file (str): optional filepath to vocab.json.
+            vocab_file (str): optional filepath to vocab json or directory
+                containing it.
             max_token_sequence_length (int): initial value for keeping track
                 of longest sequence. Defaults to 0.
             canonical (bool): performs canonicalization of SMILES (one
@@ -753,14 +810,20 @@ class SMILESTokenizer(SMILESLanguage):
         self.padding_length = padding_length
         self.device = device
 
+        self._init_attributes = [
+            'canonical', 'augment', 'kekulize', 'all_bonds_explicit',
+            'all_hs_explicit', 'remove_bonddir', 'remove_chirality', 'selfies',
+            'sanitize', 'randomize', 'add_start_and_stop', 'padding',
+            'padding_length', 'device',
+        ]
+        # update save/load pretrained kwargs
+        for keyword in self._init_attributes:
+            self.init_kwargs[keyword] = getattr(self, keyword)
+
         self.reset_initial_transforms()
 
         self._attributes_to_trigger_reset = [
-            'canonical', 'augment', 'kekulize', 'all_bonds_explicit',
-            'all_hs_explicit', 'remove_bonddir', 'remove_chirality',
-            'selfies', 'sanitize', 'randomize', 'add_start_and_stop',
-            'start_index', 'stop_index', 'padding', 'padding_length',
-            'padding_index', 'device'
+            *self._init_attributes, 'start_index', 'stop_index',
             ]  # could be updated in inheritance
 
         # only now 'activate' setter that resets the transforms and warns on
@@ -773,6 +836,8 @@ class SMILESTokenizer(SMILESLanguage):
         if self.__dict__.get('_initialized'):
             if name in self._attributes_to_trigger_reset:
                 self.reset_initial_transforms()
+                if name in self.init_attributes:
+                    self.init_kwargs[name] = value
             if name == 'padding_length' and self.padding:
                 if self.max_token_sequence_length > value:
                     logger.warning(
