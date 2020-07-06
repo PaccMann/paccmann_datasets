@@ -406,6 +406,7 @@ class SMILESLanguage(object):
         Update the max token sequence length.
         Uses method possibly overloaded by transformation setup to assess the
         length of tokens after transformations prior to their application.
+        For example this allows handling start and stop tokens.
 
         Args:
             tokens (Tokens): tokens considered.
@@ -810,7 +811,7 @@ class SMILESTokenizer(SMILESLanguage):
         self.padding_length = padding_length
         self.device = device
 
-        self._init_attributes = [
+        self._init_attributes = [  # additions to init_kwargs for pretrained
             'canonical', 'augment', 'kekulize', 'all_bonds_explicit',
             'all_hs_explicit', 'remove_bonddir', 'remove_chirality', 'selfies',
             'sanitize', 'randomize', 'add_start_and_stop', 'padding',
@@ -824,7 +825,7 @@ class SMILESTokenizer(SMILESLanguage):
 
         self._attributes_to_trigger_reset = [
             *self._init_attributes, 'start_index', 'stop_index',
-            ]  # could be updated in inheritance
+        ]  # could be updated in inheritance
 
         # only now 'activate' setter that resets the transforms and warns on
         # truncating padding_length
