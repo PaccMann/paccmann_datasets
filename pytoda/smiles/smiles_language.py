@@ -404,7 +404,8 @@ class SMILESLanguage(object):
     def _update_max_token_sequence_length(self, tokens: Tokens) -> None:
         """
         Update the max token sequence length.
-        Uses method possibly overloaded by transformation to a
+        Uses method possibly overloaded by transformation setup to assess the
+        length of tokens after transformations prior to their application.
 
         Args:
             tokens (Tokens): tokens considered.

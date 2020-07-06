@@ -127,7 +127,10 @@ class ProteinLanguage(object):
 
     def _update_max_token_sequence_length(self, tokens: Tokens) -> None:
         """
-        Update the max token sequence length handling optional start and stop.
+        Update the max token sequence length.
+        Uses method possibly overloaded by transformation setup to assess the
+        length of tokens after transformations prior to their application.
+        For example this allows handling start and stop tokens.
 
         Args:
             tokens (Tokens): tokens considered.
