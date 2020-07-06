@@ -4,7 +4,7 @@ import dill
 from upfp import parse_fasta
 
 from ..files import read_smi
-from ..types import Indexes, Tokens
+from ..types import Indexes, Tokens, Tokenizer
 from .processing import IUPAC_VOCAB, UNIREP_VOCAB
 
 
@@ -15,12 +15,13 @@ class ProteinLanguage(object):
     ProteinLanguage handle Protein data defining the vocabulary and
     utilities to manipulate it.
     """
+    unknown_token = '<UNK>'
 
     def __init__(
         self,
         name: str = 'protein-language',
         amino_acid_dict: str = 'iupac',
-        tokenizer: object = list,
+        tokenizer: Tokenizer = list,
         add_start_and_stop: bool = True
     ) -> None:
         """
@@ -30,7 +31,7 @@ class ProteinLanguage(object):
             name (str): name of the ProteinLanguage.
             amino_acid_dict (str): Tokenization regime for amino acid
                 sequence. Defaults to 'iupac', alternative is 'unirep'.
-            tokenizer (object): This needs to be a function used to tokenize
+            tokenizer (Tokenizer): This needs to be a function used to tokenize
                 the amino acid sequences. The default is list which simply
                 splits the sequence character-by-character.
             add_start_and_stop (bool): add <START> and <STOP> in the sequence,
@@ -204,9 +205,8 @@ class ProteinLanguage(object):
         """
         return self._finalize_token_indexes_fn(
             [
-                self.token_to_index[token]
+                self.token_to_index.get(token, self.unknown_token)
                 for token in self.tokenizer(sequence)
-                if token in self.token_to_index
             ]
         )
 

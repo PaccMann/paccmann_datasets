@@ -579,9 +579,10 @@ class SMILESLanguage(object):
         """
         return self.transform_encoding(
             [
-                self.token_to_index[token] for token in
-                self.smiles_tokenizer(self.transform_smiles(smiles))
-                if token in self.token_to_index
+                self.token_to_index.get(token, self.unknown_token)
+                for token in self.smiles_tokenizer(
+                    self.transform_smiles(smiles)
+                )
             ]
         )
 
