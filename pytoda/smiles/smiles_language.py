@@ -516,10 +516,17 @@ class SMILESLanguage(object):
         num_tokens = len(self.token_to_index)
 
         self.invalid_molecules = []
+
+        if getattr(self, 'selfies', False):
+            ensure_smiles = self.selfies_to_smiles
+        else:
+            def ensure_smiles(smiles: str) -> str: return smiles
+
         for index, smiles in enumerate(dataset):
             smiles = self.transform_smiles(smiles)
             self.add_smiles(smiles)
-            if Chem.MolFromSmiles(smiles) is None:  # happens for all selfies
+
+            if Chem.MolFromSmiles(ensure_smiles(smiles)) is None:
                 self.invalid_molecules.append((index, smiles))
         # Raise warning about invalid molecules
         if len(self.invalid_molecules) > 0:
@@ -682,8 +689,10 @@ class SMILESLanguage(object):
 
 class SELFIESLanguage(SMILESLanguage):
     """
-    SELFIESLanguage is a SMILESLanguage with a different default tokenizer.
+    SELFIESLanguage is a SMILESLanguage with a different default tokenizer,
+    transforming SMILES to SELFIES.
     """
+    selfies = True  # to check validity back to smiles in `add_dataset`
 
     def __init__(
         self,
@@ -705,7 +714,7 @@ class SELFIESLanguage(SMILESLanguage):
             name=name, tokenizer_name='selfies', vocab_file=vocab_file,
             max_token_sequence_length=max_token_sequence_length
         )
-        # use SMILESLanguage.from_pretrained
+        self.transform_smiles = selfies_decoder
 
 
 class SMILESTokenizer(SMILESLanguage):
