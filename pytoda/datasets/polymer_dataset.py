@@ -272,7 +272,7 @@ class PolymerTokenizerDataset(Dataset):
         """Total number of samples."""
         return len(self.annotated_data_df)
 
-    def __getitem__(self, index: int) -> Tuple[Tensor]:
+    def __getitem__(self, index: int) -> Tuple[Tensor, ...]:
         """
         Generates one sample of data.
 

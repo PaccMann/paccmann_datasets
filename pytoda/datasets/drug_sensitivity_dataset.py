@@ -226,7 +226,7 @@ class DrugSensitivityDataset(Dataset):
             index (int): index of the sample to fetch.
 
         Returns:
-            DrugSensitivityData: a tuple containing three torch.tensors,
+            DrugSensitivityData: a tuple containing three torch.Tensors,
                 representing respectively: compound token indexes,
                 gene expression values and IC50 for the current sample.
         """

@@ -5,7 +5,7 @@ from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
-from ..types import Files, Iterable, List, Sequence, Union
+from ..types import Files, Tuple, List, Sequence, Union, Tensor
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
@@ -220,7 +220,7 @@ class ProteinProteinInteractionDataset(Dataset):
         "Total number of samples."
         return self.number_of_samples
 
-    def __getitem__(self, index: int) -> Iterable[torch.tensor]:
+    def __getitem__(self, index: int) -> Tuple[Tensor, ...]:
         """
             Generates one sample of data.
 

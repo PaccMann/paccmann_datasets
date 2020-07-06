@@ -192,8 +192,8 @@ class SMILESTokenizerDataset(DatasetDelegator):
                 self.smiles_language.padding and
                 self.smiles_language.padding_length is None
             ):
-                # max_sequence_token_length has to be set somehow
                 try:
+                    # max_sequence_token_length has to be set somehow
                     if smiles_language is not None or iterate_dataset:
                         self.smiles_language.set_max_padding()
                 except AttributeError:
@@ -206,7 +206,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
             # SmilesLanguage w/o padding support passed.
             pass
 
-    def __getitem__(self, index: int) -> torch.tensor:
+    def __getitem__(self, index: int) -> torch.Tensor:
         """
         Generates one sample of data.
 
@@ -214,7 +214,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
             index (int): index of the sample to fetch.
 
         Returns:
-            torch.tensor: a torch tensor of token indexes,
+            torch.Tensor: a torch tensor of token indexes,
                 for the current sample.
         """
         return self.smiles_language.smiles_to_token_indexes(

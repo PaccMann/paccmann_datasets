@@ -197,7 +197,7 @@ class DrugAffinityDataset(Dataset):
             index (int): index of the sample to fetch.
 
         Returns:
-            DrugAffinityData: a tuple containing three torch.tensors,
+            DrugAffinityData: a tuple containing three torch.Tensors,
                 representing respectively: compound token indexes,
                 protein sequence indexes and label for the current sample.
         """

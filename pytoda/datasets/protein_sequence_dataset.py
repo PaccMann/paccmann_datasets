@@ -227,7 +227,7 @@ class ProteinSequenceDataset(DatasetDelegator):
             **kwargs
         )
 
-    def __getitem__(self, index: int) -> torch.tensor:
+    def __getitem__(self, index: int) -> torch.Tensor:
         """
         Generates one sample of data.
 
@@ -235,7 +235,7 @@ class ProteinSequenceDataset(DatasetDelegator):
             index (int): index of the sample to fetch.
 
         Returns:
-            torch.tensor: a torch tensor of token indexes,
+            torch.Tensor: a torch tensor of token indexes,
                 for the current sample.
         """
         return self.transform(self.dataset[index])

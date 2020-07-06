@@ -99,7 +99,7 @@ class AnnotatedDataset(DataFrameDataset):
 
         Returns:
             AnnotatedData: a tuple containing the item itself (with type
-                depending on passed dataset) and a torch.tensor of
+                depending on passed dataset) and a torch.Tensor of
                 labels for the current item.
         """
         # sample selection
@@ -115,7 +115,7 @@ class AnnotatedDataset(DataFrameDataset):
 
         Returns:
             AnnotatedData: a tuple containing the item itself (with type
-                depending on passed dataset) and a torch.tensor of
+                depending on passed dataset) and a torch.Tensor of
                 labels for the current item.
         """
         # sample selection
