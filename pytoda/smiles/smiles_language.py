@@ -864,7 +864,7 @@ class SMILESTokenizer(SMILESLanguage):
 
     def set_max_padding(self):
         """
-        Set padding_length that does not trunkate any sequence. Requires
+        Set padding_length that does not truncate any sequence. Requires
         updated max_token_sequence_length.
 
         Raises:
