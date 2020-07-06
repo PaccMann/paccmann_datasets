@@ -815,7 +815,7 @@ class SMILESTokenizer(SMILESLanguage):
             'canonical', 'augment', 'kekulize', 'all_bonds_explicit',
             'all_hs_explicit', 'remove_bonddir', 'remove_chirality', 'selfies',
             'sanitize', 'randomize', 'add_start_and_stop', 'padding',
-            'padding_length', 'device',
+            'padding_length',
         ]
         # update save/load pretrained kwargs
         for keyword in self._init_attributes:
@@ -824,7 +824,7 @@ class SMILESTokenizer(SMILESLanguage):
         self.reset_initial_transforms()
 
         self._attributes_to_trigger_reset = [
-            *self._init_attributes, 'start_index', 'stop_index',
+            *self._init_attributes, 'device', 'start_index', 'stop_index',
         ]  # could be updated in inheritance
 
         # only now 'activate' setter that resets the transforms and warns on

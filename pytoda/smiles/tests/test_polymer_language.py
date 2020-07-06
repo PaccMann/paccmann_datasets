@@ -1,10 +1,12 @@
 """Testing PolymerTokenizer."""
-import unittest
 import os
+import tempfile
+import unittest
+
 from pytoda.smiles.polymer_language import PolymerTokenizer
-from pytoda.tests.utils import TestFileContent
 from pytoda.smiles.processing import tokenize_selfies
 from pytoda.smiles.transforms import Selfies
+from pytoda.tests.utils import TestFileContent
 
 
 class TestPolymerTokenizer(unittest.TestCase):
@@ -143,6 +145,39 @@ class TestPolymerTokenizer(unittest.TestCase):
             polymer_language.token_indexes_to_smiles(token_indexes), 'CCO'
         )
 
+    def test_vocab_roundtrip(self):
+        smiles = 'CCO'
+        entities = ['Initiator', 'Monomer', 'Catalyst']
+        source_language = PolymerTokenizer(entity_names=entities)
+        source_language.add_smiles(smiles)
+        # to test
+        vocab = source_language.token_to_index
+        vocab_ = source_language.index_to_token
+        max_len = source_language.max_token_sequence_length
+        count = source_language.token_count
+        total = source_language.number_of_tokens
+
+        # just vocab
+        with tempfile.TemporaryDirectory() as tempdir:
+            source_language.save_vocabulary(tempdir)
+
+            polymer_language = PolymerTokenizer(entity_names=entities)
+            polymer_language.load_vocabulary(tempdir)
+        self.assertDictEqual(vocab, polymer_language.token_to_index)
+        self.assertDictEqual(vocab_, polymer_language.index_to_token)
+
+        # pretrained
+        with tempfile.TemporaryDirectory() as tempdir:
+            source_language.save_pretrained(tempdir)
+
+            polymer_language = PolymerTokenizer.from_pretrained(tempdir)
+        self.assertDictEqual(vocab, polymer_language.token_to_index)
+        self.assertDictEqual(vocab_, polymer_language.index_to_token)
+
+        self.assertEqual(max_len, polymer_language.max_token_sequence_length)
+        self.assertDictEqual(count, polymer_language.token_count)
+        self.assertEqual(total, polymer_language.number_of_tokens)
+        self.assertEqual(entities, polymer_language.entities)
 
 if __name__ == '__main__':
     unittest.main()

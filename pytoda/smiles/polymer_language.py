@@ -48,6 +48,7 @@ class PolymerTokenizer(SMILESTokenizer):
             **kwargs
         )
         self.entities = list(map(lambda x: x.capitalize(), entity_names))
+        self.init_kwargs['entity_names'] = self.entities
         self.current_entity = None
 
         # rebuild basic vocab to group special tokens
@@ -81,6 +82,9 @@ class PolymerTokenizer(SMILESTokenizer):
             token: index
             for index, token in self.index_to_token.items()
         }
+
+        if kwargs.get('vocab_file', None):
+            self.load_vocabulary(kwargs['vocab_file'])
 
         self.reset_initial_transforms()
 
