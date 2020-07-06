@@ -183,7 +183,6 @@ class SMILESTokenizerDataset(DatasetDelegator):
             self.smiles_language.load_vocabulary(vocab_file)
 
         if iterate_dataset:
-            self.smiles_language.add_smis(smi_filepaths, **self.kwargs)
             # uses the smiles transforms
             self.smiles_language.add_dataset(self.dataset)
 

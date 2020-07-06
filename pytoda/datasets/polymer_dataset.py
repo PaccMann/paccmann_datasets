@@ -165,6 +165,7 @@ class PolymerTokenizerDataset(Dataset):
                     sanitize=self.sanitize[index],
                 )
                 # set_encoding_transforms only after adding smiles
+                # while transforms are needed to add_dataset
 
         else:
             self.smiles_language = smiles_language
@@ -179,8 +180,6 @@ class PolymerTokenizerDataset(Dataset):
         ]
 
         if iterate_dataset:
-            # without transforms
-            self.smiles_language.add_smis(smi_filepaths, **kwargs)
             for dataset in self.datasets:
                 self.smiles_language.update_entity(dataset.name)
                 self.smiles_language.add_dataset(dataset)

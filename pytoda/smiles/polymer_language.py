@@ -92,12 +92,18 @@ class PolymerTokenizer(SMILESTokenizer):
 
     def update_entity(self, entity: str) -> None:
         """
-        Update the current entity of the Polymer language object
+        Update the current entity and the default transforms (used e.g. in
+        `add_dataset`) of the Polymer language object.
 
         Args:
             entity (str): a chemical entity (e.g. 'Monomer').
         """
+
         self.current_entity = self._check_entity(entity)
+        self.transform_smiles = self.all_smiles_transforms[self.current_entity]
+        self.transform_encoding = self.all_encoding_transforms[
+            self.current_entity
+        ]
 
     def smiles_to_token_indexes(
         self, smiles: str, entity: str = None
@@ -125,11 +131,10 @@ class PolymerTokenizer(SMILESTokenizer):
 
         return self.all_encoding_transforms[entity](
             [
-                self.token_to_index[token] for token in
+                self.token_to_index.get(token, self.unknown_token) for token in
                 self.smiles_tokenizer(
                     self.all_smiles_transforms[entity](smiles)
                 )
-                if token in self.token_to_index
             ]
         )
 
@@ -141,6 +146,7 @@ class PolymerTokenizer(SMILESTokenizer):
         super().reset_initial_transforms()
         if not hasattr(self, 'entities'):  # call from base
             return
+        self.current_entity = None
         self.all_smiles_transforms = {
             None: self.transform_smiles,
         }

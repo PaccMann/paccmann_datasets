@@ -130,6 +130,11 @@ class TestPolymerTokenizerDataset(unittest.TestCase):
                             b_ind, ch2_ind, b_ind, oh_ind, monomer_stop_ind
                         ]
                     )
+                    self.assertEqual(
+                        polymer_dataset.smiles_language.
+                        token_indexes_to_smiles(monomer),
+                        '[CH3]-[CH2]-[OH]'
+                    )
                     # CC
                     self.assertEqual(
                         catalyst.numpy().flatten().tolist(), [
@@ -145,6 +150,11 @@ class TestPolymerTokenizerDataset(unittest.TestCase):
                             pad_ind, catalyst_start_ind, c_ind, b_ind, c_ind,
                             catalyst_stop_ind
                         ]
+                    )
+                    self.assertEqual(
+                        polymer_dataset.smiles_language.
+                        token_indexes_to_smiles(catalyst),
+                        'C-C'
                     )
                     self.assertTrue(
                         np.allclose(

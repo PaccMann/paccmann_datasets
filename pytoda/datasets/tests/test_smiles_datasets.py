@@ -128,6 +128,9 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                     padding=False,
                     backend=self.backend
                 )
+                c_index = smiles_dataset.smiles_language.token_to_index['C']
+                o_index = smiles_dataset.smiles_language.token_to_index['O']
+
                 self.assertListEqual(
                     smiles_dataset[0].numpy().flatten().tolist(),
                     [c_index, c_index, o_index]
@@ -143,6 +146,12 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                     add_start_and_stop=True,
                     backend=self.backend
                 )
+                pad_index = smiles_dataset.smiles_language.padding_index
+                start_index = smiles_dataset.smiles_language.start_index
+                stop_index = smiles_dataset.smiles_language.stop_index
+                c_index = smiles_dataset.smiles_language.token_to_index['C']
+                o_index = smiles_dataset.smiles_language.token_to_index['O']
+
                 self.assertEqual(
                     smiles_dataset.smiles_language.padding_length,
                     self.longest+2
