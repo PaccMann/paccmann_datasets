@@ -2,12 +2,14 @@
 import json
 import os
 import unittest
-from importlib import resources
 
 import numpy as np
-from pytoda.datasets import SMILESTokenizerDataset
-from pytoda.tests.utils import TestFileContent
 from torch.utils.data import DataLoader
+
+from pytoda.datasets import SMILESTokenizerDataset
+from pytoda.smiles import SMILESTokenizer, metadata
+from pytoda.smiles.smiles_language import TOKENIZER_CONFIG_FILE
+from pytoda.tests.utils import TestFileContent
 
 CONTENT = os.linesep.join(
     [
@@ -199,7 +201,6 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                     )
                     self.assertEqual(smiles, randomized_smiles)
 
-
                 print("\nExpected 'SMILES Parse Error' for selfies via rdkit:")
                 smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
@@ -305,25 +306,33 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                     backend=self.backend
                 )
 
-    def test_loaded_vocab__getitem__(self) -> None:
+    def test_pretrained__getitem__(self) -> None:
         """Test __getitem__."""
+        pretrained_path = os.path.join(
+            os.path.dirname(os.path.abspath(metadata.__file__)),
+            'tokenizer_chembl_gdsc_ccle_tox21_zinc_organdb_bindingdb'
+        )
+        smiles_language = SMILESTokenizer.from_pretrained(
+            pretrained_path, padding=True
+        )
 
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
-                with resources.path(
-                    'pytoda.smiles.metadata.tokenizer_chembl_gdsc_ccle'  # TODO
-                ) as vocab_file:
-                    smiles_dataset = SMILESTokenizerDataset(
-                        a_test_file.filename,
-                        another_test_file.filename,
-                        padding=True,
-                        vocab_file=vocab_file,
-                        iterate_dataset=False,
-                    )
-                    with open(vocab_file, encoding="utf-8") as fp:
-                        max_length = json.load(fp)[
-                            'max_token_sequence_length'
-                        ]
+
+                smiles_dataset = SMILESTokenizerDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    smiles_language=smiles_language,
+                    iterate_dataset=False,
+                )
+
+                config_file = os.path.join(
+                    pretrained_path, TOKENIZER_CONFIG_FILE
+                )
+                with open(config_file, encoding="utf-8") as fp:
+                    max_length = json.load(fp)[
+                        'max_token_sequence_length'
+                    ]
             pad_index = smiles_dataset.smiles_language.padding_index
             c_index = smiles_dataset.smiles_language.token_to_index['C']
             o_index = smiles_dataset.smiles_language.token_to_index['O']
@@ -343,7 +352,7 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                 smiles_dataset[sample].numpy().flatten().tolist(),
                 [pad_index] * padding_len + [c_index, c_index, o_index]
             )
-    
+
     def test_kwargs_read_smi(self):
         with TestFileContent(os.linesep.join(
             [

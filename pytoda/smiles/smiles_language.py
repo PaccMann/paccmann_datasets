@@ -30,13 +30,12 @@ from selfies import encoder as selfies_encoder
 
 from ..files import read_smi
 from ..transforms import Compose
-from ..types import (Files, Indexes, Iterable, Mapping, Sequence, Tensor,
+from ..types import (Files, Indexes, Iterable, Sequence, Tensor,
                      Tokenizer, Tokens, Tuple, Union)
-from .processing import TOKENIZER_FUNCTIONS, tokenize_selfies, tokenize_smiles
+from .processing import TOKENIZER_FUNCTIONS, tokenize_smiles
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
 logger = logging.getLogger(__name__)
-
 
 
 # mimicry of huggingface tokenizers
@@ -367,9 +366,6 @@ class SMILESLanguage(object):
 
         Args:
             filepath (str): path to the dump of the SMILESLanguage.
-            include_metadata (bool, optional): Also load information on data
-                added to the language (token counts, max length).
-                Defaults to False.
         """
         a_language = self.load(filepath)
         # encoder
@@ -378,20 +374,11 @@ class SMILESLanguage(object):
         self.index_to_token = {v: k for k, v in self.token_to_index.items()}
         self.number_of_tokens = len(self.index_to_token)
 
-        if include_metadata:
-            self.max_token_sequence_length = a_language.max_token_sequence_length  # noqa
-            self.token_count = a_language.token_count
-
-    def _legacy_load_vocabulary_from_pickled_language(
-        self, filepath: str, include_metadata: bool = False
-    ) -> None:
-        """Save the vocabulary mapping tokens to indexes from legacy file.
+    def _from_legacy_pickled_language(self, filepath: str) -> None:
+        """Load a current language instance from pickled legacy language.
 
         Args:
             filepath (str): path to the dump of the SMILESLanguage.
-            include_metadata (bool, optional): Also load information on data
-                added to the language (token counts, max length).
-                Defaults to False.
         """
         warnings.warn(
             "Loading from legacy languages will be deprecated",
@@ -408,9 +395,11 @@ class SMILESLanguage(object):
         self.index_to_token = {v: k for k, v in self.token_to_index.items()}
         self.number_of_tokens = len(self.index_to_token)
 
-        if include_metadata:
-            self.max_token_sequence_length = a_language.max_token_sequence_length  # noqa
-            self.token_count = a_language._token_count
+        self.max_token_sequence_length = a_language.max_token_sequence_length  # noqa
+        self.init_kwargs[
+            'max_token_sequence_length'
+        ] = self.max_token_sequence_length
+        self.token_count = a_language._token_count
 
     def _update_max_token_sequence_length(self, tokens: Tokens) -> None:
         """

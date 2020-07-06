@@ -187,17 +187,24 @@ class SMILESTokenizerDataset(DatasetDelegator):
             # uses the smiles transforms
             self.smiles_language.add_dataset(self.dataset)
 
-        if padding and padding_length is None:
-            # max_sequence_token_length set somehow
-            if vocab_file or iterate_dataset:
+        try:
+            if (
+                self.smiles_language.padding and
+                self.smiles_language.padding_length is None
+            ):
+                # max_sequence_token_length has to be set somehow
                 try:
-                    self.smiles_language.set_max_padding()
+                    if smiles_language is not None or iterate_dataset:
+                        self.smiles_language.set_max_padding()
                 except AttributeError:
                     raise TypeError(
                         'Setting a maximum padding length requires a '
                         'smiles_language with `set_max_padding` method. See '
                         '`SMILESTokenizer`.'
                     )
+        except AttributeError:
+            # SmilesLanguage w/o padding support passed.
+            pass
 
     def __getitem__(self, index: int) -> torch.tensor:
         """

@@ -10,20 +10,21 @@ parser.add_argument(
     'smi_path', type=str, help='path to a folder with .smi files'
 )
 parser.add_argument(
-    'vocab_filepath', type=str, help='path to a output .json file'
+    'pretrained_path', type=str, help='path to a output .json file'
 )
 
 
 def create_smiles_language(
-    smi_path: str, vocab_filepath: str
+    smi_path: str, pretrained_path: str
 ) -> None:
     """
     Create a SMILESLanguage object and save it to disk.
 
     Args:
         smi_path (str): path to a folder containing .smi files.
-        vocab_filepath (str): path where to store the vocabulary json.
+        pretrained_path (str): path where to store the vocabulary json.
     """
+    os.makedirs(pretrained_path, exist_ok=True)
     smiles_language = SMILESLanguage()
     smiles_language.add_smis(
         [
@@ -32,7 +33,7 @@ def create_smiles_language(
             if smi_filename.endswith('.smi')
         ]
     )
-    smiles_language.save_vocabulary(vocab_filepath, include_metadata=True)
+    smiles_language.save_pretrained(pretrained_path)
 
 
 if __name__ == '__main__':
@@ -40,5 +41,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     # run the creation and export
     create_smiles_language(
-        args.smi_path, args.vocab_filepath
+        args.smi_path, args.pretrained_path
     )
