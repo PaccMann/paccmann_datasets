@@ -9,7 +9,7 @@ parser.add_argument(
 )
 parser.add_argument(
     'pretrained_path', type=str,
-    help='path to a output directory saving the tokenizer'
+    help='path to a folder to store the language as text files.'
 )
 
 

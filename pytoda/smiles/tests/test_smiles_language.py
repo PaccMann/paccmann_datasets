@@ -189,8 +189,6 @@ class TestSmilesLanguage(unittest.TestCase):
             )
         )
 
-        # TODO add dataset of smiles
-
     def test_transform_changes(self):
         """Test update of transforms on parameter assignment"""
         smiles = 'CCO'

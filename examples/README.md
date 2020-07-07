@@ -10,14 +10,14 @@ The example [smiles_vocab_creator.py](./smiles_vocab_creator.py) creates a [`SMI
 
 ```console
 (pytoda) $ python examples/smiles_vocab_creator.py -h
-usage: smiles_vocab_creator.py [-h] smi_path vocab_filepath
+usage: smiles_vocab_creator.py [-h] smi_path pretrained_path
 
 positional arguments:
-  smi_path        path to a folder with .smi files
-  vocab_filepath  path to a output .json file
+  smi_path         path to a folder with .smi files
+  pretrained_path  path to a folder to store the language as text files.
 
 optional arguments:
-  -h, --help      show this help message and exit
+  -h, --help       show this help message and exit
 ```
 
 ## Convert a .smi file into a .csv containing Morgan fingerprints
@@ -78,19 +78,19 @@ optional arguments:
 
 For more examples see other repositories in the [PaccMann organization](https://github.com/PaccMann).
 
-## Export the vocabulary of smiles languages created with older versions of `pytoda`
+## Port smiles languages created with older versions of `pytoda`
 
-The example [vocab_from_legacy_language.py](./vocab_from_legacy_language.py) loads a pickled `SMILESLanguage` object created with `pytoda<=0.1.0` and assigns the data to the [refactored](../pytoda/smiles/smiles_language.py) class (`pytoda>=0.2.0`), so the vocabulary of tokens can be saved.
+The example [vocab_from_legacy_language.py](./vocab_from_legacy_language.py) loads a pickled `SMILESLanguage` object created with `pytoda<=0.1.0` and assigns the data to the [refactored](../pytoda/smiles/smiles_language.py) class (`pytoda>=0.2.0`), so the "pretrained" instance can be saved to a directory (including the vocabulary of tokens).
 
 ```console
 (pytoda) $ python examples/vocab_from_legacy_language.py -h
 usage: vocab_from_legacy_language.py [-h]
-                                     smiles_language_filepath vocab_filepath
+                                     smiles_language_filepath pretrained_path
 
 positional arguments:
   smiles_language_filepath
                         path to a .pkl file of a legacy smiles language.
-  vocab_filepath        path to a output .json file
+  pretrained_path       path to a folder to store the language as text files.
 
 optional arguments:
   -h, --help            show this help message and exit
