@@ -80,7 +80,8 @@ class SMILESLanguage(object):
                 precedence when found in available TOKENIZER_FUNCTIONS.
             tokenizer_name (str): name, mapping to Tokenizer used to save and
                 restore object from text files. Defaults to None, i.e.
-                using default smiles_tokenizer.
+                using default smiles_tokenizer. Examples for available names
+                are 'smiles', 'selfies' or 'spe_smiles'.
             vocab_file (str): optional filepath to vocab json or directory
                 containing it.
             max_token_sequence_length (int): initial value for keeping track
