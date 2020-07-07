@@ -1,1 +1,1 @@
-from .smiles_language import SMILESLanguage, SMILESTokenizer  # noqa
+from .smiles_language import SMILESLanguage, SELFIESLanguage, SMILESTokenizer  # noqa
