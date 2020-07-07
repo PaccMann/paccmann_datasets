@@ -451,7 +451,8 @@ class SMILESLanguage(object):
         names: Sequence[str] = None
     ) -> None:
         """
-        Add a set of SMILES from a list of .smi files.
+        Add a set of SMILES from a list of .smi files, applying
+        `transform_smiles`.
 
         Args:
             smi_filepaths (Files): a list of paths to .smi files.
@@ -474,7 +475,7 @@ class SMILESLanguage(object):
         names: Sequence[str] = None
     ) -> None:
         """
-        Add a set of SMILES from a .smi file.
+        Add a set of SMILES from a .smi file, applying `transform_smiles`.
 
         Args:
             smi_filepath (str): path to the .smi file.
@@ -493,7 +494,14 @@ class SMILESLanguage(object):
                 names=names
             ):
                 for smiles in chunk[name]:
-                    self.add_smiles(smiles)
+                    try:
+                        transformed_smiles = self.transform_smiles(smiles)
+                        self.add_smiles(transformed_smiles)
+                    except Exception:
+                        logger.warning(
+                            'transformation of smiles or adding result to '
+                            f'the language failed for: {smiles}'
+                        )
         except IndexError:
             raise IndexError('There must be one name per column in names.')
         except KeyError as error:
@@ -504,8 +512,7 @@ class SMILESLanguage(object):
 
     def add_dataset(self, dataset: Iterable):
         """
-        Add a set of SMILES from an iterable.
-        The smiles_transforms are applied here in contrast to adding from .smi.
+        Add a set of SMILES from an iterable, applying `transform_smiles`.
 
         Collects and warns about invalid SMILES, and warns on finding new
         tokens.
