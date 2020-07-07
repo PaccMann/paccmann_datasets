@@ -1,10 +1,11 @@
 """Testing SMILESLanguage."""
 import os
-import unittest
 import tempfile
+import unittest
 
 from pytoda.smiles.processing import tokenize_selfies
-from pytoda.smiles.smiles_language import SMILESTokenizer, SMILESLanguage
+from pytoda.smiles.smiles_language import (SELFIESLanguage, SMILESLanguage,
+                                           SMILESTokenizer)
 from pytoda.smiles.transforms import Selfies
 from pytoda.tests.utils import TestFileContent
 
@@ -261,6 +262,18 @@ class TestSmilesLanguage(unittest.TestCase):
         self.assertEqual(max_len, smiles_language.max_token_sequence_length)
         self.assertDictEqual(count, smiles_language.token_count)
         self.assertEqual(total, smiles_language.number_of_tokens)
+
+
+class TestSelfiesLanguage(unittest.TestCase):
+    """Testing SELFIESLanguage."""
+
+    def test_add_dataset(self):
+        dataset = ['C(', 'CC)', 'CCO', 'C', 'CO', 'NCCS']
+        selfies_language = SELFIESLanguage()
+        print("\nExpected 'SMILES Parse Error's while iterating a dataset:")
+        selfies_language.add_dataset(dataset)
+        self.assertTrue((0, 'C(') in selfies_language.invalid_molecules)
+        self.assertTrue((1, 'CC)') in selfies_language.invalid_molecules)
 
 
 if __name__ == '__main__':

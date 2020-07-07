@@ -513,21 +513,21 @@ class SMILESLanguage(object):
         Args:
             dataset (Iterable): returning SMILES strings.
         """
-        num_tokens = len(self.token_to_index)
 
         self.invalid_molecules = []
-
-        if getattr(self, 'selfies', False):
-            ensure_smiles = self.selfies_to_smiles
-        else:
-            def ensure_smiles(smiles: str) -> str: return smiles
+        self.failed_transform_smiles = []
 
         for index, smiles in enumerate(dataset):
-            smiles = self.transform_smiles(smiles)
-            self.add_smiles(smiles)
-
-            if Chem.MolFromSmiles(ensure_smiles(smiles)) is None:
+            if Chem.MolFromSmiles(smiles) is None:
                 self.invalid_molecules.append((index, smiles))
+            else:
+                try:
+                    transformed_smiles = self.transform_smiles(smiles)
+                except Exception:
+                    self.failed_transform_smiles.append((index, smiles))
+                else:
+                    self.add_smiles(transformed_smiles)
+
         # Raise warning about invalid molecules
         if len(self.invalid_molecules) > 0:
             logger.warning(
@@ -535,11 +535,18 @@ class SMILESLanguage(object):
                 'smiles. Check the warning trace and inspect the  attribute '
                 '`invalid_molecules`. To remove invalid  SMILES in your .smi '
                 'file, we recommend using '
-                '`pytoda.preprocessing.smi.smi_cleaner`. SELFIES are expected '
-                'to be listed here.'
+                '`pytoda.preprocessing.smi.smi_cleaner`.'
+            )
+        # Raise warning about failed transformations
+        if len(self.failed_transform_smiles) > 0:
+            logger.warning(
+                f'NOTE: We found {len(self.failed_transform_smiles)} smiles '
+                'that failed to be transformed (excluding invalid smiles). '
+                'Inspect the attribute `failed_transform_smiles`.'
             )
 
         # Raise warning if new tokens were added.
+        num_tokens = len(self.token_to_index)
         if len(self.token_to_index) > num_tokens:
             logger.warning(
                 f'{len(self.token_to_index) - num_tokens}'
@@ -714,7 +721,7 @@ class SELFIESLanguage(SMILESLanguage):
             name=name, tokenizer_name='selfies', vocab_file=vocab_file,
             max_token_sequence_length=max_token_sequence_length
         )
-        self.transform_smiles = selfies_decoder
+        self.transform_smiles = selfies_encoder
 
 
 class SMILESTokenizer(SMILESLanguage):
