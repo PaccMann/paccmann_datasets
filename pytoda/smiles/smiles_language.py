@@ -30,19 +30,17 @@ from selfies import encoder as selfies_encoder
 
 from ..files import read_smi
 from ..transforms import Compose
-from ..types import (Files, Indexes, Iterable, Sequence, Tensor,
-                     Tokenizer, Tokens, Tuple, Union)
+from ..types import (
+    Files, Indexes, Iterable, Sequence, Tensor, Tokenizer, Tokens, Tuple, Union
+)
 from .processing import TOKENIZER_FUNCTIONS, tokenize_smiles
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
 logger = logging.getLogger(__name__)
 
-
 # mimicry of huggingface tokenizers
 # see PreTrainedTokenizer
-VOCAB_FILES_NAMES = {
-    'vocab_file': 'vocab.json'
-}
+VOCAB_FILES_NAMES = {'vocab_file': 'vocab.json'}
 # see PreTrainedTokenizerBase
 TOKENIZER_CONFIG_FILE = 'tokenizer_config.json'
 # our
@@ -90,8 +88,8 @@ class SMILESLanguage(object):
         self.name = name
         self.tokenizer_name = tokenizer_name
         if (
-            tokenizer_name is not None and
-            tokenizer_name not in TOKENIZER_FUNCTIONS
+            tokenizer_name is not None
+            and tokenizer_name not in TOKENIZER_FUNCTIONS
         ):
             logger.info(
                 f'Given tokenizer_name {tokenizer_name} was not found, using'
@@ -147,7 +145,8 @@ class SMILESLanguage(object):
         # (see ``from_pretrained`` and ``save_pretrained``)
         self.init_inputs = ()
         self.init_kwargs = {
-            'name': self.name, 'tokenizer_name': self.tokenizer_name,
+            'name': self.name,
+            'tokenizer_name': self.tokenizer_name,
             'max_token_sequence_length': self.max_token_sequence_length,
         }
 
@@ -251,14 +250,14 @@ class SMILESLanguage(object):
         # and the additional tokens files
         if os.path.isdir(pretrained_path):
             for file_id, file_name in {
-                **cls.vocab_files_names, **additional_files_names
+                **cls.vocab_files_names,
+                **additional_files_names
             }.items():
                 full_file_name = os.path.join(pretrained_path, file_name)
                 if not os.path.exists(full_file_name):
                     logger.info(
-                        "Didn't find file {}. We won't load it.".format(
-                            full_file_name
-                        )
+                        "Didn't find file {}. We won't load it.".
+                        format(full_file_name)
                     )
                     full_file_name = None
 
@@ -321,7 +320,7 @@ class SMILESLanguage(object):
         with open(vocab_file, 'w', encoding="utf-8") as fp:
             json.dump(self.token_to_index, fp, indent=4)
 
-        return (vocab_file,)
+        return (vocab_file, )
 
     def save_pretrained(self, save_directory):
         """Save the tokenizer vocabulary files together with
@@ -332,17 +331,16 @@ class SMILESLanguage(object):
         """
         if not os.path.isdir(save_directory):
             # TODO raise?
-            logger.error('Saving directory ({}) should be a directory'.format(
-                save_directory
-            ))
+            logger.error(
+                'Saving directory ({}) should be a directory'.
+                format(save_directory)
+            )
             return
 
         tokenizer_config_file = os.path.join(
             save_directory, TOKENIZER_CONFIG_FILE
         )
-        tokenizer_counts_file = os.path.join(
-            save_directory, TOKEN_COUNTS_FILE
-        )
+        tokenizer_counts_file = os.path.join(save_directory, TOKEN_COUNTS_FILE)
 
         tokenizer_config = copy.deepcopy(self.init_kwargs)
         if len(self.init_inputs) > 0:
@@ -358,7 +356,7 @@ class SMILESLanguage(object):
 
         vocab_files = self.save_vocabulary(save_directory)
 
-        return vocab_files + (tokenizer_counts_file,)
+        return vocab_files + (tokenizer_counts_file, )
 
     def _load_vocabulary_from_pickled_language(
         self, filepath: str, include_metadata: bool = False
@@ -389,17 +387,17 @@ class SMILESLanguage(object):
         # encoder
         # missing special tokens
         self.token_to_index = a_language.token_to_index
-        self.token_to_index.update({
-            t: i for i, t in self.special_indexes.items()
-        })
+        self.token_to_index.update(
+            {t: i
+             for i, t in self.special_indexes.items()}
+        )
         # decoder
         self.index_to_token = {v: k for k, v in self.token_to_index.items()}
         self.number_of_tokens = len(self.index_to_token)
 
         self.max_token_sequence_length = a_language.max_token_sequence_length  # noqa
-        self.init_kwargs[
-            'max_token_sequence_length'
-        ] = self.max_token_sequence_length
+        self.init_kwargs['max_token_sequence_length'
+                         ] = self.max_token_sequence_length
         self.token_count = a_language._token_count
 
     def _update_max_token_sequence_length(self, tokens: Tokens) -> None:
@@ -415,9 +413,8 @@ class SMILESLanguage(object):
         total_number_of_tokens = self._get_total_number_of_tokens_fn(tokens)
         if total_number_of_tokens > self.max_token_sequence_length:
             self.max_token_sequence_length = total_number_of_tokens
-            self.init_kwargs[
-                'max_token_sequence_length'
-            ] = total_number_of_tokens
+            self.init_kwargs['max_token_sequence_length'
+                             ] = total_number_of_tokens
 
     def _update_language_dictionaries_with_tokens(
         self, tokens: Tokens
@@ -447,8 +444,11 @@ class SMILESLanguage(object):
         self.number_of_tokens += len(index_to_token)
 
     def add_smis(
-        self, smi_filepaths: Files, index_col: int = 1,
-        chunk_size: int = 10000, name: str = 'SMILES',
+        self,
+        smi_filepaths: Files,
+        index_col: int = 1,
+        chunk_size: int = 10000,
+        name: str = 'SMILES',
         names: Sequence[str] = None
     ) -> None:
         """
@@ -466,13 +466,19 @@ class SMILESLanguage(object):
         """
         for smi_filepath in smi_filepaths:
             self.add_smi(
-                smi_filepath, index_col=index_col,
-                chunk_size=chunk_size, name=name, names=names
+                smi_filepath,
+                index_col=index_col,
+                chunk_size=chunk_size,
+                name=name,
+                names=names
             )
 
     def add_smi(
-        self, smi_filepath: str, index_col: int = 1,
-        chunk_size: int = 10000, name: str = 'SMILES',
+        self,
+        smi_filepath: str,
+        index_col: int = 1,
+        chunk_size: int = 10000,
+        name: str = 'SMILES',
         names: Sequence[str] = None
     ) -> None:
         """
@@ -491,7 +497,9 @@ class SMILESLanguage(object):
         names = names or [name]
         try:
             for chunk in read_smi(
-                smi_filepath, index_col=index_col, chunk_size=chunk_size,
+                smi_filepath,
+                index_col=index_col,
+                chunk_size=chunk_size,
                 names=names
             ):
                 for smiles in chunk[name]:
@@ -602,10 +610,8 @@ class SMILESLanguage(object):
         """
         return self.transform_encoding(
             [
-                self.token_to_index.get(token, self.unknown_token)
-                for token in self.smiles_tokenizer(
-                    self.transform_smiles(smiles)
-                )
+                self.token_to_index.get(token, self.unknown_token) for token in
+                self.smiles_tokenizer(self.transform_smiles(smiles))
             ]
         )
 
@@ -662,10 +668,10 @@ class SMILESLanguage(object):
         Based on: https://arxiv.org/abs/1905.13741
 
         Arguments:
-            selfies {str} -- SELFIES representation
+            selfies (str): SELFIES representation
 
         Returns:
-            str -- A SMILES string
+            str: A SMILES string
         """
         if not isinstance(selfies, str):
             raise TypeError(f'Wrong data type: {type(selfies)}. Use strings.')
@@ -684,10 +690,10 @@ class SMILESLanguage(object):
         Based on: https://arxiv.org/abs/1905.13741
 
         Arguments:
-            smiles {str} -- smiles representation
+            smiles (str): SMILES representation
 
         Returns:
-            str -- A SELFIES string
+            str: A SELFIES string
         """
         if not isinstance(smiles, str):
             raise TypeError(f'Wrong data type: {type(smiles)}. Use strings.')
@@ -724,7 +730,9 @@ class SELFIESLanguage(SMILESLanguage):
                 of longest sequence. Defaults to 0.
         """
         super().__init__(
-            name=name, tokenizer_name='selfies', vocab_file=vocab_file,
+            name=name,
+            tokenizer_name='selfies',
+            vocab_file=vocab_file,
             max_token_sequence_length=max_token_sequence_length
         )
         self.transform_smiles = selfies_encoder
@@ -846,7 +854,10 @@ class SMILESTokenizer(SMILESLanguage):
         self.reset_initial_transforms()
 
         self._attributes_to_trigger_reset = [
-            *self._init_attributes, 'device', 'start_index', 'stop_index',
+            *self._init_attributes,
+            'device',
+            'start_index',
+            'stop_index',
         ]  # could be updated in inheritance
 
         # only now 'activate' setter that resets the transforms and warns on
