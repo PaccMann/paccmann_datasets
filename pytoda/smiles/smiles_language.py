@@ -699,7 +699,6 @@ class SELFIESLanguage(SMILESLanguage):
     SELFIESLanguage is a SMILESLanguage with a different default tokenizer,
     transforming SMILES to SELFIES.
     """
-    selfies = True  # to check validity back to smiles in `add_dataset`
 
     def __init__(
         self,
