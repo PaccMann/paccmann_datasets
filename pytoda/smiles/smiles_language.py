@@ -513,7 +513,7 @@ class SMILESLanguage(object):
         Args:
             dataset (Iterable): returning SMILES strings.
         """
-
+        initial_vocab_length = len(self.token_to_index)
         self.invalid_molecules = []
         self.failed_transform_smiles = []
 
@@ -546,10 +546,9 @@ class SMILESLanguage(object):
             )
 
         # Raise warning if new tokens were added.
-        num_tokens = len(self.token_to_index)
-        if len(self.token_to_index) > num_tokens:
+        if len(self.token_to_index) > initial_vocab_length:
             logger.warning(
-                f'{len(self.token_to_index) - num_tokens}'
+                f'{len(self.token_to_index) - initial_vocab_length}'
                 ' new token(s) were added to SMILES language.'
             )
 
