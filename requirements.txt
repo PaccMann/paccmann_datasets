@@ -4,6 +4,6 @@ pandas==1.1.0
 torch==1.6.0
 diskcache==4.1.0
 dill==0.3.2
-selfies==0.2.4
+selfies==1.0.1
 upfp==0.0.5
 SmilesPE>=0.0.3
