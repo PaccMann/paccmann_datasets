@@ -1,9 +1,10 @@
-numpy==1.18.2
-scikit-learn==0.22.2.post1
-pandas==1.0.3
-torch==1.4.0
-diskcache==4.1.0
-dill==0.3.1.1
+numpy==1.19.1
+scikit-learn==0.23.2
+pandas==1.1.1
+torch==1.6.0
+diskcache==5.0.2
+dill==0.3.2
 selfies==0.2.4
-upfp==0.0.4
 coverage==5.0.3
+upfp==0.0.5
+SmilesPE>=0.0.3

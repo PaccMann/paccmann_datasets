@@ -1,7 +1,10 @@
+import logging
 import urllib
 import urllib.error as urllib_error
 import urllib.request as urllib_request
 from typing import Union
+
+logger = logging.getLogger(__name__)
 
 ZINC_DRUG_SEARCH_ROOT = 'http://zinc.docking.org/substances/search/?q='
 ZINC_ID_SEARCH_ROOT = 'http://zinc.docking.org/substances/'
@@ -14,13 +17,13 @@ PUBCHEM_END = '/TXT'
 def get_smiles_from_zinc(drug: Union[str, int]) -> str:
     """
     Uses the ZINC databases to retrieve the SMILES of a ZINC ID (int) or a drug
-    name (str). 
+    name (str).
 
     Args:
-        drug (Union[str, int]) -- A string with a drug name or an int of a ZINC
+        drug (Union[str, int]): a string with a drug name or an int of a ZINC
             ID.
     Returns:
-        smiles (str) -- The SMILES string of the drug name or ZINC ID.
+        smiles (str): The SMILES string of the drug name or ZINC ID.
     """
 
     if type(drug) != str and type(drug) != int:
@@ -46,7 +49,7 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
             zinc_id = zinc_ids[0]
 
         except urllib_error.HTTPError:
-            print(f'Did not find any result for drug: {drug}')
+            logger.warninig(f'Did not find any result for drug: {drug}')
             return []
 
     elif type(drug) == int:
@@ -64,24 +67,33 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
 
 
 def get_smiles_from_pubchem(
-    drug: str, use_isomeric: bool = True, kekulize: bool = False
+    drug: str,
+    use_isomeric: bool = True,
+    kekulize: bool = False,
+    sanitize: bool = True
 ) -> str:
     """
-
-    Uses the PubChem database to retrieve the SMILES of a drug name (str). 
+    Uses the PubChem database to retrieve the SMILES of a drug name (str).
 
     Args:
-        drug (str) -- A string with a drug name (or a PubChem ID as a string).
+        drug (str): string with a drug name (or a PubChem ID as a string).
         use_isomeric (bool, optional) - If available, returns the isomeric
             SMILES, not the canonical one.
-        kekulize (bool, optional) -- Whether kekulization is used. PubChem uses
+        kekulize (bool, optional): whether kekulization is used. PubChem uses
             kekulization per default, so setting this to 'True' will not
-            perform any operation on the retrieved SMILES. 
+            perform any operation on the retrieved SMILES.
             NOTE: Setting it to 'False' will convert aromatic atoms to lower-
             case characters and *induces a RDKit dependency*
+        sanitize (bool, optional) -- Sanitize SMILE
     Returns:
         smiles (str) -- The SMILES string of the drug name.
     """
+
+    if not kekulize and not sanitize:
+        raise ValueError(
+            'If Kekulize is False, molecule has to be sanitize '
+            '(sanitize cannot be False).'
+        )
 
     if type(drug) != str:
         raise TypeError(
@@ -106,10 +118,12 @@ def get_smiles_from_pubchem(
             smiles = urllib_request.urlopen(path).read(
             ).decode('UTF-8').replace('\n', '')
             if not kekulize:
-                smiles = Chem.MolToSmiles(Chem.MolFromSmiles(smiles))
+                smiles = Chem.MolToSmiles(
+                    Chem.MolFromSmiles(smiles, sanitize=sanitize)
+                )
             return smiles
         except urllib_error.HTTPError:
             if option == 'CanonicalSMILES':
-                print(f'Did not find any result for drug: {drug}')
+                logger.warninig(f'Did not find any result for drug: {drug}')
                 return []
             continue

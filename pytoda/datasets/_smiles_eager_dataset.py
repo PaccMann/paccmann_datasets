@@ -31,6 +31,7 @@ class _SMILESEagerDataset(_SMILESDataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
+        sanitize: bool = True,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu')
     ) -> None:
@@ -66,6 +67,7 @@ class _SMILESEagerDataset(_SMILESDataset):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
+            sanitize (bool): Sanitize SMILES. Defaults to True.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
         """
@@ -84,6 +86,7 @@ class _SMILESEagerDataset(_SMILESDataset):
             remove_bonddir=remove_bonddir,
             remove_chirality=remove_chirality,
             selfies=selfies,
+            sanitize=sanitize,
             device=device
         )
 

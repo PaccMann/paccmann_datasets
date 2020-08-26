@@ -8,11 +8,11 @@ if os.path.exists('README.md'):
     with open('README.md') as fp:
         LONG_DESCRIPTION = fp.read()
 
-scripts = []
+scripts = ['bin/pytoda-filter-invalid-smi']
 
 setup(
     name='pytoda',
-    version='0.0.5',
+    version='0.1.0',
     description='pytoda: PaccMann PyTorch Dataset Classes.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
@@ -25,7 +25,7 @@ setup(
     license='MIT',
     install_requires=[
         'numpy', 'scikit-learn', 'pandas', 'torch>=1.0.0', 'diskcache', 'dill',
-        'selfies', 'upfp', 'coverage'
+        'selfies', 'upfp', 'SmilesPE>=0.0.3', 'coverage'
     ],
     classifiers=[
         'Intended Audience :: Developers',
@@ -36,5 +36,6 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     packages=find_packages(),
+    package_data={'pytoda': ['smiles/metadata/*']},
     scripts=scripts
 )

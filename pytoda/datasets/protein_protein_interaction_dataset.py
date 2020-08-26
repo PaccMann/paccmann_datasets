@@ -7,6 +7,7 @@ from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..proteins.protein_language import ProteinLanguage
+from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
@@ -61,8 +62,11 @@ class ProteinProteinInteractionDataset(Dataset):
                 (positional or strings) for the annotations. Defaults to None,
                 a.k.a. all the columns, except the entity_names are annotation
                 labels.
-            protein_language (ProteinLanguage): a protein language, defaults to
-                None.
+            protein_language (ProteinLanguage): a protein language or a child
+                object, defaults to None.
+                NOTE: ProteinFeatureLanguage objects cannot be created auto-
+                matically. If you want to use it, give it directly to the
+                constructor.
             amino_acid_dict (str): The type of amino acid dictionary to map
                 sequence tokens to numericals. Defaults to 'iupac', alternative
                 is 'unirep'.
@@ -110,7 +114,7 @@ class ProteinProteinInteractionDataset(Dataset):
         self.device = device
 
         (
-            self.paddings, self.padding_lengths, self.add_start_and_stop,
+            self.paddings, self.padding_lengths, self.add_start_and_stops,
             self.augment_by_reverts, self.randomizes
         ) = map(
             (
@@ -129,9 +133,11 @@ class ProteinProteinInteractionDataset(Dataset):
             self.protein_language = protein_language
             assert (
                 (
-                    self.protein_language.add_start_and_stop ==
-                    all(add_start_and_stops)
-                ) and all(add_start_and_stops) == any(add_start_and_stops)
+                    self.protein_language.add_start_and_stop == all(
+                        self.add_start_and_stops
+                    )
+                ) and all(self.add_start_and_stops
+                          ) == any(self.add_start_and_stops)
             ), 'Inconsistencies found in add_start_and_stop.'
 
         # Create protein sequence datasets
@@ -140,9 +146,10 @@ class ProteinProteinInteractionDataset(Dataset):
                 self.sequence_filepaths[index],
                 filetype=self.filetypes[index],
                 protein_language=protein_language,
+                amino_acid_dict=amino_acid_dict,
                 padding=self.paddings[index],
                 padding_length=self.padding_lengths[index],
-                add_start_and_stop=self.add_start_and_stop[index],
+                add_start_and_stop=self.add_start_and_stops[index],
                 augment_by_revert=self.augment_by_reverts[index],
                 randomize=self.randomizes[index],
                 device=self.device,

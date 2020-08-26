@@ -16,6 +16,8 @@ script:
   # - docker run -t pytoda_tests /bin/bash -c "$ci_env && coverage run -m
   #   unittest discover && $ci_post_cov"
   - docker run -t pytoda_tests /bin/bash -c "$ci_env && coverage run -m unittest discover"
+  - docker run -it pytoda_tests pytoda-filter-invalid-smi --help
+
   # Copy data from container to host
   - $ci_env
   - docker ps -a

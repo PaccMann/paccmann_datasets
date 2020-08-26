@@ -44,11 +44,11 @@ def read_smi(
         chunk_size (int): size of the chunk. Defaults to None, a.k.a. no
             chunking.
         index_col (int): Data column used for indexing, defaults to 1.
-        names (Iterable[str]): Column names.
+        names (Iterable[str]): User-assigned names given to the columns.
 
     Returns:
-        pd.DataFrame: a pd.DataFrame containing the SMILES
-            where the index is the compound name.
+        pd.DataFrame: a pd.DataFrame containing the data of the .smi file
+            where the index is the index_col column.
     """
 
     return pd.read_csv(
