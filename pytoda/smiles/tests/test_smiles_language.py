@@ -93,6 +93,15 @@ class TestSmilesLanguage(unittest.TestCase):
         self.assertListEqual(
             smiles_language.smiles_to_token_indexes(smiles), token_indexes
         )
+        smiles_u = 'CCN'
+        token_indexes_u = [
+            smiles_language.token_to_index['C'],
+            smiles_language.token_to_index['C'], smiles_language.unknown_index
+        ]
+        self.assertListEqual(
+            smiles_language.smiles_to_token_indexes(smiles_u), token_indexes_u
+        )
+
         smiles_language = SMILESLanguage(add_start_and_stop=True)
         smiles_language.add_smiles(smiles)
         self.assertListEqual(

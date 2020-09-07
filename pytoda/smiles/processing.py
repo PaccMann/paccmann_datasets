@@ -21,7 +21,7 @@ with resources.path('pytoda.smiles.metadata', 'spe_chembl.txt') as filepath:
     SPE_TOKENIZER = SPE_Tokenizer(codecs.open(filepath))
 
 
-def tokenize_smiles(smiles: str, regexp=None) -> Tokens:
+def tokenize_smiles(smiles: str, regexp=None, *args, **kwargs) -> Tokens:
     """
     Tokenize a character-level SMILES string.
 

@@ -232,9 +232,8 @@ class SMILESLanguage(object):
         """
         return self._finalize_token_indexes_fn(
             [
-                self.token_to_index[
-                    token if token in self.token_to_index else self.unknown_token
-                ]
+                self.token_to_index[token]
+                if token in self.token_to_index else self.unknown_index
                 for token in self.smiles_tokenizer(smiles)
             ]
         )
