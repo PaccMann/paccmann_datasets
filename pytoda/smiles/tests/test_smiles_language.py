@@ -96,10 +96,22 @@ class TestSmilesLanguage(unittest.TestCase):
         self.assertListEqual(
             smiles_language.smiles_to_token_indexes(smiles), token_indexes
         )
+
+        # unknown token
+        smiles_u = 'CCN'
+        token_indexes_u = [
+            smiles_language.token_to_index['C'],
+            smiles_language.token_to_index['C'], smiles_language.unknown_index
+        ]
+        self.assertListEqual(
+            smiles_language.smiles_to_token_indexes(smiles_u), token_indexes_u
+        )
+
         smiles_language = SMILESTokenizer(add_start_and_stop=True, padding=True)
         # fail with no padding_length defined
         with self.assertRaises(TypeError):
             smiles_language.smiles_to_token_indexes(smiles)
+
         smiles_language.add_smiles(smiles)
         smiles_language.set_max_padding()
         self.assertListEqual(

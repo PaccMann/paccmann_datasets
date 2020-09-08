@@ -20,7 +20,7 @@ with resources.path('pytoda.smiles.metadata', 'spe_chembl.txt') as filepath:
     SPE_TOKENIZER = SPE_Tokenizer(codecs.open(filepath))
 
 
-def tokenize_smiles(smiles: str, regexp=SMILES_TOKENIZER) -> Tokens:
+def tokenize_smiles(smiles: str, regexp=SMILES_TOKENIZER, *args, **kwargs) -> Tokens:
     """
     Tokenize a character-level SMILES string.
 
@@ -28,6 +28,8 @@ def tokenize_smiles(smiles: str, regexp=SMILES_TOKENIZER) -> Tokens:
         smiles (str): a SMILES representation.
         regexp (re.Pattern): optionally pass a regexp for the
             tokenization. Defaults to SMILES_TOKENIZER.
+        args (): ignored, for backwards compatibility.
+        kwargs (): ignored, for backwards compatibility.
     Returns:
         Tokens: the tokenized SMILES.
     """
