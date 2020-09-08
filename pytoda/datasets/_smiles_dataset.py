@@ -152,7 +152,10 @@ class _SMILESDataset(Dataset):
                         sanitize=self.sanitize
                     )
                 ]
-            elif self.all_bonds_explicit or self.all_hs_explicit:
+            elif (
+                self.all_bonds_explicit or self.all_hs_explicit
+                or self.sanitize
+            ):
                 language_transforms += [
                     NotKekulize(
                         all_bonds_explicit=self.all_bonds_explicit,
