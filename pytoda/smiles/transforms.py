@@ -75,7 +75,7 @@ def compose_smiles_transforms(
                     sanitize=sanitize
                 )
             ]
-        elif all_bonds_explicit or all_hs_explicit:
+        elif all_bonds_explicit or all_hs_explicit or sanitize:
             smiles_transforms += [
                 NotKekulize(
                     all_bonds_explicit=all_bonds_explicit,
