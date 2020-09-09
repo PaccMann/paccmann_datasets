@@ -12,7 +12,7 @@ scripts = ['bin/pytoda-filter-invalid-smi']
 
 setup(
     name='pytoda',
-    version='0.1.0',
+    version='0.1.1',
     description='pytoda: PaccMann PyTorch Dataset Classes.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
