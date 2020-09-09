@@ -110,7 +110,7 @@ class SMILESLanguage(object):
         self.token_count = Counter()
         self.special_indexes = {
             self.padding_index: self.padding_token,
-            self.unknown_index: self.unknown_token,
+            self.unknown_index: self.unknown_index,
             self.start_index: self.start_token,
             self.stop_index: self.stop_token,
         }
@@ -610,7 +610,7 @@ class SMILESLanguage(object):
         """
         return self.transform_encoding(
             [
-                self.token_to_index.get(token, self.unknown_token) for token in
+                self.token_to_index.get(token, self.unknown_index) for token in
                 self.smiles_tokenizer(self.transform_smiles(smiles))
             ]
         )
