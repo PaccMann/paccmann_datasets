@@ -7,4 +7,4 @@ dill==0.3.2
 selfies==0.2.4
 upfp==0.0.5
 SmilesPE>=0.0.3
-pyfaidx==0.5.9
+pyfaidx==0.5.9.1
