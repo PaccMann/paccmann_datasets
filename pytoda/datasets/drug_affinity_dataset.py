@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from ..types import DrugAffinityData
 from ..smiles.smiles_language import SMILESLanguage
 from ..proteins.protein_language import ProteinLanguage
-from .smiles_dataset import SMILESDataset
+from .smiles_dataset import SMILESTokenizerDataset
 from .protein_sequence_dataset import ProteinSequenceDataset
 
 
@@ -32,7 +32,9 @@ class DrugAffinityDataset(Dataset):
         smiles_randomize: bool = False,
         smiles_remove_bonddir: bool = False,
         smiles_remove_chirality: bool = False,
+        smiles_vocab_file: str = None,
         smiles_selfies: bool = False,
+        smiles_sanitize: bool = True,
         protein_language: ProteinLanguage = None,
         protein_amino_acid_dict: str = 'iupac',
         protein_padding: bool = True,
@@ -43,6 +45,7 @@ class DrugAffinityDataset(Dataset):
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
+        iterate_dataset: bool = True,
         backend: str = 'eager',
     ) -> None:
         """
@@ -58,6 +61,9 @@ class DrugAffinityDataset(Dataset):
             drug_affinity_dtype (torch.dtype): drug affinity data type.
                 Defaults to torch.int.
             smiles_language (SMILESLanguage): a smiles language.
+                Defaults to None.
+            smiles_vocab_file (str): Optional .json to load vocabulary. Tries
+                to load metadata if `iterate_dataset` is False.
                 Defaults to None.
             smiles_padding (bool): pad sequences to longest in the smiles
                 language. Defaults to True.
@@ -84,6 +90,8 @@ class DrugAffinityDataset(Dataset):
                 Defaults to False.
             smiles_selfies (bool): Whether selfies is used instead of smiles.
                 Default to False.
+            smiles_sanitize (bool): RDKit sanitization of the molecule.
+                Defaults to True.
             protein_language (ProteinLanguage): protein language.
                 Defaults to None, a.k.a., build it from scratch.
             protein_amino_acid_dict (str): Amino acid dictionary.
@@ -100,7 +108,14 @@ class DrugAffinityDataset(Dataset):
                 sequence tokens. Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            backend (str): memeory management backend.
+            protein_vocab_file (str): Optional .json to load vocabulary. Tries
+                to load metadata if `iterate_dataset` is False.
+                Defaults to None.
+            iterate_dataset (bool): whether to go through all items in the
+                dataset to extend/build vocab, find longest sequence, and
+                checks the passed padding length if applicable. Defaults to
+                True.
+            backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
                 Note that at the moment only the smiles dataset implement both
                 backends. The drug affinity data and the protein dataset are
@@ -115,22 +130,25 @@ class DrugAffinityDataset(Dataset):
         # backend
         self.backend = backend
         # SMILES
-        self.smiles_dataset = SMILESDataset(
+        self.smiles_dataset = SMILESTokenizerDataset(
             self.smi_filepath,
             smiles_language=smiles_language,
-            padding=smiles_padding,
-            padding_length=smiles_padding_length,
-            add_start_and_stop=smiles_add_start_and_stop,
-            augment=smiles_augment,
             canonical=smiles_canonical,
+            augment=smiles_augment,
             kekulize=smiles_kekulize,
             all_bonds_explicit=smiles_all_bonds_explicit,
             all_hs_explicit=smiles_all_hs_explicit,
-            randomize=smiles_randomize,
             remove_bonddir=smiles_remove_bonddir,
             remove_chirality=smiles_remove_chirality,
             selfies=smiles_selfies,
+            sanitize=smiles_sanitize,
+            padding=smiles_padding,
+            padding_length=smiles_padding_length,
+            add_start_and_stop=smiles_add_start_and_stop,
+            randomize=smiles_randomize,
             device=self.device,
+            vocab_file=smiles_vocab_file,
+            iterate_dataset=iterate_dataset,
             backend=self.backend
         )
         # protein sequences
@@ -143,27 +161,29 @@ class DrugAffinityDataset(Dataset):
             add_start_and_stop=protein_add_start_and_stop,
             augment_by_revert=protein_augment_by_revert,
             randomize=protein_randomize,
-            device=self.device
+            device=self.device,
+            iterate_dataset=iterate_dataset,
         )
         # drug affinity
         self.drug_affinity_dtype = drug_affinity_dtype
         self.drug_affinity_df = pd.read_csv(
             self.drug_affinity_filepath, index_col=0
         )
-        # NOTE: filter based on the availability
-        self.available_drugs = set(
-            self.smiles_dataset.sample_to_index_mapping.keys()
-        ) & set(self.drug_affinity_df['ligand_name'])
+        # filter data based on the availability
+        drug_mask = self.drug_affinity_df['ligand_name'].isin(
+            set(self.smiles_dataset.keys())
+        )
+        sequence_mask = self.drug_affinity_df['sequence_id'].isin(
+            set(self.protein_sequence_dataset.keys())
+        )
         self.drug_affinity_df = self.drug_affinity_df.loc[
-            self.drug_affinity_df['ligand_name'].isin(self.available_drugs)]
-        self.available_sequences = set(
-            self.protein_sequence_dataset.sample_to_index_mapping.keys()
-        ) & set(self.drug_affinity_df['sequence_id'])
-        self.drug_affinity_df = self.drug_affinity_df.loc[
-            self.drug_affinity_df['sequence_id'].isin(
-                self.available_sequences
-            )]
-        self.number_of_samples = self.drug_affinity_df.shape[0]
+            drug_mask & sequence_mask
+        ]
+        # to investigate missing ids per entity
+        self.masks_df = pd.concat([drug_mask, sequence_mask], axis=1)
+        self.masks_df.columns = ['ligand_name', 'sequence_id']
+
+        self.number_of_samples = len(self.drug_affinity_df)
 
     def __len__(self) -> int:
         "Total number of samples."
@@ -177,8 +197,8 @@ class DrugAffinityDataset(Dataset):
             index (int): index of the sample to fetch.
 
         Returns:
-            DrugAffinityData: a tuple containing three torch.tensors,
-                representing respetively: compound token indexes,
+            DrugAffinityData: a tuple containing three torch.Tensors,
+                representing respectively: compound token indexes,
                 protein sequence indexes and label for the current sample.
         """
         # drug affinity
@@ -189,13 +209,13 @@ class DrugAffinityDataset(Dataset):
             device=self.device
         )
         # SMILES
-        token_indexes_tensor = self.smiles_dataset[
-            self.smiles_dataset.sample_to_index_mapping[
-                selected_sample['ligand_name']
-            ]
-        ]  # yapf: disable
+        token_indexes_tensor = self.smiles_dataset.get_item_from_key(
+            selected_sample['ligand_name']
+        )
         # protein
-        protein_sequence_tensor = self.protein_sequence_dataset[
-            self.protein_sequence_dataset.sample_to_index_mapping[
-                selected_sample['sequence_id']]]
+        protein_sequence_tensor = (
+            self.protein_sequence_dataset.get_item_from_key(
+                selected_sample['sequence_id']
+            )
+        )
         return token_indexes_tensor, protein_sequence_tensor, affinity_tensor

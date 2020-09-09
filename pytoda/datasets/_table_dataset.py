@@ -1,14 +1,19 @@
 """Implementation of _TableDataset."""
-import torch
 import copy
-import pandas as pd
 from collections import OrderedDict
-from torch.utils.data import Dataset
-from ._csv_dataset import reduce_csv_dataset_statistics
-from ..types import FileList, FeatureList
+
+import pandas as pd
+import torch
+
+from ..types import FeatureList, Files, Tensor
+from ._csv_statistics import reduce_csv_statistics
+from ._csv_eager_dataset import _CsvEagerDataset
+from ._csv_lazy_dataset import _CsvLazyDataset
+from .base_dataset import DatasetDelegator
+from .utils import concatenate_file_based_datasets
 
 
-class _TableDataset(Dataset):
+class _TableDataset(DatasetDelegator):
     """
     Table dataset abstract definition.
 
@@ -18,7 +23,7 @@ class _TableDataset(Dataset):
 
     def __init__(
         self,
-        filepaths: FileList,
+        filepaths: Files,
         feature_list: FeatureList = None,
         standardize: bool = True,
         min_max: bool = False,
@@ -26,13 +31,14 @@ class _TableDataset(Dataset):
         dtype: torch.dtype = torch.float,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
+        chunk_size: int = 10000,
         **kwargs
     ) -> None:
         """
         Initialize a table dataset.
 
         Args:
-            filepaths (FileList): paths to .csv files.
+            filepaths (Files): paths to .csv files.
             feature_list (GeneList): a list of features. Defaults to None.
             standardize (bool): perform data standardization. Defaults to True.
             min_max (bool): perform min-max scaling. Defaults to False.
@@ -41,30 +47,23 @@ class _TableDataset(Dataset):
             dtype (torch.dtype): data type. Defaults to torch.float.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
+            chunk_size (int): size of the chunks in case of lazy reading, is
+                ignored with 'eager' backend. Defaults to 10000.
             kwargs (dict): additional parameters for pd.read_csv.
         """
-        Dataset.__init__(self)
         self.processing = {}
         self.filepaths = filepaths
         self.feature_list = feature_list
-        if self.feature_list is not None:
-            # NOTE: important to guarantee feature order preservation when
-            # multiple datasets are passed
-            self.feature_ordering = {
-                feature: index
-                for index, feature in enumerate(self.feature_list)
-            }
-        else:
-            self.feature_ordering = None
         self.standardize = standardize
         self.min_max = min_max
         self.processing_parameters = processing_parameters
         self.dtype = dtype
         self.device = device
+        self.chunk_size = chunk_size
         self.kwargs = copy.deepcopy(kwargs)
         if self.standardize and self.min_max:
             raise RuntimeError('Cannot both standardize and min-max scale')
-        self._dataset = None
+        self.dataset = None
         self.max = None
         self.min = None
         self.mean = None
@@ -76,18 +75,10 @@ class _TableDataset(Dataset):
         # NOTE: reduce statistics
         (  # yapf:disable
             self.feature_list, self.max, self.min, self.mean, self.std
-        ) = reduce_csv_dataset_statistics(
-            self._dataset.datasets, self.feature_list, self.feature_ordering
+        ) = reduce_csv_statistics(
+            self.dataset.datasets, self.feature_list
         )
-        # NOTE: recover sample and index mappings
-        self.sample_to_index_mapping = {}
-        self.index_to_sample_mapping = {}
-        for index in range(len(self._dataset)):
-            dataset_index, sample_index = self._dataset.get_index_pair(index)
-            dataset = self._dataset.datasets[dataset_index]
-            sample = dataset.index_to_sample_mapping[sample_index]
-            self.sample_to_index_mapping[sample] = index
-            self.index_to_sample_mapping[index] = sample
+
         # NOTE: adapt feature list, mapping and function
         self.feature_mapping = pd.Series(
             OrderedDict(
@@ -129,18 +120,16 @@ class _TableDataset(Dataset):
         self._preprocess_dataset()
 
     def _setup_dataset(self) -> None:
-        """Setup the dataset."""
+        """
+        Setup KeyDataset assigned to self.dataset for delegation.
+        Defines feature_mapping and fits statistics."""
         raise NotImplementedError
 
     def _preprocess_dataset(self) -> None:
         """Preprocess the dataset."""
         raise NotImplementedError
 
-    def __len__(self) -> int:
-        "Total number of samples."
-        return len(self._dataset)
-
-    def __getitem__(self, index: int) -> torch.tensor:
+    def __getitem__(self, index: int) -> Tensor:
         """
         Generates one sample of data.
 
@@ -152,5 +141,59 @@ class _TableDataset(Dataset):
                 for the current sample.
         """
         return torch.tensor(
-            self._dataset[index], dtype=self.dtype, device=self.device
+            self.dataset[index], dtype=self.dtype, device=self.device
         )
+
+
+class _TableLazyDataset(_TableDataset):
+    """
+    Table dataset using lazy loading.
+
+    Suggested when handling datasets that can fit in the device memory.
+    In case of datasets fitting in device memory consider using
+    _TableEagerDataset for better performance.
+    """
+
+    def _setup_dataset(self) -> None:
+        """Setup KeyDataset assigned to self.dataset for delegation."""
+        self.dataset = concatenate_file_based_datasets(
+            filepaths=self.filepaths,
+            dataset_class=_CsvLazyDataset,
+            feature_list=self.feature_list,
+            chunk_size=self.chunk_size,
+            **self.kwargs
+        )
+
+    def _preprocess_dataset(self) -> None:
+        """Preprocess the dataset."""
+        self.feature_fn = lambda sample: sample[self.feature_mapping[
+            self.feature_list].values]
+        for dataset in self.dataset.datasets:
+            for index in dataset.cache:
+                dataset.cache[index] = self.transform_fn(
+                    self.feature_fn(dataset.cache[index])
+                )
+
+
+class _TableEagerDataset(_TableDataset):
+    """
+    Table dataset using eager loading.
+
+    Suggested when handling datasets that can fit in the device memory.
+    In case of out of memory errors consider using _TableLazyDataset.
+    """
+
+    def _setup_dataset(self) -> None:
+        """Setup KeyDataset assigned to self.dataset for delegation."""
+        self.dataset = concatenate_file_based_datasets(
+            filepaths=self.filepaths,
+            dataset_class=_CsvEagerDataset,
+            feature_list=self.feature_list,
+            **self.kwargs
+        )
+
+    def _preprocess_dataset(self) -> None:
+        """Preprocess the dataset."""
+        self.feature_fn = lambda sample: sample[self.feature_list]
+        for dataset in self.dataset.datasets:
+            dataset.df = self.transform_fn(self.feature_fn(dataset.df))

@@ -15,3 +15,4 @@ dependencies:
     - selfies==0.2.4
     - upfp==0.0.4
     - SmilesPE>=0.0.3
+    - pyfaidx==0.5.8

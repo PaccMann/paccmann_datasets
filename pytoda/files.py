@@ -2,7 +2,7 @@
 import os
 import pandas as pd
 from itertools import takewhile, repeat
-from typing import Iterable
+from typing import Sequence
 
 
 def count_file_lines(filepath: str, buffer_size: int = 1024 * 1024) -> int:
@@ -34,7 +34,7 @@ def read_smi(
     filepath: str,
     chunk_size: int = None,
     index_col: int = 1,
-    names: Iterable[str] = ['SMILES']
+    names: Sequence[str] = ['SMILES']
 ) -> pd.DataFrame:
     """
     Read a .smi (or .csv file with tab-separated values) in a pd.DataFrame.
@@ -44,7 +44,7 @@ def read_smi(
         chunk_size (int): size of the chunk. Defaults to None, a.k.a. no
             chunking.
         index_col (int): Data column used for indexing, defaults to 1.
-        names (Iterable[str]): User-assigned names given to the columns.
+        names (Sequence[str]): User-assigned names given to the columns.
 
     Returns:
         pd.DataFrame: a pd.DataFrame containing the data of the .smi file

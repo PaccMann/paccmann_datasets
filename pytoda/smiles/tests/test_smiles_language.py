@@ -1,10 +1,13 @@
 """Testing SMILESLanguage."""
-import unittest
 import os
-from pytoda.smiles.smiles_language import SMILESLanguage
-from pytoda.tests.utils import TestFileContent
+import tempfile
+import unittest
+
 from pytoda.smiles.processing import tokenize_selfies
+from pytoda.smiles.smiles_language import (SELFIESLanguage, SMILESLanguage,
+                                           SMILESTokenizer)
 from pytoda.smiles.transforms import Selfies
+from pytoda.tests.utils import TestFileContent
 
 
 class TestSmilesLanguage(unittest.TestCase):
@@ -17,8 +20,8 @@ class TestSmilesLanguage(unittest.TestCase):
         self.assertEqual(smiles_language.max_token_sequence_length, 0)
         smiles_language.add_smiles(smiles)
         self.assertEqual(smiles_language.max_token_sequence_length, 3)
-        smiles_language = SMILESLanguage(add_start_and_stop=True)
-        self.assertEqual(smiles_language.max_token_sequence_length, 2)
+        smiles_language = SMILESTokenizer(add_start_and_stop=True)
+        self.assertEqual(smiles_language.max_token_sequence_length, 0)
         smiles_language.add_smiles(smiles)
         self.assertEqual(smiles_language.max_token_sequence_length, 5)
 
@@ -93,6 +96,8 @@ class TestSmilesLanguage(unittest.TestCase):
         self.assertListEqual(
             smiles_language.smiles_to_token_indexes(smiles), token_indexes
         )
+
+        # unknown token
         smiles_u = 'CCN'
         token_indexes_u = [
             smiles_language.token_to_index['C'],
@@ -102,10 +107,15 @@ class TestSmilesLanguage(unittest.TestCase):
             smiles_language.smiles_to_token_indexes(smiles_u), token_indexes_u
         )
 
-        smiles_language = SMILESLanguage(add_start_and_stop=True)
+        smiles_language = SMILESTokenizer(add_start_and_stop=True, padding=True)
+        # fail with no padding_length defined
+        with self.assertRaises(TypeError):
+            smiles_language.smiles_to_token_indexes(smiles)
+
         smiles_language.add_smiles(smiles)
+        smiles_language.set_max_padding()
         self.assertListEqual(
-            smiles_language.smiles_to_token_indexes(smiles),
+            list(smiles_language.smiles_to_token_indexes(smiles)),
             [smiles_language.start_index] + token_indexes +
             [smiles_language.stop_index]
         )
@@ -116,6 +126,7 @@ class TestSmilesLanguage(unittest.TestCase):
         )
         transform = Selfies()
         selfies = transform(smiles)
+        self.assertEqual(selfies, smiles_language.smiles_to_selfies(smiles))
         smiles_language.add_smiles(selfies)
         token_indexes = [
             smiles_language.token_to_index[token]
@@ -124,13 +135,13 @@ class TestSmilesLanguage(unittest.TestCase):
         self.assertListEqual(
             smiles_language.smiles_to_token_indexes(selfies), token_indexes
         )
-        smiles_language = SMILESLanguage(
+        smiles_language = SMILESTokenizer(
             add_start_and_stop=True,
             smiles_tokenizer=lambda selfies: tokenize_selfies(selfies)
         )
         smiles_language.add_smiles(selfies)
         self.assertListEqual(
-            smiles_language.smiles_to_token_indexes(selfies),
+            list(smiles_language.smiles_to_token_indexes(selfies)),
             [smiles_language.start_index] + token_indexes +
             [smiles_language.stop_index]
         )
@@ -150,10 +161,32 @@ class TestSmilesLanguage(unittest.TestCase):
             [smiles_language.start_index] + token_indexes +
             [smiles_language.stop_index]
         )
-        smiles_language = SMILESLanguage(add_start_and_stop=True)
+        smiles_language = SMILESTokenizer(add_start_and_stop=True)
         smiles_language.add_smiles(smiles)
         self.assertEqual(
             smiles_language.token_indexes_to_smiles(token_indexes), 'CCO'
+        )
+
+    def test_smiles_roundtrip(self) -> None:
+        """Test smiles_to_token_indexes and token_indexes_to_smiles."""
+        smiles = 'CCO'
+        smiles_language = SMILESLanguage()
+        smiles_language.add_smiles(smiles)
+
+        self.assertEqual(
+            smiles_language.token_indexes_to_smiles(
+                smiles_language.smiles_to_token_indexes('CCO')
+            ),
+            'CCO'
+        )
+
+        smiles_language = SMILESTokenizer(add_start_and_stop=True)
+        smiles_language.add_smiles(smiles)
+        self.assertEqual(
+            smiles_language.token_indexes_to_smiles(
+                smiles_language.smiles_to_token_indexes('CCO')
+            ),
+            'CCO'
         )
 
     def test_smiles_to_selfies(self) -> None:
@@ -167,6 +200,90 @@ class TestSmilesLanguage(unittest.TestCase):
                 smiles_language.smiles_to_selfies(smiles)
             )
         )
+
+    def test_transform_changes(self):
+        """Test update of transforms on parameter assignment"""
+        smiles = 'CCO'
+        smiles_language = SMILESTokenizer()
+        self.assertEqual(smiles_language.max_token_sequence_length, 0)
+
+        smiles_language.add_smiles(smiles)
+        self.assertEqual(smiles_language.max_token_sequence_length, 3)
+
+        smiles_language.add_start_and_stop = True
+        smiles_language.add_smiles(smiles)  # is length function set?
+        self.assertEqual(smiles_language.max_token_sequence_length, 5)
+        tokens = smiles_language.smiles_to_token_indexes(smiles)
+
+        smiles_language.padding = True
+        print("\nExpected warning on setting padding length too small:")
+        smiles_language.padding_length = 2  # 2 < 5
+        print("\nExpected warning when actually truncating token indexes:")
+        tokens_ = smiles_language.smiles_to_token_indexes(smiles)
+
+        self.assertEqual(len(tokens_), 2)
+        smiles_language.padding = False
+        self.assertSequenceEqual(
+            list(tokens),
+            list(smiles_language.smiles_to_token_indexes(smiles))
+        )
+
+        smiles_language.set_encoding_transforms(padding=True, padding_length=2)
+        print("\nExpected warning when actually truncating token indexes:")
+        self.assertSequenceEqual(
+            list(tokens_),
+            list(smiles_language.smiles_to_token_indexes(smiles))
+        )
+
+        smiles_language.reset_initial_transforms()
+        self.assertSequenceEqual(
+            list(tokens),
+            list(smiles_language.smiles_to_token_indexes(smiles))
+        )
+
+    def test_vocab_roundtrip(self):
+        smiles = 'CCO'
+        source_language = SMILESLanguage()
+        source_language.add_smiles(smiles)
+        # to test
+        vocab = source_language.token_to_index
+        vocab_ = source_language.index_to_token
+        max_len = source_language.max_token_sequence_length
+        count = source_language.token_count
+        total = source_language.number_of_tokens
+
+        # just vocab
+        with tempfile.TemporaryDirectory() as tempdir:
+            source_language.save_vocabulary(tempdir)
+
+            smiles_language = SMILESTokenizer()
+            smiles_language.load_vocabulary(tempdir)
+        self.assertDictEqual(vocab, smiles_language.token_to_index)
+        self.assertDictEqual(vocab_, smiles_language.index_to_token)
+
+        # pretrained
+        with tempfile.TemporaryDirectory() as tempdir:
+            source_language.save_pretrained(tempdir)
+
+            smiles_language = SMILESTokenizer.from_pretrained(tempdir)
+        self.assertDictEqual(vocab, smiles_language.token_to_index)
+        self.assertDictEqual(vocab_, smiles_language.index_to_token)
+
+        self.assertEqual(max_len, smiles_language.max_token_sequence_length)
+        self.assertDictEqual(count, smiles_language.token_count)
+        self.assertEqual(total, smiles_language.number_of_tokens)
+
+
+class TestSelfiesLanguage(unittest.TestCase):
+    """Testing SELFIESLanguage."""
+
+    def test_add_dataset(self):
+        dataset = ['C(', 'CC)', 'CCO', 'C', 'CO', 'NCCS']
+        selfies_language = SELFIESLanguage()
+        print("\nExpected 'SMILES Parse Error's while iterating a dataset:")
+        selfies_language.add_dataset(dataset)
+        self.assertTrue((0, 'C(') in selfies_language.invalid_molecules)
+        self.assertTrue((1, 'CC)') in selfies_language.invalid_molecules)
 
 
 if __name__ == '__main__':

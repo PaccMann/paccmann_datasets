@@ -6,22 +6,18 @@ Example data can be downloaded [here](https://ibm.box.com/v/paccmann-pytoda-data
 
 ## Create a SMILES language object
 
-The example [smiles_language_creator.py](./smiles_language_creator.py) creates and export a [`SMILESLanguage`](../pytoda/smiles/smiles_language.py) object.
+The example [smiles_vocab_creator.py](./smiles_vocab_creator.py) creates a [`SMILESLanguage`](../pytoda/smiles/smiles_language.py) object and iterates the data to build a vocabulary of tokens which is saved.
 
 ```console
-(pytoda) $ python examples/smiles_language_creator.py -h
-usage: smiles_language_creator.py [-h]
-                                  [--add_start_and_stop | --no_start_and_stop]
-                                  smi_path output_filepath
+(pytoda) $ python examples/smiles_vocab_creator.py -h
+usage: smiles_vocab_creator.py [-h] smi_path pretrained_path
 
 positional arguments:
-  smi_path              path to a input .smi file
-  output_filepath       path to a output .csv file
+  smi_path         path to a folder with .smi files
+  pretrained_path  path to a folder to store the language as text files.
 
 optional arguments:
-  -h, --help            show this help message and exit
-  --add_start_and_stop
-  --no_start_and_stop
+  -h, --help       show this help message and exit
 ```
 
 ## Convert a .smi file into a .csv containing Morgan fingerprints
@@ -82,3 +78,20 @@ optional arguments:
 
 For more examples see other repositories in the [PaccMann organization](https://github.com/PaccMann).
 
+## Port smiles languages created with older versions of `pytoda`
+
+The example [vocab_from_legacy_language.py](./vocab_from_legacy_language.py) loads a pickled `SMILESLanguage` object created with `pytoda<=0.1.0` and assigns the data to the [refactored](../pytoda/smiles/smiles_language.py) class (`pytoda>=0.2.0`), so the "pretrained" instance can be saved to a directory (including the vocabulary of tokens).
+
+```console
+(pytoda) $ python examples/vocab_from_legacy_language.py -h
+usage: vocab_from_legacy_language.py [-h]
+                                     smiles_language_filepath pretrained_path
+
+positional arguments:
+  smiles_language_filepath
+                        path to a .pkl file of a legacy smiles language.
+  pretrained_path       path to a folder to store the language as text files.
+
+optional arguments:
+  -h, --help            show this help message and exit
+```

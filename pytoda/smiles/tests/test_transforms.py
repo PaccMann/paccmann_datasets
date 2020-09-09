@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 import torch
 
-from pytoda.smiles.smiles_language import SMILESLanguage
+from pytoda.smiles.smiles_language import SMILESLanguage, SMILESTokenizer
 from pytoda.smiles.transforms import (
     AugmentTensor, Kekulize, NotKekulize, RemoveIsomery
 )
@@ -160,26 +160,28 @@ class TestTransforms(unittest.TestCase):
         """Test AugmentTensor."""
 
         smiles = 'NCCS'
-        smiles_language = SMILESLanguage(add_start_and_stop=True)
+        smiles_language = SMILESTokenizer(add_start_and_stop=True, padding=False)
         smiles_language.add_smiles(smiles)
 
         np.random.seed(0)
         transform = AugmentTensor(smiles_language, sanitize=sanitize)
-        smiles_num_list = smiles_language.smiles_to_token_indexes(smiles)
+        token_indexes_tensor = smiles_language.smiles_to_token_indexes(smiles)
 
         for augmented_smile in ['C(S)CN', 'NCCS', 'SCCN', 'C(N)CS', 'C(CS)N']:
             ground_truth = smiles_language.smiles_to_token_indexes(
                 augmented_smile
             )
-            self.assertEqual(transform(smiles_num_list), ground_truth)
+            self.assertSequenceEqual(
+                list(transform(token_indexes_tensor)),
+                list(ground_truth)
+            )
 
         # Now test calling with a tensor of several SMILES
         # Include the padding of the sequence (right padding)
         pl = 5  # padding_length
-        single_smiles_tensor = torch.unsqueeze(
-            torch.
-            Tensor(smiles_num_list + [smiles_language.padding_index] * pl), 0
-        )
+        single_smiles_tensor = torch.unsqueeze(torch.nn.functional.pad(
+            token_indexes_tensor, (0, pl), value=smiles_language.padding_index
+            ), 0)
         seq_len = single_smiles_tensor.shape[1]  # sequence_length
         multi_smiles_tensor = torch.cat([single_smiles_tensor] * 5)
         np.random.seed(0)
@@ -191,9 +193,15 @@ class TestTransforms(unittest.TestCase):
             ground_truth = smiles_language.smiles_to_token_indexes(
                 augmented_smile
             )
-            ground_truth += [smiles_language.padding_index
-                             ] * (seq_len - len(ground_truth))
-            self.assertEqual(augmented[ind].tolist(), ground_truth)
+            ground_truth = torch.nn.functional.pad(
+                ground_truth,
+                pad=(0, seq_len - len(ground_truth)),
+                value=smiles_language.padding_index
+            )
+            self.assertSequenceEqual(
+                list(augmented[ind]),
+                list(ground_truth)
+            )
 
 
 if __name__ == '__main__':

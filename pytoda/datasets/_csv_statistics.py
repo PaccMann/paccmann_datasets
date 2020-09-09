@@ -1,18 +1,18 @@
-"""Abstract implementation of _CsvDataset."""
+"""Abstract implementation of _CsvStatistics."""
 import copy
 import numpy as np
+import pandas as pd
 from functools import reduce
-from torch.utils.data import Dataset
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from typing import List, Tuple
-from ..types import FeatureList
+from ..types import List, Tuple, FeatureList
 
 
-class _CsvDataset(Dataset):
-    """.csv dataset abstract implementation."""
+class _CsvStatistics:
+    """.csv abstract setup for dataset statistics."""
 
     def __init__(
-        self, filepath: str, feature_list: FeatureList = None, **kwargs
+        self, filepath: str, feature_list: FeatureList = None,
+        pandas_dtype=None, **kwargs
     ) -> None:
         """
         Initialize a .csv dataset.
@@ -20,51 +20,67 @@ class _CsvDataset(Dataset):
         Args:
             filepath (str): path to .csv file.
             feature_list (FeatureList): a list of features. Defaults to None.
+            pandas_dtype (str, type, dict): Optional parameter added to
+                kwargs (and passed to pd.read_csv) as 'dtype'. Defaults to
+                    None.
             kwargs (dict): additional parameters for pd.read_csv.
-                Except from nrows.
 
         """
-        Dataset.__init__(self)
         self.filepath = filepath
         self.feature_list = feature_list
         self.min_max_scaler = MinMaxScaler()
         self.standardizer = StandardScaler()
         self.kwargs = copy.deepcopy(kwargs)
+        self.kwargs['dtype'] = pandas_dtype
         if self.feature_list is not None:
             # NOTE: zeros denote missing value
-            self.feature_fn = lambda df: df.T.reindex(
-                self.feature_list
-            ).T.fillna(0.0)
+            self.feature_fn = lambda df: df.T.reindex(self.feature_list
+                                                      ).T.fillna(0.0)
         else:
             self.feature_fn = lambda df: df
-        self.setup_dataset()
+        self.feature_mapping = self.setup_datasource()
         self.max = self.min_max_scaler.data_max_
         self.min = self.min_max_scaler.data_min_
         self.mean = self.standardizer.mean_
         self.std = self.standardizer.scale_
 
-    def setup_dataset(self) -> None:
-        """Setup the dataset."""
+    def setup_datasource(self) -> pd.Series:
+        """
+        Setup the datasource and compute statistics.
+
+        Returns:
+            pd.Series: feature_mapping of feature name to index in items.
+        """
+        raise NotImplementedError
+
+    def __len__(self) -> int:
         raise NotImplementedError
 
 
-def reduce_csv_dataset_statistics(
-    csv_datasets: List[_CsvDataset],
-    feature_list: FeatureList = None,
-    feature_ordering: dict = None,
-) -> Tuple[np.array, np.array, np.array, np.array]:
+def reduce_csv_statistics(
+    csv_datasets: List[_CsvStatistics],
+    feature_list:
+    FeatureList = None,
+) -> Tuple[FeatureList, np.array, np.array, np.array, np.array]:
     """
     Reduce datasets statistics.
 
     Args:
-        csv_datasets (List[_CsvDataset]): list of .csv datasets.
-        feature_list (FeatureList): a list of features. Defaults to None.
-        feature_ordering (dict): a dictionary used to sort features by key.
-            Defaults to None, a.k.a. sorting the strings.
+        csv_datasets (List[_CsvStatistics]): list of .csv datasets.
+        feature_list (FeatureList): a list of features important to guarantee
+            feature order preservation when multiple datasets are passed.
+            Defaults to None, where features are string sorted.
     Returns:
-        Tuple[np.array, np.array, np.array, np.array]: updated
-            statistics.
+        Tuple[FeatureList, np.array, np.array, np.array, np.array]: updated
+            statistics with the following components:
+                features (FeatureList): List of common, ordered features.
+                maximum (np.array): Maximum per feature.
+                minimum (np.array): Minimum per feature.
+                mean (np.array): Mean per feature.
+                std (np.array): Standard deviation per feature.
+
     """
+    # collected common features
     features = list(
         reduce(
             lambda a_set, another_set: a_set & another_set, [
@@ -73,18 +89,24 @@ def reduce_csv_dataset_statistics(
             ]
         )
     )
-    # NOTE: sorting features appropriately
-    if not (feature_ordering is None):
+
+    if feature_list is not None:
+        # to sort features by key
+        feature_ordering = {
+            feature: index
+            for index, feature in enumerate(feature_list)
+        }
         features = sorted(
             features, key=lambda feature: feature_ordering[feature]
         )
     else:
+        # sorting the strings
         features = sorted(features)
     maximums, minimums, means, stds, sample_numbers = zip(
         *[
             (
                 # NOTE: here we ensure that we pick the statistics
-                # in the right order
+                # in the right order via indexes
                 csv_dataset.max[csv_dataset.feature_mapping[features].values],
                 csv_dataset.min[csv_dataset.feature_mapping[features].values],
                 csv_dataset.mean[csv_dataset.feature_mapping[features].values],

@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from typing import Tuple
 from pytoda.data_splitter import csv_data_splitter
-from pytoda.types import FileList
+from pytoda.types import Files
 from pytoda.tests.utils import TestFileContent
 
 
@@ -13,12 +13,12 @@ class TestDataSplitter(unittest.TestCase):
     """Testing csv data splitting."""
 
     def _read_dfs(self,
-                  filepaths: FileList) -> Tuple[pd.DataFrame, pd.DataFrame]:
+                  filepaths: Files) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Read data frames from a list of files.
 
         Args:
-            filepaths (FileList): a list of files.
+            filepaths (Files): a list of files.
 
         Returns:
             Tuple[pd.DataFrame, ...]: a tuple of data frames.

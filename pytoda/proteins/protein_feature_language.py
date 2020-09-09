@@ -1,6 +1,8 @@
 """Protein language handling."""
+from pytoda.smiles.processing import tokenize_selfies
 from .processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62
 from .protein_language import ProteinLanguage
+from ..types import Tokenizer
 
 
 class ProteinFeatureLanguage(ProteinLanguage):
@@ -15,7 +17,7 @@ class ProteinFeatureLanguage(ProteinLanguage):
         self,
         name: str = 'protein-feature-language',
         features: str = 'blosum',
-        tokenizer: object = list,
+        tokenizer: Tokenizer = list,
         add_start_and_stop: bool = True
     ) -> None:
         """
@@ -25,7 +27,7 @@ class ProteinFeatureLanguage(ProteinLanguage):
             name (str): name of the ProteinFeatureLanguage.
             features (str): Feature alphabet choice. Defaults to 'blosum',
             alternatives are 'binary_features' and 'float_features'.
-            tokenizer (object): This needs to be a function used to tokenize
+            tokenizer (Tokenizer): This needs to be a function used to tokenize
                 the amino acid sequences. The default is list which simply
                 splits the sequence character-by-character.
         """
@@ -114,9 +116,8 @@ class ProteinFeatureLanguage(ProteinLanguage):
         """
         return self._finalize_token_indexes_fn(
             [
-                self.token_to_index[token]
+                self.token_to_index.get(token, self.unknown_token)
                 for token in self.tokenizer(sequence)
-                if token in self.token_to_index
             ]
         )
 
