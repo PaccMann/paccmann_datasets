@@ -34,7 +34,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                 'label_0,label_1,tcr,peptide',
                 '2.3,3.4,ID3,ID4',
                 '4.5,5.6,ID2,ID1',  # yapf: disable
-                '6.7,7.8,ID1,ID2'
+                '6.7,7.8,ID1,ID2',
             ]
         )
 
@@ -57,7 +57,8 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                 '2.3,3.4,ID3,ID4',
                 '4.5,5.6,ID2,ID1',  # yapf: disable
                 '6.7,7.8,ID1,ID2',
-                '6.7,7.8,ID7,ID2'
+                '6.7,7.8,ID7,ID2',
+                '3.14,1.61,oh,no'
             ]
         )
         with TestFileContent(content_entity_1) as a_test_file:
@@ -71,6 +72,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                     )
 
                     self.assertEqual(len(ppi_dataset), 3)
+                    # ppi_dataset.masks_df to inspect
 
     def test___getitem__(self) -> None:
         """Test __getitem__."""

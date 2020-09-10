@@ -4,7 +4,7 @@ import pandas as pd
 from torch.utils.data import Dataset
 from ..types import GeneList, DrugSensitivityData
 from ..smiles.smiles_language import SMILESLanguage
-from .smiles_dataset import SMILESDataset
+from .smiles_dataset import SMILESTokenizerDataset
 from .gene_expression_dataset import GeneExpressionDataset
 
 
@@ -34,6 +34,9 @@ class DrugSensitivityDataset(Dataset):
         remove_bonddir: bool = False,
         remove_chirality: bool = False,
         selfies: bool = False,
+        sanitize: bool = True,
+        vocab_file: str = None,
+        iterate_dataset: bool = True,
         gene_list: GeneList = None,
         gene_expression_standardize: bool = True,
         gene_expression_min_max: bool = False,
@@ -90,6 +93,14 @@ class DrugSensitivityDataset(Dataset):
                 Defaults to False.
             selfies (bool): Whether selfies is used instead of smiles, defaults
                 to False.
+            sanitize (bool): RDKit sanitization of the molecule.
+                Defaults to True.
+            vocab_file (str): Optional .json to load vocabulary. Tries to load
+                metadata if `iterate_dataset` is False. Defaults to None.
+            iterate_dataset (bool): whether to go through all SMILES in the
+                dataset to extend/build vocab, find longest sequence, and
+                checks the passed padding length if applicable. Defaults to
+                True.
             gene_list (GeneList): a list of genes.
             gene_expression_standardize (bool): perform gene expression
                 data standardization. Defaults to True.
@@ -104,7 +115,7 @@ class DrugSensitivityDataset(Dataset):
                 GeneExpressionDataset.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            backend (str): memeory management backend.
+            backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
                 Note that at the moment only the gene expression and the
                 smiles datasets implement both backends. The drug sensitivity
@@ -119,22 +130,25 @@ class DrugSensitivityDataset(Dataset):
         # backend
         self.backend = backend
         # SMILES
-        self.smiles_dataset = SMILESDataset(
+        self.smiles_dataset = SMILESTokenizerDataset(
             self.smi_filepath,
             smiles_language=smiles_language,
-            padding=padding,
-            padding_length=padding_length,
-            add_start_and_stop=add_start_and_stop,
             augment=augment,
             canonical=canonical,
             kekulize=kekulize,
             all_bonds_explicit=all_bonds_explicit,
             all_hs_explicit=all_hs_explicit,
-            randomize=randomize,
             remove_bonddir=remove_bonddir,
             remove_chirality=remove_chirality,
             selfies=selfies,
+            sanitize=sanitize,
+            randomize=randomize,
+            padding=padding,
+            padding_length=padding_length,
+            add_start_and_stop=add_start_and_stop,
             device=self.device,
+            vocab_file=vocab_file,
+            iterate_dataset=iterate_dataset,
             backend=self.backend
         )
         # gene expression
@@ -159,20 +173,23 @@ class DrugSensitivityDataset(Dataset):
         self.drug_sensitivity_df = pd.read_csv(
             self.drug_sensitivity_filepath, index_col=0
         )
-        # NOTE: filter based on the availability
-        self.available_drugs = set(
-            self.smiles_dataset.sample_to_index_mapping.keys()
-        ) & set(self.drug_sensitivity_df['drug'])
+        # filter data based on the availability
+        drug_mask = self.drug_sensitivity_df['drug'].isin(
+            set(self.smiles_dataset.keys())
+        )
+        profile_mask = self.drug_sensitivity_df['cell_line'].isin(
+            set(self.gene_expression_dataset.keys())
+        )
         self.drug_sensitivity_df = self.drug_sensitivity_df.loc[
-            self.drug_sensitivity_df['drug'].isin(self.available_drugs)]
-        self.available_profiles = set(
-            self.gene_expression_dataset.sample_to_index_mapping.keys()
-        ) & set(self.drug_sensitivity_df['cell_line'])
-        self.drug_sensitivity_df = self.drug_sensitivity_df.loc[
-            self.drug_sensitivity_df['cell_line'].isin(
-                self.available_profiles
-            )]
-        self.number_of_samples = self.drug_sensitivity_df.shape[0]
+            drug_mask & profile_mask
+        ]
+
+        # to investigate missing ids per entity
+        self.masks_df = pd.concat([drug_mask, profile_mask], axis=1)
+        self.masks_df.columns = ['drug', 'cell_line']
+
+        self.number_of_samples = len(self.drug_sensitivity_df)
+
         # NOTE: optional min-max scaling
         if self.drug_sensitivity_min_max:
             minimum = (
@@ -209,8 +226,8 @@ class DrugSensitivityDataset(Dataset):
             index (int): index of the sample to fetch.
 
         Returns:
-            DrugSensitivityData: a tuple containing three torch.tensors,
-                representing respetively: compound token indexes,
+            DrugSensitivityData: a tuple containing three torch.Tensors,
+                representing respectively: compound token indexes,
                 gene expression values and IC50 for the current sample.
         """
         # drug sensitivity
@@ -221,13 +238,13 @@ class DrugSensitivityDataset(Dataset):
             device=self.device
         )
         # SMILES
-        token_indexes_tensor = self.smiles_dataset[
-            self.smiles_dataset.sample_to_index_mapping[
-                selected_sample['drug']
-            ]
-        ]  # yapf: disable
+        token_indexes_tensor = self.smiles_dataset.get_item_from_key(
+            selected_sample['drug']
+        )
         # gene_expression
-        gene_expression_tensor = self.gene_expression_dataset[
-            self.gene_expression_dataset.sample_to_index_mapping[
-                selected_sample['cell_line']]]
+        gene_expression_tensor = (
+            self.gene_expression_dataset.get_item_from_key(
+                selected_sample['cell_line']
+            )
+        )
         return token_indexes_tensor, gene_expression_tensor, ic50_tensor

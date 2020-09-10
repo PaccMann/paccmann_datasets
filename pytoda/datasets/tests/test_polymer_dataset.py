@@ -2,11 +2,11 @@
 import unittest
 import os
 import numpy as np
-from pytoda.datasets import PolymerDataset
+from pytoda.datasets import PolymerTokenizerDataset
 from pytoda.tests.utils import TestFileContent
 
 
-class TestPolymerDataset(unittest.TestCase):
+class TestPolymerTokenizerDataset(unittest.TestCase):
     """Testing annotated dataset."""
 
     def test___len__(self) -> None:
@@ -37,11 +37,13 @@ class TestPolymerDataset(unittest.TestCase):
             ]
         )
 
+        # longest = 51
+
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerDataset(
-                        smi_filepaths=[
+                    polymer_dataset = PolymerTokenizerDataset(
+                        *[
                             a_test_file.filename, another_test_file.filename
                         ],
                         annotations_filepath=annotation_file.filename,
@@ -80,15 +82,16 @@ class TestPolymerDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerDataset(
-                        smi_filepaths=[
+                    polymer_dataset = PolymerTokenizerDataset(
+                        *[
                             a_test_file.filename, another_test_file.filename
                         ],
                         annotations_filepath=annotation_file.filename,
                         entity_names=['monomer', 'cATalysT'],
                         all_bonds_explicit=True,
                         all_hs_explicit=[True, False],
-                        sanitize=[True, False]
+                        sanitize=[True, False],
+                        padding_length=[9, None]
                     )
 
                     pad_ind = polymer_dataset.smiles_language.padding_index
@@ -120,12 +123,19 @@ class TestPolymerDataset(unittest.TestCase):
                     # test first sample
                     monomer, catalyst, labels = polymer_dataset[0]
 
+                    # CCO -> CH3CH2OH
                     self.assertEqual(
                         monomer.numpy().flatten().tolist(), [
                             pad_ind, pad_ind, monomer_start_ind, ch3_ind,
                             b_ind, ch2_ind, b_ind, oh_ind, monomer_stop_ind
                         ]
                     )
+                    self.assertEqual(
+                        polymer_dataset.smiles_language.
+                        token_indexes_to_smiles(monomer),
+                        '[CH3]-[CH2]-[OH]'
+                    )
+                    # CC
                     self.assertEqual(
                         catalyst.numpy().flatten().tolist(), [
                             pad_ind, pad_ind, pad_ind, pad_ind, pad_ind,
@@ -140,6 +150,11 @@ class TestPolymerDataset(unittest.TestCase):
                             pad_ind, catalyst_start_ind, c_ind, b_ind, c_ind,
                             catalyst_stop_ind
                         ]
+                    )
+                    self.assertEqual(
+                        polymer_dataset.smiles_language.
+                        token_indexes_to_smiles(catalyst),
+                        'C-C'
                     )
                     self.assertTrue(
                         np.allclose(
@@ -176,8 +191,8 @@ class TestPolymerDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerDataset(
-                        smi_filepaths=[
+                    polymer_dataset = PolymerTokenizerDataset(
+                        *[
                             a_test_file.filename, another_test_file.filename
                         ],
                         annotations_filepath=annotation_file.filename,
@@ -211,8 +226,9 @@ class TestPolymerDataset(unittest.TestCase):
                     monomer, catalyst, labels = polymer_dataset[0]
 
                     self.assertEqual(
-                        monomer.numpy().flatten().tolist(), [
-                            pad_ind, monomer_start_ind, c_ind, c_ind, o_ind,
+                        monomer.numpy().flatten().tolist(),
+                        [pad_ind] * 8 + [
+                            monomer_start_ind, c_ind, c_ind, o_ind,
                             monomer_stop_ind
                         ]
                     )
@@ -232,7 +248,8 @@ class TestPolymerDataset(unittest.TestCase):
                     monomer, catalyst, labels = polymer_dataset[2]
 
                     self.assertEqual(
-                        monomer.numpy().flatten().tolist(), [
+                        monomer.numpy().flatten().tolist(),
+                        [pad_ind] * 7 + [
                             monomer_start_ind, n_ind, c_ind, c_ind, s_ind,
                             monomer_stop_ind
                         ]
@@ -278,8 +295,8 @@ class TestPolymerDataset(unittest.TestCase):
         with TestFileContent(content_monomer) as a_test_file:
             with TestFileContent(content_catalyst) as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    polymer_dataset = PolymerDataset(
-                        smi_filepaths=[
+                    polymer_dataset = PolymerTokenizerDataset(
+                        *[
                             a_test_file.filename, another_test_file.filename
                         ],
                         annotations_filepath=annotation_file.filename,
@@ -313,8 +330,9 @@ class TestPolymerDataset(unittest.TestCase):
                     monomer, catalyst, labels = polymer_dataset[0]
 
                     self.assertEqual(
-                        monomer.numpy().flatten().tolist(), [
-                            pad_ind, monomer_start_ind, c_ind, c_ind, o_ind,
+                        monomer.numpy().flatten().tolist(),
+                        [pad_ind] * 8 + [
+                            monomer_start_ind, c_ind, c_ind, o_ind,
                             monomer_stop_ind
                         ]
                     )
@@ -332,7 +350,8 @@ class TestPolymerDataset(unittest.TestCase):
                     monomer, catalyst, labels = polymer_dataset[2]
 
                     self.assertEqual(
-                        monomer.numpy().flatten().tolist(), [
+                        monomer.numpy().flatten().tolist(),
+                        [pad_ind] * 7 + [
                             monomer_start_ind, n_ind, c_ind, c_ind, s_ind,
                             monomer_stop_ind
                         ]

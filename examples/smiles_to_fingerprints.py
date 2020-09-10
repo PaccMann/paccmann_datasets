@@ -31,7 +31,7 @@ parser.add_argument(
 
 def convert_smi_to_fingerprints(
     smi_filepath: str, output_filepath: str, radius: int, bits: int,
-    chirality: bool
+    chirality: bool = True
 ) -> None:
     """
     Convert a .smi in .csv containing Morgan fingerprints.
