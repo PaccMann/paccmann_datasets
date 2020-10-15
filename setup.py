@@ -53,6 +53,9 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     packages=find_packages(),
-    package_data={'pytoda': ['smiles/metadata/*']},
+    package_data={'pytoda.smiles.metadata': [
+        'spe_chembl.txt', 'ATTRIBUTION', 'README.md',
+        'tokenizer_chembl_gdsc_ccle_tox21_zinc_organdb_bindingdb'
+    ]},
     scripts=scripts
 )
