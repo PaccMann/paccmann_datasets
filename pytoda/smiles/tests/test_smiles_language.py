@@ -3,7 +3,7 @@ import os
 import tempfile
 import unittest
 
-from pytoda.smiles.processing import tokenize_selfies
+from pytoda.smiles.processing import split_selfies
 from pytoda.smiles.smiles_language import (SELFIESLanguage, SMILESLanguage,
                                            SMILESTokenizer)
 from pytoda.smiles.transforms import Selfies
@@ -122,7 +122,7 @@ class TestSmilesLanguage(unittest.TestCase):
 
         # SELFIES
         smiles_language = SMILESLanguage(
-            smiles_tokenizer=lambda selfies: tokenize_selfies(selfies)
+            smiles_tokenizer=split_selfies
         )
         transform = Selfies()
         selfies = transform(smiles)
@@ -137,7 +137,7 @@ class TestSmilesLanguage(unittest.TestCase):
         )
         smiles_language = SMILESTokenizer(
             add_start_and_stop=True,
-            smiles_tokenizer=lambda selfies: tokenize_selfies(selfies)
+            smiles_tokenizer=split_selfies
         )
         smiles_language.add_smiles(selfies)
         self.assertListEqual(

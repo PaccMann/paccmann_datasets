@@ -12,7 +12,7 @@ dependencies:
     - torch==1.0.1
     - diskcache==4.1.0
     - dill==0.3.1.1
-    - selfies==0.2.4
+    - selfies==1.0.2
     - upfp==0.0.4
     - SmilesPE>=0.0.3
     - pyfaidx==0.5.8
