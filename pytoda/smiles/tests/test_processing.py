@@ -2,9 +2,10 @@
 import unittest
 from pytoda.smiles.processing import (
     tokenize_smiles, tokenize_selfies, kmer_smiles_tokenizer,
-    spe_smiles_tokenizer
+    spe_smiles_tokenizer, split_selfies
 )
 from pytoda.smiles.transforms import Selfies
+import selfies as sf
 
 
 class TestProcessing(unittest.TestCase):
@@ -116,30 +117,55 @@ class TestProcessing(unittest.TestCase):
         ]:
             self.assertListEqual(spe_smiles_tokenizer(smiles), ground_truth)
 
-    def test_tokenize_selfies(self) -> None:
-        """Test tokenize_selfies."""
+    def test_selfies_split(self) -> None:
+        """Test tokenization by selfies package has not changed."""
+        benzene = 'c1ccccc1'
+        encoded_selfies = sf.encoder(benzene)
+        # '[c][c][c][c][c][c][Ring1][Branch1_1]' v0.2.4
+        # '[C][=C][C][=C][C][=C][Ring1][Branch1_2]' v1.0.2 (no aromatic)
+
+        # sf.split_selfies returns generator
+        symbols_benzene = list(sf.split_selfies(encoded_selfies))
+        self.assertListEqual(
+            symbols_benzene, [
+                '[C]', '[=C]', '[C]', '[=C]', '[C]', '[=C]', '[Ring1]',
+                '[Branch1_2]'
+            ]
+        )
         for smiles, ground_truth in [
             (
-                'c1cnoc1',
-                ['[c]', '[c]', '[n]', '[o]', '[c]', '[Ring1]', '[Ring2]']
+                'c1cnoc1', [
+                    '[C]', '[C]', '[=N]', '[O]', '[C]', '[Expl=Ring1]',
+                    '[Branch1_1]'
+                ]
             ),
             (
                 '[O-][n+]1ccccc1S', [
-                    '[O-expl]', '[n+expl]', '[c]', '[c]', '[c]', '[c]', '[c]',
-                    '[Ring1]', '[Branch1_1]', '[S]'
+                    '[O-expl]', '[N+expl]', '[=C]', '[C]', '[=C]', '[C]',
+                    '[=C]', '[Ring1]', '[Branch1_2]', '[S]'
                 ]
             ),
             (
                 'c1snnc1-c1ccccn1', [
-                    '[c]', '[s]', '[n]', '[n]', '[c]', '[Ring1]', '[Ring2]',
-                    '[-c]', '[c]', '[c]', '[c]', '[c]', '[n]', '[Ring1]',
-                    '[Branch1_1]'
+                    '[C]', '[S]', '[N]', '[=N]', '[C]', '[Expl=Ring1]',
+                    '[Branch1_1]', '[C]', '[=C]', '[C]', '[=C]', '[C]', '[=N]',
+                    '[Ring1]', '[Branch1_2]'
                 ]
             )
         ]:
+            self.assertListEqual(
+                # list wrapping version
+                split_selfies(sf.encoder(smiles)), ground_truth
+            )
+
+    def test_tokenize_selfies_match(self) -> None:
+        """Test deprecated tokenize_selfies."""
+        for smiles in ['c1cnoc1', '[O-][n+]1ccccc1S', 'c1snnc1-c1ccccn1']:
             transform = Selfies()
             selfies = transform(smiles)
-            self.assertListEqual(tokenize_selfies(selfies), ground_truth)
+            self.assertListEqual(
+                tokenize_selfies(selfies), list(sf.split_selfies(selfies))
+            )
 
 
 if __name__ == '__main__':

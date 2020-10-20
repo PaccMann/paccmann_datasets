@@ -3,7 +3,7 @@ import logging
 
 import torch
 
-from ..smiles.processing import tokenize_selfies
+from ..smiles.processing import split_selfies
 from ..smiles.smiles_language import SMILESLanguage, SMILESTokenizer
 from ..types import Files
 from ._smi_eager_dataset import _SmiEagerDataset
@@ -159,7 +159,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
             if selfies:
                 language_kwargs = dict(
                     name='selfies-language',
-                    smiles_tokenizer=tokenize_selfies
+                    smiles_tokenizer=split_selfies
                 )
             self.smiles_language = SMILESTokenizer(
                 **language_kwargs,

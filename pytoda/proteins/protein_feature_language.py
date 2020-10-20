@@ -1,10 +1,19 @@
 """Protein language handling."""
-
-from pytoda.smiles.processing import tokenize_selfies
 from .processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62, BLOSUM62_norm
-
 from .protein_language import ProteinLanguage
 from ..types import Tokenizer
+
+
+class IndexesToSequenceError(Exception):
+    pass
+
+
+def token_indexes_to_sequence_raise(token_indexes: list) -> str:
+    """monkey patch to raise Error."""
+    raise IndexesToSequenceError(
+        'token_indexes_to_sequence not implemented for '
+        'binary_features since mapping is not unique.'
+    )
 
 
 class ProteinFeatureLanguage(ProteinLanguage):
@@ -39,6 +48,8 @@ class ProteinFeatureLanguage(ProteinLanguage):
 
         if self.feat == 'binary_features':
             self.token_to_index = AA_PROPERTIES_NUM
+            # monkey patching method
+            self.token_indexes_to_sequence = token_indexes_to_sequence_raise
         elif self.feat == 'float_features':
             self.token_to_index = AA_FEAT
         elif self.feat == 'blosum':
@@ -87,25 +98,6 @@ class ProteinFeatureLanguage(ProteinLanguage):
         self.start_index = self.token_to_index['<START>']
         self.stop_index = self.token_to_index['<STOP>']
 
-        if self.feat != 'binary_features':
-            self._token_indexes_to_sequence = lambda token_indexes: (
-                ''.join(
-                    [
-                        self.index_to_token.get(token_index, '')
-                        for token_index in token_indexes
-                        if token_index in self.sequence_tokens
-                    ]
-                )
-            )
-        else:
-            # Lambda function that throws an exception.
-            self._token_indexes_to_sequence = lambda x: (_ for _ in ()).throw(
-                Exception(
-                    'token_indexes_to_sequence not implemented for '
-                    'binary_features since mapping is not unique.'
-                )
-            )
-
     def sequence_to_token_indexes(self, sequence: str) -> list:
         """
         Transform character-level amino acid sequence (AAS) into a sequence of
@@ -136,4 +128,10 @@ class ProteinFeatureLanguage(ProteinLanguage):
         Returns:
             str: an amino acid sequence representation.
         """
-        return self._token_indexes_to_sequence(token_indexes)
+        return ''.join(
+            [
+                self.index_to_token.get(token_index, '')
+                for token_index in token_indexes
+                if token_index in self.sequence_tokens
+            ]
+        )

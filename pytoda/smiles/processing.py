@@ -2,11 +2,14 @@
 import codecs
 import logging
 import re
+import warnings
 from importlib import resources
 
-from ..types import Tokens, Tokenizer, Dict
 from SmilesPE.pretokenizer import kmer_tokenizer
 from SmilesPE.tokenizer import SPE_Tokenizer
+from selfies import split_selfies as split_selfies_
+
+from ..types import Dict, Tokenizer, Tokens
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +23,9 @@ with resources.path('pytoda.smiles.metadata', 'spe_chembl.txt') as filepath:
     SPE_TOKENIZER = SPE_Tokenizer(codecs.open(filepath))
 
 
-def tokenize_smiles(smiles: str, regexp=SMILES_TOKENIZER, *args, **kwargs) -> Tokens:
+def tokenize_smiles(
+    smiles: str, regexp=SMILES_TOKENIZER, *args, **kwargs
+) -> Tokens:
     """
     Tokenize a character-level SMILES string.
 
@@ -90,6 +95,10 @@ def tokenize_selfies(selfies: str) -> Tokens:
     Returns:
         Tokens: the tokenized SELFIES.
     """
+    warnings.warn(
+        "tokenize_selfies will be deprecated in favor of `split_selfies`",
+        DeprecationWarning
+    )
     try:
         selfies = selfies.replace('.', '[.]')  # to allow parsing unbound atoms
         selfies_char_list_pre = selfies[1:-1].split('][')
@@ -102,9 +111,21 @@ def tokenize_selfies(selfies: str) -> Tokens:
         return ['']
 
 
+def split_selfies(selfies: str) -> Tokens:
+    """Tokenize SELFIES, wrapping generator as list.
+
+    Args:
+        selfies (str): a SELFIES representation (character-level).
+
+    Returns:
+        Tokens: the tokenized SELFIES.
+    """
+    return list(split_selfies_(selfies))
+
+
 TOKENIZER_FUNCTIONS: Dict[str, Tokenizer] = {
     'smiles': tokenize_smiles,
     'kmer_smiles': kmer_smiles_tokenizer,
     'spe_smiles': spe_smiles_tokenizer,
-    'selfies': tokenize_selfies,
+    'selfies': split_selfies,
 }
