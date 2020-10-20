@@ -23,7 +23,9 @@ with resources.path('pytoda.smiles.metadata', 'spe_chembl.txt') as filepath:
     SPE_TOKENIZER = SPE_Tokenizer(codecs.open(filepath))
 
 
-def tokenize_smiles(smiles: str, regexp=SMILES_TOKENIZER, *args, **kwargs) -> Tokens:
+def tokenize_smiles(
+    smiles: str, regexp=SMILES_TOKENIZER, *args, **kwargs
+) -> Tokens:
     """
     Tokenize a character-level SMILES string.
 
@@ -94,7 +96,7 @@ def tokenize_selfies(selfies: str) -> Tokens:
         Tokens: the tokenized SELFIES.
     """
     warnings.warn(
-        "tokenize_selfies will be deprecated in favor of ",
+        "tokenize_selfies will be deprecated in favor of `split_selfies`",
         DeprecationWarning
     )
     try:
@@ -110,7 +112,7 @@ def tokenize_selfies(selfies: str) -> Tokens:
 
 
 def split_selfies(selfies: str) -> Tokens:
-    """Tokenize SELFIES, wrapping generator method from selfies package.
+    """Tokenize SELFIES, wrapping generator as list.
 
     Args:
         selfies (str): a SELFIES representation (character-level).

@@ -4,7 +4,7 @@ import tempfile
 import unittest
 
 from pytoda.smiles.polymer_language import PolymerTokenizer
-from pytoda.smiles.processing import tokenize_selfies
+from pytoda.smiles.processing import split_selfies
 from pytoda.smiles.transforms import Selfies
 from pytoda.tests.utils import TestFileContent
 
@@ -106,7 +106,7 @@ class TestPolymerTokenizer(unittest.TestCase):
         # SELFIES
         polymer_language = PolymerTokenizer(
             entity_names=entities,
-            smiles_tokenizer=lambda selfies: tokenize_selfies(selfies)
+            smiles_tokenizer=split_selfies
         )
         transform = Selfies()
         selfies = transform(smiles)
