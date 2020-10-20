@@ -1,9 +1,10 @@
 """Implementation of _SmiEagerDataset."""
-from torch.utils.data import Dataset
 from ..files import read_smi
+from ..types import Any, Hashable, Sequence
+from .dataframe_dataset import DataFrameDataset
 
 
-class _SmiEagerDataset(Dataset):
+class _SmiEagerDataset(DataFrameDataset):
     """
     .smi dataset using eager loading.
 
@@ -12,31 +13,28 @@ class _SmiEagerDataset(Dataset):
     """
 
     def __init__(
-        self, smi_filepath: str, name: str = 'SMILES', **kwargs
+        self, smi_filepath: str, index_col: int = 1, name: str = 'SMILES',
+        names: Sequence[str] = None
     ) -> None:
         """
         Initialize a .smi dataset.
 
         Args:
             smi_filepath (str): path to .smi file.
-            name (str): type of dataset, used to index columns.
+            index_col (int): Data column used for indexing, defaults to 1.
+            name (str): type of dataset, used to index columns in smi, and must
+                be in names. Defaults to 'SMILES'.
+            names (Sequence[str]): User-assigned names given to the columns.
+                Defaults to `[name]`.
         """
-        Dataset.__init__(self)
         self.smi_filepath = smi_filepath
         self.name = name
-        self.df = read_smi(self.smi_filepath, names=[self.name])
-        self.sample_to_index_mapping = {
-            sample: index
-            for index, sample in enumerate(self.df.index.tolist())
-        }
-        self.index_to_sample_mapping = {
-            index: sample
-            for sample, index in self.sample_to_index_mapping.items()
-        }
-
-    def __len__(self) -> int:
-        """Total number of samples."""
-        return self.df.shape[0]
+        self.names = names or [name]
+        self.index_col = index_col
+        df = read_smi(
+            self.smi_filepath, index_col=self.index_col, names=self.names
+        )
+        DataFrameDataset.__init__(self, df)
 
     def __getitem__(self, index: int) -> str:
         """
@@ -46,7 +44,10 @@ class _SmiEagerDataset(Dataset):
             index (int): index of the sample to fetch.
 
         Returns:
-            torch.tensor: a torch tensor of token indexes,
-                for the current sample.
+            str: SMILES for the current sample.
         """
         return self.df.iloc[index][self.name]
+
+    def get_item_from_key(self, key: Hashable) -> Any:
+        """Get item via key"""
+        return self.df.loc[key, self.name]

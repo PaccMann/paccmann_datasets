@@ -3,24 +3,163 @@ import logging
 import re
 
 import numpy as np
+import pytoda
 import torch
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
-from selfies import encoder
+from selfies import encoder as selfies_encoder
 
-import pytoda
-
-from ..transforms import Transform
-from ..types import Indexes
-from .smiles_language import SMILESLanguage
+from ..transforms import (Compose, LeftPadding, Randomize, StartStop, ToTensor,
+                          Transform)
+from ..types import Indexes, Tensor, Union
 
 logger = logging.getLogger('pytoda_SMILES_transforms')
+
+
+def compose_smiles_transforms(
+    canonical: bool = False,
+    augment: bool = False,
+    kekulize: bool = False,
+    all_bonds_explicit: bool = False,
+    all_hs_explicit: bool = False,
+    remove_bonddir: bool = False,
+    remove_chirality: bool = False,
+    selfies: bool = False,
+    sanitize: bool = True,
+) -> Compose:
+    """Setup a composition of SMILES to SMILES (or SELFIES) transformations.
+
+    Args:
+        canonical (bool, optional): performs canonicalization of SMILES
+            (one original string for one molecule). If True, then other
+            transformations (augment etc, see below) do not apply. Defaults to
+            False.
+        augment (bool, optional): perform SMILES augmentation. Defaults to
+            False.
+        kekulize (bool, optional): kekulizes SMILES (implicit aromaticity
+            only). Defaults to False.
+        all_bonds_explicit (bool, optional): makes all bonds explicit.
+            Defaults to False, only applies if kekulize is True.
+        all_hs_explicit (bool, optional): makes all hydrogens explicit.
+            Defaults to False, only applies if kekulize is True.
+        remove_bonddir (bool, optional): remove directional info of bonds.
+            Defaults to False.
+        remove_chirality (bool, optional): remove chirality information.
+            Defaults to False.
+        selfies (bool, optional): whether selfies is used instead of
+            smiles. Defaults to False.
+        sanitize (bool, optional): RDKit sanitization of the molecule.
+            Defaults to True.
+
+    Returns:
+        Compose: A Callable that applies composition of SMILES transforms.
+    """
+
+    # Build up composition from optional SMILES to SMILES transformations
+    smiles_transforms = []
+    if canonical:
+        smiles_transforms += [Canonicalization()]
+    else:
+        if remove_bonddir or remove_chirality:
+            smiles_transforms += [
+                RemoveIsomery(
+                    bonddir=remove_bonddir,
+                    chirality=remove_chirality
+                )
+            ]
+        if kekulize:
+            smiles_transforms += [
+                Kekulize(
+                    all_bonds_explicit=all_bonds_explicit,
+                    all_hs_explicit=all_hs_explicit,
+                    sanitize=sanitize
+                )
+            ]
+        elif all_bonds_explicit or all_hs_explicit or sanitize:
+            smiles_transforms += [
+                NotKekulize(
+                    all_bonds_explicit=all_bonds_explicit,
+                    all_hs_explicit=all_hs_explicit,
+                    sanitize=sanitize
+                )
+            ]
+        if augment:
+            smiles_transforms += [
+                Augment(
+                    kekule_smiles=kekulize,
+                    all_bonds_explicit=all_bonds_explicit,
+                    all_hs_explicit=all_hs_explicit,
+                    sanitize=sanitize
+                )
+            ]
+        if selfies:
+            smiles_transforms += [Selfies()]
+
+    return Compose(smiles_transforms)
+
+
+def compose_encoding_transforms(
+    randomize: bool = False,
+    add_start_and_stop: bool = False,
+    start_index: int = 2,
+    stop_index: int = 3,
+    padding: bool = False,
+    padding_length: int = None,
+    padding_index: int = 0,
+    device: torch.device = torch.
+        device('cuda' if torch.cuda.is_available() else 'cpu'),
+) -> Compose:
+    """Setup a composition of token indexes to token indexes transformations.
+
+    Args:
+        randomize (bool, optional): perform a true randomization of
+            token indexes. Defaults to False.
+        add_start_and_stop (bool, optional): add start and stop token
+            indexes. Defaults to False.
+        start_index (int, optional): index of start token in vocabulary.
+            Default to 2.
+        stop_index (int, optional): index of stop token in vocabulary.
+            Default to 3.
+        padding (bool, optional): pad sequences to given padding_length.
+            Defaults to True.
+        padding_length (int, optional): manually sets number of applied
+            paddings, applies only if padding is True. Defaults to None, but
+            must be passed in case of padding.
+        padding_index (int, optional): index of padding token in vocabulary.
+            Default to 0.
+        device (torch.device): device where the tensors are stored.
+            Defaults to gpu, if available.
+
+    Returns:
+        Compose: A Callable that applies composition of transforms on
+            token indexes.
+
+    Note:
+        Transformations can change the number of tokens.
+    """
+    encoding_transforms = []
+
+    if randomize:
+        encoding_transforms += [Randomize()]
+    if add_start_and_stop:
+        encoding_transforms += [StartStop(start_index, stop_index)]
+
+    if padding:
+        encoding_transforms += [
+            LeftPadding(
+                padding_length=padding_length,
+                padding_index=padding_index
+            )
+        ]
+
+    encoding_transforms += [ToTensor(device=device)]
+    return Compose(encoding_transforms)
 
 
 class SMILESToTokenIndexes(Transform):
     """Transform SMILES to token indexes using SMILES language."""
 
-    def __init__(self, smiles_language: SMILESLanguage) -> None:
+    def __init__(self, smiles_language: 'SMILESLanguage') -> None:
         """
         Initialize a SMILES to token indexes object.
 
@@ -29,7 +168,7 @@ class SMILESToTokenIndexes(Transform):
         """
         self.smiles_language = smiles_language
 
-    def __call__(self, smiles: str) -> Indexes:
+    def __call__(self, smiles: str) -> Union[Indexes, Tensor]:
         """
         Apply the SMILES tokenization transformation
 
@@ -298,7 +437,7 @@ class AugmentTensor(Transform):
             raise ValueError('Please pass a SMILES language object')
         self.smiles_language = smiles_language
 
-    def __call__(self, smiles_numerical: list) -> str:
+    def __call__(self, smiles_numerical: Union[Indexes, Tensor]) -> str:
         """
         Apply the transform.
 
@@ -309,6 +448,11 @@ class AugmentTensor(Transform):
         Returns:
             torch.Tensor: randomized SMILES representation.
         """
+        if type(smiles_numerical) == torch.Tensor:
+            if smiles_numerical.ndim == 2:
+                return self.__call__tensor(smiles_numerical)
+            elif smiles_numerical.ndim == 1:
+                smiles_numerical = smiles_numerical.numpy().flatten().tolist()
 
         if type(smiles_numerical) == list:
             smiles = self.smiles_language.token_indexes_to_smiles(
@@ -341,13 +485,12 @@ class AugmentTensor(Transform):
             return self.smiles_language.smiles_to_token_indexes(
                 augmented_smiles
             )
-        elif type(smiles_numerical) == torch.Tensor:
-            return self.__call__tensor(smiles_numerical)
 
-        else:
-            raise TypeError('Please pass either a torch.Tensor or a list.')
+        raise TypeError(
+            'Please pass either a torch.Tensor of ndim 1, 2 or alist.'
+        )
 
-    def __call__tensor(self, smiles_numerical: torch.Tensor) -> str:
+    def __call__tensor(self, smiles_numerical: Tensor) -> str:
         """
         Wrapper of the transform for torch.Tensor.
 
@@ -357,7 +500,6 @@ class AugmentTensor(Transform):
         Returns:
             str: randomized SMILES representation.
         """
-
         # Infer the padding type to ensure returning tensor of same shape.
         if self.smiles_language.padding_index in smiles_numerical.flatten():
 
@@ -390,20 +532,18 @@ class AugmentTensor(Transform):
 
             lenx = seq_len + 1
             while lenx > seq_len:
-                augmented_smiles = self.__call__(smiles.tolist())
+                augmented_smiles = self.__call__(smiles)
                 lenx = len(augmented_smiles)
             if padding:
-                pads = (
-                    [self.smiles_language.padding_index] *
-                    (seq_len - len(augmented_smiles))
+                pl = seq_len - len(augmented_smiles)
+                pad = (0, pl) if right_padding else (pl, 0)
+                augmented_smiles = torch.nn.functional.pad(
+                    augmented_smiles, pad,
+                    value=self.smiles_language.padding_index
                 )
-                if right_padding:
-                    augmented_smiles = augmented_smiles + pads
-                if left_padding:
-                    augmented_smiles = pads + augmented_smiles
 
             augmented.append(
-                torch.unsqueeze(torch.Tensor(augmented_smiles), 0)
+                torch.unsqueeze(augmented_smiles, 0)
             )
 
         augmented = torch.cat(augmented, dim=0)
@@ -414,7 +554,7 @@ class Selfies(Transform):
     """ Convert a molecule from SMILES to SELFIES. """
 
     def __call__(self, smiles: str) -> str:
-        return encoder(smiles)
+        return selfies_encoder(smiles)
 
 
 class Canonicalization(Transform):

@@ -24,6 +24,10 @@ class TestSmi(unittest.TestCase):
                 filtered_smiles_content
             ) as filtered_smiles_file:
                 with TestFileContent('') as resulting_smiles_file:
+                    print(
+                        "\nExpected 'SMILES Parse Error' while filtering "
+                        "invalid smiles via rdkit:"
+                    )
                     filter_invalid_smi(
                         smiles_file.filename, resulting_smiles_file.filename
                     )

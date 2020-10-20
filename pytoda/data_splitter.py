@@ -6,11 +6,11 @@ import numpy as np
 import pandas as pd
 from math import ceil
 from typing import Tuple
-from .types import FileList
+from .types import Files
 
 
 def csv_data_splitter(
-    data_filepaths: FileList,
+    data_filepaths: Files,
     save_path: str,
     data_type: str,
     mode: str,
@@ -24,7 +24,7 @@ def csv_data_splitter(
     This is an eager splitter trying to fit the entire dataset into memory.
 
     Args:
-        data_filepaths (FileList): a list of .csv files that contain the data.
+        data_filepaths (Files): a list of .csv files that contain the data.
         save_path (str): folder to store the training/testing dataset.
         data_type (str): data type (only used as prefix for the saved files).
         mode (str): mode to split data from: "random" and "file".

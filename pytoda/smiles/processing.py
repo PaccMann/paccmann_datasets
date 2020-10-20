@@ -1,11 +1,10 @@
 """SMILES processing utilities."""
 import codecs
 import logging
-import os
 import re
 from importlib import resources
 
-from pytoda.types import Tokens
+from ..types import Tokens, Tokenizer, Dict
 from SmilesPE.pretokenizer import kmer_tokenizer
 from SmilesPE.tokenizer import SPE_Tokenizer
 
@@ -21,23 +20,24 @@ with resources.path('pytoda.smiles.metadata', 'spe_chembl.txt') as filepath:
     SPE_TOKENIZER = SPE_Tokenizer(codecs.open(filepath))
 
 
-def tokenize_smiles(smiles: str, regexp=None) -> Tokens:
+def tokenize_smiles(smiles: str, regexp=SMILES_TOKENIZER, *args, **kwargs) -> Tokens:
     """
     Tokenize a character-level SMILES string.
 
     Args:
         smiles (str): a SMILES representation.
-        regexp (None, re.Pattern): optionally pass a regexp for the
-            tokenization. If none is passed, SMILES_TOKENIZER is used.
+        regexp (re.Pattern): optionally pass a regexp for the
+            tokenization. Defaults to SMILES_TOKENIZER.
+        args (): ignored, for backwards compatibility.
+        kwargs (): ignored, for backwards compatibility.
     Returns:
         Tokens: the tokenized SMILES.
     """
-    smiles_tokenizer = SMILES_TOKENIZER if regexp is None else regexp
-    return [token for token in smiles_tokenizer.split(smiles) if token]
+    return [token for token in regexp.split(smiles) if token]
 
 
 def kmer_smiles_tokenizer(
-    smiles: str, k: int, stride: int = 1, *args, **kwargs
+    smiles: str, k: int = 2, stride: int = 1, *args, **kwargs
 ) -> Tokens:
     """K-Mer SMILES tokenization following SMILES PE (Li et al. 2020):
         Li, Xinhao, and Denis Fourches. "SMILES Pair Encoding: A Data-Driven
@@ -46,7 +46,8 @@ def kmer_smiles_tokenizer(
 
     Args:
         smiles (str): SMILES string to be tokenized.
-        k (int): Positive integer denoting the tuple/k-gram lengths.
+        k (int): Positive integer denoting the tuple/k-gram lengths. Defaults
+            to 2 (bigrams).
         stride (int, optional): Stride used for k-mer generation. Higher values
             result in less tokens. Defaults to 1 (densely overlapping).
         args (): Optional arguments for `kmer_tokenizer`.
@@ -99,3 +100,11 @@ def tokenize_selfies(selfies: str) -> Tokens:
     except Exception:
         logger.warning(f'Error in tokenizing {selfies}. Returning empty list.')
         return ['']
+
+
+TOKENIZER_FUNCTIONS: Dict[str, Tokenizer] = {
+    'smiles': tokenize_smiles,
+    'kmer_smiles': kmer_smiles_tokenizer,
+    'spe_smiles': spe_smiles_tokenizer,
+    'selfies': tokenize_selfies,
+}

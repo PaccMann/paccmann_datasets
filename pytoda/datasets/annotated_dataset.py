@@ -1,19 +1,22 @@
 """Implementation of AnnotatedDataset class."""
-import torch
 import pandas as pd
-from torch.utils.data import Dataset
-from ..types import AnnotatedData, Union, List
+import torch
+
+from ..types import AnnotatedData, Hashable, List, Union
+from .base_dataset import AnyBaseDataset
+from .dataframe_dataset import DataFrameDataset
 
 
-class AnnotatedDataset(Dataset):
+class AnnotatedDataset(DataFrameDataset):
     """
-    Annotated dataset implementation.
+    Annotated samples in order of annotations csv, fetching data
+    from passed dataset.
     """
 
     def __init__(
         self,
         annotations_filepath: str,
-        dataset: Dataset,
+        dataset: AnyBaseDataset,
         annotation_index: Union[int, str] = -1,
         label_columns: Union[List[int], List[str]] = None,
         dtype: torch.dtype = torch.float,
@@ -22,7 +25,7 @@ class AnnotatedDataset(Dataset):
         **kwargs
     ) -> None:
         """
-        Initialize an annotated dataset.
+        Initialize an annotated dataset via additional annotations dataframe.
         E.g. the  dataset could be SMILES and the annotations could be
         single or multi task labels.
 
@@ -31,29 +34,31 @@ class AnnotatedDataset(Dataset):
                 Currently, the supported formats are column separated files.
                 The default structure assumes that the last column contains an
                 id that is also used in the dataset provided.
-            dataset (Dataset): path to .smi file.
+            dataset (AnyBaseDataset): instance of a AnyBaseDataset (supporting
+                key lookup API of KeyDataset), e.g. a SMILESDataset.
             annotation_index (Union[int, str]): positional or string for the
-                column containing the annotation index. Defaults to -1, a.k.a.
-                the last column.
+                column containing the annotation index of keys to get items in
+                the passed dataset. Defaults to -1, i.e. the last column.
             label_columns (Union[List[int], List[str]]): indexes (positional
                 or strings) for the annotations. Defaults to None, a.k.a. all
                 the columns, except the annotation index, are considered
                 annotation labels.
-            dtype (torch.dtype): data type. Defaults to torch.float.
+            dtype (torch.dtype): torch data type for labels. Defaults to
+                torch.float.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
             kwargs (dict): additional parameter for pd.read_csv.
         """
-        Dataset.__init__(self)
-
         self.device = device
         self.annotations_filepath = annotations_filepath
-        self.dataset = dataset
-        self.annotated_data_df = pd.read_csv(
+        self.datasource = dataset
+        self.dtype = dtype
+
+        # processing of the dataframe for dataset setup
+        df = pd.read_csv(
             self.annotations_filepath, **kwargs
         )
-        # post-processing of the dataframe
-        columns = self.annotated_data_df.columns
+        columns = df.columns
         # handle annotation index
         if isinstance(annotation_index, int):
             self.annotation_index = columns[annotation_index]
@@ -61,6 +66,7 @@ class AnnotatedDataset(Dataset):
             self.annotation_index = annotation_index
         else:
             raise RuntimeError('annotation_index should be int or str.')
+
         # handle labels
         if label_columns is None:
             self.labels = [
@@ -74,39 +80,55 @@ class AnnotatedDataset(Dataset):
             raise RuntimeError(
                 'label_columns should be an iterable containing int or str'
             )
-        # set the index explicitly
-        self.annotated_data_df = self.annotated_data_df.set_index(
-            self.annotation_index
-        )
         # get the number of labels
         self.number_of_tasks = len(self.labels)
 
-    def __len__(self) -> int:
-        "Total number of samples."
-        return self.annotated_data_df.shape[0]
+        # set the index explicitly, and discard non label columns
+        df = df.set_index(
+            self.annotation_index
+        )[self.labels]
+        DataFrameDataset.__init__(self, df)
 
     def __getitem__(self, index: int) -> AnnotatedData:
         """
-        Generates one sample of data.
+        Get key from integer index.
 
         Args:
-            index (int): index of the sample to fetch.
+            index (int): index annotations to get key and annotation labels,
+                where the key is used to fetch the item.
 
         Returns:
-            AnnotatedData: a tuple containing two torch.tensors,
-                representing respetively: compound token indexes and labels for
-                the current sample.
+            AnnotatedData: a tuple containing the item itself (with type
+                depending on passed dataset) and a torch.Tensor of
+                labels for the current item.
         """
         # sample selection
-        selected_sample = self.annotated_data_df.iloc[index]
+        selected_sample = self.df.iloc[index]
+        return self._make_return_tuple(selected_sample)
+
+    def get_item_from_key(self, key: Hashable) -> AnnotatedData:
+        """
+        Get item via key.
+
+        Args:
+            key (Hashable): key of the item and annotations to fetch.
+
+        Returns:
+            AnnotatedData: a tuple containing the item itself (with type
+                depending on passed dataset) and a torch.Tensor of
+                labels for the current item.
+        """
+        # sample selection
+        selected_sample = self.df.loc[key, :]
+        return self._make_return_tuple(selected_sample)
+
+    def _make_return_tuple(self, lables_series: pd.Series) -> AnnotatedData:
+        # sample
+        sample = self.datasource.get_item_from_key(lables_series.name)
         # label
         labels_tensor = torch.tensor(
-            list(selected_sample[self.labels].values),
-            dtype=torch.float,
+            list(lables_series.values),
+            dtype=self.dtype,
             device=self.device
         )
-        # sample
-        sample = self.dataset[
-            self.dataset.sample_to_index_mapping[selected_sample.name]
-        ]   # yapf: disable
         return sample, labels_tensor
