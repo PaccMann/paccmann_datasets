@@ -1,5 +1,5 @@
 """Protein language handling."""
-from .processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62, BLOSUM62_norm
+from .processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62, BLOSUM62_NORM
 from .protein_language import ProteinLanguage
 from ..types import Tokenizer
 
@@ -55,7 +55,7 @@ class ProteinFeatureLanguage(ProteinLanguage):
         elif self.feat == 'blosum':
             self.token_to_index = BLOSUM62
         elif self.feat == 'blosum_norm':
-            self.token_to_index = BLOSUM62_norm
+            self.token_to_index = BLOSUM62_NORM
         else:
             raise ValueError(
                 "Choose dict as 'binary_features', 'float_features' or "

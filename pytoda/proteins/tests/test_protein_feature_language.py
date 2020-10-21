@@ -84,6 +84,21 @@ class TestProteinFeatureLanguage(unittest.TestCase):
             ]
         )
         # Other dictionary
+        # Normed blosum
+        protein_language = ProteinFeatureLanguage(add_start_and_stop=False, features='blosum_norm')
+        protein_language.add_sequence(sequence)
+        self.assertListEqual(
+            protein_language.sequence_to_token_indexes(sequence),
+            [BLOSUM62_NORM['C'], BLOSUM62_NORM['G'], BLOSUM62_NORM['X']]
+        )
+        protein_language = ProteinFeatureLanguage(add_start_and_stop=True, features='blosum_norm')
+        protein_language.add_sequence(sequence)
+        self.assertListEqual(
+            protein_language.sequence_to_token_indexes(sequence), [
+                BLOSUM62_NORM['<START>'], BLOSUM62_NORM['C'], BLOSUM62_NORM['G'],
+                BLOSUM62_NORM['X'], BLOSUM62_NORM['<STOP>']
+            ]
+        )
         protein_language = ProteinFeatureLanguage(
             add_start_and_stop=False, features='binary_features'
         )
