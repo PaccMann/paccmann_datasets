@@ -2,13 +2,14 @@
 import copy
 from collections import OrderedDict
 
+import numpy as np
 import pandas as pd
 import torch
 
-from ..types import FeatureList, Files, Tensor
-from ._csv_statistics import reduce_csv_statistics
+from ..types import ArrayLike1D, FeatureList, Files, Tensor
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
+from ._csv_statistics import reduce_csv_statistics
 from .base_dataset import DatasetDelegator
 from .utils import concatenate_file_based_datasets
 
@@ -93,8 +94,11 @@ class _TableDataset(DatasetDelegator):
         # NOTE: define the transformation
         self.transform_fn = lambda example: example
         if self.standardize:
-            mean = self.processing_parameters.get('mean', self.mean)
-            std = self.processing_parameters.get('std', self.std)
+            mean: ArrayLike1D = self.processing_parameters.get('mean', self.mean)
+            std: ArrayLike1D = self.processing_parameters.get('std', self.std)
+            # support sequences (also of length 1) and arrays
+            mean = np.array(mean, dtype=float)
+            std = np.array(std, dtype=float)
             self.transform_fn = lambda example: ((example - mean) / std)
             self.processing = {
                 'processing': 'standardize',
@@ -104,16 +108,19 @@ class _TableDataset(DatasetDelegator):
                 }
             }
         elif self.min_max:
-            minimum = self.processing_parameters.get('min', self.min)
-            maximum = self.processing_parameters.get('max', self.max)
+            minimum: ArrayLike1D = self.processing_parameters.get('min', self.min)
+            maximum: ArrayLike1D = self.processing_parameters.get('max', self.max)
+            # support sequences (also of length 1) and arrays
+            minimum = np.array(minimum, dtype=float)
+            maximum = np.array(maximum, dtype=float)
             self.transform_fn = lambda example: (
-                (example - minimum) / float(maximum - minimum)
+                (example - minimum) / (maximum - minimum)
             )
             self.processing = {
                 'processing': 'min_max',
                 'parameters': {
-                    'min': minimum,
-                    'max': maximum
+                    'min': list(minimum),
+                    'max': list(maximum)
                 }
             }
         # apply preprocessing
