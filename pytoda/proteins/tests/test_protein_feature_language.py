@@ -4,7 +4,7 @@ import unittest
 
 from upfp import parse_fasta
 
-from pytoda.proteins.processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62
+from pytoda.proteins.processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62, BLOSUM62_NORM
 from pytoda.proteins.protein_feature_language import ProteinFeatureLanguage
 from pytoda.tests.utils import TestFileContent
 
@@ -84,6 +84,21 @@ class TestProteinFeatureLanguage(unittest.TestCase):
             ]
         )
         # Other dictionary
+        # Normed blosum
+        protein_language = ProteinFeatureLanguage(add_start_and_stop=False, features='blosum_norm')
+        protein_language.add_sequence(sequence)
+        self.assertListEqual(
+            protein_language.sequence_to_token_indexes(sequence),
+            [BLOSUM62_NORM['C'], BLOSUM62_NORM['G'], BLOSUM62_NORM['X']]
+        )
+        protein_language = ProteinFeatureLanguage(add_start_and_stop=True, features='blosum_norm')
+        protein_language.add_sequence(sequence)
+        self.assertListEqual(
+            protein_language.sequence_to_token_indexes(sequence), [
+                BLOSUM62_NORM['<START>'], BLOSUM62_NORM['C'], BLOSUM62_NORM['G'],
+                BLOSUM62_NORM['X'], BLOSUM62_NORM['<STOP>']
+            ]
+        )
         protein_language = ProteinFeatureLanguage(
             add_start_and_stop=False, features='binary_features'
         )
