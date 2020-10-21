@@ -4,7 +4,7 @@ import unittest
 
 from upfp import parse_fasta
 
-from pytoda.proteins.processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62
+from pytoda.proteins.processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62, BLOSUM62_NORM
 from pytoda.proteins.protein_feature_language import ProteinFeatureLanguage
 from pytoda.tests.utils import TestFileContent
 
