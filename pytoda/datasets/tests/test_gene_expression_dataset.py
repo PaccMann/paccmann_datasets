@@ -68,10 +68,11 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                 gene_list = gene_expression_dataset.gene_list
                 mean = df.mean()[gene_list].values
                 std = df.std(ddof=0)[gene_list].values
-                np.testing.assert_almost_equal(
-                    gene_expression_dataset[4].numpy(),
-                    (df[gene_list].iloc[4].values - mean) / std, 5
-                )
+                for i, (key, row) in enumerate(df[gene_list].iterrows()):
+                    np.testing.assert_almost_equal(
+                        gene_expression_dataset[i].numpy(),
+                        (row.values - mean) / std, 5
+                    )
                 np.testing.assert_almost_equal(
                     gene_expression_dataset.mean, mean, 5
                 )
@@ -90,10 +91,11 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                 minimum = df.min()[gene_list].values
                 maximum = df.max()[gene_list].values
                 diff = maximum - minimum
-                np.testing.assert_almost_equal(
-                    gene_expression_dataset[4].numpy(),
-                    (df[gene_list].iloc[4].values - minimum) / diff, 5
-                )
+                for i, (key, row) in enumerate(df[gene_list].iterrows()):
+                    np.testing.assert_almost_equal(
+                        gene_expression_dataset[i].numpy(),
+                        (row.values - minimum) / diff, 5
+                    )
                 np.testing.assert_almost_equal(
                     gene_expression_dataset.min, minimum, 5
                 )
