@@ -79,6 +79,28 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     gene_expression_dataset.std, std, 5
                 )
 
+                gene_expression_dataset = GeneExpressionDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    backend=self.backend,
+                    index_col=0,
+                    standardize=False,
+                    min_max=True,
+                )
+                minimum = df.min()[gene_list].values
+                maximum = df.max()[gene_list].values
+                diff = maximum - minimum
+                np.testing.assert_almost_equal(
+                    gene_expression_dataset[4].numpy(),
+                    (df[gene_list].iloc[4].values - minimum) / diff, 5
+                )
+                np.testing.assert_almost_equal(
+                    gene_expression_dataset.min, minimum, 5
+                )
+                np.testing.assert_almost_equal(
+                    gene_expression_dataset.max, maximum, 5
+                )
+
     def test_data_loader(self) -> None:
         """Test data_loader."""
         gene_subset_list = ['B', 'D', 'F']
