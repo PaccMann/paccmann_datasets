@@ -101,6 +101,103 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     gene_expression_dataset.max, maximum, 5
                 )
 
+    def test_processing_parameters(self) -> None:
+        with TestFileContent(self.content) as a_test_file, \
+            TestFileContent(self.other_content) as another_test_file \
+        :
+            standard_dataset = GeneExpressionDataset(
+                a_test_file.filename,
+                another_test_file.filename,
+                backend=self.backend,
+                index_col=0
+            )
+            minmax_dataset = GeneExpressionDataset(
+                a_test_file.filename,
+                another_test_file.filename,
+                backend=self.backend,
+                index_col=0,
+                standardize=False,
+                min_max=True,
+            )
+            gene_list = standard_dataset.gene_list
+            self.assertTrue(gene_list == minmax_dataset.gene_list)
+            df = pd.concat(
+                [
+                    pd.read_csv(a_test_file.filename, index_col=0),
+                    pd.read_csv(another_test_file.filename, index_col=0),
+                ],
+                sort=False
+            )[gene_list]
+
+            # flat = df.values.flatten()
+            mean_array = df.mean().values
+            std_array = df.std(ddof=0).values
+
+            # with min max scaling we can check for values 0 and 1
+            maximum_array = df.max().values
+            minimum_array = df.min().values
+
+            # scalar scaling (single max and min)
+            max_n, max_p = map(
+                int, np.unravel_index(np.argmax(df.values), df.shape)
+            )
+            min_n, min_p = map(
+                int, np.unravel_index(np.argmin(df.values), df.shape)
+            )
+            for maximum, minimum in [
+                # scalar
+                [np.max(maximum_array),
+                 np.min(minimum_array)],
+                # list length 1
+                [[np.max(maximum_array)], [np.min(minimum_array)]],
+            ]:
+                processing_parameters = {
+                    'max': maximum,
+                    'min': minimum,
+                }
+                minmax_ds = GeneExpressionDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    backend=self.backend,
+                    index_col=0,
+                    standardize=False,
+                    min_max=True,
+                    processing_parameters=processing_parameters,
+                )
+
+                self.assertEqual(minmax_ds[max_n][max_p], 1)
+                self.assertEqual(minmax_ds[min_n][min_p], 0)
+
+            # array scaling (feature wise max and min)
+            max_indeces = map(int, np.argmax(df.values, axis=0))
+            min_indeces = map(int, np.argmin(df.values, axis=0))
+
+            for maximum, minimum in [
+                # list
+                [maximum_array.tolist(),
+                 minimum_array.tolist()],
+                # ndarray
+                [maximum_array, minimum_array]
+            ]:
+                processing_parameters = {
+                    'max': maximum,
+                    'min': minimum,
+                }
+                minmax_ds = GeneExpressionDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    backend=self.backend,
+                    index_col=0,
+                    standardize=False,
+                    min_max=True,
+                    processing_parameters=processing_parameters,
+                )
+                # check max_index / min_index are 1 and 0 per feature
+                for feature_index, sample_index in enumerate(max_indeces):
+                    self.assertEqual(minmax_ds[sample_index][feature_index], 1)
+                for feature_index, sample_index in enumerate(min_indeces):
+                    self.assertEqual(minmax_ds[sample_index][feature_index], 0)
+
     def test_data_loader(self) -> None:
         """Test data_loader."""
         gene_subset_list = ['B', 'D', 'F']
@@ -152,9 +249,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     index_col=0
                 )
                 gene_expression_ds_0 = GeneExpressionDataset(
-                    a_test_file.filename,
-                    backend=self.backend,
-                    index_col=0
+                    a_test_file.filename, backend=self.backend, index_col=0
                 )
                 gene_expression_ds_1 = GeneExpressionDataset(
                     another_test_file.filename,
@@ -162,9 +257,8 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     index_col=0
                 )
         all_keys = [
-            row.split(',')[0]
-            for row in
-            self.content.split('\n')[1:] + self.other_content.split('\n')[1:]
+            row.split(',')[0] for row in self.content.split('\n')[1:] +
+            self.other_content.split('\n')[1:]
         ]
 
         for ds, keys in [
@@ -191,7 +285,9 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
             self.assertTrue(gene_expression_dataset.has_duplicate_keys)
 
 
-class TestGeneExpressionDatasetLazyBackend(TestGeneExpressionDatasetEagerBackend):  # noqa
+class TestGeneExpressionDatasetLazyBackend(
+    TestGeneExpressionDatasetEagerBackend
+):  # noqa
     """Testing GeneExpressionDataset with lazy backend."""
 
     def setUp(self):

@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from ..types import ArrayLike1D, FeatureList, Files, Tensor
+from ..types import ArrayLike01D, FeatureList, Files, Tensor
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
 from ._csv_statistics import reduce_csv_statistics
@@ -94,33 +94,34 @@ class _TableDataset(DatasetDelegator):
         # NOTE: define the transformation
         self.transform_fn = lambda example: example
         if self.standardize:
-            mean: ArrayLike1D = self.processing_parameters.get('mean', self.mean)
-            std: ArrayLike1D = self.processing_parameters.get('std', self.std)
-            # support sequences (also of length 1) and arrays
-            mean = np.array(mean, dtype=float)
-            std = np.array(std, dtype=float)
+            mean: ArrayLike01D = self.processing_parameters.get('mean', self.mean)
+            std: ArrayLike01D = self.processing_parameters.get('std', self.std)
+            # support scalars, sequences (also of length 1) and arrays
+            mean = np.array(mean, dtype=float).squeeze()
+            std = np.array(std, dtype=float).squeeze()
             self.transform_fn = lambda example: ((example - mean) / std)
             self.processing = {
                 'processing': 'standardize',
                 'parameters': {
-                    'mean': list(mean),
-                    'std': list(std)
+                    'mean': mean.tolist(),
+                    'std': std.tolist()
                 }
             }
         elif self.min_max:
-            minimum: ArrayLike1D = self.processing_parameters.get('min', self.min)
-            maximum: ArrayLike1D = self.processing_parameters.get('max', self.max)
-            # support sequences (also of length 1) and arrays
-            minimum = np.array(minimum, dtype=float)
-            maximum = np.array(maximum, dtype=float)
+            minimum: ArrayLike01D = self.processing_parameters.get('min', self.min)
+            maximum: ArrayLike01D = self.processing_parameters.get('max', self.max)
+            # support scalars as well as sequences (also of length 1) and arrays
+            minimum = np.array(minimum, dtype=float).squeeze()
+            maximum = np.array(maximum, dtype=float).squeeze()
+            # must support DataFrame (eager dataset) and ..Series/array (lazy dataset or whatever cache index returns)
             self.transform_fn = lambda example: (
                 (example - minimum) / (maximum - minimum)
             )
             self.processing = {
                 'processing': 'min_max',
                 'parameters': {
-                    'min': list(minimum),
-                    'max': list(maximum)
+                    'min': minimum.tolist(),
+                    'max': maximum.tolist()
                 }
             }
         # apply preprocessing
