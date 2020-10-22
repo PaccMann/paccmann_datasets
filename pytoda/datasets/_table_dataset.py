@@ -80,16 +80,16 @@ class _TableDataset(DatasetDelegator):
             self.dataset.datasets, self.feature_list
         )
 
-        # NOTE: adapt feature list, mapping and function
-        self.feature_mapping = pd.Series(
-            OrderedDict(
-                [
-                    (feature, index)
-                    for index, feature in enumerate(self.feature_list)
-                ]
-            )
-        )
-        self.feature_fn = lambda df: df[self.feature_list]
+        # # NOTE: adapt feature list, mapping and function
+        # self.feature_mapping = pd.Series(
+        #     OrderedDict(
+        #         [
+        #             (feature, index)
+        #             for index, feature in enumerate(self.feature_list)
+        #         ]
+        #     )
+        # )
+        # self.feature_fn = lambda df: df[self.feature_list]
         self.number_of_features = len(self.feature_list)
         # NOTE: define the transformation
         self.transform_fn = lambda example: example
@@ -174,12 +174,12 @@ class _TableLazyDataset(_TableDataset):
 
     def _preprocess_dataset(self) -> None:
         """Preprocess the dataset."""
-        self.feature_fn = lambda sample: sample[self.feature_mapping[
-            self.feature_list].values]
         for dataset in self.dataset.datasets:
+            feature_fn_dataset = lambda sample: sample[dataset.feature_mapping[
+            self.feature_list].values]
             for index in dataset.cache:
                 dataset.cache[index] = self.transform_fn(
-                    self.feature_fn(dataset.cache[index])
+                    feature_fn_dataset(dataset.cache[index])
                 )
 
 
@@ -202,6 +202,6 @@ class _TableEagerDataset(_TableDataset):
 
     def _preprocess_dataset(self) -> None:
         """Preprocess the dataset."""
-        self.feature_fn = lambda sample: sample[self.feature_list]
+        feature_fn_eager = lambda sample: sample[self.feature_list]
         for dataset in self.dataset.datasets:
-            dataset.df = self.transform_fn(self.feature_fn(dataset.df))
+            dataset.df = self.transform_fn(feature_fn_eager(dataset.df))

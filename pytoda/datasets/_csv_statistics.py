@@ -54,12 +54,16 @@ class _CsvStatistics:
         The dataframe is read, calling `self.preprocess_df` on it and setting
         up the data as source.
         Subsequently the definite `self.feature_list` of this datasource is
-        set, and `self.feature_fn` is defined to read source items (filtered
-        and in order)
+        set, and `self.feature_fn` is defined to read full source items
+        (filtered and in order).
+        To read item with a different order or subset of features, use the
+        returned feature_mapping.
 
         Sets:
         `self.feature_list`
         `self.feature_fn`
+
+        Because dataset.feature_mapping[features] is the o
 
         Returns:
             pd.Series: feature_mapping of feature name to index in items.
