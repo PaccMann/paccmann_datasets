@@ -27,26 +27,39 @@ class _CsvStatistics:
 
         """
         self.filepath = filepath
-        self.feature_list = feature_list
+        self.feature_list = feature_list  # inital, will be set with datasource
         self.min_max_scaler = MinMaxScaler()
         self.standardizer = StandardScaler()
         self.kwargs = copy.deepcopy(kwargs)
         self.kwargs['dtype'] = pandas_dtype
-        if self.feature_list is not None:
-            # NOTE: zeros denote missing value
-            self.feature_fn = lambda df: df.T.reindex(self.feature_list
-                                                      ).T.fillna(0.0)
-        else:
-            self.feature_fn = lambda df: df
+
+        self.preprocess_df = self._reindex if self.feature_list else self._id
         self.feature_mapping = self.setup_datasource()
         self.max = self.min_max_scaler.data_max_
         self.min = self.min_max_scaler.data_min_
         self.mean = self.standardizer.mean_
         self.std = self.standardizer.scale_
 
+    def _reindex(self, df: pd.DataFrame) -> pd.DataFrame:
+        # NOTE: NaN from introduced features are represented with zeros
+        return df.reindex(columns=self.feature_list, fill_value=0.0)
+
+    def _id(self, df: pd.DataFrame) -> pd.DataFrame:
+        return df
+
     def setup_datasource(self) -> pd.Series:
         """
         Setup the datasource and compute statistics.
+
+        The dataframe is read, calling `self.preprocess_df` on it and setting
+        up the data as source.
+        Subsequently the definite `self.feature_list` of this datasource is
+        set, and `self.feature_fn` is defined to read source items (filtered
+        and in order)
+
+        Sets:
+        `self.feature_list`
+        `self.feature_fn`
 
         Returns:
             pd.Series: feature_mapping of feature name to index in items.

@@ -36,7 +36,7 @@ class _CsvEagerDataset(DataFrameDataset, _CsvStatistics):
         Returns:
             pd.Series: feature_mapping of feature name to index in items.
         """
-        df = self.feature_fn(pd.read_csv(self.filepath, **self.kwargs))
+        df = self.preprocess_df(pd.read_csv(self.filepath, **self.kwargs))
         # KeyDataset implementation, sets self.df
         DataFrameDataset.__init__(self, df)
         self.min_max_scaler.fit(self.df.values)

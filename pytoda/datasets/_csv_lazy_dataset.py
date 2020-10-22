@@ -57,7 +57,7 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
         for chunk in pd.read_csv(
             self.filepath, chunksize=self.chunk_size, **self.kwargs
         ):
-            chunk = self.feature_fn(chunk)
+            chunk = self.preprocess_df(chunk)
             self.min_max_scaler.partial_fit(chunk.values)
             self.standardizer.partial_fit(chunk.values)
             for key, row in chunk.iterrows():
