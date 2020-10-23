@@ -1,7 +1,18 @@
 """Type definitions."""
 import inspect
-from typing import (Any, Callable, Dict, Hashable, Iterable, Iterator,  # noqa
-                    List, Mapping, Sequence, Tuple, Union)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Hashable,
+    Iterable,
+    Iterator,  # noqa
+    List,
+    Mapping,
+    Sequence,
+    Tuple,
+    Union
+)
 
 from numpy import ndarray  # np.typing in development
 from pandas import DataFrame, Series
@@ -14,7 +25,9 @@ Files = Sequence[str]  # often passed on as Tuple via *args
 FeatureList = List[str]
 GeneList = FeatureList
 CsvSourceData = Union[ndarray, Series, DataFrame]
-CallableOnSource = Callable[[CsvSourceData], CsvSourceData]
+CallableOnSource = Union[Callable[[ndarray], ndarray],
+                         Callable[[Series], Series],
+                         Callable[[DataFrame], DataFrame]]
 TransformList = List[Callable[[Any], Any]]
 DrugSensitivityData = Tuple[Tensor, Tensor, Tensor]
 DrugAffinityData = Tuple[Tensor, Tensor, Tensor]

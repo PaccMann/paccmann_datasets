@@ -1,10 +1,8 @@
 """Implementation of _TableDataset."""
 import copy
-from collections import OrderedDict
 from functools import partial
 
 import numpy as np
-import pandas as pd
 import torch
 
 from ..types import FeatureList, Files, Tensor, CsvSourceData

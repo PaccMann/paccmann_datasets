@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
-from ..types import Callable, CallableOnSource, FeatureList, List, Tuple
+from ..types import CallableOnSource, FeatureList, List, Tuple
 
 
 class _CsvStatistics:
