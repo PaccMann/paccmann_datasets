@@ -1,17 +1,34 @@
 """Implementation of _TableDataset."""
 import copy
 from collections import OrderedDict
+from functools import partial
 
 import numpy as np
 import pandas as pd
 import torch
 
-from ..types import ArrayLike01D, FeatureList, Files, Tensor
+from ..types import FeatureList, Files, Tensor, CsvSourceData
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
 from ._csv_statistics import reduce_csv_statistics
 from .base_dataset import DatasetDelegator
 from .utils import concatenate_file_based_datasets
+
+
+def transform_not(data: CsvSourceData):
+    return data
+
+
+def transform_standardize(
+    data: CsvSourceData, mean: np.ndarray, std: np.ndarray
+):
+    return (data - mean) / std
+
+
+def transform_minmax(
+    data: CsvSourceData, minimum: np.ndarray, maximum: np.ndarray
+):
+    return (data - minimum) / (maximum - minimum)
 
 
 class _TableDataset(DatasetDelegator):
@@ -44,6 +61,8 @@ class _TableDataset(DatasetDelegator):
             standardize (bool): perform data standardization. Defaults to True.
             min_max (bool): perform min-max scaling. Defaults to False.
             processing_parameters (dict): processing parameters.
+                Keys can be 'min', 'max' or 'mean', 'std'
+                respectively. Values must be readable by `np.array`.
                 Defaults to {}.
             dtype (torch.dtype): data type. Defaults to torch.float.
             device (torch.device): device where the tensors are stored.
@@ -52,9 +71,8 @@ class _TableDataset(DatasetDelegator):
                 ignored with 'eager' backend. Defaults to 10000.
             kwargs (dict): additional parameters for pd.read_csv.
         """
-        self.processing = {}
         self.filepaths = filepaths
-        self.feature_list = feature_list
+        self.initial_feature_list = feature_list
         self.standardize = standardize
         self.min_max = min_max
         self.processing_parameters = processing_parameters
@@ -69,37 +87,33 @@ class _TableDataset(DatasetDelegator):
         self.min = None
         self.mean = None
         self.std = None
-        # NOTE: the dataset will be initialized and
-        # designed to return numpy arrays,
-        # the statistics will be updated accordingly
+
+        # the dataset(s) will be initialized individually,
+        # the collected statistics will later be updated and finally applied
+        # TODO: depending on processing_parameters and standardize/minmax,
+        # statistics need not be computed on setup.
         self._setup_dataset()
-        # NOTE: reduce statistics
+
+        # reduce statistics and find definitive feature_list
         (  # yapf:disable
             self.feature_list, self.max, self.min, self.mean, self.std
         ) = reduce_csv_statistics(
-            self.dataset.datasets, self.feature_list
+            self.dataset.datasets, self.initial_feature_list
         )
-
-        # # NOTE: adapt feature list, mapping and function
-        # self.feature_mapping = pd.Series(
-        #     OrderedDict(
-        #         [
-        #             (feature, index)
-        #             for index, feature in enumerate(self.feature_list)
-        #         ]
-        #     )
-        # )
-        # self.feature_fn = lambda df: df[self.feature_list]
         self.number_of_features = len(self.feature_list)
-        # NOTE: define the transformation
-        self.transform_fn = lambda example: example
+
+        # given the statistics, we define the transformation
+        self.transform_fn = transform_not
+        self.processing = {}
         if self.standardize:
-            mean: ArrayLike01D = self.processing_parameters.get('mean', self.mean)
-            std: ArrayLike01D = self.processing_parameters.get('std', self.std)
+            mean = self.processing_parameters.get('mean', self.mean)
+            std = self.processing_parameters.get('std', self.std)
             # support scalars, sequences (also of length 1) and arrays
             mean = np.array(mean, dtype=float).squeeze()
             std = np.array(std, dtype=float).squeeze()
-            self.transform_fn = lambda example: ((example - mean) / std)
+            self.transform_fn = partial(
+                transform_standardize, mean=mean, std=std
+            )
             self.processing = {
                 'processing': 'standardize',
                 'parameters': {
@@ -108,33 +122,33 @@ class _TableDataset(DatasetDelegator):
                 }
             }
         elif self.min_max:
-            minimum: ArrayLike01D = self.processing_parameters.get('min', self.min)
-            maximum: ArrayLike01D = self.processing_parameters.get('max', self.max)
-            # support scalars as well as sequences (also of length 1) and arrays
+            minimum = self.processing_parameters.get('min', self.min)
+            maximum = self.processing_parameters.get('max', self.max)
+            # support scalars, sequences (also of length 1) and arrays
             minimum = np.array(minimum, dtype=float).squeeze()
             maximum = np.array(maximum, dtype=float).squeeze()
-            # must support DataFrame (eager dataset) and ..Series/array (lazy dataset or whatever cache index returns)
-            self.transform_fn = lambda example: (
-                (example - minimum) / (maximum - minimum)
+            self.transform_fn = partial(
+                transform_minmax, minimum=minimum, maximum=maximum
             )
             self.processing = {
                 'processing': 'min_max',
-                'parameters': {
-                    'min': minimum.tolist(),
-                    'max': maximum.tolist()
-                }
+                'parameters':
+                    {
+                        'min': minimum.tolist(),
+                        'max': maximum.tolist()
+                    }
             }
-        # apply preprocessing
-        self._preprocess_dataset()
+        # Filter, order and transform the datasets
+        for dataset in self.dataset.datasets:
+            dataset.transform_dataset(
+                transform_fn=self.transform_fn,
+                feature_list=self.feature_list
+            )
 
     def _setup_dataset(self) -> None:
         """
         Setup KeyDataset assigned to self.dataset for delegation.
         Defines feature_mapping and fits statistics."""
-        raise NotImplementedError
-
-    def _preprocess_dataset(self) -> None:
-        """Preprocess the dataset."""
         raise NotImplementedError
 
     def __getitem__(self, index: int) -> Tensor:
@@ -167,20 +181,10 @@ class _TableLazyDataset(_TableDataset):
         self.dataset = concatenate_file_based_datasets(
             filepaths=self.filepaths,
             dataset_class=_CsvLazyDataset,
-            feature_list=self.feature_list,
+            feature_list=self.initial_feature_list,
             chunk_size=self.chunk_size,
             **self.kwargs
         )
-
-    def _preprocess_dataset(self) -> None:
-        """Preprocess the dataset."""
-        for dataset in self.dataset.datasets:
-            feature_fn_dataset = lambda sample: sample[dataset.feature_mapping[
-            self.feature_list].values]
-            for index in dataset.cache:
-                dataset.cache[index] = self.transform_fn(
-                    feature_fn_dataset(dataset.cache[index])
-                )
 
 
 class _TableEagerDataset(_TableDataset):
@@ -196,12 +200,6 @@ class _TableEagerDataset(_TableDataset):
         self.dataset = concatenate_file_based_datasets(
             filepaths=self.filepaths,
             dataset_class=_CsvEagerDataset,
-            feature_list=self.feature_list,
+            feature_list=self.initial_feature_list,
             **self.kwargs
         )
-
-    def _preprocess_dataset(self) -> None:
-        """Preprocess the dataset."""
-        feature_fn_eager = lambda sample: sample[self.feature_list]
-        for dataset in self.dataset.datasets:
-            dataset.df = self.transform_fn(feature_fn_eager(dataset.df))

@@ -67,6 +67,7 @@ class GeneExpressionDataset(DatasetDelegator):
             chunk_size=chunk_size,
             **kwargs
         )
+        # if it was not passed, gene_list is common subset in files.
         self.gene_list = self.dataset.feature_list
         self.number_of_features = len(self.gene_list)
         DatasetDelegator.__init__(self)  # delegate to self.dataset

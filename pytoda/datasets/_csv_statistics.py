@@ -1,18 +1,24 @@
 """Abstract implementation of _CsvStatistics."""
 import copy
+from functools import reduce
+from typing import OrderedDict
+
 import numpy as np
 import pandas as pd
-from functools import reduce
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from ..types import List, Tuple, FeatureList
+
+from ..types import Callable, CallableOnSource, FeatureList, List, Tuple
 
 
 class _CsvStatistics:
     """.csv abstract setup for dataset statistics."""
 
     def __init__(
-        self, filepath: str, feature_list: FeatureList = None,
-        pandas_dtype=None, **kwargs
+        self,
+        filepath: str,
+        feature_list: FeatureList = None,
+        pandas_dtype=None,
+        **kwargs
     ) -> None:
         """
         Initialize a .csv dataset.
@@ -27,48 +33,117 @@ class _CsvStatistics:
 
         """
         self.filepath = filepath
-        self.feature_list = feature_list  # inital, will be set with datasource
+        self.initial_feature_list = feature_list  # see `setup_datasource`
         self.min_max_scaler = MinMaxScaler()
         self.standardizer = StandardScaler()
         self.kwargs = copy.deepcopy(kwargs)
         self.kwargs['dtype'] = pandas_dtype
 
-        self.preprocess_df = self._reindex if self.feature_list else self._id
-        self.feature_mapping = self.setup_datasource()
+        self.preprocess_df = (
+            # may be applied to many chunks, so logic is determined once here
+            self._reindex if self.initial_feature_list else self._id
+        )
+        self.setup_datasource()
+
         self.max = self.min_max_scaler.data_max_
         self.min = self.min_max_scaler.data_min_
         self.mean = self.standardizer.mean_
         self.std = self.standardizer.scale_
 
     def _reindex(self, df: pd.DataFrame) -> pd.DataFrame:
-        # NOTE: NaN from introduced features are represented with zeros
-        return df.reindex(columns=self.feature_list, fill_value=0.0)
+        """Missing features are represented with all zeros."""
+        return df.reindex(columns=self.initial_feature_list, fill_value=0.0)
 
     def _id(self, df: pd.DataFrame) -> pd.DataFrame:
         return df
 
-    def setup_datasource(self) -> pd.Series:
+    def setup_datasource(self):
         """
         Setup the datasource and compute statistics.
 
         The dataframe is read, calling `self.preprocess_df` on it and setting
-        up the data as source.
-        Subsequently the definite `self.feature_list` of this datasource is
-        set, and `self.feature_fn` is defined to read full source items
-        (filtered and in order).
-        To read item with a different order or subset of features, use the
-        returned feature_mapping.
+        up the data as source, collecting statistics of the data.
+
+        NOTE:
+        To read item with a different subset and order of features,
+        use the function returned by `get_feature_fn` or use the
+        feature_mapping to ensure integer indexing.
 
         Sets:
-        `self.feature_list`
-        `self.feature_fn`
-
-        Because dataset.feature_mapping[features] is the o
-
-        Returns:
-            pd.Series: feature_mapping of feature name to index in items.
+        feature_list (FeatureList): feature names in this datasource.
+        feature_mapping (pd.Series): maps feature name to index in items.
+        feature_fn (CallableOnSource): function that indexes datasource with
+            the feature_list.
         """
         raise NotImplementedError
+
+    def get_feature_fn(self, feature_list: FeatureList) -> CallableOnSource:
+        """Provides datasource specific indexing.
+
+        Args:
+            feature_list (FeatureList): subset of features to return in order.
+
+        Returns:
+            CallableOnSource: function that indexes datasource with the
+                feature_list.
+        """
+        raise NotImplementedError
+
+    def transform_datasource(
+            self, transform_fn: CallableOnSource, feature_fn: CallableOnSource
+    ):
+        """Apply scaling to the datasource.
+
+        Args:
+            transform_fn (CallableOnSource): transformation on source data.
+            feature_fn (CallableOnSource): function that indexes datasource.
+        """
+        raise NotImplementedError
+
+    def transform_dataset(
+        self, transform_fn: CallableOnSource, feature_list: FeatureList
+    ):
+        """Apply filtering, ordering and scaling to the datasource and update
+        the dataset accordingly.
+
+        Args:
+            transform_fn (CallableOnSource): data scaling function, possibly
+                feature wise.
+            feature_list (FeatureList): subset of features to return in order.
+
+        Sets:
+        feature_list (FeatureList): feature names in this datasource.
+        feature_mapping (pd.Series): maps feature name to index in items.
+        feature_fn (CallableOnSource): function that indexes datasource with
+            the feature_list.
+        """
+        # feature_fn for current state of datasource
+        feature_fn = self.get_feature_fn(feature_list)
+        statistics_indices = self.feature_mapping[feature_list].values
+        # update datasource
+        self.transform_datasource(transform_fn, feature_fn)
+        # update statistics ordering (this could allow inverse transformation)
+        self.max = self.max[statistics_indices]
+        self.min = self.min[statistics_indices]
+        self.mean = self.mean[statistics_indices]
+        self.std = self.std[statistics_indices]
+        # delete outdated scalers
+        try:
+            del self.min_max_scaler
+            del self.standardizer
+        except NameError:
+            pass
+        # update dataset reflecting the transformation
+        self.feature_list = feature_list
+        self.feature_mapping = pd.Series(
+            OrderedDict(
+                [
+                    (feature, index)
+                    for index, feature in enumerate(self.feature_list)
+                ]
+            )
+        )
+        self.feature_fn = self.get_feature_fn(self.feature_list)
 
     def __len__(self) -> int:
         raise NotImplementedError
@@ -76,8 +151,7 @@ class _CsvStatistics:
 
 def reduce_csv_statistics(
     csv_datasets: List[_CsvStatistics],
-    feature_list:
-    FeatureList = None,
+    feature_list: FeatureList = None,
 ) -> Tuple[FeatureList, np.array, np.array, np.array, np.array]:
     """
     Reduce datasets statistics.
@@ -119,11 +193,14 @@ def reduce_csv_statistics(
     else:
         # sorting the strings
         features = sorted(features)
+
+    # features is the definite features_list
+
     maximums, minimums, means, stds, sample_numbers = zip(
         *[
             (
                 # NOTE: here we ensure that we pick the statistics
-                # in the right order via indexes
+                # in the right order via indexes provided by the dataset
                 csv_dataset.max[csv_dataset.feature_mapping[features].values],
                 csv_dataset.min[csv_dataset.feature_mapping[features].values],
                 csv_dataset.mean[csv_dataset.feature_mapping[features].values],

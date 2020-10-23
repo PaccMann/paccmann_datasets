@@ -3,10 +3,11 @@ from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
+
+from ..types import CallableOnSource, FeatureList, Hashable
 from ._cache_datasource import _CacheDatasource
-from .base_dataset import KeyDataset
 from ._csv_statistics import _CsvStatistics
-from ..types import FeatureList, Hashable
+from .base_dataset import KeyDataset
 
 
 class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
@@ -44,12 +45,23 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
         _ = self.kwargs.pop('chunksize', None)  # not passing chunksize twice
         KeyDataset.__init__(self)
 
-    def setup_datasource(self) -> pd.Series:
+    def setup_datasource(self):
         """
         Setup the datasource and compute statistics.
 
-        Returns:
-            pd.Series: feature_mapping of feature name to index in items.
+        The dataframe is read, calling `self.preprocess_df` on it and setting
+        up the data as source, collecting statistics of the data.
+
+        NOTE:
+        To read item with a different subset and order of features,
+        use the function returned by `get_feature_fn` or use the
+        feature_mapping to ensure integer indexing.
+
+        Sets:
+        feature_list (FeatureList): feature names in this datasource.
+        feature_fn (CallableOnSource): function that indexes datasource with
+            the feature_list.
+        feature_mapping (pd.Series): maps feature name to index in items.
         """
         self.key_to_index_mapping = {}
         index = 0
@@ -67,10 +79,9 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
                 self.ordered_keys.append(key)
 
         self.number_of_samples = len(self.ordered_keys)
+
         self.feature_list = chunk.columns.tolist()
-        self.feature_fn = lambda sample: sample[self.feature_mapping[
-            self.feature_list].values]
-        return pd.Series(
+        self.feature_mapping = pd.Series(
             OrderedDict(
                 [
                     (feature, index)
@@ -78,6 +89,36 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
                 ]
             )
         )
+        self.feature_fn = self.get_feature_fn(self.feature_list)
+
+    def get_feature_fn(self, feature_list: FeatureList) -> CallableOnSource:
+        """Provides datasource specific indexing.
+
+        Args:
+            feature_list (FeatureList): subset of features to return in order.
+
+        Returns:
+            CallableOnSource: function that indexes datasource with the
+                feature_list.
+        """
+        indices = self.feature_mapping[feature_list].values
+
+        def feature_fn(sample: np.ndarray) -> np.ndarray:
+            return sample[indices]
+
+        return feature_fn
+
+    def transform_datasource(
+            self, transform_fn: CallableOnSource, feature_fn: CallableOnSource
+    ):
+        """Apply scaling to the datasource.
+
+        Args:
+            transform_fn (CallableOnSource): transformation on source data.
+            feature_fn (CallableOnSource): function that indexes datasource.
+        """
+        for index in self.cache:
+            self.cache[index] = transform_fn(feature_fn(self.cache[index]))
 
     def __len__(self) -> int:
         """Total number of samples."""
