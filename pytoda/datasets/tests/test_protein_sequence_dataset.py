@@ -195,7 +195,7 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
                 )
 
                 random.seed(42)
-                for reverted_sequence in ['KGE', 'EGK', 'EGK', 'EGK']:
+                for reverted_sequence in ['EGK', 'KGE', 'KGE', 'KGE']:
                     token_indexes = (
                         protein_sequence_dataset[0].numpy().flatten().tolist()
                     )
