@@ -218,6 +218,8 @@ class AugmentByReversing(Transform):
             p (float): Probability that reverting occurs.
 
         """
+        if not isinstance(p, float):
+            raise TypeError(f'Please pass float, not {type(p)}.')
         self.p = np.clip(p, 0.0, 1.0)
 
     def __call__(self, sequence: str) -> str:
