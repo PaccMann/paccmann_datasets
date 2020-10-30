@@ -3,7 +3,7 @@ from collections import OrderedDict
 
 import pandas as pd
 
-from ..types import CallableOnSource, FeatureList
+from ..types import CallableOnSource, FeatureList, Optional, Union
 from ._csv_statistics import _CsvStatistics
 from .dataframe_dataset import DataFrameDataset
 
@@ -54,6 +54,7 @@ class _CsvEagerDataset(DataFrameDataset, _CsvStatistics):
         DataFrameDataset.__init__(self, df)
         self.min_max_scaler.fit(self.df.values)
         self.standardizer.fit(self.df.values)
+        self.notna_count = self.df.notna().sum().values
 
         self.feature_list = self.df.columns.tolist()
         self.feature_mapping = pd.Series(
@@ -83,12 +84,19 @@ class _CsvEagerDataset(DataFrameDataset, _CsvStatistics):
         return feature_fn
 
     def transform_datasource(
-            self, transform_fn: CallableOnSource, feature_fn: CallableOnSource
-    ):
+        self,
+        transform_fn: CallableOnSource,
+        feature_fn: CallableOnSource,
+        impute: Optional[float] = None
+    ) -> None:
         """Apply scaling to the datasource.
 
         Args:
             transform_fn (CallableOnSource): transformation on source data.
             feature_fn (CallableOnSource): function that indexes datasource.
+            impute (Optional[float]): NaN imputation with value if
+                given. Defaults to None.
         """
         self.df = transform_fn(feature_fn(self.df))
+        if impute is not None:
+            self.df = self.df.fillna(impute)

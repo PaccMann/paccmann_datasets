@@ -11,7 +11,9 @@ from typing import (
     Mapping,
     Sequence,
     Tuple,
-    Union
+    Union,
+    Optional,
+    OrderedDict
 )
 
 from numpy import ndarray  # np.typing in development

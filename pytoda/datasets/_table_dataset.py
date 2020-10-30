@@ -5,7 +5,7 @@ from functools import partial
 import numpy as np
 import torch
 
-from ..types import FeatureList, Files, Tensor, CsvSourceData
+from ..types import FeatureList, Files, Tensor, CsvSourceData, Optional, Union
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
 from ._csv_statistics import reduce_csv_statistics
@@ -65,6 +65,7 @@ class _TableDataset(DatasetDelegator):
         standardize: bool = True,
         min_max: bool = False,
         processing_parameters: dict = {},
+        impute: Optional[float] = None,
         dtype: torch.dtype = torch.float,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
@@ -85,6 +86,8 @@ class _TableDataset(DatasetDelegator):
                 required order and subset of features has to match that
                 determined by the dataset setup (see `self.feature_list` after
                 initialization). Defaults to {}.
+            impute (Optional[float]): NaN imputation with value if
+                given. Defaults to None.
             dtype (torch.dtype): data type. Defaults to torch.float.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
@@ -159,10 +162,11 @@ class _TableDataset(DatasetDelegator):
                         'max': maximum.tolist()
                     }
             }
-        # Filter, order and transform the datasets
+        # Filter, order and transform the datasets and impute missing values
         for dataset in self.dataset.datasets:
             dataset.transform_dataset(
-                transform_fn=self.transform_fn, feature_list=self.feature_list
+                transform_fn=self.transform_fn, feature_list=self.feature_list,
+                impute=impute
             )
 
     def _setup_dataset(self) -> None:

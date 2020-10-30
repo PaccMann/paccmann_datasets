@@ -1,13 +1,13 @@
 """Abstract implementation of _CsvStatistics."""
 import copy
 from functools import reduce
-from typing import OrderedDict
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
-from ..types import CallableOnSource, FeatureList, List, Tuple
+from ..types import (CallableOnSource, FeatureList, List, Optional,
+                     OrderedDict, Tuple, Union)
 
 
 class _CsvStatistics:
@@ -45,6 +45,7 @@ class _CsvStatistics:
         )
         self.setup_datasource()
 
+        # self.notna_count
         self.max = self.min_max_scaler.data_max_
         self.min = self.min_max_scaler.data_min_
         self.mean = self.standardizer.mean_
@@ -94,18 +95,26 @@ class _CsvStatistics:
         raise NotImplementedError
 
     def transform_datasource(
-        self, transform_fn: CallableOnSource, feature_fn: CallableOnSource
+        self,
+        transform_fn: CallableOnSource,
+        feature_fn: CallableOnSource,
+        impute: Optional[float] = None
     ) -> None:
         """Apply scaling to the datasource.
 
         Args:
             transform_fn (CallableOnSource): transformation on source data.
             feature_fn (CallableOnSource): function that indexes datasource.
+            impute (Optional[float]): NaN imputation with value if
+                given. Defaults to None.
         """
         raise NotImplementedError
 
     def transform_dataset(
-        self, transform_fn: CallableOnSource, feature_list: FeatureList
+        self,
+        transform_fn: CallableOnSource,
+        feature_list: FeatureList,
+        impute: Optional[float] = None
     ) -> None:
         """Apply filtering, ordering and scaling to the datasource and update
         the dataset accordingly.
@@ -114,6 +123,8 @@ class _CsvStatistics:
             transform_fn (CallableOnSource): data scaling function, possibly
                 feature wise.
             feature_list (FeatureList): subset of features to return in order.
+            impute (Optional[float]): NaN imputation with value if
+                given. Defaults to None.
 
         Sets:
         feature_list (FeatureList): feature names in this datasource.
@@ -125,12 +136,13 @@ class _CsvStatistics:
         feature_fn = self.get_feature_fn(feature_list)
         statistics_indices = self.feature_mapping[feature_list].values
         # update datasource
-        self.transform_datasource(transform_fn, feature_fn)
+        self.transform_datasource(transform_fn, feature_fn, impute)
         # update statistics ordering (this could allow inverse transformation)
         self.max = self.max[statistics_indices]
         self.min = self.min[statistics_indices]
         self.mean = self.mean[statistics_indices]
         self.std = self.std[statistics_indices]
+        self.notna_count = self.notna_count[statistics_indices]
         # delete outdated scalers
         try:
             del self.min_max_scaler
@@ -209,31 +221,33 @@ def reduce_csv_statistics(
                 csv_dataset.min[csv_dataset.feature_mapping[features].values],
                 csv_dataset.mean[csv_dataset.feature_mapping[features].values],
                 csv_dataset.std[csv_dataset.feature_mapping[features].values],
-                len(csv_dataset)
+                # len(csv_dataset)
+                csv_dataset.notna_count[
+                    csv_dataset.feature_mapping[features].values]
             ) for csv_dataset in csv_datasets
         ]
     )
     # NOTE: reduce max and min
-    maximum = np.array(maximums).max(axis=0)
-    minimum = np.array(minimums).min(axis=0)
+    maximum = np.nanmax(maximums, axis=0)
+    minimum = np.nanmin(minimums, axis=0)
     # NOTE: reduce the mean
-    total_number_of_samples = float(sum(sample_numbers))
-    mean = np.array(
+    total_number_of_samples = sum(sample_numbers).astype(float)
+    mean = np.nansum(
         [
             dataset_mean * number_of_samples
             for dataset_mean, number_of_samples in zip(means, sample_numbers)
-        ]
-    ).sum(axis=0) / total_number_of_samples
+        ],
+        axis=0
+    ) / total_number_of_samples
     # NOTE: reduce the std
     std = np.sqrt(
-        (
-            np.array(
-                [
-                    (dataset_std**2 + dataset_mean**2) * number_of_samples
-                    for dataset_std, dataset_mean, number_of_samples in
-                    zip(stds, means, sample_numbers)
-                ]
-            ).sum(axis=0) / total_number_of_samples - mean**2
-        )
+        np.nansum(
+            [
+                (dataset_std**2 + dataset_mean**2) * number_of_samples
+                for dataset_std, dataset_mean, number_of_samples in
+                zip(stds, means, sample_numbers)
+            ],
+            axis=0
+        ) / total_number_of_samples - mean**2
     )
     return (features, maximum, minimum, mean, std)

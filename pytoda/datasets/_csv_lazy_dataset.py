@@ -4,7 +4,7 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 
-from ..types import CallableOnSource, FeatureList, Hashable
+from ..types import CallableOnSource, FeatureList, Hashable, Optional, Union
 from ._cache_datasource import _CacheDatasource
 from ._csv_statistics import _CsvStatistics
 from .base_dataset import KeyDataset
@@ -66,12 +66,17 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
         self.key_to_index_mapping = {}
         index = 0
         self.ordered_keys = []
+        # look ahead for row length
+        chunk = next(pd.read_csv(self.filepath, chunksize=1, **self.kwargs))
+        self.notna_count = np.array([0] * self.preprocess_df(chunk).shape[1])
+
         for chunk in pd.read_csv(
             self.filepath, chunksize=self.chunk_size, **self.kwargs
         ):
             chunk = self.preprocess_df(chunk)
             self.min_max_scaler.partial_fit(chunk.values)
             self.standardizer.partial_fit(chunk.values)
+            self.notna_count += chunk.notna().sum().values
             for key, row in chunk.iterrows():
                 self.cache[index] = row.values
                 self.key_to_index_mapping[key] = index
@@ -109,16 +114,24 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
         return feature_fn
 
     def transform_datasource(
-            self, transform_fn: CallableOnSource, feature_fn: CallableOnSource
-    ):
+        self, transform_fn: CallableOnSource, feature_fn: CallableOnSource,
+        impute: Optional[float] = None
+    ) -> None:
         """Apply scaling to the datasource.
 
         Args:
             transform_fn (CallableOnSource): transformation on source data.
             feature_fn (CallableOnSource): function that indexes datasource.
+            impute (Optional[float]): NaN imputation with value if
+                given. Defaults to None.
         """
-        for index in self.cache:
-            self.cache[index] = transform_fn(feature_fn(self.cache[index]))
+        if impute is None:
+            for index in self.cache:
+                self.cache[index] = transform_fn(feature_fn(self.cache[index]))
+        else:
+            for index in self.cache:
+                transformed = transform_fn(feature_fn(self.cache[index]))
+                self.cache[index] = np.nan_to_num(transformed, impute)
 
     def __len__(self) -> int:
         """Total number of samples."""

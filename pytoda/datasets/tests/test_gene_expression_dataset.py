@@ -109,7 +109,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
             TestFileContent(self.other_content) as another_test_file \
         :
             # feature not in data is filled with zeros
-            feature_list = ['C', 'D', 'B', 'E', 'all_missing']
+            feature_list = ['E', 'C', 'D', 'B', 'all_missing']
             standard_dataset = GeneExpressionDataset(
                 a_test_file.filename,
                 another_test_file.filename,
@@ -117,7 +117,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                 backend=self.backend,
                 index_col=0
             )
-            # NOTE: numpy and pytoda use ddof of 0, whereas pandas default is 1
+            self.assertEqual(standard_dataset[0][-1], 0)
 
             gene_list = standard_dataset.gene_list
             df = pd.concat(
@@ -152,6 +152,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     standardize=True,
                     min_max=False,
                     processing_parameters=processing_parameters,
+                    impute=None,
                 )
 
                 # collect flat values
@@ -162,6 +163,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
 
             mean_array = df.mean().values
             std_array = df.std(ddof=0).values
+            # NOTE: numpy and pytoda use ddof of 0, whereas pandas default is 1
             for mean, std in [
                 # list
                 [mean_array.tolist(), std_array.tolist()],
@@ -181,6 +183,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     standardize=True,
                     min_max=False,
                     processing_parameters=processing_parameters,
+                    impute=None,
                 )
 
                 # collect transformed values
@@ -190,9 +193,10 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                 ds_stds = np.nanstd(ds_2d, axis=0)
 
                 # debug std
-                standard_ds.std
-                std_array        # == df.std(ddof=0).values
-                df.std().values  # == df.std(ddof=1).values
+                # standard_ds.std
+                # std_array        # == df.std(ddof=0).values
+                # df.std().values  # == df.std(ddof=1).values
+
                 for index, feature in enumerate(standard_ds.gene_list):
                     if feature == 'all_missing':
                         # no features at all so transformed stat is nan
