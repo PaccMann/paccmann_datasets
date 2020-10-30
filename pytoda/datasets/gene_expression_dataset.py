@@ -40,7 +40,11 @@ class GeneExpressionDataset(DatasetDelegator):
             standardize (bool): perform data standardization. Defaults to True.
             min_max (bool): perform min-max scaling. Defaults to False.
             processing_parameters (dict): processing parameters.
-                Defaults to {}.
+                Keys can be 'min', 'max' or 'mean', 'std'
+                respectively. Values must be readable by `np.array`, and the
+                required order and subset of features has to match that
+                determined by the dataset setup (see `self.gene_list` after
+                initialization). Defaults to {}.
             dtype (torch.dtype): data type. Defaults to torch.float.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.

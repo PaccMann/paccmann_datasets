@@ -13,6 +13,26 @@ from .base_dataset import DatasetDelegator
 from .utils import concatenate_file_based_datasets
 
 
+# https://github.com/scikit-learn/scikit-learn/blob/0fb307bf39bbdacd6ed713c00724f8f871d60370/sklearn/preprocessing/_data.py#L63
+def _handle_zeros_in_scale(scale, copy=True):
+    """
+    This method is copied `from sklearn.preprocessing._data`
+    Makes sure that whenever scale is zero, we handle it correctly.
+    This happens in most scalers when we have constant features.
+    """
+    # if we are fitting on 1D arrays, scale might be a scalar
+    if np.isscalar(scale):
+        if scale == .0:
+            scale = 1.
+        return scale
+    elif isinstance(scale, np.ndarray):
+        if copy:
+            # New array to avoid side-effects
+            scale = scale.copy()
+        scale[scale == 0.0] = 1.0
+        return scale
+
+
 def transform_not(data: CsvSourceData):
     return data
 
@@ -20,13 +40,14 @@ def transform_not(data: CsvSourceData):
 def transform_standardize(
     data: CsvSourceData, mean: np.ndarray, std: np.ndarray
 ):
-    return (data - mean) / std
+    return (data - mean) / _handle_zeros_in_scale(std, copy=False)
 
 
 def transform_minmax(
     data: CsvSourceData, minimum: np.ndarray, maximum: np.ndarray
 ):
-    return (data - minimum) / (maximum - minimum)
+    return (data -
+            minimum) / _handle_zeros_in_scale(maximum - minimum, copy=False)
 
 
 class _TableDataset(DatasetDelegator):
@@ -60,8 +81,10 @@ class _TableDataset(DatasetDelegator):
             min_max (bool): perform min-max scaling. Defaults to False.
             processing_parameters (dict): processing parameters.
                 Keys can be 'min', 'max' or 'mean', 'std'
-                respectively. Values must be readable by `np.array`.
-                Defaults to {}.
+                respectively. Values must be readable by `np.array`, and the
+                required order and subset of features has to match that
+                determined by the dataset setup (see `self.feature_list` after
+                initialization). Defaults to {}.
             dtype (torch.dtype): data type. Defaults to torch.float.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
@@ -139,8 +162,7 @@ class _TableDataset(DatasetDelegator):
         # Filter, order and transform the datasets
         for dataset in self.dataset.datasets:
             dataset.transform_dataset(
-                transform_fn=self.transform_fn,
-                feature_list=self.feature_list
+                transform_fn=self.transform_fn, feature_list=self.feature_list
             )
 
     def _setup_dataset(self) -> None:

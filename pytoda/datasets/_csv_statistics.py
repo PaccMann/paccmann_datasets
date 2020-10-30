@@ -52,7 +52,11 @@ class _CsvStatistics:
 
     def _reindex(self, df: pd.DataFrame) -> pd.DataFrame:
         """Missing features are represented with all zeros."""
-        return df.reindex(columns=self.initial_feature_list, fill_value=0.0)
+        # fill = 0.0
+        # fills with NaN TODO docs
+        return df.reindex(
+            columns=self.initial_feature_list  # , fill_value=fill
+        )
 
     def _id(self, df: pd.DataFrame) -> pd.DataFrame:
         return df
@@ -90,8 +94,8 @@ class _CsvStatistics:
         raise NotImplementedError
 
     def transform_datasource(
-            self, transform_fn: CallableOnSource, feature_fn: CallableOnSource
-    ):
+        self, transform_fn: CallableOnSource, feature_fn: CallableOnSource
+    ) -> None:
         """Apply scaling to the datasource.
 
         Args:
@@ -102,7 +106,7 @@ class _CsvStatistics:
 
     def transform_dataset(
         self, transform_fn: CallableOnSource, feature_list: FeatureList
-    ):
+    ) -> None:
         """Apply filtering, ordering and scaling to the datasource and update
         the dataset accordingly.
 
