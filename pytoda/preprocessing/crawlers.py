@@ -128,7 +128,7 @@ def get_smiles_from_pubchem(
             return smiles
         except urllib_error.HTTPError:
             if option == 'CanonicalSMILES':
-                logger.warninig(f'Did not find any result for drug: {drug}')
+                logger.warning(f'Did not find any result for drug: {drug}')
                 return []
             continue
 
