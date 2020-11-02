@@ -3,7 +3,7 @@ from collections import OrderedDict
 
 import pandas as pd
 
-from ..types import CallableOnSource, FeatureList, Optional, Union
+from ..types import CallableOnSource, FeatureList, Optional
 from ._csv_statistics import _CsvStatistics
 from .dataframe_dataset import DataFrameDataset
 

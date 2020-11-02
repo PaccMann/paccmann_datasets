@@ -6,7 +6,6 @@ import pandas as pd
 from torch.utils.data import DataLoader
 from pytoda.datasets import GeneExpressionDataset
 from pytoda.tests.utils import TestFileContent
-from pytoda.datasets._table_dataset import transform_standardize, transform_minmax
 
 CONTENT = os.linesep.join(
     [

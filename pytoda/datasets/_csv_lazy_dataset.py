@@ -4,7 +4,7 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 
-from ..types import CallableOnSource, FeatureList, Hashable, Optional, Union
+from ..types import CallableOnSource, FeatureList, Hashable, Optional
 from ._cache_datasource import _CacheDatasource
 from ._csv_statistics import _CsvStatistics
 from .base_dataset import KeyDataset

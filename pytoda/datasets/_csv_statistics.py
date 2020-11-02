@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
 from ..types import (CallableOnSource, FeatureList, List, Optional,
-                     OrderedDict, Tuple, Union)
+                     OrderedDict, Tuple)
 
 
 class _CsvStatistics:
@@ -52,11 +52,9 @@ class _CsvStatistics:
         self.std = self.standardizer.scale_
 
     def _reindex(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Missing features are represented with all zeros."""
-        # fill = 0.0
-        # fills with NaN TODO docs
+        """Ensure given order of features, creating NaN columns for missing."""
         return df.reindex(
-            columns=self.initial_feature_list  # , fill_value=fill
+            columns=self.initial_feature_list, fill_value=np.NaN
         )
 
     def _id(self, df: pd.DataFrame) -> pd.DataFrame:
