@@ -54,7 +54,7 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
 
         except urllib_error.HTTPError:
             logger.warning(f'Did not find any result for drug: {drug}')
-            return []
+            return ''
 
     elif type(drug) == int:
         zinc_id = str(drug)
@@ -129,7 +129,7 @@ def get_smiles_from_pubchem(
         except urllib_error.HTTPError:
             if option == 'CanonicalSMILES':
                 logger.warning(f'Did not find any result for drug: {drug}')
-                return []
+                return ''
             continue
 
 
