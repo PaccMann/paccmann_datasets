@@ -85,7 +85,7 @@ class TestCrawlers(unittest.TestCase):
         ]
         ground_truths = [(True, 67945516), (False, -1), (False, -1)]
         for gt, smiles in zip(ground_truths, smiles_list):
-            self.assertTupleEqual(query_pubchem(smiles, return_id=True), gt)
+            self.assertTupleEqual(query_pubchem(smiles), gt)
 
     def test_remove_pubchem_smiles(self) -> None:
         """Test remove_pubchem_smiles"""
