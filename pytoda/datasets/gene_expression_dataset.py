@@ -2,7 +2,7 @@
 import torch
 from .base_dataset import DatasetDelegator
 from ._table_dataset import _TableEagerDataset, _TableLazyDataset
-from ..types import Files, GeneList
+from ..types import Files, GeneList, Optional
 
 TABLE_DATASET_IMPLEMENTATIONS = {
     'eager': _TableEagerDataset,
@@ -22,6 +22,7 @@ class GeneExpressionDataset(DatasetDelegator):
         standardize: bool = True,
         min_max: bool = False,
         processing_parameters: dict = {},
+        impute: Optional[float] = 0.0,
         dtype: torch.dtype = torch.float,
         device: torch.device = torch.
         device('cuda' if torch.cuda.is_available() else 'cpu'),
@@ -40,7 +41,13 @@ class GeneExpressionDataset(DatasetDelegator):
             standardize (bool): perform data standardization. Defaults to True.
             min_max (bool): perform min-max scaling. Defaults to False.
             processing_parameters (dict): processing parameters.
-                Defaults to {}.
+                Keys can be 'min', 'max' or 'mean', 'std'
+                respectively. Values must be readable by `np.array`, and the
+                required order and subset of features has to match that
+                determined by the dataset setup (see `self.gene_list` after
+                initialization). Defaults to {}.
+            impute (Optional[float]): NaN imputation with value if
+                given. Defaults to 0.0.
             dtype (torch.dtype): data type. Defaults to torch.float.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
@@ -62,11 +69,13 @@ class GeneExpressionDataset(DatasetDelegator):
             standardize=standardize,
             min_max=min_max,
             processing_parameters=processing_parameters,
+            impute=impute,
             dtype=dtype,
             device=device,
             chunk_size=chunk_size,
             **kwargs
         )
+        # if it was not passed, gene_list is common subset in files.
         self.gene_list = self.dataset.feature_list
         self.number_of_features = len(self.gene_list)
         DatasetDelegator.__init__(self)  # delegate to self.dataset

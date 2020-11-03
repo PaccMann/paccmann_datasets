@@ -9,7 +9,7 @@ from pytoda.tests.utils import TestFileContent
 
 CONTENT = os.linesep.join(
     [
-        'genes,A,B,C,D',
+        'genes,A,C,B,D',
         'sample_3,9.45,4.984,7.016,8.336',
         'sample_2,7.188,0.695,10.34,6.047',
         'sample_1,9.25,6.133,5.047,5.6',
@@ -68,16 +68,249 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                 gene_list = gene_expression_dataset.gene_list
                 mean = df.mean()[gene_list].values
                 std = df.std(ddof=0)[gene_list].values
-                np.testing.assert_almost_equal(
-                    gene_expression_dataset[4].numpy(),
-                    (df[gene_list].iloc[4].values - mean) / std, 5
-                )
+                for i, (key, row) in enumerate(df[gene_list].iterrows()):
+                    np.testing.assert_almost_equal(
+                        gene_expression_dataset[i].numpy(),
+                        (row.values - mean) / std, 5
+                    )
                 np.testing.assert_almost_equal(
                     gene_expression_dataset.mean, mean, 5
                 )
                 np.testing.assert_almost_equal(
                     gene_expression_dataset.std, std, 5
                 )
+
+                gene_expression_dataset = GeneExpressionDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    backend=self.backend,
+                    index_col=0,
+                    standardize=False,
+                    min_max=True,
+                )
+                minimum = df.min()[gene_list].values
+                maximum = df.max()[gene_list].values
+                diff = maximum - minimum
+                for i, (key, row) in enumerate(df[gene_list].iterrows()):
+                    np.testing.assert_almost_equal(
+                        gene_expression_dataset[i].numpy(),
+                        (row.values - minimum) / diff, 5
+                    )
+                np.testing.assert_almost_equal(
+                    gene_expression_dataset.min, minimum, 5
+                )
+                np.testing.assert_almost_equal(
+                    gene_expression_dataset.max, maximum, 5
+                )
+
+    def test_processing_parameters_standardize_reindex(self) -> None:
+        with TestFileContent(self.content) as a_test_file, \
+            TestFileContent(self.other_content) as another_test_file \
+        :
+            # feature not in data is filled with zeros
+            feature_list = ['E', 'C', 'D', 'B', 'all_missing']
+            standard_dataset = GeneExpressionDataset(
+                a_test_file.filename,
+                another_test_file.filename,
+                gene_list=feature_list,
+                backend=self.backend,
+                index_col=0
+            )
+            self.assertEqual(standard_dataset[0][-1], 0)
+
+            gene_list = standard_dataset.gene_list
+            df = pd.concat(
+                [
+                    pd.read_csv(a_test_file.filename, index_col=0),
+                    pd.read_csv(another_test_file.filename, index_col=0),
+                ],
+                sort=False
+            ).reindex(columns=gene_list)  # , fill_value=0.0)
+
+            # scalar scaling (single max and min)
+            flat = df.values.flatten()
+            # allow nan
+            mean_float = np.nanmean(flat)
+            std_float = np.nanstd(flat)
+            for mean, std in [
+                # scalar
+                [mean_float, std_float],
+                # list length 1
+                [[mean_float], [std_float]],
+            ]:
+                processing_parameters = {
+                    'mean': mean,
+                    'std': std,
+                }
+                standard_ds = GeneExpressionDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    gene_list=feature_list,
+                    backend=self.backend,
+                    index_col=0,
+                    standardize=True,
+                    min_max=False,
+                    processing_parameters=processing_parameters,
+                    impute=None,
+                )
+
+                # collect flat values
+                ds_1d = np.concatenate([item.numpy() for item in standard_ds])
+                # allowing/ignoring nan
+                np.testing.assert_almost_equal(np.nanmean(ds_1d), 0)
+                np.testing.assert_almost_equal(np.nanstd(ds_1d), 1)
+
+            mean_array = df.mean().values
+            std_array = df.std(ddof=0).values
+            # NOTE: numpy and pytoda use ddof of 0, whereas pandas default is 1
+            for mean, std in [
+                # list
+                [mean_array.tolist(), std_array.tolist()],
+                # ndarray
+                [mean_array, std_array],
+            ]:
+                processing_parameters = {
+                    'mean': mean,
+                    'std': std,
+                }
+                standard_ds = GeneExpressionDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    gene_list=feature_list,
+                    backend=self.backend,
+                    index_col=0,
+                    standardize=True,
+                    min_max=False,
+                    processing_parameters=processing_parameters,
+                    impute=None,
+                )
+
+                # collect transformed values
+                ds_2d = np.stack([item.numpy() for item in standard_ds])
+                # contains nan
+                ds_means = np.nanmean(ds_2d, axis=0)
+                ds_stds = np.nanstd(ds_2d, axis=0)
+
+                # debug std
+                # standard_ds.std
+                # std_array        # == df.std(ddof=0).values
+                # df.std().values  # == df.std(ddof=1).values
+
+                for index, feature in enumerate(standard_ds.gene_list):
+                    if feature == 'all_missing':
+                        # no features at all so transformed stat is nan
+                        self.assertTrue(np.isnan(ds_means[index]))
+                        self.assertTrue(np.isnan(ds_stds[index]))
+                        # original stats are also nan
+                        np.testing.assert_almost_equal(
+                            standard_ds.mean[index], df[feature].mean()
+                        )
+                        np.testing.assert_almost_equal(
+                            standard_ds.std[index], df[feature].std(ddof=0)
+                        )
+                        continue
+
+                    # note some NaN values 'E' still have statistics
+                    # TODO our reduce statistics has to cope with some NaN!
+                    # until then 'E' fails
+
+                    # check transformed std / mean are 1 and 0 per feature
+                    np.testing.assert_almost_equal(ds_means[index], 0)
+                    np.testing.assert_almost_equal(ds_stds[index], 1)
+                    # external statisic matches internally used statistics
+                    np.testing.assert_almost_equal(
+                        standard_ds.mean[index], df[feature].mean()
+                    )
+                    np.testing.assert_almost_equal(
+                        standard_ds.std[index], df[feature].std(ddof=0)
+                    )
+                    # order of reduced means matches order in
+
+    def test_processing_parameters_minmax(self) -> None:
+        with TestFileContent(self.content) as a_test_file, \
+            TestFileContent(self.other_content) as another_test_file \
+        :
+            minmax_dataset = GeneExpressionDataset(
+                a_test_file.filename,
+                another_test_file.filename,
+                backend=self.backend,
+                index_col=0,
+                standardize=False,
+                min_max=True,
+            )
+            gene_list = minmax_dataset.gene_list
+            df = pd.concat(
+                [
+                    pd.read_csv(a_test_file.filename, index_col=0),
+                    pd.read_csv(another_test_file.filename, index_col=0),
+                ],
+                sort=False
+            )[gene_list]
+
+            # with min max scaling we can check for values 0 and 1
+            maximum_array = df.max().values
+            minimum_array = df.min().values
+
+            # scalar scaling (single max and min)
+            max_n, max_p = map(
+                int, np.unravel_index(np.argmax(df.values), df.shape)
+            )
+            min_n, min_p = map(
+                int, np.unravel_index(np.argmin(df.values), df.shape)
+            )
+            for maximum, minimum in [
+                # scalar
+                [np.max(maximum_array),
+                 np.min(minimum_array)],
+                # list length 1
+                [[np.max(maximum_array)], [np.min(minimum_array)]],
+            ]:
+                processing_parameters = {
+                    'max': maximum,
+                    'min': minimum,
+                }
+                minmax_ds = GeneExpressionDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    backend=self.backend,
+                    index_col=0,
+                    standardize=False,
+                    min_max=True,
+                    processing_parameters=processing_parameters,
+                )
+
+                self.assertEqual(minmax_ds[max_n][max_p], 1)
+                self.assertEqual(minmax_ds[min_n][min_p], 0)
+
+            # array scaling (feature wise max and min)
+            max_indeces = map(int, np.argmax(df.values, axis=0))
+            min_indeces = map(int, np.argmin(df.values, axis=0))
+
+            for maximum, minimum in [
+                # list
+                [maximum_array.tolist(),
+                 minimum_array.tolist()],
+                # ndarray
+                [maximum_array, minimum_array]
+            ]:
+                processing_parameters = {
+                    'max': maximum,
+                    'min': minimum,
+                }
+                minmax_ds = GeneExpressionDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    backend=self.backend,
+                    index_col=0,
+                    standardize=False,
+                    min_max=True,
+                    processing_parameters=processing_parameters,
+                )
+                # check max_index / min_index are 1 and 0 per feature
+                for feature_index, sample_index in enumerate(max_indeces):
+                    self.assertEqual(minmax_ds[sample_index][feature_index], 1)
+                for feature_index, sample_index in enumerate(min_indeces):
+                    self.assertEqual(minmax_ds[sample_index][feature_index], 0)
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
@@ -130,9 +363,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     index_col=0
                 )
                 gene_expression_ds_0 = GeneExpressionDataset(
-                    a_test_file.filename,
-                    backend=self.backend,
-                    index_col=0
+                    a_test_file.filename, backend=self.backend, index_col=0
                 )
                 gene_expression_ds_1 = GeneExpressionDataset(
                     another_test_file.filename,
@@ -140,9 +371,8 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     index_col=0
                 )
         all_keys = [
-            row.split(',')[0]
-            for row in
-            self.content.split('\n')[1:] + self.other_content.split('\n')[1:]
+            row.split(',')[0] for row in self.content.split('\n')[1:] +
+            self.other_content.split('\n')[1:]
         ]
 
         for ds, keys in [
@@ -169,7 +399,9 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
             self.assertTrue(gene_expression_dataset.has_duplicate_keys)
 
 
-class TestGeneExpressionDatasetLazyBackend(TestGeneExpressionDatasetEagerBackend):  # noqa
+class TestGeneExpressionDatasetLazyBackend(
+    TestGeneExpressionDatasetEagerBackend
+):  # noqa
     """Testing GeneExpressionDataset with lazy backend."""
 
     def setUp(self):
