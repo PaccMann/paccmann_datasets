@@ -16,3 +16,4 @@ dependencies:
     - upfp==0.0.4
     - SmilesPE>=0.0.3
     - pyfaidx==0.5.8
+    - pubchempy==1.0.4

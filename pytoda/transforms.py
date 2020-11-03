@@ -210,6 +210,18 @@ class Randomize(Transform):
 class AugmentByReversing(Transform):
     """Augment an sequence by (eventually) flipping order"""
 
+    def __init__(self, p: float = 0.5) -> None:
+        """
+        AugmentByReversing constructor.
+
+        Args:
+            p (float): Probability that reverting occurs.
+
+        """
+        if not isinstance(p, float):
+            raise TypeError(f'Please pass float, not {type(p)}.')
+        self.p = np.clip(p, 0.0, 1.0)
+
     def __call__(self, sequence: str) -> str:
         """
         Apply the transform.
@@ -220,7 +232,7 @@ class AugmentByReversing(Transform):
         Returns:
             str: Either the sequence itself, or the revesed sequence.
         """
-        return sequence[::-1] if round(random.random()) else sequence
+        return sequence[::-1] if random.random() < self.p else sequence
 
 
 class Compose(Transform):

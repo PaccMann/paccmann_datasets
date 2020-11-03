@@ -50,12 +50,17 @@ def read_smi(
         pd.DataFrame: a pd.DataFrame containing the data of the .smi file
             where the index is the index_col column.
     """
-
-    return pd.read_csv(
-        filepath,
-        sep='\t',
-        header=None,
-        index_col=index_col,
-        names=names,
-        chunksize=chunk_size
-    )
+    try:
+        return pd.read_csv(
+            filepath,
+            sep='\t',
+            header=None,
+            index_col=index_col,
+            names=names,
+            chunksize=chunk_size
+        )
+    except IndexError:
+        raise IndexError(
+            'Pandas does not understand the .smi file. The most common '
+            'reason is a wrong delimiter (has to be \\t)'
+        )

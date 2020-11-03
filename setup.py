@@ -42,7 +42,7 @@ setup(
     license='MIT',
     install_requires=[
         'numpy', 'scikit-learn', 'pandas', 'torch>=1.0.0', 'diskcache', 'dill',
-        'selfies>=1.0.2', 'upfp', 'SmilesPE>=0.0.3', 'pyfaidx'
+        'selfies>=1.0.2', 'upfp', 'SmilesPE>=0.0.3', 'pyfaidx', 'pubchempy'
     ],
     classifiers=[
         'Intended Audience :: Developers',
@@ -53,9 +53,12 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules'
     ],
     packages=find_packages(),
-    package_data={'pytoda.smiles.metadata': [
-        'spe_chembl.txt', 'ATTRIBUTION', 'README.md',
-        'tokenizer_chembl_gdsc_ccle_tox21_zinc_organdb_bindingdb/*'
-    ]},
+    package_data={
+        'pytoda.smiles.metadata':
+            [
+                'spe_chembl.txt', 'ATTRIBUTION', 'README.md',
+                'tokenizer_chembl_gdsc_ccle_tox21_zinc_organdb_bindingdb/*'
+            ]
+    },
     scripts=scripts
 )
