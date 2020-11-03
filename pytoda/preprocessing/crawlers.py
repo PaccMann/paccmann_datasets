@@ -147,7 +147,7 @@ def remove_pubchem_smiles(smiles_list: Iterable[str]) -> List:
         raise TypeError(f'Please pass Iterable, not {type(smiles_list)}')
 
     canonicalizer = Canonicalization(sanitize=False)
-    filtered = filterfalse(lambda x: is_pubchem(x), smiles_list)
+    filtered = filterfalse(is_pubchem, smiles_list)
     # Canonicalize molecules and filter again (sanity check)
     filtered_canonical = filterfalse(
         lambda x: is_pubchem(canonicalizer(x)), filtered
