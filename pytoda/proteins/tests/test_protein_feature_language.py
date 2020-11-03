@@ -4,7 +4,12 @@ import unittest
 
 from upfp import parse_fasta
 
-from pytoda.proteins.processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62, BLOSUM62_NORM
+from pytoda.proteins.processing import (
+    AA_PROPERTIES_NUM,
+    AA_FEAT,
+    BLOSUM62,
+    BLOSUM62_NORM,
+)
 from pytoda.proteins.protein_feature_language import ProteinFeatureLanguage
 from pytoda.tests.utils import TestFileContent
 
@@ -37,14 +42,7 @@ class TestProteinFeatureLanguage(unittest.TestCase):
 
     def test_add_file(self) -> None:
         """Test add_file"""
-        content = os.linesep.join(
-            [
-                'EGK	ID3',
-                'S	ID1',
-                'FGAAV	ID2',
-                'NCCS	ID4',
-            ]
-        )
+        content = os.linesep.join(['EGK	ID3', 'S	ID1', 'FGAAV	ID2', 'NCCS	ID4'])
         with TestFileContent(content) as a_test_file:
             protein_language = ProteinFeatureLanguage()
             protein_language.add_file(a_test_file.filename, index_col=1)
@@ -73,51 +71,65 @@ class TestProteinFeatureLanguage(unittest.TestCase):
         protein_language.add_sequence(sequence)
         self.assertListEqual(
             protein_language.sequence_to_token_indexes(sequence),
-            [BLOSUM62['C'], BLOSUM62['G'], BLOSUM62['X']]
+            [BLOSUM62['C'], BLOSUM62['G'], BLOSUM62['X']],
         )
         protein_language = ProteinFeatureLanguage(add_start_and_stop=True)
         protein_language.add_sequence(sequence)
         self.assertListEqual(
-            protein_language.sequence_to_token_indexes(sequence), [
-                BLOSUM62['<START>'], BLOSUM62['C'], BLOSUM62['G'],
-                BLOSUM62['X'], BLOSUM62['<STOP>']
-            ]
+            protein_language.sequence_to_token_indexes(sequence),
+            [
+                BLOSUM62['<START>'],
+                BLOSUM62['C'],
+                BLOSUM62['G'],
+                BLOSUM62['X'],
+                BLOSUM62['<STOP>'],
+            ],
         )
         # Other dictionary
         # Normed blosum
-        protein_language = ProteinFeatureLanguage(add_start_and_stop=False, features='blosum_norm')
+        protein_language = ProteinFeatureLanguage(
+            add_start_and_stop=False, features='blosum_norm'
+        )
         protein_language.add_sequence(sequence)
         self.assertListEqual(
             protein_language.sequence_to_token_indexes(sequence),
-            [BLOSUM62_NORM['C'], BLOSUM62_NORM['G'], BLOSUM62_NORM['X']]
+            [BLOSUM62_NORM['C'], BLOSUM62_NORM['G'], BLOSUM62_NORM['X']],
         )
-        protein_language = ProteinFeatureLanguage(add_start_and_stop=True, features='blosum_norm')
+        protein_language = ProteinFeatureLanguage(
+            add_start_and_stop=True, features='blosum_norm'
+        )
         protein_language.add_sequence(sequence)
         self.assertListEqual(
-            protein_language.sequence_to_token_indexes(sequence), [
-                BLOSUM62_NORM['<START>'], BLOSUM62_NORM['C'], BLOSUM62_NORM['G'],
-                BLOSUM62_NORM['X'], BLOSUM62_NORM['<STOP>']
-            ]
+            protein_language.sequence_to_token_indexes(sequence),
+            [
+                BLOSUM62_NORM['<START>'],
+                BLOSUM62_NORM['C'],
+                BLOSUM62_NORM['G'],
+                BLOSUM62_NORM['X'],
+                BLOSUM62_NORM['<STOP>'],
+            ],
         )
         protein_language = ProteinFeatureLanguage(
             add_start_and_stop=False, features='binary_features'
         )
         protein_language.add_sequence(sequence)
         self.assertListEqual(
-            protein_language.sequence_to_token_indexes(sequence), [
-                AA_PROPERTIES_NUM['C'], AA_PROPERTIES_NUM['G'],
-                AA_PROPERTIES_NUM['X']
-            ]
+            protein_language.sequence_to_token_indexes(sequence),
+            [AA_PROPERTIES_NUM['C'], AA_PROPERTIES_NUM['G'], AA_PROPERTIES_NUM['X']],
         )
         protein_language = ProteinFeatureLanguage(
             add_start_and_stop=True, features='float_features'
         )
         protein_language.add_sequence(sequence)
         self.assertListEqual(
-            protein_language.sequence_to_token_indexes(sequence), [
-                AA_FEAT['<START>'], AA_FEAT['C'], AA_FEAT['G'], AA_FEAT['X'],
-                AA_FEAT['<STOP>']
-            ]
+            protein_language.sequence_to_token_indexes(sequence),
+            [
+                AA_FEAT['<START>'],
+                AA_FEAT['C'],
+                AA_FEAT['G'],
+                AA_FEAT['X'],
+                AA_FEAT['<STOP>'],
+            ],
         )
 
     def test_token_indexes_to_sequence(self) -> None:
@@ -125,15 +137,14 @@ class TestProteinFeatureLanguage(unittest.TestCase):
         sequence = 'CGX'
         protein_language = ProteinFeatureLanguage()
         protein_language.add_sequence(sequence)
-        token_indexes = [
-            protein_language.token_to_index[token] for token in sequence
-        ]
+        token_indexes = [protein_language.token_to_index[token] for token in sequence]
         self.assertEqual(
             protein_language.token_indexes_to_sequence(token_indexes), 'CGX'
         )
         token_indexes = (
-            [protein_language.token_to_index['<START>']] + token_indexes +
-            [protein_language.token_to_index['<STOP>']]
+            [protein_language.token_to_index['<START>']]
+            + token_indexes
+            + [protein_language.token_to_index['<STOP>']]
         )
         protein_language = ProteinFeatureLanguage(add_start_and_stop=True)
         protein_language.add_sequence(sequence)
@@ -143,15 +154,14 @@ class TestProteinFeatureLanguage(unittest.TestCase):
 
         protein_language = ProteinFeatureLanguage(features='float_features')
         protein_language.add_sequence(sequence)
-        token_indexes = [
-            protein_language.token_to_index[token] for token in sequence
-        ]
+        token_indexes = [protein_language.token_to_index[token] for token in sequence]
         self.assertEqual(
             protein_language.token_indexes_to_sequence(token_indexes), 'CGX'
         )
         token_indexes = (
-            [protein_language.token_to_index['<START>']] + token_indexes +
-            [protein_language.token_to_index['<STOP>']]
+            [protein_language.token_to_index['<START>']]
+            + token_indexes
+            + [protein_language.token_to_index['<STOP>']]
         )
         protein_language = ProteinFeatureLanguage(
             add_start_and_stop=True, features='float_features'
@@ -167,12 +177,9 @@ class TestProteinFeatureLanguage(unittest.TestCase):
         # Test whether code throws exception.
         protein_language = ProteinFeatureLanguage(features='binary_features')
         protein_language.add_sequence(sequence)
-        token_indexes = [
-            protein_language.token_to_index[token] for token in sequence
-        ]
+        token_indexes = [protein_language.token_to_index[token] for token in sequence]
         self.assertRaises(
-            Exception, protein_language.token_indexes_to_sequence,
-            token_indexes
+            Exception, protein_language.token_indexes_to_sequence, token_indexes
         )
 
 

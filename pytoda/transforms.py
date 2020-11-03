@@ -87,12 +87,11 @@ class LeftPadding(Transform):
                     f'({self.padding_length}). End of string will be stripped '
                     'off.'
                 )
-                return token_indexes[:self.padding_length]
+                return token_indexes[: self.padding_length]
             else:
-                return (
-                    (self.padding_length - len(token_indexes)) *
-                    [self.padding_index] + token_indexes
-                )
+                return (self.padding_length - len(token_indexes)) * [
+                    self.padding_index
+                ] + token_indexes
         except TypeError as e:
             if self.padding_length is None:
                 raise TypeError(
@@ -110,7 +109,7 @@ class ToTensor(Transform):
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
-        dtype: torch.dtype = torch.short
+        dtype: torch.dtype = torch.short,
     ) -> None:
         """
         Initialize a token indexes to tensor object.
@@ -138,9 +137,11 @@ class ToTensor(Transform):
         Returns:
             torch.Tensor: tensor representation of the token indexes.
         """
-        return torch.tensor(
-            token_indexes, dtype=self.dtype, device=self.device
-        ).view(-1, 1).squeeze()
+        return (
+            torch.tensor(token_indexes, dtype=self.dtype, device=self.device)
+            .view(-1, 1)
+            .squeeze()
+        )
 
 
 class ListToTensor(Transform):
@@ -154,7 +155,7 @@ class ListToTensor(Transform):
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
-        dtype: torch.dtype = torch.float
+        dtype: torch.dtype = torch.float,
     ) -> None:
         """
         Initialize a token indexes to tensor object.
@@ -182,9 +183,7 @@ class ListToTensor(Transform):
         Returns:
             torch.Tensor: tensor representation of the token indexes.
         """
-        return torch.tensor(
-            token_indexes, dtype=self.dtype, device=self.device
-        )
+        return torch.tensor(token_indexes, dtype=self.dtype, device=self.device)
 
 
 class Randomize(Transform):

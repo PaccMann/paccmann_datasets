@@ -38,12 +38,7 @@ class TestPolymerTokenizer(unittest.TestCase):
     def test_add_smis(self) -> None:
         """Test add_smis."""
         content = os.linesep.join(
-            [
-                'CCO	CHEMBL545',
-                'C	CHEMBL17564',
-                'CO	CHEMBL14688',
-                'NCCS	CHEMBL602',
-            ]
+            ['CCO	CHEMBL545', 'C	CHEMBL17564', 'CO	CHEMBL14688', 'NCCS	CHEMBL602']
         )
         with TestFileContent(content) as a_test_file:
             with TestFileContent(content) as another_test_file:
@@ -57,12 +52,7 @@ class TestPolymerTokenizer(unittest.TestCase):
     def test_add_smi(self) -> None:
         """Test add_smi."""
         content = os.linesep.join(
-            [
-                'CCO	CHEMBL545',
-                'C	CHEMBL17564',
-                'CO	CHEMBL14688',
-                'NCCS	CHEMBL602',
-            ]
+            ['CCO	CHEMBL545', 'C	CHEMBL17564', 'CO	CHEMBL14688', 'NCCS	CHEMBL602']
         )
         with TestFileContent(content) as test_file:
             entities = ['Initiator', 'Monomer']
@@ -85,42 +75,38 @@ class TestPolymerTokenizer(unittest.TestCase):
         entities = ['Initiator', 'Monomer', 'Catalyst']
         polymer_language = PolymerTokenizer(entity_names=entities)
         polymer_language.add_smiles(smiles)
-        token_indexes = [
-            polymer_language.token_to_index[token] for token in smiles
-        ]
+        token_indexes = [polymer_language.token_to_index[token] for token in smiles]
         polymer_language.update_entity('monomer')
         self.assertListEqual(
             list(polymer_language.smiles_to_token_indexes(smiles)),
-            [polymer_language.token_to_index['<MONOMER_START>']] +
-            token_indexes +
-            [polymer_language.token_to_index['<MONOMER_STOP>']]
+            [polymer_language.token_to_index['<MONOMER_START>']]
+            + token_indexes
+            + [polymer_language.token_to_index['<MONOMER_STOP>']],
         )
         polymer_language.update_entity('catalyst')
         self.assertListEqual(
             list(polymer_language.smiles_to_token_indexes(smiles)),
-            [polymer_language.token_to_index['<CATALYST_START>']] +
-            token_indexes +
-            [polymer_language.token_to_index['<CATALYST_STOP>']]
+            [polymer_language.token_to_index['<CATALYST_START>']]
+            + token_indexes
+            + [polymer_language.token_to_index['<CATALYST_STOP>']],
         )
 
         # SELFIES
         polymer_language = PolymerTokenizer(
-            entity_names=entities,
-            smiles_tokenizer=split_selfies
+            entity_names=entities, smiles_tokenizer=split_selfies
         )
         transform = Selfies()
         selfies = transform(smiles)
         polymer_language.add_smiles(selfies)
         token_indexes = [
-            polymer_language.token_to_index[token]
-            for token in ['[C]', '[C]', '[O]']
+            polymer_language.token_to_index[token] for token in ['[C]', '[C]', '[O]']
         ]
         polymer_language.update_entity('monomer')
         self.assertListEqual(
             list(polymer_language.smiles_to_token_indexes(selfies)),
-            [polymer_language.token_to_index['<MONOMER_START>']] +
-            token_indexes +
-            [polymer_language.token_to_index['<MONOMER_STOP>']]
+            [polymer_language.token_to_index['<MONOMER_START>']]
+            + token_indexes
+            + [polymer_language.token_to_index['<MONOMER_STOP>']],
         )
 
     def test_token_indexes_to_smiles(self) -> None:
@@ -130,20 +116,14 @@ class TestPolymerTokenizer(unittest.TestCase):
         polymer_language = PolymerTokenizer(entity_names=entities)
 
         polymer_language.add_smiles(smiles)
-        token_indexes = [
-            polymer_language.token_to_index[token] for token in smiles
-        ]
-        self.assertEqual(
-            polymer_language.token_indexes_to_smiles(token_indexes), 'CCO'
-        )
+        token_indexes = [polymer_language.token_to_index[token] for token in smiles]
+        self.assertEqual(polymer_language.token_indexes_to_smiles(token_indexes), 'CCO')
         token_indexes = (
-            [polymer_language.token_to_index['<MONOMER_START>']] +
-            token_indexes +
-            [polymer_language.token_to_index['<MONOMER_STOP>']]
+            [polymer_language.token_to_index['<MONOMER_START>']]
+            + token_indexes
+            + [polymer_language.token_to_index['<MONOMER_STOP>']]
         )
-        self.assertEqual(
-            polymer_language.token_indexes_to_smiles(token_indexes), 'CCO'
-        )
+        self.assertEqual(polymer_language.token_indexes_to_smiles(token_indexes), 'CCO')
 
     def test_vocab_roundtrip(self):
         smiles = 'CCO'
@@ -178,6 +158,7 @@ class TestPolymerTokenizer(unittest.TestCase):
         self.assertDictEqual(count, polymer_language.token_count)
         self.assertEqual(total, polymer_language.number_of_tokens)
         self.assertEqual(entities, polymer_language.entities)
+
 
 if __name__ == '__main__':
     unittest.main()

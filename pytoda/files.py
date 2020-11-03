@@ -34,7 +34,7 @@ def read_smi(
     filepath: str,
     chunk_size: int = None,
     index_col: int = 1,
-    names: Sequence[str] = ['SMILES']
+    names: Sequence[str] = ['SMILES'],
 ) -> pd.DataFrame:
     """
     Read a .smi (or .csv file with tab-separated values) in a pd.DataFrame.
@@ -57,7 +57,7 @@ def read_smi(
             header=None,
             index_col=index_col,
             names=names,
-            chunksize=chunk_size
+            chunksize=chunk_size,
         )
     except IndexError:
         raise IndexError(

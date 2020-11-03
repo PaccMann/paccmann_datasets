@@ -3,9 +3,7 @@ import random
 import unittest
 
 import torch
-from pytoda.transforms import (
-    AugmentByReversing, LeftPadding, ListToTensor, ToTensor
-)
+from pytoda.transforms import AugmentByReversing, LeftPadding, ListToTensor, ToTensor
 
 
 class TestTransforms(unittest.TestCase):
@@ -31,7 +29,7 @@ class TestTransforms(unittest.TestCase):
         sequence = 'ABC'
         ground_truths = ['ABC', 'ABC', 'CBA']
         for k in range(15):
-            for p, ground_truth in zip([0., 0.5, 1.], ground_truths):
+            for p, ground_truth in zip([0.0, 0.5, 1.0], ground_truths):
                 random.seed(42)
                 transform = AugmentByReversing(p=p)
                 self.assertEqual(transform(sequence), ground_truth)
@@ -45,8 +43,7 @@ class TestTransforms(unittest.TestCase):
         transform = ToTensor(device=device)
         tensor = transform(tokens)
         self.assertListEqual(
-            [tokens[0], tokens[1], tokens[2]],
-            [tensor[0], tensor[1], tensor[2]]
+            [tokens[0], tokens[1], tokens[2]], [tensor[0], tensor[1], tensor[2]]
         )
         self.assertTrue(torch.is_tensor(tensor))
         self.assertEqual(len(tensor), 3)
@@ -65,7 +62,7 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(tensor.shape[-1], 3)
         self.assertListEqual(
             [tokens[0][0], tokens[0][1], tokens[0][2]],
-            [tensor[0][0], tensor[0][1], tensor[0][2]]
+            [tensor[0][0], tensor[0][1], tensor[0][2]],
         )
         self.assertTrue(torch.is_tensor(tensor))
 

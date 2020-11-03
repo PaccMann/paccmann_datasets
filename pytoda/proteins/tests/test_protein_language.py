@@ -35,14 +35,7 @@ class TestProteinLanguage(unittest.TestCase):
 
     def test_add_file(self) -> None:
         """Test add_file"""
-        content = os.linesep.join(
-            [
-                'EGK	ID3',
-                'S	ID1',
-                'FGAAV	ID2',
-                'NCCS	ID4',
-            ]
-        )
+        content = os.linesep.join(['EGK	ID3', 'S	ID1', 'FGAAV	ID2', 'NCCS	ID4'])
         with TestFileContent(content) as a_test_file:
             protein_language = ProteinLanguage()
             protein_language.add_file(a_test_file.filename, index_col=1)
@@ -71,15 +64,19 @@ class TestProteinLanguage(unittest.TestCase):
         protein_language.add_sequence(sequence)
         self.assertListEqual(
             protein_language.sequence_to_token_indexes(sequence),
-            [IUPAC_VOCAB['C'], IUPAC_VOCAB['C'], IUPAC_VOCAB['O']]
+            [IUPAC_VOCAB['C'], IUPAC_VOCAB['C'], IUPAC_VOCAB['O']],
         )
         protein_language = ProteinLanguage(add_start_and_stop=True)
         protein_language.add_sequence(sequence)
         self.assertListEqual(
-            protein_language.sequence_to_token_indexes(sequence), [
-                IUPAC_VOCAB['<START>'], IUPAC_VOCAB['C'], IUPAC_VOCAB['C'],
-                IUPAC_VOCAB['O'], IUPAC_VOCAB['<STOP>']
-            ]
+            protein_language.sequence_to_token_indexes(sequence),
+            [
+                IUPAC_VOCAB['<START>'],
+                IUPAC_VOCAB['C'],
+                IUPAC_VOCAB['C'],
+                IUPAC_VOCAB['O'],
+                IUPAC_VOCAB['<STOP>'],
+            ],
         )
         # Other dictionary
         protein_language = ProteinLanguage(
@@ -88,17 +85,21 @@ class TestProteinLanguage(unittest.TestCase):
         protein_language.add_sequence(sequence)
         self.assertListEqual(
             protein_language.sequence_to_token_indexes(sequence),
-            [UNIREP_VOCAB['C'], UNIREP_VOCAB['C'], UNIREP_VOCAB['O']]
+            [UNIREP_VOCAB['C'], UNIREP_VOCAB['C'], UNIREP_VOCAB['O']],
         )
         protein_language = ProteinLanguage(
             add_start_and_stop=True, amino_acid_dict='unirep'
         )
         protein_language.add_sequence(sequence)
         self.assertListEqual(
-            protein_language.sequence_to_token_indexes(sequence), [
-                UNIREP_VOCAB['<START>'], UNIREP_VOCAB['C'], UNIREP_VOCAB['C'],
-                UNIREP_VOCAB['O'], UNIREP_VOCAB['<STOP>']
-            ]
+            protein_language.sequence_to_token_indexes(sequence),
+            [
+                UNIREP_VOCAB['<START>'],
+                UNIREP_VOCAB['C'],
+                UNIREP_VOCAB['C'],
+                UNIREP_VOCAB['O'],
+                UNIREP_VOCAB['<STOP>'],
+            ],
         )
 
     def test_token_indexes_to_sequence(self) -> None:
@@ -106,15 +107,14 @@ class TestProteinLanguage(unittest.TestCase):
         sequence = 'CCO'
         protein_language = ProteinLanguage()
         protein_language.add_sequence(sequence)
-        token_indexes = [
-            protein_language.token_to_index[token] for token in sequence
-        ]
+        token_indexes = [protein_language.token_to_index[token] for token in sequence]
         self.assertEqual(
             protein_language.token_indexes_to_sequence(token_indexes), 'CCO'
         )
         token_indexes = (
-            [protein_language.token_to_index['<START>']] + token_indexes +
-            [protein_language.token_to_index['<STOP>']]
+            [protein_language.token_to_index['<START>']]
+            + token_indexes
+            + [protein_language.token_to_index['<STOP>']]
         )
         protein_language = ProteinLanguage(add_start_and_stop=True)
         protein_language.add_sequence(sequence)
@@ -125,15 +125,14 @@ class TestProteinLanguage(unittest.TestCase):
         # UNIREP Vocab
         protein_language = ProteinLanguage(amino_acid_dict='unirep')
         protein_language.add_sequence(sequence)
-        token_indexes = [
-            protein_language.token_to_index[token] for token in sequence
-        ]
+        token_indexes = [protein_language.token_to_index[token] for token in sequence]
         self.assertEqual(
             protein_language.token_indexes_to_sequence(token_indexes), 'CCO'
         )
         token_indexes = (
-            [protein_language.token_to_index['<START>']] + token_indexes +
-            [protein_language.token_to_index['<STOP>']]
+            [protein_language.token_to_index['<START>']]
+            + token_indexes
+            + [protein_language.token_to_index['<STOP>']]
         )
         protein_language = ProteinLanguage(
             add_start_and_stop=True, amino_acid_dict='unirep'

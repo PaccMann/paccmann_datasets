@@ -4,10 +4,7 @@ from .base_dataset import DatasetDelegator
 from ._table_dataset import _TableEagerDataset, _TableLazyDataset
 from ..types import Files, GeneList, Optional
 
-TABLE_DATASET_IMPLEMENTATIONS = {
-    'eager': _TableEagerDataset,
-    'lazy': _TableLazyDataset
-}
+TABLE_DATASET_IMPLEMENTATIONS = {'eager': _TableEagerDataset, 'lazy': _TableLazyDataset}
 
 
 class GeneExpressionDataset(DatasetDelegator):
@@ -24,11 +21,12 @@ class GeneExpressionDataset(DatasetDelegator):
         processing_parameters: dict = {},
         impute: Optional[float] = 0.0,
         dtype: torch.dtype = torch.float,
-        device: torch.device = torch.
-        device('cuda' if torch.cuda.is_available() else 'cpu'),
+        device: torch.device = torch.device(
+            'cuda' if torch.cuda.is_available() else 'cpu'
+        ),
         backend: str = 'eager',
         chunk_size: int = 10000,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize a gene expression dataset.
@@ -59,9 +57,10 @@ class GeneExpressionDataset(DatasetDelegator):
         """
         if not (backend in TABLE_DATASET_IMPLEMENTATIONS):
             raise RuntimeError(
-                'backend={} not supported! '.format(backend) +
-                'Select one in [{}]'.
-                format(','.join(TABLE_DATASET_IMPLEMENTATIONS.keys()))
+                'backend={} not supported! '.format(backend)
+                + 'Select one in [{}]'.format(
+                    ','.join(TABLE_DATASET_IMPLEMENTATIONS.keys())
+                )
             )
         self.dataset = TABLE_DATASET_IMPLEMENTATIONS[backend](
             filepaths=gene_expression_filepaths,
@@ -73,7 +72,7 @@ class GeneExpressionDataset(DatasetDelegator):
             dtype=dtype,
             device=device,
             chunk_size=chunk_size,
-            **kwargs
+            **kwargs,
         )
         # if it was not passed, gene_list is common subset in files.
         self.gene_list = self.dataset.feature_list

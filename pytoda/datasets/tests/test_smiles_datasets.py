@@ -12,12 +12,7 @@ from pytoda.smiles.smiles_language import TOKENIZER_CONFIG_FILE
 from pytoda.tests.utils import TestFileContent
 
 CONTENT = os.linesep.join(
-    [
-        'CCO	CHEMBL545',
-        'C	CHEMBL17564',
-        'CO	CHEMBL14688',
-        'NCCS	CHEMBL602',
-    ]
+    ['CCO	CHEMBL545', 'C	CHEMBL17564', 'CO	CHEMBL14688', 'NCCS	CHEMBL602']
 )
 MORE_CONTENT = os.linesep.join(
     [
@@ -48,7 +43,7 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                 smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
-                    backend=self.backend
+                    backend=self.backend,
                 )
                 self.assertEqual(len(smiles_dataset), 8)
 
@@ -66,7 +61,7 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                     sanitize=True,
                     all_bonds_explicit=True,
                     remove_chirality=True,
-                    backend=self.backend
+                    backend=self.backend,
                 )
                 pad_index = smiles_dataset.smiles_language.padding_index
                 start_index = smiles_dataset.smiles_language.start_index
@@ -82,14 +77,14 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                     len(
                         # str from underlying concatenated _smi dataset
                         smiles_dataset.dataset[sample]
-                    ) * 2 - 1  # just d_index, no '=', '(', etc.
+                    )
+                    * 2
+                    - 1  # just d_index, no '=', '(', etc.
                 )
                 self.assertListEqual(
                     smiles_dataset[sample].numpy().flatten().tolist(),
-                    [pad_index] * padding_len + [
-                        c_index, d_index, c_index,
-                        d_index, o_index
-                    ]
+                    [pad_index] * padding_len
+                    + [c_index, d_index, c_index, d_index, o_index],
                 )
 
                 sample = 3
@@ -97,14 +92,14 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                     len(
                         # str from underlying concatenated _smi dataset
                         smiles_dataset.dataset[sample]
-                    ) * 2 - 1  # just d_index, no '=', '(', etc.
+                    )
+                    * 2
+                    - 1  # just d_index, no '=', '(', etc.
                 )
                 self.assertListEqual(
                     smiles_dataset[sample].numpy().flatten().tolist(),
-                    [pad_index] * padding_len + [
-                        n_index, d_index, c_index, d_index, c_index, d_index,
-                        s_index
-                    ]
+                    [pad_index] * padding_len
+                    + [n_index, d_index, c_index, d_index, c_index, d_index, s_index],
                 )
 
                 sample = 5
@@ -112,39 +107,51 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                     len(
                         # str from underlying concatenated _smi dataset
                         smiles_dataset.dataset[sample]
-                    ) * 2 - 1  # just d_index, no '=', '(', etc.
+                    )
+                    * 2
+                    - 1  # just d_index, no '=', '(', etc.
                 )
                 self.assertListEqual(
                     smiles_dataset[sample].numpy().flatten().tolist(),
-                    [pad_index] * padding_len + [
-                        c_index, d_index, o_index, d_index, c_index, d_index,
-                        c_index, d_index, o_index, d_index, c_index
-                    ]
+                    [pad_index] * padding_len
+                    + [
+                        c_index,
+                        d_index,
+                        o_index,
+                        d_index,
+                        c_index,
+                        d_index,
+                        c_index,
+                        d_index,
+                        o_index,
+                        d_index,
+                        c_index,
+                    ],
                 )
 
                 smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     padding=False,
-                    backend=self.backend
+                    backend=self.backend,
                 )
                 c_index = smiles_dataset.smiles_language.token_to_index['C']
                 o_index = smiles_dataset.smiles_language.token_to_index['O']
 
                 self.assertListEqual(
                     smiles_dataset[0].numpy().flatten().tolist(),
-                    [c_index, c_index, o_index]
+                    [c_index, c_index, o_index],
                 )
                 self.assertListEqual(
                     smiles_dataset[5].numpy().flatten().tolist(),
-                    [c_index, o_index, c_index, c_index, o_index, c_index]
+                    [c_index, o_index, c_index, c_index, o_index, c_index],
                 )
 
                 smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     add_start_and_stop=True,
-                    backend=self.backend
+                    backend=self.backend,
                 )
                 pad_index = smiles_dataset.smiles_language.padding_index
                 start_index = smiles_dataset.smiles_language.start_index
@@ -153,60 +160,65 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                 o_index = smiles_dataset.smiles_language.token_to_index['O']
 
                 self.assertEqual(
-                    smiles_dataset.smiles_language.padding_length,
-                    self.longest+2
+                    smiles_dataset.smiles_language.padding_length, self.longest + 2
                 )
 
                 sample = 0
                 self.assertEqual(smiles_dataset.dataset[sample], 'CCO')
-                padding_len = smiles_dataset.smiles_language.padding_length - (
-                    len(
-                        # str from underlying concatenated _smi dataset
-                        smiles_dataset.dataset[sample]
+                padding_len = (
+                    smiles_dataset.smiles_language.padding_length
+                    - (
+                        len(
+                            # str from underlying concatenated _smi dataset
+                            smiles_dataset.dataset[sample]
+                        )
                     )
-                ) - 2  # start and stop
+                    - 2
+                )  # start and stop
                 self.assertListEqual(
                     smiles_dataset[sample].numpy().flatten().tolist(),
-                    [pad_index] * padding_len + [
-                        start_index,
-                        c_index, c_index, o_index,
-                        stop_index
-                    ]
+                    [pad_index] * padding_len
+                    + [start_index, c_index, c_index, o_index, stop_index],
                 )
 
                 sample = 5
                 self.assertEqual(smiles_dataset.dataset[sample], 'COCCOC')
-                padding_len = smiles_dataset.smiles_language.padding_length - (
-                    len(
-                        # str from underlying concatenated _smi dataset
-                        smiles_dataset.dataset[sample]
+                padding_len = (
+                    smiles_dataset.smiles_language.padding_length
+                    - (
+                        len(
+                            # str from underlying concatenated _smi dataset
+                            smiles_dataset.dataset[sample]
+                        )
                     )
-                ) - 2  # start and stop
+                    - 2
+                )  # start and stop
                 self.assertListEqual(
                     smiles_dataset[sample].numpy().flatten().tolist(),
-                    [pad_index] * padding_len + [
+                    [pad_index] * padding_len
+                    + [
                         start_index,
-                        c_index, o_index, c_index, c_index, o_index, c_index,
-                        stop_index
-                    ]
+                        c_index,
+                        o_index,
+                        c_index,
+                        c_index,
+                        o_index,
+                        c_index,
+                        stop_index,
+                    ],
                 )
 
                 smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     augment=True,
-                    backend=self.backend
+                    backend=self.backend,
                 )
                 np.random.seed(0)
-                for randomized_smiles in [
-                    'C(S)CN', 'NCCS', 'SCCN', 'C(N)CS', 'C(CS)N'
-                ]:
-                    token_indexes = (
-                        smiles_dataset[3].numpy().flatten().tolist()
-                    )
-                    smiles = (
-                        smiles_dataset.smiles_language.
-                        token_indexes_to_smiles(token_indexes)
+                for randomized_smiles in ['C(S)CN', 'NCCS', 'SCCN', 'C(N)CS', 'C(CS)N']:
+                    token_indexes = smiles_dataset[3].numpy().flatten().tolist()
+                    smiles = smiles_dataset.smiles_language.token_indexes_to_smiles(
+                        token_indexes
                     )
                     self.assertEqual(smiles, randomized_smiles)
 
@@ -217,7 +229,7 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                     add_start_and_stop=True,
                     remove_bonddir=True,
                     selfies=True,
-                    backend=self.backend
+                    backend=self.backend,
                 )
                 c_index = smiles_dataset.smiles_language.token_to_index['[C]']
                 o_index = smiles_dataset.smiles_language.token_to_index['[O]']
@@ -226,13 +238,11 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
 
                 self.assertListEqual(
                     smiles_dataset[0].numpy().flatten().tolist(),
-                    [start_index, c_index, c_index, o_index, stop_index]
+                    [start_index, c_index, c_index, o_index, stop_index],
                 )
                 self.assertListEqual(
-                    smiles_dataset[3].numpy().flatten().tolist(), [
-                        start_index, n_index, c_index, c_index, s_index,
-                        stop_index
-                    ]
+                    smiles_dataset[3].numpy().flatten().tolist(),
+                    [start_index, n_index, c_index, c_index, s_index, stop_index],
                 )
 
     def test_data_loader(self) -> None:
@@ -242,11 +252,9 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                 smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
-                    backend=self.backend
+                    backend=self.backend,
                 )
-                data_loader = DataLoader(
-                    smiles_dataset, batch_size=4, shuffle=True
-                )
+                data_loader = DataLoader(smiles_dataset, batch_size=4, shuffle=True)
                 for batch_index, batch in enumerate(data_loader):
                     self.assertEqual(batch.shape, (4, self.longest))
                     if batch_index > 10:
@@ -274,21 +282,20 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                 smiles_dataset = SMILESTokenizerDataset(
                     a_test_file.filename,
                     another_test_file.filename,
-                    backend=self.backend
+                    backend=self.backend,
                 )
                 smiles_dataset_0 = SMILESTokenizerDataset(
-                    a_test_file.filename,
-                    backend=self.backend
+                    a_test_file.filename, backend=self.backend
                 )
                 smiles_dataset_1 = SMILESTokenizerDataset(
-                    another_test_file.filename,
-                    backend=self.backend
+                    another_test_file.filename, backend=self.backend
                 )
-        all_smiles, all_keys = zip(*(
-            pair.split('\t')
-            for pair
-            in self.content.split('\n') + self.other_content.split('\n')
-        ))
+        all_smiles, all_keys = zip(
+            *(
+                pair.split('\t')
+                for pair in self.content.split('\n') + self.other_content.split('\n')
+            )
+        )
 
         for ds, keys in [
             (smiles_dataset, all_keys),
@@ -309,20 +316,16 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
         with TestFileContent(self.content) as a_test_file:
             with self.assertRaises(KeyError):
                 smiles_dataset = SMILESTokenizerDataset(
-                    a_test_file.filename,
-                    a_test_file.filename,
-                    backend=self.backend
+                    a_test_file.filename, a_test_file.filename, backend=self.backend
                 )
 
     def test_pretrained__getitem__(self) -> None:
         """Test __getitem__."""
         pretrained_path = os.path.join(
             os.path.dirname(os.path.abspath(metadata.__file__)),
-            'tokenizer_chembl_gdsc_ccle_tox21_zinc_organdb_bindingdb'
+            'tokenizer_chembl_gdsc_ccle_tox21_zinc_organdb_bindingdb',
         )
-        smiles_language = SMILESTokenizer.from_pretrained(
-            pretrained_path, padding=True
-        )
+        smiles_language = SMILESTokenizer.from_pretrained(pretrained_path, padding=True)
 
         with TestFileContent(self.content) as a_test_file:
             with TestFileContent(self.other_content) as another_test_file:
@@ -334,21 +337,14 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                     iterate_dataset=False,
                 )
 
-                config_file = os.path.join(
-                    pretrained_path, TOKENIZER_CONFIG_FILE
-                )
+                config_file = os.path.join(pretrained_path, TOKENIZER_CONFIG_FILE)
                 with open(config_file, encoding="utf-8") as fp:
-                    max_length = json.load(fp)[
-                        'max_token_sequence_length'
-                    ]
+                    max_length = json.load(fp)['max_token_sequence_length']
             pad_index = smiles_dataset.smiles_language.padding_index
             c_index = smiles_dataset.smiles_language.token_to_index['C']
             o_index = smiles_dataset.smiles_language.token_to_index['O']
 
-            self.assertEqual(
-                max_length,
-                smiles_dataset.smiles_language.padding_length
-            )
+            self.assertEqual(max_length, smiles_dataset.smiles_language.padding_length)
             sample = 0
             padding_len = smiles_dataset.smiles_language.padding_length - (
                 len(
@@ -358,22 +354,24 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
             )
             self.assertListEqual(
                 smiles_dataset[sample].numpy().flatten().tolist(),
-                [pad_index] * padding_len + [c_index, c_index, o_index]
+                [pad_index] * padding_len + [c_index, c_index, o_index],
             )
 
     def test_kwargs_read_smi(self):
-        with TestFileContent(os.linesep.join(
-            [
-                'CHEMBL545	metadata	CCO	and	so	on',
-                'CHEMBL17564	metadata	C	and	so	on',
-                'CHEMBL14688	metadata	CO	and	so	on',
-                'CHEMBL602	metadata	NCCS	and	so	on',
-            ]
-        )) as test_file:
+        with TestFileContent(
+            os.linesep.join(
+                [
+                    'CHEMBL545	metadata	CCO	and	so	on',
+                    'CHEMBL17564	metadata	C	and	so	on',
+                    'CHEMBL14688	metadata	CO	and	so	on',
+                    'CHEMBL602	metadata	NCCS	and	so	on',
+                ]
+            )
+        ) as test_file:
             smiles_dataset = SMILESTokenizerDataset(
                 test_file.filename,
                 index_col=0,
-                names=['METADATA', 'SMILES', 'AND', 'SO', 'ON']
+                names=['METADATA', 'SMILES', 'AND', 'SO', 'ON'],
             )
             self.assertEqual(smiles_dataset.dataset[2], 'CO')
 

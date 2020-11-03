@@ -16,12 +16,7 @@ DRUG_AFFINITY_CONTENT = os.linesep.join(
     ]
 )
 SMILES_CONTENT = os.linesep.join(
-    [
-        'CCO	CHEMBL545',
-        'C	CHEMBL17564',
-        'CO	CHEMBL14688',
-        'NCCS	CHEMBL602',
-    ]
+    ['CCO	CHEMBL545', 'C	CHEMBL17564', 'CO	CHEMBL14688', 'NCCS	CHEMBL602']
 )
 PROTEIN_SEQUENCE_CONTENT = os.linesep.join(
     [
@@ -52,7 +47,7 @@ class TestDrugAffinityDatasetEagerBackend(unittest.TestCase):
                         drug_affinity_file.filename,
                         smiles_file.filename,
                         protein_sequence_file.filename,
-                        backend=self.backend
+                        backend=self.backend,
                     )
 
     def test___len__(self) -> None:
@@ -62,76 +57,64 @@ class TestDrugAffinityDatasetEagerBackend(unittest.TestCase):
     def test___getitem__(self) -> None:
         """Test __getitem__."""
         smiles_padding_index = (
-            self.drug_affinity_dataset.smiles_dataset.smiles_language.
-            padding_index
+            self.drug_affinity_dataset.smiles_dataset.smiles_language.padding_index
         )
-        smiles_c_index = (
-            self.drug_affinity_dataset.smiles_dataset.smiles_language.
-            token_to_index['C']
-        )
-        smiles_o_index = (
-            self.drug_affinity_dataset.smiles_dataset.smiles_language.
-            token_to_index['O']
-        )
+        smiles_c_index = self.drug_affinity_dataset.smiles_dataset.smiles_language.token_to_index[
+            'C'
+        ]
+        smiles_o_index = self.drug_affinity_dataset.smiles_dataset.smiles_language.token_to_index[
+            'O'
+        ]
         protein_sequence_padding_index = (
-            self.drug_affinity_dataset.protein_sequence_dataset.
-            protein_language.padding_index
+            self.drug_affinity_dataset.protein_sequence_dataset.protein_language.padding_index
         )
-        protein_sequence_a_index = (
-            self.drug_affinity_dataset.protein_sequence_dataset.
-            protein_language.token_to_index['A']
-        )
-        protein_sequence_b_index = (
-            self.drug_affinity_dataset.protein_sequence_dataset.
-            protein_language.token_to_index['B']
-        )
-        protein_sequence_c_index = (
-            self.drug_affinity_dataset.protein_sequence_dataset.
-            protein_language.token_to_index['C']
-        )
+        protein_sequence_a_index = self.drug_affinity_dataset.protein_sequence_dataset.protein_language.token_to_index[
+            'A'
+        ]
+        protein_sequence_b_index = self.drug_affinity_dataset.protein_sequence_dataset.protein_language.token_to_index[
+            'B'
+        ]
+        protein_sequence_c_index = self.drug_affinity_dataset.protein_sequence_dataset.protein_language.token_to_index[
+            'C'
+        ]
         (
-            smiles_indexes_tensor, protein_sequence_indexes_tensor,
-            label_tensor
+            smiles_indexes_tensor,
+            protein_sequence_indexes_tensor,
+            label_tensor,
         ) = self.drug_affinity_dataset[0]
         np.testing.assert_almost_equal(
             smiles_indexes_tensor.numpy(),
             np.array(
                 [
-                    smiles_padding_index, smiles_padding_index,
-                    smiles_c_index, smiles_o_index
+                    smiles_padding_index,
+                    smiles_padding_index,
+                    smiles_c_index,
+                    smiles_o_index,
                 ]
-            )
+            ),
         )
         np.testing.assert_almost_equal(
             protein_sequence_indexes_tensor.numpy(),
             np.array(
-                6*[protein_sequence_padding_index] +
-                [
+                6 * [protein_sequence_padding_index]
+                + [
                     protein_sequence_a_index,
                     protein_sequence_b_index,
-                    protein_sequence_c_index
+                    protein_sequence_c_index,
                 ]
-            )
+            ),
         )
-        np.testing.assert_almost_equal(
-            label_tensor.numpy(), np.array([1], dtype=int)
-        )
+        np.testing.assert_almost_equal(label_tensor.numpy(), np.array([1], dtype=int))
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
-        data_loader = DataLoader(
-            self.drug_affinity_dataset, batch_size=2, shuffle=True
-        )
+        data_loader = DataLoader(self.drug_affinity_dataset, batch_size=2, shuffle=True)
         for (
-            batch_index, (
-                smiles_indexes_batch,
-                protein_sequence_indexes_batch, label_batch
-            )
+            batch_index,
+            (smiles_indexes_batch, protein_sequence_indexes_batch, label_batch),
         ) in enumerate(data_loader):
             self.assertEqual(smiles_indexes_batch.size(), (2, 4))
-            self.assertEqual(
-                protein_sequence_indexes_batch.size(), (2, 9)
-            )
+            self.assertEqual(protein_sequence_indexes_batch.size(), (2, 9))
             self.assertEqual(label_batch.size(), (2, 1))
             if batch_index > 4:
                 break
@@ -156,7 +139,7 @@ class TestDrugAffinityDatasetLazyBackend(TestDrugAffinityDatasetEagerBackend):
                         drug_affinity_file.filename,
                         smiles_file.filename,
                         protein_sequence_file.filename,
-                        backend=self.backend
+                        backend=self.backend,
                     )
 
 

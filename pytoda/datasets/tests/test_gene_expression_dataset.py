@@ -44,7 +44,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     a_test_file.filename,
                     another_test_file.filename,
                     backend=self.backend,
-                    index_col=0
+                    index_col=0,
                 )
                 self.assertEqual(len(gene_expression_dataset), 7)
 
@@ -57,28 +57,23 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                         pd.read_csv(a_test_file.filename, index_col=0),
                         pd.read_csv(another_test_file.filename, index_col=0),
                     ],
-                    sort=False
+                    sort=False,
                 )
                 gene_expression_dataset = GeneExpressionDataset(
                     a_test_file.filename,
                     another_test_file.filename,
                     backend=self.backend,
-                    index_col=0
+                    index_col=0,
                 )
                 gene_list = gene_expression_dataset.gene_list
                 mean = df.mean()[gene_list].values
                 std = df.std(ddof=0)[gene_list].values
                 for i, (key, row) in enumerate(df[gene_list].iterrows()):
                     np.testing.assert_almost_equal(
-                        gene_expression_dataset[i].numpy(),
-                        (row.values - mean) / std, 5
+                        gene_expression_dataset[i].numpy(), (row.values - mean) / std, 5
                     )
-                np.testing.assert_almost_equal(
-                    gene_expression_dataset.mean, mean, 5
-                )
-                np.testing.assert_almost_equal(
-                    gene_expression_dataset.std, std, 5
-                )
+                np.testing.assert_almost_equal(gene_expression_dataset.mean, mean, 5)
+                np.testing.assert_almost_equal(gene_expression_dataset.std, std, 5)
 
                 gene_expression_dataset = GeneExpressionDataset(
                     a_test_file.filename,
@@ -94,19 +89,16 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                 for i, (key, row) in enumerate(df[gene_list].iterrows()):
                     np.testing.assert_almost_equal(
                         gene_expression_dataset[i].numpy(),
-                        (row.values - minimum) / diff, 5
+                        (row.values - minimum) / diff,
+                        5,
                     )
-                np.testing.assert_almost_equal(
-                    gene_expression_dataset.min, minimum, 5
-                )
-                np.testing.assert_almost_equal(
-                    gene_expression_dataset.max, maximum, 5
-                )
+                np.testing.assert_almost_equal(gene_expression_dataset.min, minimum, 5)
+                np.testing.assert_almost_equal(gene_expression_dataset.max, maximum, 5)
 
     def test_processing_parameters_standardize_reindex(self) -> None:
-        with TestFileContent(self.content) as a_test_file, \
-            TestFileContent(self.other_content) as another_test_file \
-        :
+        with TestFileContent(self.content) as a_test_file, TestFileContent(
+            self.other_content
+        ) as another_test_file:
             # feature not in data is filled with zeros
             feature_list = ['E', 'C', 'D', 'B', 'all_missing']
             standard_dataset = GeneExpressionDataset(
@@ -114,7 +106,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                 another_test_file.filename,
                 gene_list=feature_list,
                 backend=self.backend,
-                index_col=0
+                index_col=0,
             )
             self.assertEqual(standard_dataset[0][-1], 0)
 
@@ -124,8 +116,10 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     pd.read_csv(a_test_file.filename, index_col=0),
                     pd.read_csv(another_test_file.filename, index_col=0),
                 ],
-                sort=False
-            ).reindex(columns=gene_list)  # , fill_value=0.0)
+                sort=False,
+            ).reindex(
+                columns=gene_list
+            )  # , fill_value=0.0)
 
             # scalar scaling (single max and min)
             flat = df.values.flatten()
@@ -227,9 +221,9 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     # order of reduced means matches order in
 
     def test_processing_parameters_minmax(self) -> None:
-        with TestFileContent(self.content) as a_test_file, \
-            TestFileContent(self.other_content) as another_test_file \
-        :
+        with TestFileContent(self.content) as a_test_file, TestFileContent(
+            self.other_content
+        ) as another_test_file:
             minmax_dataset = GeneExpressionDataset(
                 a_test_file.filename,
                 another_test_file.filename,
@@ -244,7 +238,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     pd.read_csv(a_test_file.filename, index_col=0),
                     pd.read_csv(another_test_file.filename, index_col=0),
                 ],
-                sort=False
+                sort=False,
             )[gene_list]
 
             # with min max scaling we can check for values 0 and 1
@@ -252,16 +246,11 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
             minimum_array = df.min().values
 
             # scalar scaling (single max and min)
-            max_n, max_p = map(
-                int, np.unravel_index(np.argmax(df.values), df.shape)
-            )
-            min_n, min_p = map(
-                int, np.unravel_index(np.argmin(df.values), df.shape)
-            )
+            max_n, max_p = map(int, np.unravel_index(np.argmax(df.values), df.shape))
+            min_n, min_p = map(int, np.unravel_index(np.argmin(df.values), df.shape))
             for maximum, minimum in [
                 # scalar
-                [np.max(maximum_array),
-                 np.min(minimum_array)],
+                [np.max(maximum_array), np.min(minimum_array)],
                 # list length 1
                 [[np.max(maximum_array)], [np.min(minimum_array)]],
             ]:
@@ -288,10 +277,9 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
 
             for maximum, minimum in [
                 # list
-                [maximum_array.tolist(),
-                 minimum_array.tolist()],
+                [maximum_array.tolist(), minimum_array.tolist()],
                 # ndarray
-                [maximum_array, minimum_array]
+                [maximum_array, minimum_array],
             ]:
                 processing_parameters = {
                     'max': maximum,
@@ -322,17 +310,18 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     another_test_file.filename,
                     gene_list=gene_subset_list,
                     backend=self.backend,
-                    index_col=0
+                    index_col=0,
                 )
                 data_loader = DataLoader(
                     gene_expression_dataset, batch_size=2, shuffle=True
                 )
                 for batch_index, batch in enumerate(data_loader):
                     self.assertEqual(
-                        batch.shape, (
+                        batch.shape,
+                        (
                             1 if batch_index == 3 else 2,
-                            gene_expression_dataset.number_of_features
-                        )
+                            gene_expression_dataset.number_of_features,
+                        ),
                     )
                     if batch_index > 2:
                         break
@@ -360,25 +349,23 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                     a_test_file.filename,
                     another_test_file.filename,
                     backend=self.backend,
-                    index_col=0
+                    index_col=0,
                 )
                 gene_expression_ds_0 = GeneExpressionDataset(
                     a_test_file.filename, backend=self.backend, index_col=0
                 )
                 gene_expression_ds_1 = GeneExpressionDataset(
-                    another_test_file.filename,
-                    backend=self.backend,
-                    index_col=0
+                    another_test_file.filename, backend=self.backend, index_col=0
                 )
         all_keys = [
-            row.split(',')[0] for row in self.content.split('\n')[1:] +
-            self.other_content.split('\n')[1:]
+            row.split(',')[0]
+            for row in self.content.split('\n')[1:] + self.other_content.split('\n')[1:]
         ]
 
         for ds, keys in [
             (gene_expression_dataset, all_keys),
-            (gene_expression_ds_0, all_keys[:len(gene_expression_ds_0)]),
-            (gene_expression_ds_1, all_keys[len(gene_expression_ds_0):]),
+            (gene_expression_ds_0, all_keys[: len(gene_expression_ds_0)]),
+            (gene_expression_ds_1, all_keys[len(gene_expression_ds_0) :]),
             (gene_expression_ds_0 + gene_expression_ds_1, all_keys),
         ]:
             index = -1
@@ -394,7 +381,7 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                 a_test_file.filename,
                 a_test_file.filename,
                 backend=self.backend,
-                index_col=0
+                index_col=0,
             )
             self.assertTrue(gene_expression_dataset.has_duplicate_keys)
 

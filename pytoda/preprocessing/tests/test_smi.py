@@ -10,19 +10,10 @@ class TestSmi(unittest.TestCase):
 
     def test_filter_invalid_smi(self) -> None:
         """Test filter_invalid_smi."""
-        smiles_content = os.linesep.join(
-            [
-                'CCO	compound_a',
-                'C(	compound_b',
-            ]
-        )
-        filtered_smiles_content = os.linesep.join([
-            'CCO	compound_a',
-        ])
+        smiles_content = os.linesep.join(['CCO	compound_a', 'C(	compound_b'])
+        filtered_smiles_content = os.linesep.join(['CCO	compound_a'])
         with TestFileContent(smiles_content) as smiles_file:
-            with TestFileContent(
-                filtered_smiles_content
-            ) as filtered_smiles_file:
+            with TestFileContent(filtered_smiles_content) as filtered_smiles_file:
                 with TestFileContent('') as resulting_smiles_file:
                     print(
                         "\nExpected 'SMILES Parse Error' while filtering "
@@ -32,12 +23,9 @@ class TestSmi(unittest.TestCase):
                         smiles_file.filename, resulting_smiles_file.filename
                     )
                     with open(resulting_smiles_file.filename) as result_fp:
-                        with open(
-                            filtered_smiles_file.filename
-                        ) as filtered_fp:
+                        with open(filtered_smiles_file.filename) as filtered_fp:
                             self.assertEqual(
-                                result_fp.read().strip(),
-                                filtered_fp.read().strip(),
+                                result_fp.read().strip(), filtered_fp.read().strip(),
                             )
 
 

@@ -4,8 +4,11 @@ import tempfile
 import unittest
 
 from pytoda.smiles.processing import split_selfies
-from pytoda.smiles.smiles_language import (SELFIESLanguage, SMILESLanguage,
-                                           SMILESTokenizer)
+from pytoda.smiles.smiles_language import (
+    SELFIESLanguage,
+    SMILESLanguage,
+    SMILESTokenizer,
+)
 from pytoda.smiles.transforms import Selfies
 from pytoda.tests.utils import TestFileContent
 
@@ -41,12 +44,7 @@ class TestSmilesLanguage(unittest.TestCase):
     def test_add_smis(self) -> None:
         """Test add_smis."""
         content = os.linesep.join(
-            [
-                'CCO	CHEMBL545',
-                'C	CHEMBL17564',
-                'CO	CHEMBL14688',
-                'NCCS	CHEMBL602',
-            ]
+            ['CCO	CHEMBL545', 'C	CHEMBL17564', 'CO	CHEMBL14688', 'NCCS	CHEMBL602']
         )
         with TestFileContent(content) as a_test_file:
             with TestFileContent(content) as another_test_file:
@@ -59,12 +57,7 @@ class TestSmilesLanguage(unittest.TestCase):
     def test_add_smi(self) -> None:
         """Test add_smi."""
         content = os.linesep.join(
-            [
-                'CCO	CHEMBL545',
-                'C	CHEMBL17564',
-                'CO	CHEMBL14688',
-                'NCCS	CHEMBL602',
-            ]
+            ['CCO	CHEMBL545', 'C	CHEMBL17564', 'CO	CHEMBL14688', 'NCCS	CHEMBL602']
         )
         with TestFileContent(content) as test_file:
             smiles_language = SMILESLanguage()
@@ -90,9 +83,7 @@ class TestSmilesLanguage(unittest.TestCase):
         smiles = 'CCO'
         smiles_language = SMILESLanguage()
         smiles_language.add_smiles(smiles)
-        token_indexes = [
-            smiles_language.token_to_index[token] for token in smiles
-        ]
+        token_indexes = [smiles_language.token_to_index[token] for token in smiles]
         self.assertListEqual(
             smiles_language.smiles_to_token_indexes(smiles), token_indexes
         )
@@ -101,7 +92,8 @@ class TestSmilesLanguage(unittest.TestCase):
         smiles_u = 'CCN'
         token_indexes_u = [
             smiles_language.token_to_index['C'],
-            smiles_language.token_to_index['C'], smiles_language.unknown_index
+            smiles_language.token_to_index['C'],
+            smiles_language.unknown_index,
         ]
         self.assertListEqual(
             smiles_language.smiles_to_token_indexes(smiles_u), token_indexes_u
@@ -116,34 +108,32 @@ class TestSmilesLanguage(unittest.TestCase):
         smiles_language.set_max_padding()
         self.assertListEqual(
             list(smiles_language.smiles_to_token_indexes(smiles)),
-            [smiles_language.start_index] + token_indexes +
-            [smiles_language.stop_index]
+            [smiles_language.start_index]
+            + token_indexes
+            + [smiles_language.stop_index],
         )
 
         # SELFIES
-        smiles_language = SMILESLanguage(
-            smiles_tokenizer=split_selfies
-        )
+        smiles_language = SMILESLanguage(smiles_tokenizer=split_selfies)
         transform = Selfies()
         selfies = transform(smiles)
         self.assertEqual(selfies, smiles_language.smiles_to_selfies(smiles))
         smiles_language.add_smiles(selfies)
         token_indexes = [
-            smiles_language.token_to_index[token]
-            for token in ['[C]', '[C]', '[O]']
+            smiles_language.token_to_index[token] for token in ['[C]', '[C]', '[O]']
         ]
         self.assertListEqual(
             smiles_language.smiles_to_token_indexes(selfies), token_indexes
         )
         smiles_language = SMILESTokenizer(
-            add_start_and_stop=True,
-            smiles_tokenizer=split_selfies
+            add_start_and_stop=True, smiles_tokenizer=split_selfies
         )
         smiles_language.add_smiles(selfies)
         self.assertListEqual(
             list(smiles_language.smiles_to_token_indexes(selfies)),
-            [smiles_language.start_index] + token_indexes +
-            [smiles_language.stop_index]
+            [smiles_language.start_index]
+            + token_indexes
+            + [smiles_language.stop_index],
         )
 
     def test_token_indexes_to_smiles(self) -> None:
@@ -151,21 +141,14 @@ class TestSmilesLanguage(unittest.TestCase):
         smiles = 'CCO'
         smiles_language = SMILESLanguage()
         smiles_language.add_smiles(smiles)
-        token_indexes = [
-            smiles_language.token_to_index[token] for token in smiles
-        ]
-        self.assertEqual(
-            smiles_language.token_indexes_to_smiles(token_indexes), 'CCO'
-        )
+        token_indexes = [smiles_language.token_to_index[token] for token in smiles]
+        self.assertEqual(smiles_language.token_indexes_to_smiles(token_indexes), 'CCO')
         token_indexes = (
-            [smiles_language.start_index] + token_indexes +
-            [smiles_language.stop_index]
+            [smiles_language.start_index] + token_indexes + [smiles_language.stop_index]
         )
         smiles_language = SMILESTokenizer(add_start_and_stop=True)
         smiles_language.add_smiles(smiles)
-        self.assertEqual(
-            smiles_language.token_indexes_to_smiles(token_indexes), 'CCO'
-        )
+        self.assertEqual(smiles_language.token_indexes_to_smiles(token_indexes), 'CCO')
 
     def test_smiles_roundtrip(self) -> None:
         """Test smiles_to_token_indexes and token_indexes_to_smiles."""
@@ -177,7 +160,7 @@ class TestSmilesLanguage(unittest.TestCase):
             smiles_language.token_indexes_to_smiles(
                 smiles_language.smiles_to_token_indexes('CCO')
             ),
-            'CCO'
+            'CCO',
         )
 
         smiles_language = SMILESTokenizer(add_start_and_stop=True)
@@ -186,7 +169,7 @@ class TestSmilesLanguage(unittest.TestCase):
             smiles_language.token_indexes_to_smiles(
                 smiles_language.smiles_to_token_indexes('CCO')
             ),
-            'CCO'
+            'CCO',
         )
 
     def test_smiles_to_selfies(self) -> None:
@@ -198,7 +181,7 @@ class TestSmilesLanguage(unittest.TestCase):
             smiles,
             smiles_language.selfies_to_smiles(
                 smiles_language.smiles_to_selfies(smiles)
-            )
+            ),
         )
 
     def test_transform_changes(self):
@@ -224,21 +207,18 @@ class TestSmilesLanguage(unittest.TestCase):
         self.assertEqual(len(tokens_), 2)
         smiles_language.padding = False
         self.assertSequenceEqual(
-            list(tokens),
-            list(smiles_language.smiles_to_token_indexes(smiles))
+            list(tokens), list(smiles_language.smiles_to_token_indexes(smiles))
         )
 
         smiles_language.set_encoding_transforms(padding=True, padding_length=2)
         print("\nExpected warning when actually truncating token indexes:")
         self.assertSequenceEqual(
-            list(tokens_),
-            list(smiles_language.smiles_to_token_indexes(smiles))
+            list(tokens_), list(smiles_language.smiles_to_token_indexes(smiles))
         )
 
         smiles_language.reset_initial_transforms()
         self.assertSequenceEqual(
-            list(tokens),
-            list(smiles_language.smiles_to_token_indexes(smiles))
+            list(tokens), list(smiles_language.smiles_to_token_indexes(smiles))
         )
 
     def test_vocab_roundtrip(self):

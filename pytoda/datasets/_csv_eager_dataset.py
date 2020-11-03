@@ -59,10 +59,7 @@ class _CsvEagerDataset(DataFrameDataset, _CsvStatistics):
         self.feature_list = self.df.columns.tolist()
         self.feature_mapping = pd.Series(
             OrderedDict(
-                [
-                    (feature, index)
-                    for index, feature in enumerate(self.feature_list)
-                ]
+                [(feature, index) for index, feature in enumerate(self.feature_list)]
             )
         )
         self.feature_fn = self.get_feature_fn(self.feature_list)
@@ -87,7 +84,7 @@ class _CsvEagerDataset(DataFrameDataset, _CsvStatistics):
         self,
         transform_fn: CallableOnSource,
         feature_fn: CallableOnSource,
-        impute: Optional[float] = None
+        impute: Optional[float] = None,
     ) -> None:
         """Apply scaling to the datasource.
 

@@ -14,6 +14,7 @@ class _CacheDatasource:
 
     Suggested when handling datasets that can't fit in the device memory.
     """
+
     size_limit = 1073741824  # default limit of 1GiB from diskcash
 
     def __init__(self, size_limit=None, fit_size_limit_filepath=None) -> None:

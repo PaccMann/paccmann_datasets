@@ -33,9 +33,7 @@ class _FastaEagerDataset(KeyDataset):
         self.ordered_keys = []
         self.samples = []
         try:
-            for index, item in enumerate(
-                    parse_fasta(fasta_filepath, gzipped=gzipped)
-            ):
+            for index, item in enumerate(parse_fasta(fasta_filepath, gzipped=gzipped)):
                 key = item['accession_number']  # uniprot unique identifier
                 self.key_to_index_mapping[key] = index
                 self.ordered_keys.append(key)

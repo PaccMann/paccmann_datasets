@@ -149,7 +149,7 @@ class DrugAffinityDataset(Dataset):
             device=self.device,
             vocab_file=smiles_vocab_file,
             iterate_dataset=iterate_dataset,
-            backend=self.backend
+            backend=self.backend,
         )
         # protein sequences
         self.protein_sequence_dataset = ProteinSequenceDataset(
@@ -166,9 +166,7 @@ class DrugAffinityDataset(Dataset):
         )
         # drug affinity
         self.drug_affinity_dtype = drug_affinity_dtype
-        self.drug_affinity_df = pd.read_csv(
-            self.drug_affinity_filepath, index_col=0
-        )
+        self.drug_affinity_df = pd.read_csv(self.drug_affinity_filepath, index_col=0)
         # filter data based on the availability
         drug_mask = self.drug_affinity_df['ligand_name'].isin(
             set(self.smiles_dataset.keys())
@@ -176,9 +174,7 @@ class DrugAffinityDataset(Dataset):
         sequence_mask = self.drug_affinity_df['sequence_id'].isin(
             set(self.protein_sequence_dataset.keys())
         )
-        self.drug_affinity_df = self.drug_affinity_df.loc[
-            drug_mask & sequence_mask
-        ]
+        self.drug_affinity_df = self.drug_affinity_df.loc[drug_mask & sequence_mask]
         # to investigate missing ids per entity
         self.masks_df = pd.concat([drug_mask, sequence_mask], axis=1)
         self.masks_df.columns = ['ligand_name', 'sequence_id']
@@ -206,16 +202,14 @@ class DrugAffinityDataset(Dataset):
         affinity_tensor = torch.tensor(
             [selected_sample['label']],
             dtype=self.drug_affinity_dtype,
-            device=self.device
+            device=self.device,
         )
         # SMILES
         token_indexes_tensor = self.smiles_dataset.get_item_from_key(
             selected_sample['ligand_name']
         )
         # protein
-        protein_sequence_tensor = (
-            self.protein_sequence_dataset.get_item_from_key(
-                selected_sample['sequence_id']
-            )
+        protein_sequence_tensor = self.protein_sequence_dataset.get_item_from_key(
+            selected_sample['sequence_id']
         )
         return token_indexes_tensor, protein_sequence_tensor, affinity_tensor

@@ -6,14 +6,10 @@ from pytoda.preprocessing.smi import filter_invalid_smi
 # define the parser arguments
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    'input_filepath',
-    type=str,
-    help=('path to the .smi file to process.')
+    'input_filepath', type=str, help=('path to the .smi file to process.')
 )
 parser.add_argument(
-    'output_filepath',
-    type=str,
-    help=('path where to store the filtered .smi file.')
+    'output_filepath', type=str, help=('path where to store the filtered .smi file.')
 )
 parser.add_argument(
     '-n',
@@ -21,13 +17,11 @@ parser.add_argument(
     type=int,
     help='size of the SMILES chunk. Defaults to 100000.',
     default=100000,
-    required=False
+    required=False,
 )
 
 if __name__ == '__main__':
     # parse arguments
     args = parser.parse_args()
     # run the filter
-    filter_invalid_smi(
-        args.input_filepath, args.output_filepath, args.chunk_size
-    )
+    filter_invalid_smi(args.input_filepath, args.output_filepath, args.chunk_size)

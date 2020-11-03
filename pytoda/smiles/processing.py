@@ -23,9 +23,7 @@ with resources.path('pytoda.smiles.metadata', 'spe_chembl.txt') as filepath:
     SPE_TOKENIZER = SPE_Tokenizer(codecs.open(filepath))
 
 
-def tokenize_smiles(
-    smiles: str, regexp=SMILES_TOKENIZER, *args, **kwargs
-) -> Tokens:
+def tokenize_smiles(smiles: str, regexp=SMILES_TOKENIZER, *args, **kwargs) -> Tokens:
     """
     Tokenize a character-level SMILES string.
 
@@ -97,14 +95,13 @@ def tokenize_selfies(selfies: str) -> Tokens:
     """
     warnings.warn(
         "tokenize_selfies will be deprecated in favor of `split_selfies`",
-        DeprecationWarning
+        DeprecationWarning,
     )
     try:
         selfies = selfies.replace('.', '[.]')  # to allow parsing unbound atoms
         selfies_char_list_pre = selfies[1:-1].split('][')
         return [
-            '[' + selfies_element + ']'
-            for selfies_element in selfies_char_list_pre
+            '[' + selfies_element + ']' for selfies_element in selfies_char_list_pre
         ]
     except Exception:
         logger.warning(f'Error in tokenizing {selfies}. Returning empty list.')
