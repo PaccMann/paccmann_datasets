@@ -83,7 +83,7 @@ class TestCrawlers(unittest.TestCase):
             'O1C=CC=NC(=O)C1=O', 'CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1',
             'Clc1ccccc2ccnc12'
         ]
-        ground_truths = [(True, 67945516), (False, -1), (False, -1)]
+        ground_truths = [(True, 67945516), (False, -2), (False, -1)]
         for gt, smiles in zip(ground_truths, smiles_list):
             self.assertTupleEqual(query_pubchem(smiles), gt)
 
