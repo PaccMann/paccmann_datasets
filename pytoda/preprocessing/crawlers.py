@@ -2,7 +2,11 @@ import logging
 import urllib
 import urllib.error as urllib_error
 import urllib.request as urllib_request
-from typing import Union
+from itertools import filterfalse
+from typing import Iterable, List, Tuple, Union
+import pubchempy as pcp
+from pubchempy import BadRequestError
+from pytoda.smiles.transforms import Canonicalization
 
 logger = logging.getLogger(__name__)
 
@@ -49,8 +53,8 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
             zinc_id = zinc_ids[0]
 
         except urllib_error.HTTPError:
-            logger.warninig(f'Did not find any result for drug: {drug}')
-            return []
+            logger.warning(f'Did not find any result for drug: {drug}')
+            return ''
 
     elif type(drug) == int:
         zinc_id = str(drug)
@@ -124,6 +128,60 @@ def get_smiles_from_pubchem(
             return smiles
         except urllib_error.HTTPError:
             if option == 'CanonicalSMILES':
-                logger.warninig(f'Did not find any result for drug: {drug}')
-                return []
+                logger.warning(f'Did not find any result for drug: {drug}')
+                return ''
             continue
+
+
+def remove_pubchem_smiles(smiles_list: Iterable[str]) -> List:
+    """
+    Function for removing PubChem molecules from an iterable of smiles.
+    Args:
+        smiles_list (Iterable[str]): many SMILES strings.
+    Returns:
+        List[str]:  Filtered list of SMILES, all SMILES pointing to PubChem
+            molecules are removed.
+    """
+
+    if not isinstance(smiles_list, Iterable):
+        raise TypeError(f'Please pass Iterable, not {type(smiles_list)}')
+
+    canonicalizer = Canonicalization(sanitize=False)
+    filtered = filterfalse(is_pubchem, smiles_list)
+    # Canonicalize molecules and filter again (sanity check)
+    filtered_canonical = filterfalse(
+        lambda x: is_pubchem(canonicalizer(x)), filtered
+    )
+    return list(filtered_canonical)
+
+
+def query_pubchem(smiles: str) -> Tuple[bool, int]:
+    """
+    Queries pubchem for a given SMILES.
+    Args:
+        smiles (str): A SMILES string.
+    Returns:
+        Tuple[bool, int]
+            bool: Whether or not SMILES is known to PubChem.
+            int: PubChem ID of matched SMILES, -1 if SMILES was not found. 
+                Instead, -2 means a BadRequestError in the PubChem query.
+    """
+    if not isinstance(smiles, str):
+        raise TypeError(f'Please pass str, not {type(smiles)}')
+    try:
+        result = pcp.get_compounds(smiles, 'smiles')[0]
+    except BadRequestError:
+        logger.warning(f'Skipping SMILES. BadRequestError with: {smiles}')
+        return (False, -2)
+
+    return (False, -1) if result.cid is None else (True, result.cid)
+
+
+def is_pubchem(smiles: str) -> bool:
+    """Whether a given SMILES in PubChem.
+    Args:
+        smiles (str): A SMILES string.
+    Returns:
+        bool: Whether or not SMILES is known to PubChem.
+    """
+    return query_pubchem(smiles)[0]
