@@ -1,7 +1,11 @@
 """Testing transforms."""
+import random
 import unittest
-from pytoda.transforms import LeftPadding, ToTensor, ListToTensor
+
 import torch
+from pytoda.transforms import (
+    AugmentByReversing, LeftPadding, ListToTensor, ToTensor
+)
 
 
 class TestTransforms(unittest.TestCase):
@@ -20,6 +24,17 @@ class TestTransforms(unittest.TestCase):
             )
             for mol in ['C(N)CS', 'CCO']:
                 self.assertEqual(len(transform(list(mol))), padding_length)
+
+    def test_augment_by_reversing(self) -> None:
+        """Test AugmentByReversing."""
+
+        sequence = 'ABC'
+        ground_truths = ['ABC', 'ABC', 'CBA']
+        for k in range(15):
+            for p, ground_truth in zip([0., 0.5, 1.], ground_truths):
+                random.seed(42)
+                transform = AugmentByReversing(p=p)
+                self.assertEqual(transform(sequence), ground_truth)
 
     def test_to_tensor(self) -> None:
         """Test ToTensor."""
