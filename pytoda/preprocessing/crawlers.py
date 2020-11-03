@@ -163,7 +163,8 @@ def query_pubchem(smiles: str) -> Tuple[bool, int]:
     Returns:
         Tuple[bool, int]
             bool: Whether or not SMILES is known to PubChem.
-            int: PubChem ID of matched SMILES, -1 if SMILES was not found.
+            int: PubChem ID of matched SMILES, -1 if SMILES was not found. 
+                Instead, -2 means a BadRequestError in the PubChem query.
     """
     if not isinstance(smiles, str):
         raise TypeError(f'Please pass str, not {type(smiles)}')
@@ -171,7 +172,7 @@ def query_pubchem(smiles: str) -> Tuple[bool, int]:
         result = pcp.get_compounds(smiles, 'smiles')[0]
     except BadRequestError:
         logger.warning(f'Skipping SMILES. BadRequestError with: {smiles}')
-        return (False, -1)
+        return (False, -2)
 
     return (False, -1) if result.cid is None else (True, result.cid)
 
