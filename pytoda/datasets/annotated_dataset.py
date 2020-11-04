@@ -20,9 +20,10 @@ class AnnotatedDataset(DataFrameDataset):
         annotation_index: Union[int, str] = -1,
         label_columns: Union[List[int], List[str]] = None,
         dtype: torch.dtype = torch.float,
-        device: torch.device = torch.
-        device('cuda' if torch.cuda.is_available() else 'cpu'),
-        **kwargs
+        device: torch.device = torch.device(
+            'cuda' if torch.cuda.is_available() else 'cpu'
+        ),
+        **kwargs,
     ) -> None:
         """
         Initialize an annotated dataset via additional annotations dataframe.
@@ -55,9 +56,7 @@ class AnnotatedDataset(DataFrameDataset):
         self.dtype = dtype
 
         # processing of the dataframe for dataset setup
-        df = pd.read_csv(
-            self.annotations_filepath, **kwargs
-        )
+        df = pd.read_csv(self.annotations_filepath, **kwargs)
         columns = df.columns
         # handle annotation index
         if isinstance(annotation_index, int):
@@ -84,9 +83,7 @@ class AnnotatedDataset(DataFrameDataset):
         self.number_of_tasks = len(self.labels)
 
         # set the index explicitly, and discard non label columns
-        df = df.set_index(
-            self.annotation_index
-        )[self.labels]
+        df = df.set_index(self.annotation_index)[self.labels]
         DataFrameDataset.__init__(self, df)
 
     def __getitem__(self, index: int) -> AnnotatedData:
@@ -127,8 +124,6 @@ class AnnotatedDataset(DataFrameDataset):
         sample = self.datasource.get_item_from_key(lables_series.name)
         # label
         labels_tensor = torch.tensor(
-            list(lables_series.values),
-            dtype=self.dtype,
-            device=self.device
+            list(lables_series.values), dtype=self.dtype, device=self.device
         )
         return sample, labels_tensor

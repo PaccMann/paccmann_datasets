@@ -29,7 +29,7 @@ class ProteinFeatureLanguage(ProteinLanguage):
         name: str = 'protein-feature-language',
         features: str = 'blosum',
         tokenizer: Tokenizer = list,
-        add_start_and_stop: bool = True
+        add_start_and_stop: bool = True,
     ) -> None:
         """
         Initialize Protein feature language.
@@ -65,34 +65,27 @@ class ProteinFeatureLanguage(ProteinLanguage):
         self.number_of_features = len(self.token_to_index['<START>'])
         # Setup dictionary
         self.sequence_tokens = [
-            index for token, index in self.token_to_index.items()
-            if '<' not in token
+            index for token, index in self.token_to_index.items() if '<' not in token
         ]
 
         self.tokenizer = tokenizer
         self.number_of_tokens = len(self.token_to_index)
         self.index_to_token = {
-            index: token
-            for token, index in self.token_to_index.items()
+            index: token for token, index in self.token_to_index.items()
         }
 
         if self.add_start_and_stop:
             self.max_token_sequence_length = 2
-            self._get_total_number_of_tokens_fn = (
-                lambda tokens: len(tokens) + 2
-            )
-            self._finalize_token_indexes_fn = (
-                lambda token_indexes: (
-                    [self.token_to_index['<START>']] + token_indexes +
-                    [self.token_to_index['<STOP>']]
-                )
+            self._get_total_number_of_tokens_fn = lambda tokens: len(tokens) + 2
+            self._finalize_token_indexes_fn = lambda token_indexes: (
+                [self.token_to_index['<START>']]
+                + token_indexes
+                + [self.token_to_index['<STOP>']]
             )
         else:
             self.max_token_sequence_length = 0
             self._get_total_number_of_tokens_fn = len
-            self._finalize_token_indexes_fn = (
-                lambda token_indexes: token_indexes
-            )
+            self._finalize_token_indexes_fn = lambda token_indexes: token_indexes
 
         self.padding_index = self.token_to_index['<PAD>']
         self.start_index = self.token_to_index['<START>']

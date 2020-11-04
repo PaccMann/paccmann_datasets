@@ -16,13 +16,10 @@ def filter_invalid_smi(
         chunk_size (int): size of the SMILES chunk. Defaults to 100000.
     """
     for chunk in read_smi(input_filepath, chunk_size=chunk_size):
-        pd.DataFrame([
-            [row['SMILES'], index]
-            for index, row in chunk.iterrows()
-            if Chem.MolFromSmiles(row['SMILES'])
-        ]).to_csv(
-            output_filepath,
-            index=None, header=None,
-            mode='a',
-            sep='\t'
-        )
+        pd.DataFrame(
+            [
+                [row['SMILES'], index]
+                for index, row in chunk.iterrows()
+                if Chem.MolFromSmiles(row['SMILES'])
+            ]
+        ).to_csv(output_filepath, index=None, header=None, mode='a', sep='\t')

@@ -149,7 +149,7 @@ class DrugSensitivityDataset(Dataset):
             device=self.device,
             vocab_file=vocab_file,
             iterate_dataset=iterate_dataset,
-            backend=self.backend
+            backend=self.backend,
         )
         # gene expression
         self.gene_expression_dataset = GeneExpressionDataset(
@@ -162,7 +162,7 @@ class DrugSensitivityDataset(Dataset):
             device=self.device,
             backend=self.backend,
             index_col=0,
-            **gene_expression_kwargs
+            **gene_expression_kwargs,
         )
         # drug sensitivity
         self.drug_sensitivity_dtype = drug_sensitivity_dtype
@@ -192,26 +192,18 @@ class DrugSensitivityDataset(Dataset):
 
         # NOTE: optional min-max scaling
         if self.drug_sensitivity_min_max:
-            minimum = (
-                self.drug_sensitivity_processing_parameters.get(
-                    'min', self.drug_sensitivity_df['IC50'].min()
-                )
+            minimum = self.drug_sensitivity_processing_parameters.get(
+                'min', self.drug_sensitivity_df['IC50'].min()
             )
-            maximum = (
-                self.drug_sensitivity_processing_parameters.get(
-                    'max', self.drug_sensitivity_df['IC50'].max()
-                )
+            maximum = self.drug_sensitivity_processing_parameters.get(
+                'max', self.drug_sensitivity_df['IC50'].max()
             )
             self.drug_sensitivity_df['IC50'] = (
-                (self.drug_sensitivity_df['IC50'] - minimum) /
-                (maximum - minimum)
-            )
+                self.drug_sensitivity_df['IC50'] - minimum
+            ) / (maximum - minimum)
             self.drug_sensitivity_processing_parameters = {
                 'processing': 'min_max',
-                'parameters': {
-                    'min': minimum,
-                    'max': maximum
-                }
+                'parameters': {'min': minimum, 'max': maximum},
             }
 
     def __len__(self) -> int:
@@ -235,16 +227,14 @@ class DrugSensitivityDataset(Dataset):
         ic50_tensor = torch.tensor(
             [selected_sample['IC50']],
             dtype=self.drug_sensitivity_dtype,
-            device=self.device
+            device=self.device,
         )
         # SMILES
         token_indexes_tensor = self.smiles_dataset.get_item_from_key(
             selected_sample['drug']
         )
         # gene_expression
-        gene_expression_tensor = (
-            self.gene_expression_dataset.get_item_from_key(
-                selected_sample['cell_line']
-            )
+        gene_expression_tensor = self.gene_expression_dataset.get_item_from_key(
+            selected_sample['cell_line']
         )
         return token_indexes_tensor, gene_expression_tensor, ic50_tensor

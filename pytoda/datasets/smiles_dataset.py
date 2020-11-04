@@ -28,7 +28,7 @@ class SMILESDataset(DatasetDelegator):
         *smi_filepaths: str,
         backend: str = 'eager',
         name: str = 'smiles-dataset',
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize a SMILES dataset.
@@ -45,18 +45,12 @@ class SMILESDataset(DatasetDelegator):
         self.backend = backend
         self.name = name
 
-        dataset_class, valid_keys = SMILES_DATASET_IMPLEMENTATIONS[
-            self.backend
-        ]
-        self.kwargs = dict(
-            (k, v) for k, v in kwargs.items() if k in valid_keys
-        )
+        dataset_class, valid_keys = SMILES_DATASET_IMPLEMENTATIONS[self.backend]
+        self.kwargs = dict((k, v) for k, v in kwargs.items() if k in valid_keys)
         self.kwargs['name'] = 'SMILES'
 
         self.dataset = concatenate_file_based_datasets(
-            filepaths=self.smi_filepaths,
-            dataset_class=dataset_class,
-            **self.kwargs
+            filepaths=self.smi_filepaths, dataset_class=dataset_class, **self.kwargs
         )
 
         DatasetDelegator.__init__(self)  # delegate to self.dataset
@@ -91,7 +85,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
         iterate_dataset: bool = True,
         backend: str = 'eager',
         name: str = 'smiles-encoder-dataset',
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize a dataset providing token indexes from source SMILES.
@@ -145,11 +139,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
 
         """
         self.name = name
-        self.dataset = SMILESDataset(
-            *smi_filepaths,
-            backend=backend,
-            **kwargs
-        )
+        self.dataset = SMILESDataset(*smi_filepaths, backend=backend, **kwargs)
         DatasetDelegator.__init__(self)  # delegate to self.dataset
 
         if smiles_language is not None:
@@ -158,8 +148,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
             language_kwargs = {}  # SMILES default
             if selfies:
                 language_kwargs = dict(
-                    name='selfies-language',
-                    smiles_tokenizer=split_selfies
+                    name='selfies-language', smiles_tokenizer=split_selfies
                 )
             self.smiles_language = SMILESTokenizer(
                 **language_kwargs,
@@ -188,8 +177,8 @@ class SMILESTokenizerDataset(DatasetDelegator):
 
         try:
             if (
-                self.smiles_language.padding and
-                self.smiles_language.padding_length is None
+                self.smiles_language.padding
+                and self.smiles_language.padding_length is None
             ):
                 try:
                     # max_sequence_token_length has to be set somehow
@@ -216,6 +205,4 @@ class SMILESTokenizerDataset(DatasetDelegator):
             torch.Tensor: a torch tensor of token indexes,
                 for the current sample.
         """
-        return self.smiles_language.smiles_to_token_indexes(
-            self.dataset[index]
-        )
+        return self.smiles_language.smiles_to_token_indexes(self.dataset[index])

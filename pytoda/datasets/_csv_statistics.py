@@ -6,8 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 
-from ..types import (CallableOnSource, FeatureList, List, Optional,
-                     OrderedDict, Tuple)
+from ..types import CallableOnSource, FeatureList, List, Optional, OrderedDict, Tuple
 
 
 class _CsvStatistics:
@@ -18,7 +17,7 @@ class _CsvStatistics:
         filepath: str,
         feature_list: FeatureList = None,
         pandas_dtype=None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize a .csv dataset.
@@ -41,7 +40,9 @@ class _CsvStatistics:
 
         self.preprocess_df = (
             # may be applied to many chunks, so logic is determined once here
-            self._reindex if self.initial_feature_list else self._id
+            self._reindex
+            if self.initial_feature_list
+            else self._id
         )
         self.setup_datasource()
 
@@ -53,9 +54,7 @@ class _CsvStatistics:
 
     def _reindex(self, df: pd.DataFrame) -> pd.DataFrame:
         """Ensure given order of features, creating NaN columns for missing."""
-        return df.reindex(
-            columns=self.initial_feature_list, fill_value=np.NaN
-        )
+        return df.reindex(columns=self.initial_feature_list, fill_value=np.NaN)
 
     def _id(self, df: pd.DataFrame) -> pd.DataFrame:
         return df
@@ -96,7 +95,7 @@ class _CsvStatistics:
         self,
         transform_fn: CallableOnSource,
         feature_fn: CallableOnSource,
-        impute: Optional[float] = None
+        impute: Optional[float] = None,
     ) -> None:
         """Apply scaling to the datasource.
 
@@ -112,7 +111,7 @@ class _CsvStatistics:
         self,
         transform_fn: CallableOnSource,
         feature_list: FeatureList,
-        impute: Optional[float] = None
+        impute: Optional[float] = None,
     ) -> None:
         """Apply filtering, ordering and scaling to the datasource and update
         the dataset accordingly.
@@ -151,10 +150,7 @@ class _CsvStatistics:
         self.feature_list = feature_list
         self.feature_mapping = pd.Series(
             OrderedDict(
-                [
-                    (feature, index)
-                    for index, feature in enumerate(self.feature_list)
-                ]
+                [(feature, index) for index, feature in enumerate(self.feature_list)]
             )
         )
         self.feature_fn = self.get_feature_fn(self.feature_list)
@@ -164,8 +160,7 @@ class _CsvStatistics:
 
 
 def reduce_csv_statistics(
-    csv_datasets: List[_CsvStatistics],
-    feature_list: FeatureList = None,
+    csv_datasets: List[_CsvStatistics], feature_list: FeatureList = None,
 ) -> Tuple[FeatureList, np.array, np.array, np.array, np.array]:
     """
     Reduce datasets statistics.
@@ -188,22 +183,17 @@ def reduce_csv_statistics(
     # collected common features
     features = list(
         reduce(
-            lambda a_set, another_set: a_set & another_set, [
-                set(csv_dataset.feature_mapping.keys())
-                for csv_dataset in csv_datasets
-            ]
+            lambda a_set, another_set: a_set & another_set,
+            [set(csv_dataset.feature_mapping.keys()) for csv_dataset in csv_datasets],
         )
     )
 
     if feature_list is not None:
         # to sort features by key
         feature_ordering = {
-            feature: index
-            for index, feature in enumerate(feature_list)
+            feature: index for index, feature in enumerate(feature_list)
         }
-        features = sorted(
-            features, key=lambda feature: feature_ordering[feature]
-        )
+        features = sorted(features, key=lambda feature: feature_ordering[feature])
     else:
         # sorting the strings
         features = sorted(features)
@@ -220,9 +210,9 @@ def reduce_csv_statistics(
                 csv_dataset.mean[csv_dataset.feature_mapping[features].values],
                 csv_dataset.std[csv_dataset.feature_mapping[features].values],
                 # len(csv_dataset)
-                csv_dataset.notna_count[
-                    csv_dataset.feature_mapping[features].values]
-            ) for csv_dataset in csv_datasets
+                csv_dataset.notna_count[csv_dataset.feature_mapping[features].values],
+            )
+            for csv_dataset in csv_datasets
         ]
     )
     # NOTE: reduce max and min
@@ -230,22 +220,28 @@ def reduce_csv_statistics(
     minimum = np.nanmin(minimums, axis=0)
     # NOTE: reduce the mean
     total_number_of_samples = sum(sample_numbers).astype(float)
-    mean = np.nansum(
-        [
-            dataset_mean * number_of_samples
-            for dataset_mean, number_of_samples in zip(means, sample_numbers)
-        ],
-        axis=0
-    ) / total_number_of_samples
+    mean = (
+        np.nansum(
+            [
+                dataset_mean * number_of_samples
+                for dataset_mean, number_of_samples in zip(means, sample_numbers)
+            ],
+            axis=0,
+        )
+        / total_number_of_samples
+    )
     # NOTE: reduce the std
     std = np.sqrt(
         np.nansum(
             [
-                (dataset_std**2 + dataset_mean**2) * number_of_samples
-                for dataset_std, dataset_mean, number_of_samples in
-                zip(stds, means, sample_numbers)
+                (dataset_std ** 2 + dataset_mean ** 2) * number_of_samples
+                for dataset_std, dataset_mean, number_of_samples in zip(
+                    stds, means, sample_numbers
+                )
             ],
-            axis=0
-        ) / total_number_of_samples - mean**2
+            axis=0,
+        )
+        / total_number_of_samples
+        - mean ** 2
     )
     return (features, maximum, minimum, mean, std)

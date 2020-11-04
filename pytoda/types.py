@@ -13,7 +13,7 @@ from typing import (
     Tuple,
     Union,
     Optional,
-    OrderedDict
+    OrderedDict,
 )
 
 from numpy import ndarray  # np.typing in development
@@ -27,9 +27,11 @@ Files = Sequence[str]  # often passed on as Tuple via *args
 FeatureList = List[str]
 GeneList = FeatureList
 CsvSourceData = Union[ndarray, Series, DataFrame]
-CallableOnSource = Union[Callable[[ndarray], ndarray],
-                         Callable[[Series], Series],
-                         Callable[[DataFrame], DataFrame]]
+CallableOnSource = Union[
+    Callable[[ndarray], ndarray],
+    Callable[[Series], Series],
+    Callable[[DataFrame], DataFrame],
+]
 TransformList = List[Callable[[Any], Any]]
 DrugSensitivityData = Tuple[Tensor, Tensor, Tensor]
 DrugAffinityData = Tuple[Tensor, Tensor, Tensor]

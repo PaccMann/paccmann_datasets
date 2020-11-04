@@ -53,21 +53,17 @@ def indexed(dataset: AnyBaseDataset) -> AnyBaseDataset:
         return_index = len(self) + index if index < 0 else index
         return default_getitem(index), return_index
 
-    def return_item_index_tuple_from_key(
-        self, key: Hashable
-    ) -> Tuple[Any, int]:
+    def return_item_index_tuple_from_key(self, key: Hashable) -> Tuple[Any, int]:
         """prevents `get_item_from_key` to call new indexed __getitem__"""
         return default_from_key(key), dataset.get_index(key)
 
     methods = {
         '__getitem__': return_item_index_tuple,
-        'get_item_from_key': return_item_index_tuple_from_key
+        'get_item_from_key': return_item_index_tuple_from_key,
     }
     ds = copy(dataset)
     ds.__class__ = type(
-        f'Indexed{type(dataset).__name__}',
-        (dataset.__class__,),
-        methods
+        f'Indexed{type(dataset).__name__}', (dataset.__class__,), methods
     )
     return ds
 
@@ -81,25 +77,16 @@ def keyed(dataset: AnyBaseDataset) -> AnyBaseDataset:
     default_from_key = dataset.get_item_from_key  # bound method
 
     def return_item_key_tuple(self, index: int) -> Tuple[Any, Hashable]:
-        return (
-            default_getitem(index),
-            dataset.get_key(index)
-        )
+        return (default_getitem(index), dataset.get_key(index))
 
-    def return_item_key_tuple_from_key(
-        self, key: Hashable
-    ) -> Tuple[Any, Hashable]:
+    def return_item_key_tuple_from_key(self, key: Hashable) -> Tuple[Any, Hashable]:
         """prevents `get_item_from_key` to call new keyed __getitem__"""
         return default_from_key(key), key
 
     methods = {
         '__getitem__': return_item_key_tuple,
-        'get_item_from_key': return_item_key_tuple_from_key
+        'get_item_from_key': return_item_key_tuple_from_key,
     }
     ds = copy(dataset)
-    ds.__class__ = type(
-        f'Keyed{type(dataset).__name__}',
-        (dataset.__class__,),
-        methods
-    )
+    ds.__class__ = type(f'Keyed{type(dataset).__name__}', (dataset.__class__,), methods)
     return ds

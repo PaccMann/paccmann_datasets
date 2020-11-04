@@ -9,8 +9,7 @@ from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from selfies import encoder as selfies_encoder
 
-from ..transforms import (Compose, LeftPadding, Randomize, StartStop, ToTensor,
-                          Transform)
+from ..transforms import Compose, LeftPadding, Randomize, StartStop, ToTensor, Transform
 from ..types import Indexes, Tensor, Union
 
 logger = logging.getLogger('pytoda_SMILES_transforms')
@@ -62,17 +61,14 @@ def compose_smiles_transforms(
     else:
         if remove_bonddir or remove_chirality:
             smiles_transforms += [
-                RemoveIsomery(
-                    bonddir=remove_bonddir,
-                    chirality=remove_chirality
-                )
+                RemoveIsomery(bonddir=remove_bonddir, chirality=remove_chirality)
             ]
         if kekulize:
             smiles_transforms += [
                 Kekulize(
                     all_bonds_explicit=all_bonds_explicit,
                     all_hs_explicit=all_hs_explicit,
-                    sanitize=sanitize
+                    sanitize=sanitize,
                 )
             ]
         elif all_bonds_explicit or all_hs_explicit or sanitize:
@@ -80,7 +76,7 @@ def compose_smiles_transforms(
                 NotKekulize(
                     all_bonds_explicit=all_bonds_explicit,
                     all_hs_explicit=all_hs_explicit,
-                    sanitize=sanitize
+                    sanitize=sanitize,
                 )
             ]
         if augment:
@@ -89,7 +85,7 @@ def compose_smiles_transforms(
                     kekule_smiles=kekulize,
                     all_bonds_explicit=all_bonds_explicit,
                     all_hs_explicit=all_hs_explicit,
-                    sanitize=sanitize
+                    sanitize=sanitize,
                 )
             ]
         if selfies:
@@ -106,8 +102,7 @@ def compose_encoding_transforms(
     padding: bool = False,
     padding_length: int = None,
     padding_index: int = 0,
-    device: torch.device = torch.
-        device('cuda' if torch.cuda.is_available() else 'cpu'),
+    device: torch.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
 ) -> Compose:
     """Setup a composition of token indexes to token indexes transformations.
 
@@ -146,10 +141,7 @@ def compose_encoding_transforms(
 
     if padding:
         encoding_transforms += [
-            LeftPadding(
-                padding_length=padding_length,
-                padding_index=padding_index
-            )
+            LeftPadding(padding_length=padding_length, padding_index=padding_index)
         ]
 
     encoding_transforms += [ToTensor(device=device)]
@@ -215,7 +207,7 @@ class RemoveIsomery(Transform):
             self._call_fn = lambda smiles: Chem.MolToSmiles(
                 Chem.MolFromSmiles(smiles, sanitize=sanitize),
                 isomericSmiles=False,
-                canonical=False
+                canonical=False,
             )
 
     def _isomery_call_fn(self, smiles: str) -> str:
@@ -252,9 +244,7 @@ class RemoveIsomery(Transform):
         smiles = ''.join(new_str).replace('N@@', 'N').replace('N@', 'N')
 
         try:
-            Chem.SanitizeMol(
-                Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
-            )
+            Chem.SanitizeMol(Chem.MolFromSmiles(smiles, sanitize=self.sanitize))
             return smiles
         except TypeError:
             logger.warning(f'\nInvalid SMILES {smiles}')
@@ -278,9 +268,7 @@ class RemoveIsomery(Transform):
 class Kekulize(Transform):
     """Transform SMILES to Kekule version."""
 
-    def __init__(
-        self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True
-    ):
+    def __init__(self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True):
 
         # NOTE: Explicit bonds or Hs without Kekulization is not supported
         self.all_bonds_explicit = all_bonds_explicit
@@ -309,7 +297,7 @@ class Kekulize(Transform):
                 kekuleSmiles=True,
                 allBondsExplicit=self.all_bonds_explicit,
                 allHsExplicit=self.all_hs_explicit,
-                canonical=False
+                canonical=False,
             )
         except Exception:
             logger.warning(
@@ -323,9 +311,7 @@ class Kekulize(Transform):
 class NotKekulize(Transform):
     """ Transform SMILES without explicitly converting to Kekule version """
 
-    def __init__(
-        self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True
-    ):
+    def __init__(self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True):
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
         self.sanitize = sanitize
@@ -346,7 +332,7 @@ class NotKekulize(Transform):
                 molecule,
                 allBondsExplicit=self.all_bonds_explicit,
                 allHsExplicit=self.all_hs_explicit,
-                canonical=False
+                canonical=False,
             )
         except Exception:
             logger.warning(
@@ -365,7 +351,7 @@ class Augment(Transform):
         all_bonds_explicit: bool = False,
         all_hs_explicit: bool = False,
         sanitize: bool = True,
-        seed: int = -1
+        seed: int = -1,
     ) -> None:
         """ NOTE:  These parameter need to be passed down to the enumerator."""
 
@@ -406,7 +392,7 @@ class Augment(Transform):
             canonical=False,
             kekuleSmiles=self.kekule_smiles,
             allBondsExplicit=self.all_bonds_explicit,
-            allHsExplicit=self.all_hs_explicit
+            allHsExplicit=self.all_hs_explicit,
         )
 
 
@@ -421,7 +407,7 @@ class AugmentTensor(Transform):
         kekule_smiles=False,
         all_bonds_explicit=False,
         all_hs_explicit=False,
-        sanitize=True
+        sanitize=True,
     ) -> None:
         """NOTE:  These parameter need to be passed down to the enumerator."""
         self.smiles_language = smiles_language
@@ -455,18 +441,14 @@ class AugmentTensor(Transform):
                 smiles_numerical = smiles_numerical.numpy().flatten().tolist()
 
         if type(smiles_numerical) == list:
-            smiles = self.smiles_language.token_indexes_to_smiles(
-                smiles_numerical
-            )
+            smiles = self.smiles_language.token_indexes_to_smiles(smiles_numerical)
             try:
                 molecule = Chem.MolFromSmiles(smiles, sanitize=self.sanitize)
                 atom_indexes = list(range(molecule.GetNumAtoms()))
                 if len(atom_indexes) == 0:  # RDkit error handling
                     return smiles
                 np.random.shuffle(atom_indexes)
-                renumbered_molecule = Chem.RenumberAtoms(
-                    molecule, atom_indexes
-                )
+                renumbered_molecule = Chem.RenumberAtoms(molecule, atom_indexes)
                 if self.kekule_smiles:
                     Chem.Kekulize(renumbered_molecule)
 
@@ -475,20 +457,14 @@ class AugmentTensor(Transform):
                     canonical=False,
                     kekuleSmiles=self.kekule_smiles,
                     allBondsExplicit=self.all_bonds_explicit,
-                    allHsExplicit=self.all_hs_explicit
+                    allHsExplicit=self.all_hs_explicit,
                 )
             except Exception:
-                logger.warning(
-                    f'\nAugmentation skipped, mol invalid: {smiles}'
-                )
+                logger.warning(f'\nAugmentation skipped, mol invalid: {smiles}')
                 augmented_smiles = smiles
-            return self.smiles_language.smiles_to_token_indexes(
-                augmented_smiles
-            )
+            return self.smiles_language.smiles_to_token_indexes(augmented_smiles)
 
-        raise TypeError(
-            'Please pass either a torch.Tensor of ndim 1, 2 or alist.'
-        )
+        raise TypeError('Please pass either a torch.Tensor of ndim 1, 2 or alist.')
 
     def __call__tensor(self, smiles_numerical: Tensor) -> str:
         """
@@ -504,17 +480,20 @@ class AugmentTensor(Transform):
         if self.smiles_language.padding_index in smiles_numerical.flatten():
 
             padding = True
-            left_padding = any([
-                self.smiles_language.padding_index == row[0]
-                for row in smiles_numerical
-            ])  # yapf: disable
-            right_padding = any([
-                self.smiles_language.padding_index == row[-1]
-                for row in smiles_numerical
-            ])  # yapf: disable
-            if (
-                (left_padding and right_padding)
-                or (not left_padding and not right_padding)
+            left_padding = any(
+                [
+                    self.smiles_language.padding_index == row[0]
+                    for row in smiles_numerical
+                ]
+            )
+            right_padding = any(
+                [
+                    self.smiles_language.padding_index == row[-1]
+                    for row in smiles_numerical
+                ]
+            )
+            if (left_padding and right_padding) or (
+                not left_padding and not right_padding
             ):
                 raise ValueError(
                     'Could not uniqely infer padding type. Leftpadding was '
@@ -538,13 +517,10 @@ class AugmentTensor(Transform):
                 pl = seq_len - len(augmented_smiles)
                 pad = (0, pl) if right_padding else (pl, 0)
                 augmented_smiles = torch.nn.functional.pad(
-                    augmented_smiles, pad,
-                    value=self.smiles_language.padding_index
+                    augmented_smiles, pad, value=self.smiles_language.padding_index
                 )
 
-            augmented.append(
-                torch.unsqueeze(augmented_smiles, 0)
-            )
+            augmented.append(torch.unsqueeze(augmented_smiles, 0))
 
         augmented = torch.cat(augmented, dim=0)
         return augmented
@@ -571,14 +547,11 @@ class Canonicalization(Transform):
     def __call__(self, smiles: str) -> str:
         try:
             canon = Chem.MolToSmiles(
-                Chem.MolFromSmiles(smiles, sanitize=self.sanitize),
-                canonical=True
+                Chem.MolFromSmiles(smiles, sanitize=self.sanitize), canonical=True
             )
             return canon
         except Exception:
-            logger.warning(
-                f'\nInvalid SMILES {smiles}, no canonicalization done'
-            )
+            logger.warning(f'\nInvalid SMILES {smiles}, no canonicalization done')
             return smiles
 
 
@@ -616,10 +589,7 @@ class SMILESToMorganFingerprints(Transform):
                 molecule.UpdatePropertyCache(strict=False)
                 AllChem.FastFindRings(molecule)
             fingerprint = AllChem.GetMorganFingerprintAsBitVect(
-                molecule,
-                self.radius,
-                nBits=self.bits,
-                useChirality=self.chirality
+                molecule, self.radius, nBits=self.bits, useChirality=self.chirality
             )
         except Exception:
             logger.warning(f'\nInvalid SMILES {smiles}')
@@ -627,6 +597,6 @@ class SMILESToMorganFingerprints(Transform):
             fingerprint = AllChem.GetMorganFingerprintAsBitVect(
                 molecule, self.radius, nBits=self.bits
             )
-        array = np.zeros((1, ))
+        array = np.zeros((1,))
         DataStructs.ConvertToNumpyArray(fingerprint, array)
         return array

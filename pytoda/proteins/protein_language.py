@@ -15,6 +15,7 @@ class ProteinLanguage(object):
     ProteinLanguage handle Protein data defining the vocabulary and
     utilities to manipulate it.
     """
+
     unknown_token = '<UNK>'
 
     def __init__(
@@ -22,7 +23,7 @@ class ProteinLanguage(object):
         name: str = 'protein-language',
         amino_acid_dict: str = 'iupac',
         tokenizer: Tokenizer = list,
-        add_start_and_stop: bool = True
+        add_start_and_stop: bool = True,
     ) -> None:
         """
         Initialize Protein language.
@@ -47,39 +48,31 @@ class ProteinLanguage(object):
             self.token_to_index = UNIREP_VOCAB
         else:
             raise ValueError(
-                "Choose dict as 'iupac' or 'unirep' (given was"
-                f"{amino_acid_dict})."
+                "Choose dict as 'iupac' or 'unirep' (given was" f"{amino_acid_dict})."
             )
         # Setup dictionary
         self.sequence_tokens = [
-            index for token, index in self.token_to_index.items()
-            if '<' not in token
+            index for token, index in self.token_to_index.items() if '<' not in token
         ]
 
         self.tokenizer = tokenizer
         self.number_of_tokens = len(self.token_to_index)
         self.index_to_token = {
-            index: token
-            for token, index in self.token_to_index.items()
+            index: token for token, index in self.token_to_index.items()
         }
 
         if self.add_start_and_stop:
             self.max_token_sequence_length = 2
-            self._get_total_number_of_tokens_fn = (
-                lambda tokens: len(tokens) + 2
-            )
-            self._finalize_token_indexes_fn = (
-                lambda token_indexes: (
-                    [self.token_to_index['<START>']] + token_indexes +
-                    [self.token_to_index['<STOP>']]
-                )
+            self._get_total_number_of_tokens_fn = lambda tokens: len(tokens) + 2
+            self._finalize_token_indexes_fn = lambda token_indexes: (
+                [self.token_to_index['<START>']]
+                + token_indexes
+                + [self.token_to_index['<STOP>']]
             )
         else:
             self.max_token_sequence_length = 0
             self._get_total_number_of_tokens_fn = len
-            self._finalize_token_indexes_fn = (
-                lambda token_indexes: token_indexes
-            )
+            self._finalize_token_indexes_fn = lambda token_indexes: token_indexes
 
         self.padding_index = self.token_to_index['<PAD>']
         self.start_index = self.token_to_index['<START>']
@@ -144,7 +137,7 @@ class ProteinLanguage(object):
         filepath: str,
         file_type: str = '.smi',
         index_col: int = 1,
-        chunk_size: int = 100000
+        chunk_size: int = 100000,
     ) -> None:
         """
         Add a set of protein sequences from a file.
@@ -161,8 +154,7 @@ class ProteinLanguage(object):
         """
         if file_type not in ['.csv', '.smi', '.fasta', '.fasta.gz']:
             raise ValueError(
-                "Please provide file of type "
-                "{'.smi', '.csv', '.fasta','.fasta.gz'}"
+                "Please provide file of type " "{'.smi', '.csv', '.fasta','.fasta.gz'}"
             )
 
         if file_type == '.csv' or file_type == '.smi':
@@ -171,7 +163,7 @@ class ProteinLanguage(object):
                     filepath,
                     chunk_size=chunk_size,
                     index_col=index_col,
-                    names=['Sequence']
+                    names=['Sequence'],
                 ):
                     for sequence in chunk['Sequence']:
                         self.add_sequence(sequence)

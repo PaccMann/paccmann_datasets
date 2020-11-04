@@ -9,6 +9,7 @@ class DataFrameDataset(KeyDataset):
     """
     Dataset of rows from pandas.DataFrame
     """
+
     def __init__(self, df: pd.DataFrame):
         super(DataFrameDataset).__init__()
         self.df = df
@@ -37,9 +38,7 @@ class DataFrameDataset(KeyDataset):
         """Get index for first datum mapping to the given key."""
         # item will raise if not single value (deprecated in pandas)
         try:
-            indexes = np.nonzero(
-                self.df.index == key
-            )[0]
+            indexes = np.nonzero(self.df.index == key)[0]
             return indexes.item()
         except ValueError:
             if len(indexes) == 0:

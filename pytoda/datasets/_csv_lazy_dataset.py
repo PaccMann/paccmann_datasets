@@ -24,7 +24,7 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
         filepath: str,
         feature_list: FeatureList = None,
         chunk_size: int = 10000,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize a .csv dataset.
@@ -88,10 +88,7 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
         self.feature_list = chunk.columns.tolist()
         self.feature_mapping = pd.Series(
             OrderedDict(
-                [
-                    (feature, index)
-                    for index, feature in enumerate(self.feature_list)
-                ]
+                [(feature, index) for index, feature in enumerate(self.feature_list)]
             )
         )
         self.feature_fn = self.get_feature_fn(self.feature_list)
@@ -114,8 +111,10 @@ class _CsvLazyDataset(KeyDataset, _CacheDatasource, _CsvStatistics):
         return feature_fn
 
     def transform_datasource(
-        self, transform_fn: CallableOnSource, feature_fn: CallableOnSource,
-        impute: Optional[float] = None
+        self,
+        transform_fn: CallableOnSource,
+        feature_fn: CallableOnSource,
+        impute: Optional[float] = None,
     ) -> None:
         """Apply scaling to the datasource.
 

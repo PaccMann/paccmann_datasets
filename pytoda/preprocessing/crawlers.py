@@ -71,10 +71,7 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
 
 
 def get_smiles_from_pubchem(
-    drug: str,
-    use_isomeric: bool = True,
-    kekulize: bool = False,
-    sanitize: bool = True
+    drug: str, use_isomeric: bool = True, kekulize: bool = False, sanitize: bool = True
 ) -> str:
     """
     Uses the PubChem database to retrieve the SMILES of a drug name (str).
@@ -119,12 +116,11 @@ def get_smiles_from_pubchem(
             path = '{}{}{}{}{}'.format(
                 PUBCHEM_START, stripped_drug, PUBCHEM_MID, option, PUBCHEM_END
             )
-            smiles = urllib_request.urlopen(path).read(
-            ).decode('UTF-8').replace('\n', '')
+            smiles = (
+                urllib_request.urlopen(path).read().decode('UTF-8').replace('\n', '')
+            )
             if not kekulize:
-                smiles = Chem.MolToSmiles(
-                    Chem.MolFromSmiles(smiles, sanitize=sanitize)
-                )
+                smiles = Chem.MolToSmiles(Chem.MolFromSmiles(smiles, sanitize=sanitize))
             return smiles
         except urllib_error.HTTPError:
             if option == 'CanonicalSMILES':
@@ -149,9 +145,7 @@ def remove_pubchem_smiles(smiles_list: Iterable[str]) -> List:
     canonicalizer = Canonicalization(sanitize=False)
     filtered = filterfalse(is_pubchem, smiles_list)
     # Canonicalize molecules and filter again (sanity check)
-    filtered_canonical = filterfalse(
-        lambda x: is_pubchem(canonicalizer(x)), filtered
-    )
+    filtered_canonical = filterfalse(lambda x: is_pubchem(canonicalizer(x)), filtered)
     return list(filtered_canonical)
 
 

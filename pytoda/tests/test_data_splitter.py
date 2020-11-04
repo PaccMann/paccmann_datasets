@@ -12,8 +12,7 @@ from pytoda.tests.utils import TestFileContent
 class TestDataSplitter(unittest.TestCase):
     """Testing csv data splitting."""
 
-    def _read_dfs(self,
-                  filepaths: Files) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def _read_dfs(self, filepaths: Files) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Read data frames from a list of files.
 
@@ -23,9 +22,7 @@ class TestDataSplitter(unittest.TestCase):
         Returns:
             Tuple[pd.DataFrame, ...]: a tuple of data frames.
         """
-        return tuple(
-            pd.read_csv(filepath, index_col=0) for filepath in filepaths
-        )
+        return tuple(pd.read_csv(filepath, index_col=0) for filepath in filepaths)
 
     def test_data_splitter(self) -> None:
         """Test csv_data_splitter."""
@@ -50,34 +47,32 @@ class TestDataSplitter(unittest.TestCase):
 
         # first row for random splits, second for file split
         ground_truth = [
-            [(6, 6), (1, 6)], [(5, 6), (2, 6)], [(3, 6), (4, 6)],
-            [(3, 4), (4, 5)], [(3, 4), (4, 5)], [(3, 4), (4, 5)]
+            [(6, 6), (1, 6)],
+            [(5, 6), (2, 6)],
+            [(3, 6), (4, 6)],
+            [(3, 4), (4, 5)],
+            [(3, 4), (4, 5)],
+            [(3, 4), (4, 5)],
         ]
         index = 0
         with tempfile.TemporaryDirectory() as directory:
             for mode in ['random', 'file']:
                 for test_fraction in [0.1, 0.2, 0.5]:
                     with TestFileContent(a_content) as a_test_file:
-                        with TestFileContent(
-                            another_content
-                        ) as another_test_file:
+                        with TestFileContent(another_content) as another_test_file:
 
                             train_filepath, test_filepath = csv_data_splitter(
-                                [
-                                    a_test_file.filename,
-                                    another_test_file.filename
-                                ],
+                                [a_test_file.filename, another_test_file.filename],
                                 directory,
                                 'general',
                                 mode=mode,
-                                test_fraction=test_fraction
+                                test_fraction=test_fraction,
                             )
                             train_df, test_df = self._read_dfs(
                                 [train_filepath, test_filepath]
                             )
                             self.assertEqual(
-                                ground_truth[index],
-                                [train_df.shape, test_df.shape]
+                                ground_truth[index], [train_df.shape, test_df.shape]
                             )
                             index += 1
 

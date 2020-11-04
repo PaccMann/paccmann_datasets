@@ -22,8 +22,8 @@ def _handle_zeros_in_scale(scale, copy=True):
     """
     # if we are fitting on 1D arrays, scale might be a scalar
     if np.isscalar(scale):
-        if scale == .0:
-            scale = 1.
+        if scale == 0.0:
+            scale = 1.0
         return scale
     elif isinstance(scale, np.ndarray):
         if copy:
@@ -37,17 +37,12 @@ def transform_not(data: CsvSourceData):
     return data
 
 
-def transform_standardize(
-    data: CsvSourceData, mean: np.ndarray, std: np.ndarray
-):
+def transform_standardize(data: CsvSourceData, mean: np.ndarray, std: np.ndarray):
     return (data - mean) / _handle_zeros_in_scale(std, copy=False)
 
 
-def transform_minmax(
-    data: CsvSourceData, minimum: np.ndarray, maximum: np.ndarray
-):
-    return (data -
-            minimum) / _handle_zeros_in_scale(maximum - minimum, copy=False)
+def transform_minmax(data: CsvSourceData, minimum: np.ndarray, maximum: np.ndarray):
+    return (data - minimum) / _handle_zeros_in_scale(maximum - minimum, copy=False)
 
 
 class _TableDataset(DatasetDelegator):
@@ -67,10 +62,11 @@ class _TableDataset(DatasetDelegator):
         processing_parameters: dict = {},
         impute: Optional[float] = None,
         dtype: torch.dtype = torch.float,
-        device: torch.device = torch.
-        device('cuda' if torch.cuda.is_available() else 'cpu'),
+        device: torch.device = torch.device(
+            'cuda' if torch.cuda.is_available() else 'cpu'
+        ),
         chunk_size: int = 10000,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize a table dataset.
@@ -119,11 +115,13 @@ class _TableDataset(DatasetDelegator):
         self._setup_dataset()
 
         # reduce statistics and find definitive feature_list
-        (  # yapf:disable
-            self.feature_list, self.max, self.min, self.mean, self.std
-        ) = reduce_csv_statistics(
-            self.dataset.datasets, self.initial_feature_list
-        )
+        (
+            self.feature_list,
+            self.max,
+            self.min,
+            self.mean,
+            self.std,
+        ) = reduce_csv_statistics(self.dataset.datasets, self.initial_feature_list)
         self.number_of_features = len(self.feature_list)
 
         # given the statistics, we define the transformation
@@ -135,15 +133,10 @@ class _TableDataset(DatasetDelegator):
             # support scalars, sequences (also of length 1) and arrays
             mean = np.array(mean, dtype=float).squeeze()
             std = np.array(std, dtype=float).squeeze()
-            self.transform_fn = partial(
-                transform_standardize, mean=mean, std=std
-            )
+            self.transform_fn = partial(transform_standardize, mean=mean, std=std)
             self.processing = {
                 'processing': 'standardize',
-                'parameters': {
-                    'mean': mean.tolist(),
-                    'std': std.tolist()
-                }
+                'parameters': {'mean': mean.tolist(), 'std': std.tolist()},
             }
         elif self.min_max:
             minimum = self.processing_parameters.get('min', self.min)
@@ -156,17 +149,14 @@ class _TableDataset(DatasetDelegator):
             )
             self.processing = {
                 'processing': 'min_max',
-                'parameters':
-                    {
-                        'min': minimum.tolist(),
-                        'max': maximum.tolist()
-                    }
+                'parameters': {'min': minimum.tolist(), 'max': maximum.tolist()},
             }
         # Filter, order and transform the datasets and impute missing values
         for dataset in self.dataset.datasets:
             dataset.transform_dataset(
-                transform_fn=self.transform_fn, feature_list=self.feature_list,
-                impute=impute
+                transform_fn=self.transform_fn,
+                feature_list=self.feature_list,
+                impute=impute,
             )
 
     def _setup_dataset(self) -> None:
@@ -186,9 +176,7 @@ class _TableDataset(DatasetDelegator):
             torch.tensor: a torch tensor of table values
                 for the current sample.
         """
-        return torch.tensor(
-            self.dataset[index], dtype=self.dtype, device=self.device
-        )
+        return torch.tensor(self.dataset[index], dtype=self.dtype, device=self.device)
 
 
 class _TableLazyDataset(_TableDataset):
@@ -207,7 +195,7 @@ class _TableLazyDataset(_TableDataset):
             dataset_class=_CsvLazyDataset,
             feature_list=self.initial_feature_list,
             chunk_size=self.chunk_size,
-            **self.kwargs
+            **self.kwargs,
         )
 
 
@@ -225,5 +213,5 @@ class _TableEagerDataset(_TableDataset):
             filepaths=self.filepaths,
             dataset_class=_CsvEagerDataset,
             feature_list=self.initial_feature_list,
-            **self.kwargs
+            **self.kwargs,
         )
