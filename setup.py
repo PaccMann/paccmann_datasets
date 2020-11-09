@@ -52,7 +52,6 @@ setup(
         'SmilesPE>=0.0.3',
         'pyfaidx',
         'pubchempy',
-        'neuralnet-pytorch',
     ],
     classifiers=[
         'Intended Audience :: Developers',

@@ -1,11 +1,7 @@
 import torch.distributions as d
-from .wrappers import WrapperCDist, WrapperEMD, WrapperKLDiv
+from .wrappers import WrapperCDist, WrapperKLDiv
 
-METRIC_FUNCTION_FACTORY = {
-    'p-norm': WrapperCDist,
-    'wasserstein': WrapperEMD,
-    'KL': WrapperKLDiv
-}
+METRIC_FUNCTION_FACTORY = {'p-norm': WrapperCDist, 'KL': WrapperKLDiv}
 
 DISTRIBUTION_FUNCTION_FACTORY = {
     'normal': d.normal.Normal,
