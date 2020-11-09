@@ -1,35 +1,57 @@
-import numpy as np
 import random
-import torch
 from typing import Tuple
-from torch.utils.data import Dataset
+
+import numpy as np
+import torch
 from scipy.optimize import linear_sum_assignment
-from .synthetic_dataset import SyntheticDataset
-from ..factories import METRIC_FUNCTION_FACTORY
+from torch.utils.data import Dataset
+
+from pytoda.datasets.synthetic_dataset import SyntheticDataset
+from pytoda.datasets.utils.factories import METRIC_FUNCTION_FACTORY
 
 
 class SetMatchingDataset(Dataset):
+    """Dataset class for set matching task"""
 
-    def __init__(self, data_params: dict):
+    def __init__(
+        self,
+        *datasets: Dataset,
+        dataset_2: Dataset,
+        set_length: int = 5,
+        permute: bool = False,
+        seed: int = -1,
+        device: torch.device = (
+            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        ),
+    ):
         """Constructor.
 
         Args:
-            data_params (dict): Dictionary of parameters necessary for dataset
-                generation. Example keys:
-                    seed (int): Seed for reproducibility. Default -1 for random.
-                    distribution_type (str): The distribution from which data
-                        should be sampled. Default : normal.
-                    distribution_args (dict): dictionary of keyword arguments
-                        for the distribution specified above.
-                    dataset_size (int): Number of samples to generate.
-                    max_length (int): Maximum length of a set.
-                    min_length (int): Minimum length of the set.
-                    data_dim (int): Feature size/ dimension of each sample.
-                    cost_metric (str): Cost metric to use when calculating the
-                        pairwise distance matrix.
-                    cost_metric_args (str): Arguments for the cost metric in the
-                        right order, as specified in the function.
+
+            set_length (int): Maximum number of items in the set. Defaults to 5.
+            distribution_type (str): The distribution from which data
+                should be sampled. Default: normal.
+            distribution_args (dict): dictionary of keyword arguments
+                for the distribution specified above.
+            dataset_size (int): Number of samples to generate.
+            max_length (int): Maximum length of a set.
+            min_length (int): Minimum length of the set.
+            data_dim (int): Feature size/ dimension of each sample.
+            cost_metric (str): Cost metric to use when calculating the
+                pairwise distance matrix.
+            cost_metric_args (str): Arguments for the cost metric in the
+                right order, as specified in the function.
+            permute (bool): Whether or not the Defaults to False.
+            seed (int): Seed for reproducibility. Default -1 for random.
+            device (torch.device): device where the tensors are stored.
+                Defaults to gpu, if available.
         """
+
+        self.dataset_1 = dataset_1
+        self.dataset_2 = dataset_2
+        self.test_datasets()
+
+        self.device = device
 
         self.seed = data_params.get("seed", -1)
 
@@ -57,28 +79,20 @@ class SetMatchingDataset(Dataset):
         max_length = data_params.get("max_length", 6)
         min_length = data_params.get("min_length", 2)
 
-        self.set_lengths = torch.randint(
-            min_length, max_length, (self.dataset_size, )
-        )
+        self.set_lengths = torch.randint(min_length, max_length, (self.dataset_size,))
 
         cost_metric = data_params.get("cost_metric", "p-norm")
-        cost_metric_args = list(
-            data_params.get("cost_metric_args", {
-                "p": 2
-            }).values()
-        )
-        self.get_cost_matrix = METRIC_FUNCTION_FACTORY[cost_metric](
-            *cost_metric_args
-        )
+        cost_metric_args = list(data_params.get("cost_metric_args", {"p": 2}).values())
+        self.get_cost_matrix = METRIC_FUNCTION_FACTORY[cost_metric](*cost_metric_args)
 
         self.dataset = torch.zeros(self.dataset_size, self.data_dim)
 
         synthetic_dataset = SyntheticDataset(
-            self.seed, data_params.get("distribution_type", "normal"),
-            data_params.get("distribution_args", {
-                "loc": 0,
-                "scale": 1
-            }), self.data_dim, self.dataset_size
+            self.seed,
+            data_params.get("distribution_type", "normal"),
+            data_params.get("distribution_args", {"loc": 0, "scale": 1}),
+            self.data_dim,
+            self.dataset_size,
         )
 
         self.set1_dataset = synthetic_dataset.__getitem__(max_length)
@@ -86,11 +100,32 @@ class SetMatchingDataset(Dataset):
         self.permute = eval(data_params.get("permute", "False"))
 
         if self.permute:
-            self.permutation_indices = list(
-                map(torch.randperm, self.set_lengths)
-            )
+            self.permutation_indices = list(map(torch.randperm, self.set_lengths))
         else:
             self.set2_dataset = synthetic_dataset.__getitem__(max_length)
+
+    def test_datasets(self) -> None:
+        """Tests on dataset instances"""
+        # Check types
+        if not isinstance(self.dataset_1, Dataset):
+            raise TypeError(f'Expected Dataset got {type(self.dataset_1)}')
+        if not isinstance(self.dataset_2, Dataset):
+            raise TypeError(f'Expected Dataset got {type(self.dataset_2)}')
+
+        # Check lengths
+        if len(self.dataset_1) != len(self.dataset_2):
+            raise ValueError(
+                'Length of datasets should be identical, was '
+                f'{len(self.dataset_1)} and {len(self.dataset_2)}.'
+            )
+
+        # Check shapes
+        s1 = self.dataset_1[0]
+        s2 = self.dataset_2[0]
+        if s1.shape != s2.shape:
+            raise ValueError(
+                f'Shapes of dataset samples must match, were {s1.shape} and {s2.shape}.'
+            )
 
     def get_targets(self, dataset: torch.Tensor, index: int) -> Tuple:
         """Get one training sample.
@@ -110,14 +145,13 @@ class SetMatchingDataset(Dataset):
         #     index, self.set_lengths[index]
         # ).squeeze()
 
-        set1 = self.set1_dataset[index, :self.set_lengths[index], :].squeeze()
+        set1 = self.set1_dataset[index, : self.set_lengths[index], :].squeeze()
 
         if self.permute is True:
             permute_idx = self.permutation_indices[index]
             set2 = set1[permute_idx, :]
         else:
-            set2 = self.set2_dataset[index, :self.
-                                     set_lengths[index], :].squeeze()
+            set2 = self.set2_dataset[index, : self.set_lengths[index], :].squeeze()
             # set2 = self.synthetic_dataset.__getitem__(
             #     index, self.set_lengths[index]
             # ).squeeze()
@@ -185,8 +219,13 @@ class CollatorSetMatching:
         batch_size = len(DataLoaderBatch)
         batch_split = list(zip(*DataLoaderBatch))
 
-        sets1, sets2, targs12, targs21, lengths = batch_split[0], batch_split[
-            1], batch_split[2], batch_split[3], batch_split[4]
+        sets1, sets2, targs12, targs21, lengths = (
+            batch_split[0],
+            batch_split[1],
+            batch_split[2],
+            batch_split[3],
+            batch_split[4],
+        )
 
         pad_token = 10
 
