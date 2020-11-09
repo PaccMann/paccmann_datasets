@@ -105,6 +105,40 @@ UNIREP_VOCAB = OrderedDict(
         ('<MASK>', 29),
     ]
 )
+
+HUMAN_KINASE_ALIGNMENT_VOCAB = OrderedDict(
+    [
+        ('<PAD>', 0),
+        ('<MASK>', 1),
+        ('<CLS>', 2),
+        ('<SEP>', 3),
+        ('<UNK>', 4),
+        ('-', 5),
+        ('A', 6),
+        ('C', 7),
+        ('D', 8),
+        ('E', 9),
+        ('F', 10),
+        ('G', 11),
+        ('H', 12),
+        ('I', 13),
+        ('K', 14),
+        ('L', 15),
+        ('M', 16),
+        ('N', 17),
+        ('P', 18),
+        ('Q', 19),
+        ('R', 20),
+        ('S', 21),
+        ('T', 22),
+        ('V', 23),
+        ('W', 24),
+        ('Y', 25),
+        ('<START>', 26),
+        ('<STOP>', 27),
+    ]
+)
+
 """
 Polarity, Charge, Hydophobicity, Aromaticity, Ionizability, StartStop
 Nonpolar = -1, Polar = 1

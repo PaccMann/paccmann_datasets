@@ -9,6 +9,7 @@ from pytoda.proteins.processing import (
     BLOSUM62,
     BLOSUM62_NORM,
     IUPAC_CODES,
+    HUMAN_KINASE_ALIGNMENT_VOCAB
 )
 
 # from pytoda.tests.utils import TestFileContent
@@ -24,6 +25,7 @@ class TestProcessing(unittest.TestCase):
         self.assertEqual(AA_PROPERTIES_NUM.keys(), BLOSUM62.keys())
         iupac = [x for x in IUPAC_CODES.values()] + ['<PAD>', '<START>', '<STOP>']
         self.assertEqual(iupac, list(BLOSUM62.keys()))
+        self.assertTrue('-' in HUMAN_KINASE_ALIGNMENT_VOCAB)
 
     def test__length_equal(self) -> None:
         for i in range(len(list(AA_PROPERTIES_NUM.values()))):
