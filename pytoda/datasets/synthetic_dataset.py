@@ -2,7 +2,7 @@ import random
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-from paccmann_sets.utils.hyperparameters import DISTRIBUTION_FUNCTION_FACTORY
+from ..factories import DISTRIBUTION_FUNCTION_FACTORY
 
 
 class SyntheticDataset(Dataset):
