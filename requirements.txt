@@ -9,3 +9,4 @@ upfp==0.0.5
 SmilesPE>=0.0.3
 pyfaidx==0.5.9.1
 pubchempy==1.0.4
+neuralnet-pytorch==0.0.3
