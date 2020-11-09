@@ -1,51 +1,81 @@
-import random
-import numpy as np
 import torch
 from torch.utils.data import Dataset
-from ..factories import DISTRIBUTION_FUNCTION_FACTORY
+from pytoda.datasets.utils.factories import DISTRIBUTION_FUNCTION_FACTORY
 
 
 class SyntheticDataset(Dataset):
-    """Generates data from a specified distribution"""
+    """Generates 2D samples from a specified distribution"""
 
     def __init__(
         self,
-        seed: int,
-        distribution_type: str,
-        distribution_args: dict,
-        data_dim: int,
-        dataset_size: int = 1,
+        dataset_size: int,
+        dataset_dim: int,
+        dataset_depth: int = 1,
+        distribution_type: str = 'normal',
+        distribution_args: dict = {
+            'loc': 0.,
+            'scale': 1.0
+        },
+        seed: int = -1,
+        device: torch.device = (
+            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        ),
         **kwargs
     ) -> None:
         """Constructor
 
         Args:
+            dataset_size (int): Number of samples to generate (N).
+            dataset_dim (int): Feature size / dimension of each sample (H).
+            dataset_depth (int): Length of time series per sample (T). This is to
+                support 2D samples. Sampling from __getitem__ will have shape
+                T x H. T defaults to 1.
             distribution_type (str): The distribution from which data should
-                be sampled. Default : normal.
+                be sampled. Default : normal. For full list see:
+                pytoda.utils.factories.DISTRIBUTION_FUNCTION_FACTORY
             distribution_args (dict): dictionary of keyword arguments for
                 the distribution specified above.
-            data_dim (int): Feature size/ dimension of each sample.
-            dataset_size (int): Number of samples to generate. Default 1.
+            seed (int): Seed used for the dataset generator. Defaults to -1, meaning
+                no seed is used (sampling at runtime).
+            device (torch.device): device where the tensors are stored.
+                Defaults to gpu, if available.
         """
 
         super(SyntheticDataset, self).__init__()
 
-        np.random.seed(None if seed == -1 else seed)
-        random.seed(seed)
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
-        torch.backends.cudnn.enabled = False
-        torch.backends.cudnn.benchmark = False
-        torch.backends.cudnn.deterministic = True
+        if not isinstance(seed, int):
+            raise TypeError(f'Seed should be int, was {type(seed)}')
+
+        if distribution_type not in DISTRIBUTION_FUNCTION_FACTORY.keys():
+            raise KeyError(
+                f'distribution_type was {distribution_type}, should be from '
+                f'{DISTRIBUTION_FUNCTION_FACTORY.keys()}.'
+            )
 
         self.distribution_type = distribution_type
         self.distribution_args = distribution_args
         self.dataset_size = dataset_size
-        self.data_dim = data_dim
+        self.dataset_dim = dataset_dim
+        self.dataset_depth = dataset_depth
 
         self.data_sampler = DISTRIBUTION_FUNCTION_FACTORY[
             self.distribution_type](**self.distribution_args)
+
+        self.seed = seed
+        if seed > -1:
+            torch.manual_seed(seed)
+            torch.cuda.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+
+            # Lazy dataset creation
+            self.data = self.data_sampler.sample(
+                (dataset_size, dataset_depth, dataset_dim)
+            )
+            self.transform = lambda x: x
+
+        else:
+            self.data = torch.zeros(dataset_size, dataset_depth, dataset_dim)
+            self.transform = lambda x: x + self.data_sampler.sample(x.shape)
 
     def __len__(self) -> int:
         """Gets length of dataset.
@@ -55,30 +85,15 @@ class SyntheticDataset(Dataset):
         """
         return self.dataset_size
 
-    def generate(self, length: int) -> torch.Tensor:
-        """Generates a single set of a given length and dim.
-
-        Args:
-            length (int): Number of elements to sample of size self.data_dim.
-
-        Returns:
-            torch.Tensor: Tensor containing elements of a set with shape
-                [length,self.data_dim].
-        """
-
-        return self.data_sampler.sample(
-            (self.dataset_size, length, self.data_dim)
-        )
-
-    def __getitem__(self, length: int) -> torch.Tensor:
+    def __getitem__(self, index: int) -> torch.Tensor:
         """Generates a single set sample.
 
         Args:
-            length (int): Number of elements to sample of size self.data_dim.
+            index (int): index of the sample to fetch.
 
         Returns:
-            torch.Tensor: Tensor containing elements of a set with shape
-                [length,self.data_dim].
+            torch.Tensor: Tensor containing elements with shape T x H, i.e.
+                [self.dataset_depth, self.dataset_dim].
         """
 
-        return self.generate(length)
+        return self.transform(self.data[index])
