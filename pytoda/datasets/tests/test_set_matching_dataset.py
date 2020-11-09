@@ -6,7 +6,10 @@ from pytoda.datasets import SetMatchingDataset, CollatorSetMatching
 data_params = {
     "seed": 42,
     "batch_first": "False",
-    "dataset_size": 100,
+    "dataset_size": 250,
+    "train_size": 100,
+    "test_size": 100,
+    "valid_size": 50,
     "max_length": 6,
     "min_length": 2,
     "data_dim": 10,
@@ -17,7 +20,7 @@ data_params = {
     }
 }
 
-index1, index2 = torch.randint(0, 100, (2, ))
+index1 = torch.randint(0, 100, (1, ))
 
 
 class TestSetMatchingDataset(unittest.TestCase):
@@ -30,7 +33,7 @@ class TestSetMatchingDataset(unittest.TestCase):
     def test__len__(self) -> None:
         """Test __len__."""
         setmatch_dataset = SetMatchingDataset(data_params)
-        self.assertEqual(len(setmatch_dataset.dataset), 100)
+        self.assertEqual(len(setmatch_dataset.dataset), 250)
 
     def test__getitem__(self, index=index1) -> None:
         setmatch_dataset_sampled = SetMatchingDataset(data_params)
