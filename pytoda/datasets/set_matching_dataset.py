@@ -5,7 +5,7 @@ from typing import Tuple
 from torch.utils.data import Dataset
 from scipy.optimize import linear_sum_assignment
 from .synthetic_dataset import SyntheticDataset
-from paccmann_sets.utils.hyperparameters import METRIC_FUNCTION_FACTORY
+from ..factories import METRIC_FUNCTION_FACTORY
 
 
 class SetMatchingDataset(Dataset):
@@ -43,19 +43,23 @@ class SetMatchingDataset(Dataset):
         torch.backends.cudnn.deterministic = True
 
         self.dataset_size = data_params.get("dataset_size", 10000)
+        # total_size = sum(
+        #     [
+        #         data_params.get("train_size", 10000),
+        #         data_params.get("valid_size", 5000),
+        #         data_params.get("test_size", 10000)
+        #     ]
+        # )
+        # self.dataset_size = total_size
+
         self.data_dim = data_params.get("data_dim", 256)
 
         max_length = data_params.get("max_length", 6)
         min_length = data_params.get("min_length", 2)
+
         self.set_lengths = torch.randint(
             min_length, max_length, (self.dataset_size, )
         )
-
-        self.permute = eval(data_params.get("permute", "False"))
-        if self.permute:
-            self.permutation_indices = list(
-                map(torch.randperm, self.set_lengths)
-            )
 
         cost_metric = data_params.get("cost_metric", "p-norm")
         cost_metric_args = list(
@@ -69,16 +73,24 @@ class SetMatchingDataset(Dataset):
 
         self.dataset = torch.zeros(self.dataset_size, self.data_dim)
 
-        self.synthetic_dataset = SyntheticDataset(
-            self.seed,
-            data_params.get("distribution_type", "normal"),
+        synthetic_dataset = SyntheticDataset(
+            self.seed, data_params.get("distribution_type", "normal"),
             data_params.get("distribution_args", {
                 "loc": 0,
                 "scale": 1
-            }),
-            self.data_dim,
-            dataset_size=1
+            }), self.data_dim, self.dataset_size
         )
+
+        self.set1_dataset = synthetic_dataset.__getitem__(max_length)
+
+        self.permute = eval(data_params.get("permute", "False"))
+
+        if self.permute:
+            self.permutation_indices = list(
+                map(torch.randperm, self.set_lengths)
+            )
+        else:
+            self.set2_dataset = synthetic_dataset.__getitem__(max_length)
 
     def get_targets(self, dataset: torch.Tensor, index: int) -> Tuple:
         """Get one training sample.
@@ -94,15 +106,21 @@ class SetMatchingDataset(Dataset):
                 of the sets.
         """
 
-        set1 = self.synthetic_dataset.__getitem__(self.set_lengths[index]
-                                                  ).squeeze()
+        # set1 = self.synthetic_dataset.__getitem__(
+        #     index, self.set_lengths[index]
+        # ).squeeze()
+
+        set1 = self.set1_dataset[index, :self.set_lengths[index], :].squeeze()
 
         if self.permute is True:
             permute_idx = self.permutation_indices[index]
             set2 = set1[permute_idx, :]
         else:
-            set2 = self.synthetic_dataset.__getitem__(self.set_lengths[index]
-                                                      ).squeeze()
+            set2 = self.set2_dataset[index, :self.
+                                     set_lengths[index], :].squeeze()
+            # set2 = self.synthetic_dataset.__getitem__(
+            #     index, self.set_lengths[index]
+            # ).squeeze()
 
         cost_matrix = self.get_cost_matrix(set1, set2)
 
