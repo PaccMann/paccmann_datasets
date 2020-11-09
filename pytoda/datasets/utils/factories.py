@@ -7,5 +7,5 @@ DISTRIBUTION_FUNCTION_FACTORY = {
     'normal': torch.distributions.normal.Normal,
     'beta': torch.distributions.beta.Beta,
     'uniform': torch.distributions.uniform.Uniform,
-    'bernoulli': torch.distributions.bernoulli.Bernoulli
+    'bernoulli': torch.distributions.bernoulli.Bernoulli,
 }
