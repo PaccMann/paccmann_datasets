@@ -1,5 +1,6 @@
 import torch
 from torch.utils.data import Dataset
+
 from pytoda.datasets.utils.factories import DISTRIBUTION_FUNCTION_FACTORY
 
 
@@ -12,15 +13,11 @@ class SyntheticDataset(Dataset):
         dataset_dim: int,
         dataset_depth: int = 1,
         distribution_type: str = 'normal',
-        distribution_args: dict = {
-            'loc': 0.,
-            'scale': 1.0
-        },
+        distribution_args: dict = {'loc': 0.0, 'scale': 1.0},
         seed: int = -1,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
-        **kwargs
     ) -> None:
         """Constructor
 
@@ -57,9 +54,11 @@ class SyntheticDataset(Dataset):
         self.dataset_size = dataset_size
         self.dataset_dim = dataset_dim
         self.dataset_depth = dataset_depth
+        self.device = device
 
-        self.data_sampler = DISTRIBUTION_FUNCTION_FACTORY[
-            self.distribution_type](**self.distribution_args)
+        self.data_sampler = DISTRIBUTION_FUNCTION_FACTORY[self.distribution_type](
+            **self.distribution_args
+        )
 
         self.seed = seed
         if seed > -1:
@@ -76,6 +75,9 @@ class SyntheticDataset(Dataset):
         else:
             self.data = torch.zeros(dataset_size, dataset_depth, dataset_dim)
             self.transform = lambda x: x + self.data_sampler.sample(x.shape)
+
+        # Copy data to device
+        self.data = self.data.to(device)
 
     def __len__(self) -> int:
         """Gets length of dataset.
