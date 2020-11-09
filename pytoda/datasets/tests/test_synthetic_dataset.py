@@ -2,34 +2,62 @@ import unittest
 import torch
 from pytoda.datasets import SyntheticDataset
 
-distribution_type = "normal"
-distribution_args = {"loc": 0, "scale": 1.0}
-data_dim = 3
-dataset_size = 1
-set_length = 5
-seed = 42
+distribution_types = ['normal', 'uniform']
+distribution_args = [{'loc': 0., 'scale': 1.}, {'low': 0., 'high': 1.}]
+data_dim = 16
+dataset_sizes = [100, 10000]
+data_depths = [1, 10]
+seeds = [-1, 1, 42]
 
 
 class TestSyntheticDataset(unittest.TestCase):
 
-    def setUp(self):
-
-        self.synthetic_dataset = SyntheticDataset(
-            seed, distribution_type, distribution_args, data_dim, dataset_size
-        )
-
     def test__len__(self) -> None:
         """Test __len__."""
 
-        self.assertEqual(
-            len(self.synthetic_dataset.__getitem__(set_length)), 1
-        )
+        for dist_type, dist_args in zip(distribution_types, distribution_args):
+            for size in dataset_sizes:
+                for depth in data_depths:
+                    for seed in seeds:
+                        dataset = SyntheticDataset(
+                            size,
+                            data_dim,
+                            dataset_depth=depth,
+                            distribution_type=dist_type,
+                            distribution_args=dist_args,
+                            seed=seed
+                        )
+                        self.assertEqual(len(dataset), size)
 
     def test__getitem__(self) -> None:
         """Test __getitem__."""
 
-        sample1 = self.synthetic_dataset.__getitem__(set_length)
-        sample2 = self.synthetic_dataset.__getitem__(set_length)
+        for dist_type, dist_args in zip(distribution_types, distribution_args):
+            for size in dataset_sizes:
+                for depth in data_depths:
+                    for seed in seeds:
+                        dataset = SyntheticDataset(
+                            size,
+                            data_dim,
+                            dataset_depth=depth,
+                            distribution_type=dist_type,
+                            distribution_args=dist_args,
+                            seed=seed
+                        )
+                        sample1_1 = dataset[42]
+                        sample1_2 = dataset[42]
 
-        self.assertEqual(sample1.size(1), 5)
-        self.assertFalse(torch.equal(sample1, sample2))
+                        # Test shapes
+                        self.assertEqual(sample1_1.shape, sample1_2.shape)
+                        self.assertListEqual(
+                            list(sample1_1.shape), [depth, data_dim]
+                        )
+                        # Test content
+                        if seed < 0:
+                            self.assertFalse(torch.equal(sample1_1, sample1_2))
+                        else:
+                            self.assertTrue(torch.equal(sample1_1, sample1_2))
+
+
+if __name__ == '__main__':
+    unittest.main()
