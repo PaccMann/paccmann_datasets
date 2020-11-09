@@ -51,7 +51,8 @@ class ProteinLanguage(object):
             self.token_to_index = HUMAN_KINASE_ALIGNMENT_VOCAB
         else:
             raise ValueError(
-                "Choose dict as 'iupac' or 'unirep' (given was" f"{amino_acid_dict})."
+                "Choose dict as 'iupac' or 'unirep' or 'human-kinase-alignment' "
+                "(given was" f"{amino_acid_dict})."
             )
         # Setup dictionary
         self.sequence_tokens = [
