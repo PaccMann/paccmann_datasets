@@ -5,7 +5,7 @@ from upfp import parse_fasta
 
 from ..files import read_smi
 from ..types import Indexes, Tokens, Tokenizer
-from .processing import IUPAC_VOCAB, UNIREP_VOCAB
+from .processing import IUPAC_VOCAB, UNIREP_VOCAB, HUMAN_KINASE_ALIGNMENT_VOCAB
 
 
 class ProteinLanguage(object):
@@ -31,7 +31,8 @@ class ProteinLanguage(object):
         Args:
             name (str): name of the ProteinLanguage.
             amino_acid_dict (str): Tokenization regime for amino acid
-                sequence. Defaults to 'iupac', alternative is 'unirep'.
+                sequence. Defaults to 'iupac', alternative is 'unirep' or
+                'human-kinase-alignment'.
             tokenizer (Tokenizer): This needs to be a function used to tokenize
                 the amino acid sequences. The default is list which simply
                 splits the sequence character-by-character.
@@ -46,6 +47,8 @@ class ProteinLanguage(object):
             self.token_to_index = IUPAC_VOCAB
         elif self.dict == 'unirep':
             self.token_to_index = UNIREP_VOCAB
+        elif self.dict == 'human-kinase-alignment':
+            self.token_to_index = HUMAN_KINASE_ALIGNMENT_VOCAB
         else:
             raise ValueError(
                 "Choose dict as 'iupac' or 'unirep' (given was" f"{amino_acid_dict})."
