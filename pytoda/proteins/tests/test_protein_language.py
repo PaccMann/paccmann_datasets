@@ -2,7 +2,9 @@
 import os
 import unittest
 
-from pytoda.proteins.processing import IUPAC_VOCAB, UNIREP_VOCAB
+from pytoda.proteins.processing import (
+    IUPAC_VOCAB, UNIREP_VOCAB, HUMAN_KINASE_ALIGNMENT_VOCAB
+)
 from pytoda.proteins.protein_language import ProteinLanguage
 from pytoda.tests.utils import TestFileContent
 
@@ -78,7 +80,8 @@ class TestProteinLanguage(unittest.TestCase):
                 IUPAC_VOCAB['<STOP>'],
             ],
         )
-        # Other dictionary
+
+        # UniRep
         protein_language = ProteinLanguage(
             add_start_and_stop=False, amino_acid_dict='unirep'
         )
@@ -102,6 +105,37 @@ class TestProteinLanguage(unittest.TestCase):
             ],
         )
 
+        # human kinase alignment
+        sequence = 'AC-C'
+        protein_language = ProteinLanguage(
+            add_start_and_stop=False, amino_acid_dict='human-kinase-alignment'
+        )
+        protein_language.add_sequence(sequence)
+        self.assertListEqual(
+            protein_language.sequence_to_token_indexes(sequence),
+            [
+                HUMAN_KINASE_ALIGNMENT_VOCAB['A'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['C'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['-'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['C']
+            ],
+        )
+        protein_language = ProteinLanguage(
+            add_start_and_stop=True, amino_acid_dict='human-kinase-alignment'
+        )
+        protein_language.add_sequence(sequence)
+        self.assertListEqual(
+            protein_language.sequence_to_token_indexes(sequence),
+            [
+                HUMAN_KINASE_ALIGNMENT_VOCAB['<START>'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['A'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['C'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['-'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['C'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['<STOP>'],
+            ],
+        )
+
     def test_token_indexes_to_sequence(self) -> None:
         """Test token_indexes_to_sequence."""
         sequence = 'CCO'
@@ -122,7 +156,7 @@ class TestProteinLanguage(unittest.TestCase):
             protein_language.token_indexes_to_sequence(token_indexes), 'CCO'
         )
 
-        # UNIREP Vocab
+        # UniRep
         protein_language = ProteinLanguage(amino_acid_dict='unirep')
         protein_language.add_sequence(sequence)
         token_indexes = [protein_language.token_to_index[token] for token in sequence]
@@ -140,6 +174,27 @@ class TestProteinLanguage(unittest.TestCase):
         protein_language.add_sequence(sequence)
         self.assertEqual(
             protein_language.token_indexes_to_sequence(token_indexes), 'CCO'
+        )
+
+        # human kinase alignment
+        sequence = 'AC-C'
+        protein_language = ProteinLanguage(amino_acid_dict='human-kinase-alignment')
+        protein_language.add_sequence(sequence)
+        token_indexes = [protein_language.token_to_index[token] for token in sequence]
+        self.assertEqual(
+            protein_language.token_indexes_to_sequence(token_indexes), sequence
+        )
+        token_indexes = (
+            [protein_language.token_to_index['<START>']]
+            + token_indexes
+            + [protein_language.token_to_index['<STOP>']]
+        )
+        protein_language = ProteinLanguage(
+            add_start_and_stop=True, amino_acid_dict='human-kinase-alignment'
+        )
+        protein_language.add_sequence(sequence)
+        self.assertEqual(
+            protein_language.token_indexes_to_sequence(token_indexes), sequence
         )
 
 
