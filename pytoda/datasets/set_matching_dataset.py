@@ -60,7 +60,9 @@ class SetMatchingDataset(Dataset):
             )
         self.cost_metric = cost_metric
         self.cost_metric_args = cost_metric_args
-        self.get_cost_matrix = METRIC_FUNCTION_FACTORY[cost_metric](**cost_metric_args)
+        self.get_cost_matrix = METRIC_FUNCTION_FACTORY[cost_metric](
+            **cost_metric_args
+        )
 
         self.device = device
         self.permute = permute
@@ -135,7 +137,7 @@ class SetMatchingDataset(Dataset):
             # Set the seed (if applicable) and then perform the permutation.
             def _get_set_2_element(set_1, idx):
                 self.set_seed(self.seed + idx)
-                return set_1[torch.randperm(self.max_set_length), :]
+                return set_1[torch.randperm(set_1.size(0)), :]
 
             self.get_set_2_element = _get_set_2_element
 
@@ -151,7 +153,7 @@ class SetMatchingDataset(Dataset):
             # from both sets.
             def _crop_set_lengths(set_1, set_2, idx):
                 self.set_seed(self.seed + idx)
-                num_idxs = torch.randint(2, self.max_set_length + 1, (1,))
+                num_idxs = torch.randint(2, self.max_set_length + 1, (1, ))
                 keep_idxs = torch.randperm(self.max_set_length)[:num_idxs]
                 return set_1[keep_idxs, :], set_2[keep_idxs, :]
 
@@ -198,15 +200,25 @@ class SetMatchingDataset(Dataset):
         set_1 = self.datasets[0][index]
         set_2 = self.get_set_2_element(set_1, index)
         set_1, set_2 = self.crop_set_lengths(set_1, set_2, index)
+        if self.permute:
+            set_2 = self.get_set_2_element(set_1, index)
         targets_12, targets_21 = self.get_targets(set_1, set_2)
 
-        return set_1, set_2, targets_12, targets_21
+        return set_1, set_2, targets_12, targets_21, torch.tensor(len(set_1))
 
 
 class CollatorSetMatching:
     """Contains function to pad data returned by dataloader."""
 
-    def __init__(self, dim: int, max_length: int, batch_first: bool = True):
+    def __init__(
+        self,
+        dim: int,
+        max_length: int,
+        batch_first: bool = True,
+        device: torch.device = (
+            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        )
+    ):
         """Constructor.
 
         Args:
@@ -217,8 +229,9 @@ class CollatorSetMatching:
         """
         super(CollatorSetMatching, self).__init__()
         self.dim = dim
-        self.max_len = max_length - 1
-        self.batch_first = batch_first
+        self.max_len = max_length
+        self.batch_first = eval(batch_first)
+        self.device = device
 
     def __call__(self, DataLoaderBatch: Tuple) -> Tuple:
         """Collate function for batch-wise padding of samples.
@@ -244,16 +257,22 @@ class CollatorSetMatching:
             batch_split[4],
         )
 
-        pad_token = 10
+        pad_token = 10.0
 
-        padded_sets1 = np.full(
-            (batch_size, self.max_len, self.dim), pad_token, dtype=np.float32
+        padded_sets1 = torch.full(
+            (batch_size, self.max_len, self.dim),
+            pad_token,
+            device=self.device
         )
-        padded_sets2 = np.full(
-            (batch_size, self.max_len, self.dim), pad_token, dtype=np.float32
+        padded_sets2 = torch.full(
+            (batch_size, self.max_len, self.dim),
+            pad_token,
+            device=self.device
         )
         targets12 = np.tile(np.arange(self.max_len), (batch_size, 1))
         targets21 = np.tile(np.arange(self.max_len), (batch_size, 1))
+        targets12 = torch.from_numpy(targets12).to(self.device)
+        targets21 = torch.from_numpy(targets21).to(self.device)
 
         for i, l in enumerate(lengths):
             padded_sets1[i, 0:l, :] = sets1[i][0:l, :]
@@ -262,18 +281,14 @@ class CollatorSetMatching:
             targets12[i, 0:l] = targs12[i][:]
             targets21[i, 0:l] = targs21[i][:]
 
-        targets12 = torch.tensor(targets12)
-        targets21 = torch.tensor(targets21)
         set_lens = torch.tensor(lengths)
 
-        ps1 = torch.tensor(padded_sets1)
-
-        ps2 = torch.tensor(padded_sets2)
-
         if self.batch_first is False:
-            ps1, ps2 = ps1.permute(1, 0, 2), ps2.permute(1, 0, 2)
+            padded_sets1, padded_sets2 = padded_sets1.permute(
+                1, 0, 2
+            ), padded_sets2.permute(1, 0, 2)
 
-        return ps1, ps2, targets12, targets21, set_lens
+        return padded_sets1, padded_sets2, targets12, targets21, set_lens
 
 
 # %%
