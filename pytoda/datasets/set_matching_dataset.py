@@ -137,7 +137,6 @@ class SetMatchingDataset(Dataset):
             # Set the seed (if applicable) and then perform the permutation.
             def _get_set_2_element(set_1, idx):
                 self.set_seed(self.seed + idx)
-                # return set_1[torch.randperm(set_1.size(0)), :]
                 # Save the used permutation (needed for cropping)
                 self.permutation = torch.randperm(self.max_set_length)
                 return set_1[self.permutation, :]
@@ -212,11 +211,8 @@ class SetMatchingDataset(Dataset):
         set_1 = self.datasets[0][index]
         set_2 = self.get_set_2_element(set_1, index)
         set_1, set_2 = self.crop_set_lengths(set_1, set_2, index)
-        # if self.permute:
-        #     set_2 = self.get_set_2_element(set_1, index)
         targets_12, targets_21 = self.get_targets(set_1, set_2)
-
-        return set_1, set_2, targets_12, targets_21, torch.tensor(len(set_1))
+        return set_1, set_2, targets_12, targets_21
 
 
 class CollatorSetMatching:
@@ -261,14 +257,14 @@ class CollatorSetMatching:
         batch_size = len(DataLoaderBatch)
         batch_split = list(zip(*DataLoaderBatch))
 
-        sets1, sets2, targs12, targs21, lengths = (
+        sets1, sets2, targs12, targs21 = (
             batch_split[0],
             batch_split[1],
             batch_split[2],
             batch_split[3],
-            batch_split[4],
         )
 
+        lengths = list(map(len, sets1))
         pad_token = 10.0
 
         padded_sets1 = torch.full(
@@ -289,12 +285,10 @@ class CollatorSetMatching:
             targets12[i, 0:l] = targs12[i][:]
             targets21[i, 0:l] = targs21[i][:]
 
-        set_lens = torch.tensor(lengths)
-
         if self.batch_first is False:
             padded_sets1, padded_sets2 = (
                 padded_sets1.permute(1, 0, 2),
                 padded_sets2.permute(1, 0, 2),
             )
 
-        return padded_sets1, padded_sets2, targets12, targets21, set_lens
+        return padded_sets1, padded_sets2, targets12, targets21, torch.tensor(lengths)
