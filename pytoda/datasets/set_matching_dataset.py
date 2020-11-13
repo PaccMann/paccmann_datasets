@@ -1,4 +1,3 @@
-#%%
 from typing import Tuple
 
 import numpy as np
@@ -60,9 +59,7 @@ class SetMatchingDataset(Dataset):
             )
         self.cost_metric = cost_metric
         self.cost_metric_args = cost_metric_args
-        self.get_cost_matrix = METRIC_FUNCTION_FACTORY[cost_metric](
-            **cost_metric_args
-        )
+        self.get_cost_matrix = METRIC_FUNCTION_FACTORY[cost_metric](**cost_metric_args)
 
         self.device = device
         self.permute = permute
@@ -133,11 +130,17 @@ class SetMatchingDataset(Dataset):
         if not self.permute:
             # Simply sample from the second dataset
             self.get_set_2_element = lambda set_1, idx: self.datasets[-1][idx]
+
+            # Needed in crop_set_lengths, this is a dummy in case of no permutation
+            self.permutation = torch.arange(self.max_set_length)
         else:
             # Set the seed (if applicable) and then perform the permutation.
             def _get_set_2_element(set_1, idx):
                 self.set_seed(self.seed + idx)
-                return set_1[torch.randperm(set_1.size(0)), :]
+                # return set_1[torch.randperm(set_1.size(0)), :]
+                # Save the used permutation (needed for cropping)
+                self.permutation = torch.randperm(self.max_set_length)
+                return set_1[self.permutation, :]
 
             self.get_set_2_element = _get_set_2_element
 
@@ -150,12 +153,21 @@ class SetMatchingDataset(Dataset):
             self.crop_set_lengths = lambda set_1, set_2, idx: (set_1, set_2)
         else:
             # Set the seed (if applicable) and then randomly crop some elements
-            # from both sets.
+            # from one set and remove the correct ones from the other.
             def _crop_set_lengths(set_1, set_2, idx):
                 self.set_seed(self.seed + idx)
-                num_idxs = torch.randint(2, self.max_set_length + 1, (1, ))
-                keep_idxs = torch.randperm(self.max_set_length)[:num_idxs]
-                return set_1[keep_idxs, :], set_2[keep_idxs, :]
+                num_idxs = torch.randint(2, self.max_set_length + 1, (1,))
+                keep_idxs_1 = torch.randperm(self.max_set_length)[:num_idxs]
+
+                # This does exactly what x == y would do if x would be a Tensor and
+                # y a int, with the extension that y is an array.
+                keep_idxs_2 = torch.any(
+                    torch.stack(
+                        list(map(lambda x: x == self.permutation, keep_idxs_1))
+                    ),
+                    axis=0,
+                )
+                return set_1[keep_idxs_1, :], set_2[keep_idxs_2, :]
 
             self.crop_set_lengths = _crop_set_lengths
 
@@ -200,8 +212,8 @@ class SetMatchingDataset(Dataset):
         set_1 = self.datasets[0][index]
         set_2 = self.get_set_2_element(set_1, index)
         set_1, set_2 = self.crop_set_lengths(set_1, set_2, index)
-        if self.permute:
-            set_2 = self.get_set_2_element(set_1, index)
+        # if self.permute:
+        #     set_2 = self.get_set_2_element(set_1, index)
         targets_12, targets_21 = self.get_targets(set_1, set_2)
 
         return set_1, set_2, targets_12, targets_21, torch.tensor(len(set_1))
@@ -217,7 +229,7 @@ class CollatorSetMatching:
         batch_first: bool = True,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        )
+        ),
     ):
         """Constructor.
 
@@ -260,14 +272,10 @@ class CollatorSetMatching:
         pad_token = 10.0
 
         padded_sets1 = torch.full(
-            (batch_size, self.max_len, self.dim),
-            pad_token,
-            device=self.device
+            (batch_size, self.max_len, self.dim), pad_token, device=self.device
         )
         padded_sets2 = torch.full(
-            (batch_size, self.max_len, self.dim),
-            pad_token,
-            device=self.device
+            (batch_size, self.max_len, self.dim), pad_token, device=self.device
         )
         targets12 = np.tile(np.arange(self.max_len), (batch_size, 1))
         targets21 = np.tile(np.arange(self.max_len), (batch_size, 1))
@@ -284,23 +292,9 @@ class CollatorSetMatching:
         set_lens = torch.tensor(lengths)
 
         if self.batch_first is False:
-            padded_sets1, padded_sets2 = padded_sets1.permute(
-                1, 0, 2
-            ), padded_sets2.permute(1, 0, 2)
+            padded_sets1, padded_sets2 = (
+                padded_sets1.permute(1, 0, 2),
+                padded_sets2.permute(1, 0, 2),
+            )
 
         return padded_sets1, padded_sets2, targets12, targets21, set_lens
-
-
-# %%
-from pytoda.datasets.synthetic_dataset import SyntheticDataset
-
-s1 = SyntheticDataset(10, 4, dataset_depth=5, seed=42)
-s2 = SyntheticDataset(10, 4, dataset_depth=5, seed=43)
-# %%
-smd = SetMatchingDataset(s1, vary_set_length=True, permute=True, seed=4)
-# %%
-smd[0]
-# %%
-smd[0]
-
-# %%
