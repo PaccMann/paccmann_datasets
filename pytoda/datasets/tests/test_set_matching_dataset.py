@@ -1,3 +1,4 @@
+"""Testing SetMatchingDataset."""
 import torch
 import unittest
 from torch.utils.data import DataLoader
@@ -20,7 +21,10 @@ index1 = torch.randint(0, 100, (1,))
 
 
 class TestSetMatchingDataset(unittest.TestCase):
+    """Test SetMatchingDataset class."""
+
     def test_set_matching_dataset(self) -> None:
+        """Test dataset returned by set_matching_dataset."""
         for synthetic_seed in data_params['synthetic_seed']:
             for vary_set_length in data_params['vary_set_length']:
                 for seed in data_params['seed']:
@@ -73,16 +77,10 @@ class TestSetMatchingDataset(unittest.TestCase):
                                     )
                                 )
                                 self.assertTrue(
-                                    torch.equal(
-                                        sample1[1][sample1[2], :],
-                                        sample1[0],
-                                    )
+                                    torch.equal(sample1[1][sample1[2], :], sample1[0],)
                                 )
                                 self.assertTrue(
-                                    torch.equal(
-                                        sample1[0][sample1[3], :],
-                                        sample1[1],
-                                    )
+                                    torch.equal(sample1[0][sample1[3], :], sample1[1],)
                                 )
                                 self.assertTrue(sample1[0][0, 0] in sample2[1])
                             if not vary_set_length:

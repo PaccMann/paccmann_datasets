@@ -9,7 +9,7 @@ from pytoda.datasets.utils.factories import METRIC_FUNCTION_FACTORY
 
 
 class SetMatchingDataset(Dataset):
-    """Dataset class for set matching task"""
+    """Dataset class for set matching task."""
 
     def __init__(
         self,
@@ -74,7 +74,7 @@ class SetMatchingDataset(Dataset):
         self.set_crop_set_lengths()
 
     def test_datasets(self, datasets) -> None:
-        """Tests on dataset instances"""
+        """Tests on dataset instances."""
 
         if self.permute and len(datasets) != 1:
             raise ValueError(
@@ -193,7 +193,11 @@ class SetMatchingDataset(Dataset):
         return idx_12, idx_21
 
     def __len__(self) -> int:
-        """Returns length of dataset"""
+        """Gets length of dataset.
+
+        Returns:
+            int: Length of the dataset being sampled.
+        """
         return len(self.datasets[0])
 
     def __getitem__(self, index: int) -> Tuple:
@@ -204,8 +208,7 @@ class SetMatchingDataset(Dataset):
 
         Returns:
             Tuple : Tuple containing sampled set1, sampled set2, hungarian
-                matching indices of set1 vs set2 and set2 vs set1, and length
-                of the sets.
+                matching indices of set1 vs set2 and set2 vs set1.
         """
 
         set_1 = self.datasets[0][index]
@@ -234,6 +237,8 @@ class CollatorSetMatching:
             max_length (int): Maximum set length.
             batch_first (bool, optional): Whether batch size is the first
                 dimension or not. Defaults to True.
+            device (torch.device): device where the tensors are stored.
+                Defaults to gpu, if available.
         """
         super(CollatorSetMatching, self).__init__()
         self.dim = dim
@@ -250,8 +255,6 @@ class CollatorSetMatching:
 
         Returns:
             Tuple: Tuple of padded input tensors and tensor of set lengths.
-                Note: For Seq2Seq model, remove connecting token and
-                return ps1 instead of ps1_ct.
         """
 
         batch_size = len(DataLoaderBatch)

@@ -5,7 +5,7 @@ from pytoda.datasets.utils.factories import DISTRIBUTION_FUNCTION_FACTORY
 
 
 class SyntheticDataset(Dataset):
-    """Generates 2D samples from a specified distribution"""
+    """Generates 2D samples from a specified distribution."""
 
     def __init__(
         self,
@@ -19,7 +19,7 @@ class SyntheticDataset(Dataset):
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
     ) -> None:
-        """Constructor
+        """Constructor.
 
         Args:
             dataset_size (int): Number of samples to generate (N).
