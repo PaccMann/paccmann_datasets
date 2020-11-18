@@ -97,7 +97,7 @@ class ProteinProteinInteractionDataset(Dataset):
         #  Data type of first sequence files per entity
         if sequence_filetypes == 'infer':
             self.filetypes = list(
-                map(lambda x: '.' + x[0].split('.')[-1], sequence_filepaths)
+                map(lambda x: '.' + x[0].split('.')[-1], self.sequence_filepaths)
             )
         elif sequence_filetypes in ['.smi', '.csv', '.fasta', '.fasta.gz']:
             self.filetypes = [sequence_filetypes] * len(self.entities)
@@ -211,16 +211,16 @@ class ProteinProteinInteractionDataset(Dataset):
 
     def __getitem__(self, index: int) -> Tuple[Tensor, ...]:
         """
-            Generates one sample of data.
+        Generates one sample of data.
 
-            Args:
-                index (int): index of the sample to fetch.
+        Args:
+            index (int): index of the sample to fetch.
 
-            Returns:
-                Tuple: a tuple containing self.entities+1 torch.Tensors
-                representing respectively: compound token indexes for each
-                protein entity and the property labels (annotations)
-            """
+        Returns:
+            Tuple: a tuple containing self.entities+1 torch.Tensors
+            representing respectively: compound token indexes for each
+            protein entity and the property labels (annotations)
+        """
 
         # sample selection
         selected_sample = self.labels_df.iloc[index]

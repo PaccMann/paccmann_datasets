@@ -27,15 +27,17 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
             ]
         )
 
-        with TestFileContent(content_entity_1) as a_test_file:
-            with TestFileContent(content_entity_2) as another_test_file:
+        with TestFileContent(content_entity_1, '.smi') as a_test_file:
+            with TestFileContent(content_entity_2, '.smi') as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
-                    ppi_dataset = ProteinProteinInteractionDataset(
-                        [a_test_file.filename, another_test_file.filename],
-                        ['tcr', 'peptide'],
-                        annotation_file.filename,
-                        sequence_filetypes='.smi',
-                    )
+
+                    for sequence_filetype in ['.smi', 'infer']:
+                        ppi_dataset = ProteinProteinInteractionDataset(
+                            [a_test_file.filename, another_test_file.filename],
+                            ['tcr', 'peptide'],
+                            annotation_file.filename,
+                            sequence_filetypes=sequence_filetype,
+                        )
 
                     self.assertEqual(len(ppi_dataset), 3)
 
