@@ -27,8 +27,8 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
             ]
         )
 
-        with TestFileContent(content_entity_1, '.smi') as a_test_file:
-            with TestFileContent(content_entity_2, '.smi') as another_test_file:
+        with TestFileContent(content_entity_1, suffix='.smi') as a_test_file:
+            with TestFileContent(content_entity_2, suffix='.smi') as another_test_file:
                 with TestFileContent(annotated_content) as annotation_file:
 
                     for sequence_filetype in ['.smi', 'infer']:
