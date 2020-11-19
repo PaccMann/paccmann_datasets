@@ -34,7 +34,7 @@ pip install .
 Install in editable mode for development:
 
 ```sh
-pip install -e .
+pip install --user --no-use-pep517 -e .
 ```
 
 ## Examples
