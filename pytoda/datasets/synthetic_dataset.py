@@ -66,18 +66,25 @@ class SyntheticDataset(Dataset):
             torch.cuda.manual_seed(seed)
             torch.cuda.manual_seed_all(seed)
 
-            # Lazy dataset creation
+            # Eager dataset creation
             self.data = self.data_sampler.sample(
                 (dataset_size, dataset_depth, dataset_dim)
             )
-            self.transform = lambda x: x
+            # self.transform = lambda x: x
 
         else:
             self.data = torch.zeros(dataset_size, dataset_depth, dataset_dim)
-            self.transform = lambda x: x + self.data_sampler.sample(x.shape)
+            # self.transform = lambda x: x + self.data_sampler.sample(x.shape).to(device)
 
         # Copy data to device
         self.data = self.data.to(device)
+
+    def _transform(self, x):
+        if self.seed > -1:
+            return x
+        else:
+            sample = self.data_sampler.sample(x.shape).to(self.device)
+            return x + sample
 
     def __len__(self) -> int:
         """Gets length of dataset.
@@ -98,4 +105,4 @@ class SyntheticDataset(Dataset):
                 [self.dataset_depth, self.dataset_dim].
         """
 
-        return self.transform(self.data[index])
+        return self._transform(self.data[index])
