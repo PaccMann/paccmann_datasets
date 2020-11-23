@@ -12,7 +12,6 @@ class Collator:
         self,
         padding_mode: List,
         padding_values: List,
-        dim: int,
         max_length: int,
         batch_first: bool = True,
         device: torch.device = (
@@ -22,6 +21,8 @@ class Collator:
         """Constructor.
 
         Args:
+            padding_mode (List): List of string values, one for each item in the tuple of a batch, indicating the type of background tensor to generate.
+            padding_values (List): List of values to fill in the background tensor for each item in the tuple of a batch.
             dim (int): Dimension of the data.
             max_length (int): Maximum set length.
             batch_first (bool, optional): Whether batch size is the first
