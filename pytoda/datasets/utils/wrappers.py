@@ -1,5 +1,7 @@
+import numpy as np
 import torch
 import torch.nn as nn
+from typing import Tuple
 
 
 class WrapperCDist(nn.Module):
@@ -60,3 +62,13 @@ class WrapperKLDiv(nn.Module):
         """
 
         return nn.functional.kl_div(set1, set2, reduction=self.reduction)
+
+
+class WrapperBackgroundTensor:
+    """Class containing functions for various types of background tensors."""
+
+    def range_tensor(self, value_range, shape: Tuple, device: torch.device):
+        return torch.from_numpy(np.tile(value_range, shape)).to(device)
+
+    def constant_value_tensor(self, value: float, shape: Tuple, device: torch.device):
+        return torch.full(shape, value, device=device)
