@@ -323,7 +323,7 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
         """Test __getitem__."""
         pretrained_path = os.path.join(
             os.path.dirname(os.path.abspath(metadata.__file__)),
-            'tokenizer_chembl_gdsc_ccle_tox21_zinc_organdb_bindingdb',
+            'tokenizer',
         )
         smiles_language = SMILESTokenizer.from_pretrained(pretrained_path, padding=True)
 
