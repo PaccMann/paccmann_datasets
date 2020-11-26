@@ -1,8 +1,8 @@
 """Utils for the dataset module."""
 from copy import copy
 
-from ...types import Files, Any, Hashable, Tuple
-from ..base_dataset import ConcatKeyDataset, AnyBaseDataset
+from ...types import Any, Files, Hashable, Tuple
+from ..base_dataset import AnyBaseDataset, ConcatKeyDataset
 
 
 def sizeof_fmt(num, suffix='B'):

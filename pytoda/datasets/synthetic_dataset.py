@@ -1,7 +1,39 @@
+from dataclasses import dataclass
+from typing import Optional
+
 import torch
+from torch.distributions.distribution import Distribution
+from torch.random import fork_rng
 from torch.utils.data import Dataset
 
 from pytoda.datasets.utils.factories import DISTRIBUTION_FUNCTION_FACTORY
+from pytoda.types import Any, Tensor
+
+
+@dataclass
+class StochasticItems:
+    """Sample an item from a distribution on the fly on indexing.
+
+    Args:
+        distribution (Distribution): the distribution to sample from.
+        shape (torch.Size): the desired shape of each item.
+        device (torch.device): device to send the tensor to.
+    """
+
+    distribution: Distribution
+    shape: torch.Size
+    device: torch.device
+
+    def __getitem__(self, index: Any) -> Tensor:
+        """Samples an item.
+
+        Args:
+            index (Any): is ignored.
+
+        Returns:
+            Tensor: sampled from distribution with given shape.
+        """
+        return self.distribution.sample(self.shape).to(self.device)
 
 
 class SyntheticDataset(Dataset):
@@ -14,12 +46,12 @@ class SyntheticDataset(Dataset):
         dataset_depth: int = 1,
         distribution_type: str = 'normal',
         distribution_args: dict = {'loc': 0.0, 'scale': 1.0},
-        seed: int = -1,
+        seed: Optional[int] = None,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
     ) -> None:
-        """Constructor.
+        """Dataset of synthetic 2D samples from a specified distribution
 
         Args:
             dataset_size (int): Number of samples to generate (N).
@@ -28,20 +60,19 @@ class SyntheticDataset(Dataset):
                 support 2D samples. Sampling from __getitem__ will have shape
                 T x H. T defaults to 1.
             distribution_type (str): The distribution from which data should
-                be sampled. Default : normal. For full list see:
-                pytoda.utils.factories.DISTRIBUTION_FUNCTION_FACTORY
+                be sampled. Defaults to 'normal'. For full list see:
+                ``pytoda.utils.factories.DISTRIBUTION_FUNCTION_FACTORY``
             distribution_args (dict): dictionary of keyword arguments for
                 the distribution specified above.
-            seed (int): Seed used for the dataset generator. Defaults to -1, meaning
-                no seed is used (sampling at runtime).
+            seed (Optional[int]): If passed, all samples are generated once with
+                this seed (using a local RNG only). Defaults to None, where
+                individual samples are generated when the SyntheticDataset is
+                indexed (using the global RNG).
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
         """
 
         super(SyntheticDataset, self).__init__()
-
-        if not isinstance(seed, int):
-            raise TypeError(f'Seed should be int, was {type(seed)}')
 
         if distribution_type not in DISTRIBUTION_FUNCTION_FACTORY.keys():
             raise KeyError(
@@ -54,37 +85,30 @@ class SyntheticDataset(Dataset):
         self.dataset_size = dataset_size
         self.dataset_dim = dataset_dim
         self.dataset_depth = dataset_depth
+        self.seed = seed
         self.device = device
 
         self.data_sampler = DISTRIBUTION_FUNCTION_FACTORY[self.distribution_type](
             **self.distribution_args
         )
 
-        self.seed = seed
-        if seed > -1:
-            torch.manual_seed(seed)
-            torch.cuda.manual_seed(seed)
-            torch.cuda.manual_seed_all(seed)
-
+        if self.seed:
             # Eager dataset creation
-            self.data = self.data_sampler.sample(
-                (dataset_size, dataset_depth, dataset_dim)
+            with fork_rng():
+                torch.manual_seed(seed)
+                torch.cuda.manual_seed(seed)
+                torch.cuda.manual_seed_all(seed)
+
+                self.datasource = self.data_sampler.sample(
+                    (dataset_size, dataset_depth, dataset_dim)
+                )
+            # copy data to device
+            self.datasource = self.datasource.to(device)
+        else:
+            # get sampled item on indexing
+            self.datasource = StochasticItems(
+                self.data_sampler, (dataset_depth, dataset_dim), device
             )
-            # self.transform = lambda x: x
-
-        else:
-            self.data = torch.zeros(dataset_size, dataset_depth, dataset_dim)
-            # self.transform = lambda x: x + self.data_sampler.sample(x.shape).to(device)
-
-        # Copy data to device
-        self.data = self.data.to(device)
-
-    def _transform(self, x):
-        if self.seed > -1:
-            return x
-        else:
-            sample = self.data_sampler.sample(x.shape).to(self.device)
-            return x + sample
 
     def __len__(self) -> int:
         """Gets length of dataset.
@@ -105,4 +129,4 @@ class SyntheticDataset(Dataset):
                 [self.dataset_depth, self.dataset_dim].
         """
 
-        return self._transform(self.data[index])
+        return self.datasource[index]
