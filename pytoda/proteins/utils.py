@@ -27,5 +27,5 @@ def aas_to_smiles(aas, sanitize=True):
     mol = Chem.MolFromFASTA(aas, sanitize=sanitize)
     if mol is None:
         raise ValueError(f'Sequence could not be converted to SMILES: {aas}')
-    smiles = Chem.MolToSmiles(mol)
+    smiles = Chem.MolToSmiles(mol, canonical=True)
     return smiles
