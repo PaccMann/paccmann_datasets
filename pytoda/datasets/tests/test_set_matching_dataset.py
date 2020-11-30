@@ -2,7 +2,11 @@
 import torch
 import unittest
 from torch.utils.data import DataLoader
-from pytoda.datasets import SetMatchingDataset, CollatorSetMatching, SyntheticDataset
+from pytoda.datasets import (
+    SetMatchingDataset,
+    CollatorSetMatching,
+    DistributionalDataset,
+)
 
 data_params = {
     'seed': [-1, 42],
@@ -30,7 +34,7 @@ class TestSetMatchingDataset(unittest.TestCase):
                 for seed in data_params['seed']:
                     for permute in data_params['permute']:
 
-                        s1 = SyntheticDataset(
+                        s1 = DistributionalDataset(
                             data_params['dataset_size'],
                             data_params['data_dim'],
                             dataset_depth=data_params['set_length'],
@@ -38,7 +42,7 @@ class TestSetMatchingDataset(unittest.TestCase):
                         )
                         datasets = [s1]
                         if not permute:
-                            s2 = SyntheticDataset(
+                            s2 = DistributionalDataset(
                                 data_params['dataset_size'],
                                 data_params['data_dim'],
                                 dataset_depth=data_params['set_length'],
@@ -77,10 +81,16 @@ class TestSetMatchingDataset(unittest.TestCase):
                                     )
                                 )
                                 self.assertTrue(
-                                    torch.equal(sample1[1][sample1[2], :], sample1[0],)
+                                    torch.equal(
+                                        sample1[1][sample1[2], :],
+                                        sample1[0],
+                                    )
                                 )
                                 self.assertTrue(
-                                    torch.equal(sample1[0][sample1[3], :], sample1[1],)
+                                    torch.equal(
+                                        sample1[0][sample1[3], :],
+                                        sample1[1],
+                                    )
                                 )
                                 self.assertTrue(sample1[0][0, 0] in sample2[1])
                             if not vary_set_length:
@@ -114,7 +124,7 @@ class TestSetMatchingDataset(unittest.TestCase):
                 for seed in data_params['seed']:
                     for permute in data_params['permute']:
 
-                        s1 = SyntheticDataset(
+                        s1 = DistributionalDataset(
                             data_params['dataset_size'],
                             data_params['data_dim'],
                             dataset_depth=data_params['set_length'],
@@ -122,7 +132,7 @@ class TestSetMatchingDataset(unittest.TestCase):
                         )
                         datasets = [s1]
                         if not permute:
-                            s2 = SyntheticDataset(
+                            s2 = DistributionalDataset(
                                 data_params['dataset_size'],
                                 data_params['data_dim'],
                                 dataset_depth=data_params['set_length'],
