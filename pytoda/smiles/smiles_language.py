@@ -864,6 +864,10 @@ class SMILESTokenizer(SMILESLanguage):
                         f'{value}. Consider `set_max_padding`.'
                     )
 
+    @staticmethod
+    def __get_total_number_of_tokens_with_start_stop_fn(x):
+        return len(x) + 2
+
     def _set_token_len_fn(self, add_start_and_stop):
         """
         Defines a Callable that given a sequence of naive tokens, i.e. before
@@ -872,7 +876,9 @@ class SMILESTokenizer(SMILESLanguage):
         number of token indexes, not actual tokens).
         """
         if add_start_and_stop:
-            self._get_total_number_of_tokens_fn = lambda tokens: len(tokens) + 2
+            self._get_total_number_of_tokens_fn = (
+                self.__get_total_number_of_tokens_with_start_stop_fn
+            )
         else:
             self._get_total_number_of_tokens_fn = len
 
