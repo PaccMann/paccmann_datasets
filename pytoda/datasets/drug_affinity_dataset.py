@@ -1,12 +1,15 @@
 """Implementation of DrugAffinityDataset."""
-import torch
+from typing import Iterable, Tuple
+
 import pandas as pd
+import torch
 from torch.utils.data import Dataset
-from ..types import DrugAffinityData
-from ..smiles.smiles_language import SMILESLanguage
+
 from ..proteins.protein_language import ProteinLanguage
-from .smiles_dataset import SMILESTokenizerDataset
+from ..smiles.smiles_language import SMILESLanguage
+from ..types import DrugAffinityData
 from .protein_sequence_dataset import ProteinSequenceDataset
+from .smiles_dataset import SMILESTokenizerDataset
 
 
 class DrugAffinityDataset(Dataset):
@@ -19,6 +22,7 @@ class DrugAffinityDataset(Dataset):
         drug_affinity_filepath: str,
         smi_filepath: str,
         protein_filepath: str,
+        column_names: Tuple[str] = ['label', 'ligand_name', 'sequence_id'],
         drug_affinity_dtype: torch.dtype = torch.int,
         smiles_language: SMILESLanguage = None,
         smiles_padding: bool = True,
@@ -52,12 +56,14 @@ class DrugAffinityDataset(Dataset):
         Initialize a drug affinity dataset.
 
         Args:
-            drug_affinity_filepath (str): path to drug affinity
-                .csv file. Currently, the only supported format is .csv,
-                with an index and three header columns named: "ligand_name",
-                "sequence_id", "label".
+            drug_affinity_filepath (str): path to drug affinity .csv file. Currently,
+                the only supported format is .csv, with an index and three header
+                columns named as specified in column_names.
             smi_filepath (str): path to .smi file.
             protein_filepath (str): path to .smi or .fasta file.
+            column_names (Tuple[str]): Names of columns in data files to retrieve
+                labels, ligands and protein name respectively.
+                Defaults to ['label', 'ligand_name', 'sequence_id'].
             drug_affinity_dtype (torch.dtype): drug affinity data type.
                 Defaults to torch.int.
             smiles_language (SMILESLanguage): a smiles language.
@@ -129,6 +135,14 @@ class DrugAffinityDataset(Dataset):
         self.device = device
         # backend
         self.backend = backend
+
+        if not isinstance(column_names, Iterable):
+            raise TypeError(f'Column names was {type(column_names)}, not Iterable.')
+        if not len(column_names) == 3:
+            raise ValueError(f'Please pass 3 column names not {len(column_names)}')
+        self.column_names = column_names
+        self.label_name, self.drug_name, self.protein_name = self.column_names
+
         # SMILES
         self.smiles_dataset = SMILESTokenizerDataset(
             self.smi_filepath,
@@ -168,16 +182,16 @@ class DrugAffinityDataset(Dataset):
         self.drug_affinity_dtype = drug_affinity_dtype
         self.drug_affinity_df = pd.read_csv(self.drug_affinity_filepath, index_col=0)
         # filter data based on the availability
-        drug_mask = self.drug_affinity_df['ligand_name'].isin(
+        drug_mask = self.drug_affinity_df[self.drug_name].isin(
             set(self.smiles_dataset.keys())
         )
-        sequence_mask = self.drug_affinity_df['sequence_id'].isin(
+        sequence_mask = self.drug_affinity_df[self.protein_name].isin(
             set(self.protein_sequence_dataset.keys())
         )
         self.drug_affinity_df = self.drug_affinity_df.loc[drug_mask & sequence_mask]
         # to investigate missing ids per entity
         self.masks_df = pd.concat([drug_mask, sequence_mask], axis=1)
-        self.masks_df.columns = ['ligand_name', 'sequence_id']
+        self.masks_df.columns = [self.drug_name, self.protein_name]
 
         self.number_of_samples = len(self.drug_affinity_df)
 
@@ -200,16 +214,16 @@ class DrugAffinityDataset(Dataset):
         # drug affinity
         selected_sample = self.drug_affinity_df.iloc[index]
         affinity_tensor = torch.tensor(
-            [selected_sample['label']],
+            [selected_sample[self.label_name]],
             dtype=self.drug_affinity_dtype,
             device=self.device,
         )
         # SMILES
         token_indexes_tensor = self.smiles_dataset.get_item_from_key(
-            selected_sample['ligand_name']
+            selected_sample[self.drug_name]
         )
         # protein
         protein_sequence_tensor = self.protein_sequence_dataset.get_item_from_key(
-            selected_sample['sequence_id']
+            selected_sample[self.protein_name]
         )
         return token_indexes_tensor, protein_sequence_tensor, affinity_tensor

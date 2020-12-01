@@ -6,9 +6,9 @@ from torch.utils.data import DataLoader
 from pytoda.datasets import DrugAffinityDataset
 from pytoda.tests.utils import TestFileContent
 
+COLUMN_NAMES = [',ligand_name,sequence_id,label', ',drug,protein,class']
 DRUG_AFFINITY_CONTENT = os.linesep.join(
     [
-        ',ligand_name,sequence_id,label',
         '0,CHEMBL14688,name=20S proteasome chymotrypsin-like-organism=Homo sapiens,1',  # noqa
         '1,CHEMBL14688,name=21S proteasome chymotrypsin-like-organism=Homo sapiens,0',  # noqa
         '2,CHEMBL17564,name=20S proteasome chymotrypsin-like-organism=Homo sapiens,0',  # noqa
@@ -34,21 +34,28 @@ class TestDrugAffinityDatasetEagerBackend(unittest.TestCase):
     def setUp(self):
         self.backend = 'eager'
         print(f'backend is {self.backend}')
-        self.drug_affinity_content = DRUG_AFFINITY_CONTENT
         self.smiles_content = SMILES_CONTENT
         self.protein_sequence_content = PROTEIN_SEQUENCE_CONTENT
 
-        with TestFileContent(self.drug_affinity_content) as drug_affinity_file:
-            with TestFileContent(self.smiles_content) as smiles_file:
-                with TestFileContent(
-                    self.protein_sequence_content
-                ) as protein_sequence_file:
-                    self.drug_affinity_dataset = DrugAffinityDataset(
-                        drug_affinity_file.filename,
-                        smiles_file.filename,
-                        protein_sequence_file.filename,
-                        backend=self.backend,
-                    )
+        for column_content in COLUMN_NAMES:
+            self.drug_affinity_content = os.linesep.join(
+                [column_content, DRUG_AFFINITY_CONTENT]
+            )
+            # Bring column names in right order
+            column_names = list(np.roll(column_content.split(',')[1:], 1))
+
+            with TestFileContent(self.drug_affinity_content) as drug_affinity_file:
+                with TestFileContent(self.smiles_content) as smiles_file:
+                    with TestFileContent(
+                        self.protein_sequence_content
+                    ) as protein_sequence_file:
+                        self.drug_affinity_dataset = DrugAffinityDataset(
+                            drug_affinity_file.filename,
+                            smiles_file.filename,
+                            protein_sequence_file.filename,
+                            backend=self.backend,
+                            column_names=column_names,
+                        )
 
     def test___len__(self) -> None:
         """Test __len__."""
@@ -59,12 +66,16 @@ class TestDrugAffinityDatasetEagerBackend(unittest.TestCase):
         smiles_padding_index = (
             self.drug_affinity_dataset.smiles_dataset.smiles_language.padding_index
         )
-        smiles_c_index = self.drug_affinity_dataset.smiles_dataset.smiles_language.token_to_index[
-            'C'
-        ]
-        smiles_o_index = self.drug_affinity_dataset.smiles_dataset.smiles_language.token_to_index[
-            'O'
-        ]
+        smiles_c_index = (
+            self.drug_affinity_dataset.smiles_dataset.smiles_language.token_to_index[
+                'C'
+            ]
+        )
+        smiles_o_index = (
+            self.drug_affinity_dataset.smiles_dataset.smiles_language.token_to_index[
+                'O'
+            ]
+        )
         protein_sequence_padding_index = (
             self.drug_affinity_dataset.protein_sequence_dataset.protein_language.padding_index
         )
@@ -126,21 +137,28 @@ class TestDrugAffinityDatasetLazyBackend(TestDrugAffinityDatasetEagerBackend):
     def setUp(self):
         self.backend = 'lazy'
         print(f'backend is {self.backend}')
-        self.drug_affinity_content = DRUG_AFFINITY_CONTENT
         self.smiles_content = SMILES_CONTENT
         self.protein_sequence_content = PROTEIN_SEQUENCE_CONTENT
 
-        with TestFileContent(self.drug_affinity_content) as drug_affinity_file:
-            with TestFileContent(self.smiles_content) as smiles_file:
-                with TestFileContent(
-                    self.protein_sequence_content
-                ) as protein_sequence_file:
-                    self.drug_affinity_dataset = DrugAffinityDataset(
-                        drug_affinity_file.filename,
-                        smiles_file.filename,
-                        protein_sequence_file.filename,
-                        backend=self.backend,
-                    )
+        for column_content in COLUMN_NAMES:
+            self.drug_affinity_content = os.linesep.join(
+                [column_content, DRUG_AFFINITY_CONTENT]
+            )
+            # Bring column names in right order
+            column_names = list(np.roll(column_content.split(',')[1:], 1))
+
+            with TestFileContent(self.drug_affinity_content) as drug_affinity_file:
+                with TestFileContent(self.smiles_content) as smiles_file:
+                    with TestFileContent(
+                        self.protein_sequence_content
+                    ) as protein_sequence_file:
+                        self.drug_affinity_dataset = DrugAffinityDataset(
+                            drug_affinity_file.filename,
+                            smiles_file.filename,
+                            protein_sequence_file.filename,
+                            backend=self.backend,
+                            column_names=column_names,
+                        )
 
 
 if __name__ == '__main__':

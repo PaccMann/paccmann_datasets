@@ -6,9 +6,9 @@ from torch.utils.data import DataLoader
 from pytoda.datasets import DrugSensitivityDataset
 from pytoda.tests.utils import TestFileContent
 
+COLUMN_NAMES = [',drug,cell_line,IC50', ',molecule,omic,label']
 DRUG_SENSITIVITY_CONTENT = os.linesep.join(
     [
-        ',drug,cell_line,IC50',
         '0,CHEMBL14688,sample_3,2.1',
         '1,CHEMBL14688,sample_2,-0.9',
         '2,CHEMBL17564,sample_1,1.2',
@@ -34,22 +34,31 @@ class TestDrugSensitivityDatasetEagerBackend(unittest.TestCase):
     def setUp(self):
         self.backend = 'eager'
         print(f'backend is {self.backend}')
-        self.drug_sensitivity_content = DRUG_SENSITIVITY_CONTENT
         self.smiles_content = SMILES_CONTENT
         self.gene_expression_content = GENE_EXPRESSION_CONTENT
 
-        with TestFileContent(self.drug_sensitivity_content) as drug_sensitivity_file:
-            with TestFileContent(self.smiles_content) as smiles_file:
-                with TestFileContent(
-                    self.gene_expression_content
-                ) as gene_expression_file:
-                    self.drug_sensitivity_dataset = DrugSensitivityDataset(
-                        drug_sensitivity_file.filename,
-                        smiles_file.filename,
-                        gene_expression_file.filename,
-                        gene_expression_kwargs={'pandas_dtype': {'genes': str}},
-                        backend=self.backend,
-                    )
+        for column_content in COLUMN_NAMES:
+            self.drug_sensitivity_content = os.linesep.join(
+                [column_content, DRUG_SENSITIVITY_CONTENT]
+            )
+            # Bring column names in right order
+            column_names = list(np.roll(column_content.split(',')[1:], 1))
+
+            with TestFileContent(
+                self.drug_sensitivity_content
+            ) as drug_sensitivity_file:
+                with TestFileContent(self.smiles_content) as smiles_file:
+                    with TestFileContent(
+                        self.gene_expression_content
+                    ) as gene_expression_file:
+                        self.drug_sensitivity_dataset = DrugSensitivityDataset(
+                            drug_sensitivity_file.filename,
+                            smiles_file.filename,
+                            gene_expression_file.filename,
+                            gene_expression_kwargs={'pandas_dtype': {'genes': str}},
+                            backend=self.backend,
+                            column_names=column_names,
+                        )
 
     def test___len__(self) -> None:
         """Test __len__."""
@@ -61,12 +70,16 @@ class TestDrugSensitivityDatasetEagerBackend(unittest.TestCase):
         padding_index = (
             self.drug_sensitivity_dataset.smiles_dataset.smiles_language.padding_index
         )
-        c_index = self.drug_sensitivity_dataset.smiles_dataset.smiles_language.token_to_index[
-            'C'
-        ]
-        o_index = self.drug_sensitivity_dataset.smiles_dataset.smiles_language.token_to_index[
-            'O'
-        ]
+        c_index = (
+            self.drug_sensitivity_dataset.smiles_dataset.smiles_language.token_to_index[
+                'C'
+            ]
+        )
+        o_index = (
+            self.drug_sensitivity_dataset.smiles_dataset.smiles_language.token_to_index[
+                'O'
+            ]
+        )
         (
             token_indexes_tensor,
             gene_expression_tensor,
@@ -109,22 +122,31 @@ class TestDrugSensitivityDatasetLazyBackend(
     def setUp(self):
         self.backend = 'lazy'
         print(f'backend is {self.backend}')
-        self.drug_sensitivity_content = DRUG_SENSITIVITY_CONTENT
         self.smiles_content = SMILES_CONTENT
         self.gene_expression_content = GENE_EXPRESSION_CONTENT
 
-        with TestFileContent(self.drug_sensitivity_content) as drug_sensitivity_file:
-            with TestFileContent(self.smiles_content) as smiles_file:
-                with TestFileContent(
-                    self.gene_expression_content
-                ) as gene_expression_file:
-                    self.drug_sensitivity_dataset = DrugSensitivityDataset(
-                        drug_sensitivity_file.filename,
-                        smiles_file.filename,
-                        gene_expression_file.filename,
-                        gene_expression_kwargs={'pandas_dtype': {'genes': str}},
-                        backend=self.backend,
-                    )
+        for column_content in COLUMN_NAMES:
+            self.drug_sensitivity_content = os.linesep.join(
+                [column_content, DRUG_SENSITIVITY_CONTENT]
+            )
+            # Bring column names in right order
+            column_names = list(np.roll(column_content.split(',')[1:], 1))
+
+            with TestFileContent(
+                self.drug_sensitivity_content
+            ) as drug_sensitivity_file:
+                with TestFileContent(self.smiles_content) as smiles_file:
+                    with TestFileContent(
+                        self.gene_expression_content
+                    ) as gene_expression_file:
+                        self.drug_sensitivity_dataset = DrugSensitivityDataset(
+                            drug_sensitivity_file.filename,
+                            smiles_file.filename,
+                            gene_expression_file.filename,
+                            gene_expression_kwargs={'pandas_dtype': {'genes': str}},
+                            backend=self.backend,
+                            column_names=column_names,
+                        )
 
 
 if __name__ == '__main__':
