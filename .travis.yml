@@ -8,8 +8,8 @@ script:
   - docker run -it pytoda_tests python3 -m unittest discover -t . -p "test_*py" pytoda
   - docker run -it pytoda_tests pytoda-filter-invalid-smi --help
   - codecov_token=de068e1c-a84c-45da-8a41-146b5120b5eb
-  - ci_env="bash <(curl -s https://codecov.io/env)"
-  - ci_post_cov="bash <(curl -s https://codecov.io/bash) -t $codecov_token"
+  - ci_env=`bash <(curl -s https://codecov.io/env)`
+  - ci_post_cov=`bash <(curl -s https://codecov.io/bash) -t $codecov_token`
   - docker run -t pytoda_tests /bin/bash -c "$ci_env && coverage run -m unittest discover && $ci_post_cov"
 notifications:
   slack:

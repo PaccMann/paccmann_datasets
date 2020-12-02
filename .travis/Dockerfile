@@ -6,6 +6,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 # copy pytoda
 COPY . .
 RUN pip3 install --no-deps .
+RUN pip3 install coverage==5.3
 RUN apt-get update
 RUN apt-get install python-pip curl git -y
 CMD /bin/bash
