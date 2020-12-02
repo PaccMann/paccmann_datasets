@@ -37,12 +37,10 @@ class TestDrugSensitivityDatasetEagerBackend(unittest.TestCase):
         self.smiles_content = SMILES_CONTENT
         self.gene_expression_content = GENE_EXPRESSION_CONTENT
 
-        for column_content in COLUMN_NAMES:
+        for column_names in COLUMN_NAMES:
             self.drug_sensitivity_content = os.linesep.join(
                 [column_content, DRUG_SENSITIVITY_CONTENT]
             )
-            # Bring column names in right order
-            column_names = list(np.roll(column_content.split(',')[1:], 1))
 
             with TestFileContent(
                 self.drug_sensitivity_content
@@ -125,12 +123,10 @@ class TestDrugSensitivityDatasetLazyBackend(
         self.smiles_content = SMILES_CONTENT
         self.gene_expression_content = GENE_EXPRESSION_CONTENT
 
-        for column_content in COLUMN_NAMES:
+        for column_names in COLUMN_NAMES:
             self.drug_sensitivity_content = os.linesep.join(
                 [column_content, DRUG_SENSITIVITY_CONTENT]
             )
-            # Bring column names in right order
-            column_names = list(np.roll(column_content.split(',')[1:], 1))
 
             with TestFileContent(
                 self.drug_sensitivity_content

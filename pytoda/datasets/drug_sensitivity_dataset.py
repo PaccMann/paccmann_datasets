@@ -18,7 +18,7 @@ class DrugSensitivityDataset(Dataset):
         drug_sensitivity_filepath: str,
         smi_filepath: str,
         gene_expression_filepath: str,
-        column_names: Tuple[str] = ['IC50', 'drug', 'cell_line'],
+        column_names: Tuple[str] = ['drug', 'cell_line', 'IC50'],
         drug_sensitivity_dtype: torch.dtype = torch.float,
         drug_sensitivity_min_max: bool = True,
         drug_sensitivity_processing_parameters: dict = {},
@@ -62,7 +62,7 @@ class DrugSensitivityDataset(Dataset):
                 with an index and header columns containing gene names.
             column_names (Tuple[str]): Names of columns in data files to retrieve
                 labels, ligands and protein name respectively.
-                Defaults to ['IC50', 'drug', 'cell_line'].
+                Defaults to ['drug', 'cell_line', 'IC50'].
             drug_sensitivity_dtype (torch.dtype): drug sensitivity data type.
                 Defaults to torch.float.
             drug_sensitivity_min_max (bool): min-max scale drug sensitivity
@@ -138,7 +138,7 @@ class DrugSensitivityDataset(Dataset):
         if not len(column_names) == 3:
             raise ValueError(f'Please pass 3 column names not {len(column_names)}')
         self.column_names = column_names
-        self.label_name, self.drug_name, self.cell_name = self.column_names
+        self.drug_name, self.cell_name, self.label_name = self.column_names
 
         # SMILES
         self.smiles_dataset = SMILESTokenizerDataset(

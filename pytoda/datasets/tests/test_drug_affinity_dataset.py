@@ -37,12 +37,10 @@ class TestDrugAffinityDatasetEagerBackend(unittest.TestCase):
         self.smiles_content = SMILES_CONTENT
         self.protein_sequence_content = PROTEIN_SEQUENCE_CONTENT
 
-        for column_content in COLUMN_NAMES:
+        for column_names in COLUMN_NAMES:
             self.drug_affinity_content = os.linesep.join(
                 [column_content, DRUG_AFFINITY_CONTENT]
             )
-            # Bring column names in right order
-            column_names = list(np.roll(column_content.split(',')[1:], 1))
 
             with TestFileContent(self.drug_affinity_content) as drug_affinity_file:
                 with TestFileContent(self.smiles_content) as smiles_file:
@@ -140,12 +138,10 @@ class TestDrugAffinityDatasetLazyBackend(TestDrugAffinityDatasetEagerBackend):
         self.smiles_content = SMILES_CONTENT
         self.protein_sequence_content = PROTEIN_SEQUENCE_CONTENT
 
-        for column_content in COLUMN_NAMES:
+        for column_names in COLUMN_NAMES:
             self.drug_affinity_content = os.linesep.join(
                 [column_content, DRUG_AFFINITY_CONTENT]
             )
-            # Bring column names in right order
-            column_names = list(np.roll(column_content.split(',')[1:], 1))
 
             with TestFileContent(self.drug_affinity_content) as drug_affinity_file:
                 with TestFileContent(self.smiles_content) as smiles_file:

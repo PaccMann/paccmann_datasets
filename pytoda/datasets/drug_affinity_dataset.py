@@ -22,7 +22,7 @@ class DrugAffinityDataset(Dataset):
         drug_affinity_filepath: str,
         smi_filepath: str,
         protein_filepath: str,
-        column_names: Tuple[str] = ['label', 'ligand_name', 'sequence_id'],
+        column_names: Tuple[str] = ['ligand_name', 'sequence_id', 'label'],
         drug_affinity_dtype: torch.dtype = torch.int,
         smiles_language: SMILESLanguage = None,
         smiles_padding: bool = True,
@@ -63,7 +63,7 @@ class DrugAffinityDataset(Dataset):
             protein_filepath (str): path to .smi or .fasta file.
             column_names (Tuple[str]): Names of columns in data files to retrieve
                 labels, ligands and protein name respectively.
-                Defaults to ['label', 'ligand_name', 'sequence_id'].
+                Defaults to ['ligand_name', 'sequence_id', 'label'].
             drug_affinity_dtype (torch.dtype): drug affinity data type.
                 Defaults to torch.int.
             smiles_language (SMILESLanguage): a smiles language.
@@ -141,7 +141,7 @@ class DrugAffinityDataset(Dataset):
         if not len(column_names) == 3:
             raise ValueError(f'Please pass 3 column names not {len(column_names)}')
         self.column_names = column_names
-        self.label_name, self.drug_name, self.protein_name = self.column_names
+        self.drug_name, self.protein_name, self.label_name = self.column_names
 
         # SMILES
         self.smiles_dataset = SMILESTokenizerDataset(
