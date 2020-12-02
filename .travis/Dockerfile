@@ -1,4 +1,6 @@
 FROM drugilsberg/rdkit-ubuntu:latest
+RUN apt-get update
+RUN apt-get install python-pip curl git -y
 WORKDIR /datasets
 # install requirements
 COPY requirements.txt .
@@ -7,6 +9,4 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 COPY . .
 RUN pip3 install --no-deps .
 RUN pip3 install coverage==5.3
-RUN apt-get update
-RUN apt-get install python-pip curl git -y
 CMD /bin/bash
