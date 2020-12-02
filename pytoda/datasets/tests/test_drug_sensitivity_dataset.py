@@ -39,7 +39,7 @@ class TestDrugSensitivityDatasetEagerBackend(unittest.TestCase):
 
         for column_names in COLUMN_NAMES:
             self.drug_sensitivity_content = os.linesep.join(
-                [column_content, DRUG_SENSITIVITY_CONTENT]
+                [column_names, DRUG_SENSITIVITY_CONTENT]
             )
 
             with TestFileContent(
@@ -55,7 +55,7 @@ class TestDrugSensitivityDatasetEagerBackend(unittest.TestCase):
                             gene_expression_file.filename,
                             gene_expression_kwargs={'pandas_dtype': {'genes': str}},
                             backend=self.backend,
-                            column_names=column_names,
+                            column_names=column_names.split(',')[1:],
                         )
 
     def test___len__(self) -> None:
@@ -125,9 +125,8 @@ class TestDrugSensitivityDatasetLazyBackend(
 
         for column_names in COLUMN_NAMES:
             self.drug_sensitivity_content = os.linesep.join(
-                [column_content, DRUG_SENSITIVITY_CONTENT]
+                [column_names, DRUG_SENSITIVITY_CONTENT]
             )
-
             with TestFileContent(
                 self.drug_sensitivity_content
             ) as drug_sensitivity_file:
@@ -135,13 +134,14 @@ class TestDrugSensitivityDatasetLazyBackend(
                     with TestFileContent(
                         self.gene_expression_content
                     ) as gene_expression_file:
+                        print(column_names)
                         self.drug_sensitivity_dataset = DrugSensitivityDataset(
                             drug_sensitivity_file.filename,
                             smiles_file.filename,
                             gene_expression_file.filename,
                             gene_expression_kwargs={'pandas_dtype': {'genes': str}},
                             backend=self.backend,
-                            column_names=column_names,
+                            column_names=column_names.split(',')[1:],
                         )
 
 
