@@ -7,8 +7,6 @@ from scipy.optimize import linear_sum_assignment
 from torch.functional import Tensor
 from torch.utils.data import Dataset
 
-from pytoda.datasets.utils.factories import METRIC_FUNCTION_FACTORY
-
 
 def hungarian_assignment(
     set_reference: torch.Tensor,
@@ -20,7 +18,8 @@ def hungarian_assignment(
     Args:
         set_reference (torch.Tensor): Tensor with elements of set_reference.
         set_matching (torch.Tensor): Tensor with elements of set_matching.
-        TODO cost_metric_function
+        cost_metric_function (nn.Module): Function wrapped as an nn.Module that
+            computes the metric used in constructing the cost matrix.
 
     Returns:
         Tuple: Tuple containing hungarian matching indices of set1 vs set2 and
@@ -44,16 +43,16 @@ def get_subsampling_indexes(
     """Return indexers to remove random elements of an item and it's permutation.
 
     Args:
-        min_set_length (int): minimal number of elements.
-        max_set_length (int): maximum number of elements.
-        permutation (Tensor): tensor of integers defining a permutation, that are
+        min_set_length (int): Minimum number of elements in the set.
+        max_set_length (int): Maximum number of elements in the set.
+        permutation (Tensor): Tensor of integers defining a permutation, that are
             indices of a range in arbitrary order.
-        shuffle (bool): the first returned indexer also shuffles the elements.
+        shuffle (bool): The first returned indexer also shuffles the elements.
 
     Returns:
         Tuple[Tensor, Tensor]:
-            a Tensor of integers for indexing a subset of elements (shuffled or not).
-            a Tensor of integers for indexing the same elements in a permuted item.
+            A Tensor of integers for indexing a subset of elements (shuffled or not).
+            A Tensor of integers for indexing the same elements in a permuted item.
     """
 
     length = torch.randint(min_set_length, max_set_length + 1, (1,))
@@ -61,8 +60,8 @@ def get_subsampling_indexes(
     if not shuffle:
         indexes_reference = indexes_reference.sort().values
 
-    # TODO This does exactly what x == y would do if x would be a Tensor and
-    # y a int, with the extension that y is an array.
+    # This identifies indexes in set_matching that correspond to indexes_reference.
+    # By doing so, we ensure that in the 'permute' case, the correct elements are retained during random cropping.
     indexes_matching = torch.tensor(
         [index for index, value in enumerate(permutation) if value in indexes_reference]
     )
@@ -78,8 +77,7 @@ class BaseSetMatchingDataset(Dataset):
         self,
         max_set_length: int,
         min_set_length: int,
-        cost_metric: str = 'p-norm',
-        cost_metric_args: dict = {'p': 2},
+        cost_metric_function: nn.Module,
         seed: Optional[int] = None,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -88,17 +86,17 @@ class BaseSetMatchingDataset(Dataset):
         """Base Class for set matching datasets.
 
         Args:
-            TODO min max set length docs
-            cost_metric (str): Cost metric to use when calculating the
-                pairwise distance matrix.
-            cost_metric_args (str): Arguments for the cost metric in the
-                right order, as specified in the function.
-            seed (Optional[int]): TODO explain None to use no seed
-                Seed used to get the permutation in `permute` and the set
-                length via `vary_set_length`. Hence, if both are False, the seed has
-                no effect. Seed defaults to -1, meaning no seed is used (sampling at
-                runtime). NOTE: This seed does not refer to stochasticity in the
-                underlying Dataset objects.
+            max_set_length (int): Maximum number of elements in the set. This
+                should be equal to the item length of the distributional dataset
+                set by the child class.
+            min_set_length (int): Minimum number of elements required in the set.
+                This should be equal to max_set_length if varying set lengths are not desired.
+            cost_metric_function (nn.Module): Function wrapped as an nn.Module that
+                computes the metric used in constructing the cost matrix.
+            seed (Optional[int]): If passed, all samples are generated once with
+                this seed (using a local RNG only). Defaults to None, where
+                individual samples are generated when the DistributionalDataset is
+                indexed (using the global RNG).
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
 
@@ -110,14 +108,7 @@ class BaseSetMatchingDataset(Dataset):
         # Setup
         self.seed = seed
 
-        if cost_metric not in METRIC_FUNCTION_FACTORY.keys():
-            raise KeyError(
-                f'cost_metric was {cost_metric}, should be from '
-                f'{METRIC_FUNCTION_FACTORY.keys()}.'
-            )
-        self.cost_metric = cost_metric
-        self.cost_metric_args = cost_metric_args
-        self.get_cost_matrix = METRIC_FUNCTION_FACTORY[cost_metric](**cost_metric_args)
+        self.get_cost_matrix = cost_metric_function
 
         self.device = device
 
@@ -126,9 +117,25 @@ class BaseSetMatchingDataset(Dataset):
 
     @property
     def permutation(self) -> Tensor:
+        """Class attribute that defines the permutation to use in creating set_matching.
+
+        Raises:
+            NotImplementedError: Not implemented by the base class. Attribute overwritten
+                by the child class.
+        """
         raise NotImplementedError
 
     def get_matching_set(self, index: int, reference_set: Tensor) -> Tensor:
+        """Gets the corresponding set to match to the reference set.
+
+        Args:
+            index (int): The index to be sampled.
+            reference_set (Tensor): Tensor that represents samples of the reference set.
+
+        Raises:
+            NotImplementedError: Not implemented by the base class. Function overwritten
+                by the child class.
+        """
         raise NotImplementedError
 
     def __len__(self) -> int:
@@ -193,29 +200,30 @@ class SampleSetData(BaseSetMatchingDataset):
         dataset_to_match: Dataset,
         max_set_length: int,
         min_set_length: int,
-        cost_metric: str = 'p-norm',
-        cost_metric_args: dict = {'p': 2},
-        seed: int = -1,  # TODO
+        cost_metric_function: nn.Module,
+        seed: Optional[int] = None,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
     ):
 
-        """Constructor. TODO
+        """Constructor that initialises BaseSetMatchingDataset class and the inheriting SampleSetData class.
 
         Args:
-            dataset (Dataset): Object containing torch.utils.data.Dataset or child classes that represents samples of reference_set.
+            dataset (Dataset): Object containing torch.utils.data.Dataset or child classes that represents samples of set_reference.
             dataset_to_match (Dataset): Object containing torch.utils.data.Dataset or child classes that represents samples of set_matching.
-            cost_metric (str): Cost metric to use when calculating the
-                pairwise distance matrix.
-            cost_metric_args (str): Arguments for the cost metric in the
-                right order, as specified in the function.
-            seed (int): Seed used to get the permutation in `permute` and the set
-                length via `vary_set_length`. Hence, if both are False, the seed has
-                no effect. Seed defaults to -1, meaning no seed is used (sampling at
-                runtime). NOTE: This seed does not refer to stochasticity in the
-                underlying Dataset objects.
-            device (torch.device): device where the tensors are stored.
+            max_set_length (int): Maximum number of elements in the set. This
+                should be equal to the item length of the distributional dataset
+                passed into this class.
+            min_set_length (int): Minimum number of elements required in the set.
+                Set it equal to max_set_length if varying set lengths are not desired.
+            cost_metric_function (nn.Module): Function wrapped as an nn.Module that
+                computes the metric used in constructing the cost matrix.
+            seed (Optional[int]): If passed, all samples are generated once with
+                this seed (using a local RNG only). Defaults to None, where
+                individual samples are generated when the DistributionalDataset is
+                indexed (using the global RNG).
+            device (torch.device): Device where the tensors are stored.
                 Defaults to gpu, if available.
         """
         # Setup dataset
@@ -223,19 +231,28 @@ class SampleSetData(BaseSetMatchingDataset):
         self.dataset_to_match = dataset_to_match
         self.dummy_permutation = torch.arange(self.max_set_length)
         super().__init__(
-            max_set_length,
-            min_set_length,
-            cost_metric,  # TODO
-            cost_metric_args,
-            seed,
-            device,
+            max_set_length, min_set_length, cost_metric_function, seed, device,
         )
 
     @property
     def permutation(self) -> Tensor:
+        """Class attribute that defines the permutation to use in creating set_matching.
+
+        Returns:
+            Tensor: A fixed tensor containing the range of max_set_length.
+        """
         return self.dummy_permutation
 
     def get_matching_set(self, index: int, reference_set: Tensor) -> Tensor:
+        """Gets the corresponding set to match to the reference set.
+
+        Args:
+            index (int): The index to be sampled.
+            reference_set (Tensor): Tensor that represents samples of the reference set.
+
+        Returns:
+            Tensor: Tensor of the corresponding matching set.
+        """
         return self.dataset_to_match[index]
 
 
@@ -248,28 +265,29 @@ class PermuteSetData(BaseSetMatchingDataset):
         noise_std: float,
         max_set_length: int,
         min_set_length: int,
-        cost_metric: str = 'p-norm',
-        cost_metric_args: dict = {'p': 2},
-        seed: int = -1,  # TODO
+        cost_metric_function: nn.Module,
+        seed: Optional[int] = None,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
     ):
 
-        """Constructor. TODO
+        """Constructor that initialises BaseSetMatchingDataset class and the inheriting PermuteSetData class.
 
         Args:
             dataset (Dataset): Object containing torch.utils.data.Dataset or child classes that represents samples of set_reference.
-            cost_metric (str): Cost metric to use when calculating the
-                pairwise distance matrix.
-            cost_metric_args (str): Arguments for the cost metric in the
-                right order, as specified in the function.
-            seed (int): TODO
-                Seed used to get the permutation in `permute` and the set
-                length via `vary_set_length`. Hence, if both are False, the seed has
-                no effect. Seed defaults to -1, meaning no seed is used (sampling at
-                runtime). NOTE: This seed does not refer to stochasticity in the
-                underlying Dataset objects.
+            noise_std (float): Standard deviation to use in generating noise from a normal distribution with mean 0.
+            max_set_length (int): Maximum number of elements in the set. This
+                should be equal to the item length of the distributional dataset
+                passed into this class.
+            min_set_length (int): Minimum number of elements required in the set.
+                Set it equal to max_set_length if varying set lengths are not desired.
+            cost_metric_function (nn.Module): Function wrapped as an nn.Module that
+                computes the metric used in constructing the cost matrix.
+            seed (Optional[int]): If passed, all samples are generated once with
+                this seed (using a local RNG only). Defaults to None, where
+                individual samples are generated when the DistributionalDataset is
+                indexed (using the global RNG).
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
         """
@@ -281,16 +299,29 @@ class PermuteSetData(BaseSetMatchingDataset):
             max_set_length,
             # is user choice
             min_set_length,
-            cost_metric,
-            cost_metric_args,
+            cost_metric_function,
             seed,
             device,
         )
 
     @property
     def permutation(self) -> Tensor:
+        """Class attribute that defines the permutation to use in creating set_matching.
+
+        Returns:
+            Tensor: Tensor of a randomly generated permutation of length max_set_length.
+        """
         return torch.randperm(self.max_set_length)
 
     def get_matching_set(self, index: int, reference_set: Tensor) -> Tensor:
+        """Gets the corresponding set to match to the reference set.
+
+        Args:
+            index (int): The index to be sampled.
+            reference_set (Tensor): Tensor that represents samples of the reference set.
+
+        Returns:
+            Tensor: Tensor of the permuted reference set with additive noise.
+        """
         additive_noise = self.noise.sample(reference_set.size())
         return reference_set[self.permutation, :] + additive_noise
