@@ -1,7 +1,6 @@
-import numpy as np
 import torch
 import torch.nn as nn
-from typing import Tuple
+from ...types import Tensor
 
 
 class WrapperCDist(nn.Module):
@@ -18,17 +17,17 @@ class WrapperCDist(nn.Module):
         super(WrapperCDist, self).__init__()
         self.p = p
 
-    def forward(self, set1: torch.Tensor, set2: torch.Tensor) -> torch.Tensor:
+    def forward(self, set1: Tensor, set2: Tensor) -> Tensor:
         """Computes the pairwise p-norms.
 
         Args:
-            set1 (torch.Tensor): Input tensor of shape
+            set1 (Tensor): Input tensor of shape
                 [batch_size, length1, dim]
-            set2 (torch.Tensor): Input tensor of shape
+            set2 (Tensor): Input tensor of shape
                 [batch_size, length2, dim]
 
         Returns:
-            torch.Tensor: Tensor of shape [batch_size, length1, length2]
+            Tensor: Tensor of shape [batch_size, length1, length2]
                 representing the pairwise distances.
         """
         return torch.cdist(set1, set2, self.p)
@@ -49,26 +48,16 @@ class WrapperKLDiv(nn.Module):
 
         self.reduction = reduction
 
-    def forward(self, set1: torch.Tensor, set2: torch.Tensor) -> torch.Tensor:
+    def forward(self, set1: Tensor, set2: Tensor) -> Tensor:
         """Computes the KL-Divergence.
 
         Args:
-            set1 (torch.Tensor): Input tensor of arbitrary shape.
-            set2 (torch.Tensor): Tensor of the same shape as input.
+            set1 (Tensor): Input tensor of arbitrary shape.
+            set2 (Tensor): Tensor of the same shape as input.
 
         Returns:
-            torch.Tensor: Scalar by default. if reduction = 'none', then same
+            Tensor: Scalar by default. if reduction = 'none', then same
                 shape as input.
         """
 
         return nn.functional.kl_div(set1, set2, reduction=self.reduction)
-
-
-class WrapperBackgroundTensor:
-    """Class containing functions for various types of background tensors."""
-
-    def range_tensor(self, value_range, shape: Tuple, device: torch.device):
-        return torch.from_numpy(np.tile(value_range, shape)).to(device)
-
-    def constant_value_tensor(self, value: float, shape: Tuple, device: torch.device):
-        return torch.full(shape, value, device=device)
