@@ -134,7 +134,6 @@ class TestDrugSensitivityDatasetLazyBackend(
                     with TestFileContent(
                         self.gene_expression_content
                     ) as gene_expression_file:
-                        print(column_names)
                         self.drug_sensitivity_dataset = DrugSensitivityDataset(
                             drug_sensitivity_file.filename,
                             smiles_file.filename,
