@@ -1,106 +1,11 @@
 import torch
-import numpy as np
 from scipy.optimize import linear_sum_assignment
 from torch import nn
 from torch.random import fork_rng
 from torch.utils.data import Dataset
 
-from pytoda.types import Optional, Tensor, Tuple, Any, List
-
-
-def range_tensor(
-    value_range: Any, repetitions: Tuple[int], device: torch.device
-) -> Tensor:
-    """Returns a background tensor filled with a given range of values.
-
-    Args:
-        value_range (Any): Range of values to insert into each row of the
-            background tensor.
-        repetitions (Tuple[int]): The number of repetitions of value_range along each axis.
-        device (torch.device): Device where the tensors are stored.
-
-    Returns:
-        Tensor: Tensor containing repetitions of the given range of values along specified axes.
-            Example, value_range = [0,1,2], repetitions = (1,2) will repeat [0,1,2]
-            once along dim 0 and twice along dim 1, i.e, tensor([[0,1,2,0,1,2]])
-            of size (1,6) will be the output.
-        NOTE: if a pattern [0,1,2] is required to fill a tensor of shape (2,5)
-              specify value_range as [0,1,2,0,1] and repetiitons as (2,). The
-              value_range is filled 'row-wise'. Simply transpose the output for
-              a 'column-wise' fill. 
-    """
-    return torch.from_numpy(np.tile(value_range, repetitions)).to(device)
-
-
-def constant_value_tensor(value: float, shape: Tuple, device: torch.device) -> Tensor:
-    """Returns a background tensor filled with a constant value.
-
-    Args:
-        value (float): Value to fill the background tensor with.
-        shape (Tuple): Shape of the background tensor.
-        device (torch.device): Device where the tensors are stored.
-
-    Returns:
-        Tensor: Tensor of given shape filled with the given constant value.
-    """
-    return torch.full(shape, value, device=device)
-
-
-BACKGROUND_TENSOR_FACTORY = {
-    'constant': constant_value_tensor,
-    'range': range_tensor,
-}
-
-
-def pad_item(
-    item: Tuple,
-    padding_modes: List[str],
-    padding_values: List,
-    max_length: int,
-    device: torch.device = (
-        torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    ),
-) -> Tuple:
-    """Padding function for a single item of a batch.
-
-    Args:
-        item (Tuple): Tuple returned by the __getitem__ function of a Dataset class.
-        padding_modes (List[str]): The type of padding to perform for each datum in item.
-            Options are 'constant' for constant value padding, and 'range' to fill the
-            tensor with a range of values.
-        padding_values (List): The values with which to fill the background tensor for padding.
-            Can be a constant value or a range depending on the datum to pad in item.
-        max_length (int): The maximum length to which the datum should be padded.
-        device (torch.device, optional): Device where the tensors are stored.
-            Defaults to gpu, if available.
-
-    Returns:
-        Tuple: Tuple of tensors padded according to the given specifications.
-
-    NOTE: pad_item function uses trailing dimensions as the repetitions argument
-          for range_tensor(), since the 'length' of the set is covered by the
-          value_range. That is, if a tensor of shape (5,) is required for
-          padding_mode 'range' then () is passed as shape into range_tensor
-          function which will repeat range(5) exactly once thus giving us a (5,) tensor.
-    """
-    # for each Tensor in the list we determine the output dimensions
-    max_sizes = [datum.size() for datum in item]
-    out_dimses = [
-        (max_length, *max_sizes[i][1:])
-        if padding_modes[i] == 'constant'
-        else (*max_sizes[i][1:],)
-        for i in range(len(max_sizes))
-    ]
-
-    out_tensors = [
-        BACKGROUND_TENSOR_FACTORY[mode](value, out_dims, device=device)
-        for out_dims, mode, value in zip(out_dimses, padding_modes, padding_values)
-    ]
-
-    for datum_index, tensor in enumerate(item):
-        length = tensor.size(0)
-        out_tensors[datum_index][:length, ...] = tensor
-    return out_tensors
+from pytoda.datasets.utils.utils import pad_item
+from pytoda.types import Optional, Tensor, Tuple
 
 
 def hungarian_assignment(
