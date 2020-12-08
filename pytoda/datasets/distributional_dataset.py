@@ -26,9 +26,33 @@ class StochasticItems(Dataset):
             on device, then the .to() method returns self (no-ops).
     """
 
-    distribution: torch.distributions.distribution.Distribution
-    shape: Union[torch.Size, Tuple[int]]
-    device: torch.device
+    def __init__(
+        self,
+        distribution: torch.distributions.distribution.Distribution,
+        shape: Union[torch.Size, Tuple[int]],
+        device: torch.device,
+    ):
+
+        self.distribution = distribution
+        self.shape = shape
+        self.device = device
+
+        # check if distribution arguments are on device:
+        devices = []
+        for key in distribution.arg_constraints:
+            devices.append(getattr(distribution, key).device.type)
+
+        args_device = set(devices)
+
+        if len(args_device) > 1:
+            raise RuntimeError(
+                f"Expected all tensors to be on the same device, but found {args_device} instead."
+            )
+
+        elif args_device != {device.type}:
+            raise RuntimeWarning(
+                f"Expected arguments to be on {device}, but they are on {args_device} instead. This will cause a data transfer overhead."
+            )
 
     def __getitem__(self, index: Any) -> Tensor:
         """Samples an item.
