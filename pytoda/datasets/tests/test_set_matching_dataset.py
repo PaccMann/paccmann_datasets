@@ -330,7 +330,10 @@ class TestSetMatchingDataset(unittest.TestCase):
                                 for item1, item2 in zip(sample1, sample2):
                                     self.assertTrue(torch.equal(item1, item2))
 
-                            else:
+                            elif (
+                                3 < sample1[-1] < max_set_length
+                                and 3 < sample2[-1] < max_set_length
+                            ):
                                 for item1, item2 in zip(sample1[:2], sample2[:2]):
                                     self.assertFalse(
                                         torch.equal(item1, item2),
