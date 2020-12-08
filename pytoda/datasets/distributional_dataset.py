@@ -8,8 +8,7 @@ from torch.random import fork_rng
 from pytoda.types import Any, Tensor
 
 
-@dataclass
-class StochasticItems(Dataset):
+class StochasticItems:
     """Sample an item from a distribution on the fly on indexing.
 
     Args:
@@ -37,7 +36,7 @@ class StochasticItems(Dataset):
         self.shape = shape
         self.device = device
 
-        # check if distribution arguments are on device:
+        # check if distribution arguments are on device
         devices = []
         for key in distribution.arg_constraints:
             devices.append(getattr(distribution, key).device.type)
