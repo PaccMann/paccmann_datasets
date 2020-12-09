@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 import torch
 
-from pytoda.smiles.smiles_language import SMILESLanguage, SMILESTokenizer
+from pytoda.smiles.smiles_language import SMILESTokenizer
 from pytoda.smiles.transforms import AugmentTensor, Kekulize, NotKekulize, RemoveIsomery
 
 

@@ -5,7 +5,6 @@ import torch
 
 from ..smiles.processing import split_selfies
 from ..smiles.smiles_language import SMILESLanguage, SMILESTokenizer
-from ..types import Files
 from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
 from .base_dataset import DatasetDelegator

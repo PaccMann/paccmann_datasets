@@ -2,7 +2,7 @@
 import torch
 from .base_dataset import DatasetDelegator
 from ._table_dataset import _TableEagerDataset, _TableLazyDataset
-from ..types import Files, GeneList, Optional
+from ..types import GeneList, Optional
 
 TABLE_DATASET_IMPLEMENTATIONS = {'eager': _TableEagerDataset, 'lazy': _TableLazyDataset}
 
