@@ -22,9 +22,9 @@ import os
 import warnings
 from collections import Counter
 
+import rdkit  # Needs import before torch in some envs
 import dill
 import torch
-from rdkit import Chem
 from selfies import decoder as selfies_decoder
 from selfies import encoder as selfies_encoder
 
@@ -227,7 +227,7 @@ class SMILESLanguage(object):
                         f'{index}.',
                     )
             except KeyError:
-                warnings.warn(f'The vocab is missing a special token: {token}.',)
+                warnings.warn(f'The vocab is missing a special token: {token}.')
         return vocab
 
     @classmethod
@@ -511,7 +511,7 @@ class SMILESLanguage(object):
         self.failed_transform_smiles = []
 
         for index, smiles in enumerate(dataset):
-            if Chem.MolFromSmiles(smiles) is None:
+            if rdkit.Chem.MolFromSmiles(smiles) is None:
                 self.invalid_molecules.append((index, smiles))
             else:
                 try:
@@ -864,6 +864,10 @@ class SMILESTokenizer(SMILESLanguage):
                         f'{value}. Consider `set_max_padding`.'
                     )
 
+    @staticmethod
+    def __get_total_number_of_tokens_with_start_stop_fn(x):
+        return len(x) + 2
+
     def _set_token_len_fn(self, add_start_and_stop):
         """
         Defines a Callable that given a sequence of naive tokens, i.e. before
@@ -872,7 +876,9 @@ class SMILESTokenizer(SMILESLanguage):
         number of token indexes, not actual tokens).
         """
         if add_start_and_stop:
-            self._get_total_number_of_tokens_fn = lambda tokens: len(tokens) + 2
+            self._get_total_number_of_tokens_fn = (
+                self.__get_total_number_of_tokens_with_start_stop_fn
+            )
         else:
             self._get_total_number_of_tokens_fn = len
 

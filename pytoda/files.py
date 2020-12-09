@@ -35,6 +35,9 @@ def read_smi(
     chunk_size: int = None,
     index_col: int = 1,
     names: Sequence[str] = ['SMILES'],
+    header: int = None,
+    *args,
+    **kwargs,
 ) -> pd.DataFrame:
     """
     Read a .smi (or .csv file with tab-separated values) in a pd.DataFrame.
@@ -45,6 +48,8 @@ def read_smi(
             chunking.
         index_col (int): Data column used for indexing, defaults to 1.
         names (Sequence[str]): User-assigned names given to the columns.
+        args (): Optional arguments for `pd.read_csv`.
+        kwargs (): Optional keyword arguments for `pd.read_csv`.
 
     Returns:
         pd.DataFrame: a pd.DataFrame containing the data of the .smi file
@@ -54,10 +59,12 @@ def read_smi(
         return pd.read_csv(
             filepath,
             sep='\t',
-            header=None,
+            header=header,
             index_col=index_col,
             names=names,
             chunksize=chunk_size,
+            *args,
+            **kwargs,
         )
     except IndexError:
         raise IndexError(

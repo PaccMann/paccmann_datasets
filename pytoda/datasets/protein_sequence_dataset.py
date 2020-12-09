@@ -12,7 +12,6 @@ from ..transforms import (
     ToTensor,
     ListToTensor,
 )
-from ..types import Files
 from ._fasta_eager_dataset import _FastaEagerDataset
 from ._fasta_lazy_dataset import _FastaLazyDataset
 from ._smi_eager_dataset import _SmiEagerDataset
