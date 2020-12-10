@@ -13,7 +13,6 @@ from pytoda.datasets.utils.factories import (
     DISTRIBUTION_FUNCTION_FACTORY,
 )
 
-
 seeds = [None, 42]
 distribution_seeds = [None, 42]
 
@@ -141,18 +140,15 @@ class TestSetMatchingDataset(unittest.TestCase):
                                                 sample2[1][sample2[2], :],
                                             )
                                         )
-                                elif min_len != max_set_length:
+                                elif sample1[-1] != sample2[-1]:
                                     # reason for asserting false is that length
                                     # cropping is a random event dependent on
                                     # permutation seed which is None in this setting
-                                    if (
-                                        3 < sample1[-1] < max_set_length
-                                        and 3 < sample2[-1] < max_set_length
-                                    ):
-                                        self.assertFalse(
-                                            torch.equal(sample1[0], sample2[0]),
-                                            msg=f'{sample1},{sample2}',
-                                        )
+
+                                    self.assertFalse(
+                                        torch.equal(sample1[0], sample2[0]),
+                                        msg=f'{sample1},{sample2}',
+                                    )
 
                                 self.assertFalse(torch.equal(sample1[1], sample2[1]),)
 
@@ -217,29 +213,8 @@ class TestSetMatchingDataset(unittest.TestCase):
                                 # since both seeds are none, the sets and cropped lengths
                                 # must be different. Difference in permutations are only
                                 # checked if length>3 due to item-wise padding.
-
-                                if min_len == max_set_length:
-                                    for item1, item2 in zip(sample1[:-1], sample2[:-1]):
-                                        self.assertFalse(
-                                            torch.equal(item1, item2),
-                                            msg=f'{item1},{item2},{sample1[2]},{sample2[2]}',
-                                        )
-                                    self.assertTrue(
-                                        torch.equal(sample1[-1], sample2[-1])
-                                    )
-                                else:
-                                    if (
-                                        sample1[-1] != max_set_length
-                                        and sample2[-1] != max_set_length
-                                    ):
-                                        for item1, item2 in zip(
-                                            sample1[:2], sample2[:2]
-                                        ):
-                                            self.assertFalse(torch.equal(item1, item2))
-                                    if sample1[-1] > 3 and sample2[-1] > 3:
-                                        self.assertFalse(
-                                            torch.equal(sample1[2], sample2[2])
-                                        )
+                                self.assertFalse(torch.equal(sample1[0], sample2[0]))
+                                self.assertFalse(torch.equal(sample1[1], sample2[1]))
 
     def test_paired_set_matching_dataset(self) -> None:
         """Test PairedSetMatchingDataset class."""
@@ -330,15 +305,9 @@ class TestSetMatchingDataset(unittest.TestCase):
                                 for item1, item2 in zip(sample1, sample2):
                                     self.assertTrue(torch.equal(item1, item2))
 
-                            elif (
-                                3 < sample1[-1] < max_set_length
-                                and 3 < sample2[-1] < max_set_length
-                            ):
+                            elif sample1[-1] != sample2[-1]:
                                 for item1, item2 in zip(sample1[:2], sample2[:2]):
-                                    self.assertFalse(
-                                        torch.equal(item1, item2),
-                                        msg=f'{sample1},{sample2}',
-                                    )
+                                    self.assertFalse(torch.equal(item1, item2))
 
                         elif seed is not None:
 
