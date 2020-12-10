@@ -3,6 +3,8 @@ import os
 import tempfile
 import unittest
 
+import torch
+
 from pytoda.smiles.processing import split_selfies
 from pytoda.smiles.smiles_language import (
     SELFIESLanguage,
@@ -77,6 +79,23 @@ class TestSmilesLanguage(unittest.TestCase):
         smiles_language = SMILESLanguage()
         smiles_language.add_token(token)
         self.assertEqual(smiles_language.number_of_tokens, 36)
+
+    def test_multi_processing(self) -> None:
+        """Test multiprocessing"""
+
+        for start_stop in [False, True]:
+            s = SMILESTokenizer(add_start_and_stop=start_stop)
+            try:
+                torch.multiprocessing.spawn(
+                    s, args=(), nprocs=1, join=True, daemon=False, start_method='spawn'
+                )
+            except AttributeError:
+                # Catch this exception since it is likely caused by Pickling Error
+                raise AttributeError()
+            except Exception:
+                # Other errors are okay since s is not callable and raises a TypeError
+                # But spawn doesn't allow to catch error types, so we use bare Exception
+                pass
 
     def test_smiles_to_token_indexes(self) -> None:
         """Test smiles_to_token_indexes."""

@@ -2,12 +2,14 @@
 import logging
 import re
 
+import rdkit  # Needs import before torch in some envs
 import numpy as np
-import pytoda
 import torch
-from rdkit import Chem, DataStructs
+from rdkit import Chem
 from rdkit.Chem import AllChem
 from selfies import encoder as selfies_encoder
+
+import pytoda
 
 from ..transforms import Compose, LeftPadding, Randomize, StartStop, ToTensor, Transform
 from ..types import Indexes, Tensor, Union
@@ -598,5 +600,5 @@ class SMILESToMorganFingerprints(Transform):
                 molecule, self.radius, nBits=self.bits
             )
         array = np.zeros((1,))
-        DataStructs.ConvertToNumpyArray(fingerprint, array)
+        rdkit.DataStructs.ConvertToNumpyArray(fingerprint, array)
         return array

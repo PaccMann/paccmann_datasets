@@ -67,7 +67,7 @@ setup(
             'spe_chembl.txt',
             'ATTRIBUTION',
             'README.md',
-            'tokenizer_chembl_gdsc_ccle_tox21_zinc_organdb_bindingdb/*',
+            'tokenizer/*',
         ]
     },
     scripts=scripts,

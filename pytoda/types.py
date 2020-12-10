@@ -1,12 +1,12 @@
 """Type definitions."""
 import inspect
-from typing import (
+from typing import (  # noqa
     Any,
     Callable,
     Dict,
     Hashable,
     Iterable,
-    Iterator,  # noqa
+    Iterator,
     List,
     Mapping,
     Sequence,

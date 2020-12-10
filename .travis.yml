@@ -7,6 +7,10 @@ before_script:
 script:
   - docker run -it pytoda_tests python3 -m unittest discover -t . -p "test_*py" pytoda
   - docker run -it pytoda_tests pytoda-filter-invalid-smi --help
+  - codecov_token=de068e1c-a84c-45da-8a41-146b5120b5eb
+  # pass CI environment variables into docker container
+  - ci_env=`bash <(curl -s https://codecov.io/env)`
+  - docker run -t $ci_env pytoda_tests /bin/bash -c "coverage run -m unittest discover && bash <(curl -s https://codecov.io/bash) -t $codecov_token"
 notifications:
   slack:
     secure: bpk7ySo7JGVP21hGApm1LP2lDynH0bj1PJkFJ+SFqyV7Fbpil9R3q7ONeNk5U4TIaJ4Rz8+ZV0dQ4/qQ+ZUJBq9QwRBffdImdV+AK2IKT3qQ0qBEsEx76Cht4jc+p0P84tRhQ3ter3LhgcVpLdzHNc7/SjfpF2rLal1nOba0RvuHcdJ6WArFjR+ql6EpQvly0j7jt16RWHIlsCV34AuLpmNl9i8XV8aK1Y9SQ3Had0kd+iy8A3vIruNn017conT5tavIZaF7I4+5JSAToN92MVjbSEUF+AkWtf7OJovAj0pyNzi3Dtmk4P7o8brfYCxnQyMGzyHLqK9leXY2oliSNBcVUFKBRDjakxwTZBtXNW3WaWi74u3/voChYGA/VJQuztMEhnQ9uu2L7+Pn20d6HzHkP6r3PQMXPfnT/gupQMTcUB6AAkFDcojPEgbSv62iDhT7UNIyxan7Q1fgaiMuL8+xxaVIaoAdESVdOcYAluI58CPMDOe4O4t49EfOAy1DDhqzF/PS38T2Sl6//P5tCtL2P+c+dElIP7qq2G/l0A3tAzzIhzeWGLAf6WCpQC/NG32p6UIqWdqsuuxY+KavPj+nlBMzvAqQ7uxPq2Q7o+HvGQEVvbfpWXLNBQyB/hEYNPxaPfWddjcFqU0t27CZdnYRoAR0HE5vxNuHTPzrVYk=

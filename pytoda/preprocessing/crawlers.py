@@ -1,11 +1,13 @@
 import logging
 import urllib
-import urllib.error as urllib_error
 import urllib.request as urllib_request
 from itertools import filterfalse
 from typing import Iterable, List, Tuple, Union
+from urllib.error import HTTPError
+
 import pubchempy as pcp
 from pubchempy import BadRequestError
+
 from pytoda.smiles.transforms import Canonicalization
 
 logger = logging.getLogger(__name__)
@@ -52,7 +54,7 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
                     zinc_ids.append(line.split('/')[-2])
             zinc_id = zinc_ids[0]
 
-        except urllib_error.HTTPError:
+        except HTTPError:
             logger.warning(f'Did not find any result for drug: {drug}')
             return ''
 
@@ -122,7 +124,7 @@ def get_smiles_from_pubchem(
             if not kekulize:
                 smiles = Chem.MolToSmiles(Chem.MolFromSmiles(smiles, sanitize=sanitize))
             return smiles
-        except urllib_error.HTTPError:
+        except HTTPError:
             if option == 'CanonicalSMILES':
                 logger.warning(f'Did not find any result for drug: {drug}')
                 return ''
@@ -157,8 +159,8 @@ def query_pubchem(smiles: str) -> Tuple[bool, int]:
     Returns:
         Tuple[bool, int]
             bool: Whether or not SMILES is known to PubChem.
-            int: PubChem ID of matched SMILES, -1 if SMILES was not found. 
-                Instead, -2 means a BadRequestError in the PubChem query.
+            int: PubChem ID of matched SMILES, -1 if SMILES was not found.
+                Instead, -2 means an error in the PubChem query.
     """
     if not isinstance(smiles, str):
         raise TypeError(f'Please pass str, not {type(smiles)}')
@@ -166,6 +168,15 @@ def query_pubchem(smiles: str) -> Tuple[bool, int]:
         result = pcp.get_compounds(smiles, 'smiles')[0]
     except BadRequestError:
         logger.warning(f'Skipping SMILES. BadRequestError with: {smiles}')
+        return (False, -2)
+    except HTTPError:
+        logger.warning(f'Skipping SMILES. HTTPError with: {smiles}')
+        return (False, -2)
+    except TimeoutError:
+        logger.warning(f'Skipping SMILES. TimeoutError with: {smiles}')
+        return (False, -2)
+    except ConnectionResetError:
+        logger.warning(f'Skipping SMILES. ConnectionResetError with: {smiles}')
         return (False, -2)
 
     return (False, -1) if result.cid is None else (True, result.cid)
