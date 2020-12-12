@@ -1,6 +1,6 @@
 FROM drugilsberg/rdkit-ubuntu:latest
 RUN apt-get update
-RUN apt-get install python-pip curl git -y
+RUN apt-get install python3-pip curl git -y
 WORKDIR /datasets
 # install requirements
 COPY requirements.txt .
