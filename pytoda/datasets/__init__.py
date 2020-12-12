@@ -11,3 +11,9 @@ from .protein_protein_interaction_dataset import (  # noqa
 )
 from .drug_affinity_dataset import DrugAffinityDataset  # noqa
 from .utils import indexed, keyed  # noqa
+from .set_matching_dataset import (
+    SetMatchingDataset,
+    PairedSetMatchingDataset,
+    PermutedSetMatchingDataset,
+)  # noqa
+from .distributional_dataset import DistributionalDataset  # noqa

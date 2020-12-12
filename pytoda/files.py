@@ -7,7 +7,7 @@ from typing import Sequence
 
 def count_file_lines(filepath: str, buffer_size: int = 1024 * 1024) -> int:
     """
-    Cound lines in a file without persisting it in memory.
+    Count lines in a file without persisting it in memory.
 
     Args:
         filepath (str): path to the file.

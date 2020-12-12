@@ -1,8 +1,10 @@
 """Utils for the dataset module."""
 from copy import copy
+import torch
 
-from ..types import Files, Any, Hashable, Tuple
-from .base_dataset import ConcatKeyDataset, AnyBaseDataset
+from ...types import Any, Files, Hashable, Tuple, List
+from ..base_dataset import AnyBaseDataset, ConcatKeyDataset
+from .factories import BACKGROUND_TENSOR_FACTORY
 
 
 def sizeof_fmt(num, suffix='B'):
@@ -90,3 +92,54 @@ def keyed(dataset: AnyBaseDataset) -> AnyBaseDataset:
     ds = copy(dataset)
     ds.__class__ = type(f'Keyed{type(dataset).__name__}', (dataset.__class__,), methods)
     return ds
+
+
+def pad_item(
+    item: Tuple,
+    padding_modes: List[str],
+    padding_values: List,
+    max_length: int,
+    device: torch.device = (
+        torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    ),
+) -> Tuple:
+    """Padding function for a single item of a batch.
+
+    Args:
+        item (Tuple): Tuple returned by the __getitem__ function of a Dataset class.
+        padding_modes (List[str]): The type of padding to perform for each datum in item.
+            Options are 'constant' for constant value padding, and 'range' to fill the
+            tensor with a range of values.
+        padding_values (List): The values with which to fill the background tensor for padding.
+            Can be a constant value or a range depending on the datum to pad in item.
+        max_length (int): The maximum length to which the datum should be padded.
+        device (torch.device, optional): Device where the tensors are stored.
+            Defaults to gpu, if available.
+
+    Returns:
+        Tuple: Tuple of tensors padded according to the given specifications.
+
+    NOTE: pad_item function uses trailing dimensions as the repetitions argument
+          for range_tensor(), since the 'length' of the set is covered by the
+          value_range. That is, if a tensor of shape (5,) is required for
+          padding_mode 'range' then () is passed as shape into range_tensor
+          function which will repeat range(5) exactly once thus giving us a (5,) tensor.
+    """
+    # for each Tensor in the list we determine the output dimensions
+    max_sizes = [datum.size() for datum in item]
+    out_dimses = [
+        (max_length, *max_sizes[i][1:])
+        if padding_modes[i] == 'constant'
+        else (*max_sizes[i][1:],)
+        for i in range(len(max_sizes))
+    ]
+
+    out_tensors = [
+        BACKGROUND_TENSOR_FACTORY[mode](value, out_dims, device=device)
+        for out_dims, mode, value in zip(out_dimses, padding_modes, padding_values)
+    ]
+
+    for datum_index, tensor in enumerate(item):
+        length = tensor.size(0)
+        out_tensors[datum_index][:length, ...] = tensor
+    return out_tensors
