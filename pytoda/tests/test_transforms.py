@@ -3,7 +3,13 @@ import random
 import unittest
 
 import torch
-from pytoda.transforms import AugmentByReversing, LeftPadding, ListToTensor, ToTensor
+from pytoda.transforms import (
+    AugmentByReversing,
+    LeftPadding,
+    ListToTensor,
+    ToTensor,
+    Compose,
+)
 
 
 class TestTransforms(unittest.TestCase):
@@ -49,6 +55,10 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(len(tensor), 3)
         self.assertEqual(len(tensor.shape), 1)
 
+        # Test exceptions
+        self.assertRaises(TypeError, ToTensor, device=42)
+        self.assertRaises(TypeError, ToTensor, device=device, dtype=42)
+
     def test_list_to_tensor(self) -> None:
         """Test ListToTensor."""
 
@@ -65,6 +75,25 @@ class TestTransforms(unittest.TestCase):
             [tensor[0][0], tensor[0][1], tensor[0][2]],
         )
         self.assertTrue(torch.is_tensor(tensor))
+
+        # Test exceptions
+        self.assertRaises(TypeError, ListToTensor, device=42)
+        self.assertRaises(TypeError, ListToTensor, device=device, dtype=42)
+
+    def test_compose(self) -> None:
+        """Test Compose."""
+
+        # Test equality
+        c1 = Compose([ToTensor()])
+        c2 = Compose([ToTensor()])
+        c3 = Compose([LeftPadding(padding_length=2, padding_index=0), ToTensor()])
+        c4 = Compose([ToTensor(dtype=torch.long)])
+        self.assertTrue(c1 == c2)
+        self.assertFalse(c1 == c3)
+        self.assertFalse(c1 == c4)
+
+        # Test repr
+        self.assertIsNotNone(repr(c1))
 
 
 if __name__ == '__main__':
