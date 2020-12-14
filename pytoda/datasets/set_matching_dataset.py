@@ -28,8 +28,8 @@ def hungarian_assignment(
 
     cost_matrix = cost_metric_function(set_reference, set_matching)
 
-    matrix = torch.zeros_like(cost_matrix.cpu().numpy())
-    rows, cols = linear_sum_assignment(cost_matrix)
+    matrix = torch.zeros_like(cost_matrix)
+    rows, cols = linear_sum_assignment(cost_matrix.cpu().numpy())
     matrix[rows, cols] = 1
     idx_12 = torch.from_numpy(cols)
     idx_21 = torch.nonzero(matrix.t(), as_tuple=True)[1]
