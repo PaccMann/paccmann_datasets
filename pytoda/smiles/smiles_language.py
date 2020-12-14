@@ -724,7 +724,7 @@ class SMILESTokenizer(SMILESLanguage):
         tokenizer_name: str = None,
         vocab_file: str = None,
         max_token_sequence_length: int = 0,
-        canonical: bool = False,  #
+        canonical: bool = False,
         augment: bool = False,
         kekulize: bool = False,
         all_bonds_explicit: bool = False,
@@ -733,7 +733,7 @@ class SMILESTokenizer(SMILESLanguage):
         remove_chirality: bool = False,
         selfies: bool = False,
         sanitize: bool = True,
-        randomize: bool = False,  #
+        randomize: bool = False,
         add_start_and_stop: bool = False,
         padding: bool = False,
         padding_length: int = None,
