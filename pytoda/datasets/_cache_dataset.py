@@ -1,10 +1,7 @@
 """_CacheDataset abstract implementation."""
 import tempfile
-import logging
 import diskcache as dc
 from torch.utils.data import Dataset
-
-logger = logging.getLogger(__name__)
 
 
 class _CacheDataset(Dataset):
