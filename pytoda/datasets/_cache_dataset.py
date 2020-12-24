@@ -1,6 +1,5 @@
 """_CacheDataset abstract implementation."""
 import tempfile
-import shutil
 import logging
 import diskcache as dc
 from torch.utils.data import Dataset
@@ -23,7 +22,5 @@ class _CacheDataset(Dataset):
 
     def __del__(self):
         """Delete the _CacheDataset."""
-        try:
-            shutil.rmtree(self.cache_filepath)
-        except Exception:
-            logger.warning('_CacheDataset cache deletion not performed!')
+        import shutil
+        shutil.rmtree(self.cache_filepath)
