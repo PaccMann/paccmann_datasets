@@ -16,6 +16,7 @@ class _CacheDataset(Dataset):
         Dataset.__init__(self)
         self.cache_filepath = tempfile.mkdtemp()
         self.cache = dc.Cache(self.cache_filepath)
+        self._close_fn = self._close
     
     def _close(self) -> None:
         import shutil
@@ -23,4 +24,4 @@ class _CacheDataset(Dataset):
 
     def __del__(self):
         """Delete the _CacheDataset."""
-        self._close()
+        self._close_fn()
