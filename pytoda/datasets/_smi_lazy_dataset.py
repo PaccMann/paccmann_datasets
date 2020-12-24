@@ -52,3 +52,7 @@ class _SmiLazyDataset(_CacheDataset):
                 for the current sample.
         """
         return self.cache[index]
+
+    def __del__(self):
+        """Delete the _SmiLazyDataset."""
+        _CacheDataset.__del__(self)
