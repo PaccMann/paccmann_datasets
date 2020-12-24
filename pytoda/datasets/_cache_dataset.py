@@ -16,8 +16,11 @@ class _CacheDataset(Dataset):
         Dataset.__init__(self)
         self.cache_filepath = tempfile.mkdtemp()
         self.cache = dc.Cache(self.cache_filepath)
+    
+    def _close(self) -> None:
+        import shutil
+        shutil.rmtree(self.cache_filepath)
 
     def __del__(self):
         """Delete the _CacheDataset."""
-        import shutil
-        shutil.rmtree(self.cache_filepath)
+        self._close()
