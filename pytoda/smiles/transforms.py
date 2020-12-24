@@ -3,10 +3,10 @@ import logging
 import re
 
 import numpy as np
-import torch
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 from selfies import encoder
+import torch
 
 import pytoda
 

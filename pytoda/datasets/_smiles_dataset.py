@@ -1,8 +1,8 @@
 """Implementation of _SMILESDataset."""
 import logging
 
-import torch
 from rdkit import Chem
+import torch
 from torch.utils.data import Dataset
 
 from ..smiles.processing import (
