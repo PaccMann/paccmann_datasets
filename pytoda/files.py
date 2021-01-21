@@ -48,6 +48,7 @@ def read_smi(
             chunking.
         index_col (int): Data column used for indexing, defaults to 1.
         names (Sequence[str]): User-assigned names given to the columns.
+        header (int): Row number to use as column names. Defaults to None.
         args (): Optional arguments for `pd.read_csv`.
         kwargs (): Optional keyword arguments for `pd.read_csv`.
 
