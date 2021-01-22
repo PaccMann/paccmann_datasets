@@ -1,8 +1,5 @@
-[![.github/workflows/build.yml](https://github.com/PaccMann/paccmann_datasets/workflows/.github/workflows/build/badge.svg)](https://github.com/PaccMann/paccmann_datasets/actions)
-[![codecov](https://codecov.io/gh/PaccMann/paccmann_datasets/branch/master/graph/badge.svg?token=C10ICE7S0Q)](https://codecov.io/gh/PaccMann/paccmann_datasets)[![License:
-MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-
 # pytoda
+[![build](https://github.com/PaccMann/paccmann_datasets/workflows/build/badge.svg)](https://github.com/PaccMann/paccmann_datasets/actions)[![codecov](https://codecov.io/gh/PaccMann/paccmann_datasets/branch/master/graph/badge.svg?token=C10ICE7S0Q)](https://codecov.io/gh/PaccMann/paccmann_datasets)[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
 
