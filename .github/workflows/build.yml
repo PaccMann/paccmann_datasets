@@ -4,18 +4,19 @@ jobs:
   conda-tests:
     name: Test with Conda (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ startsWith(runner.os, 'Windows') }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        experimental: [false]
         include:
           - os: ubuntu-latest
             pip_cache_path: ~/.cache/pip
           - os: macos-latest
             pip_cache_path: ~/Library/Caches/pip
           - os: windows-latest
-            continue-on-error: true
+            experimental: true
             pip_cache_path: ~\AppData\Local\pip\Cache
     defaults:
       run:
