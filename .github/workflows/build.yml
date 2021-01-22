@@ -9,7 +9,6 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest", "windows-latest"]
-        # python-version: ["3.7", "3.8"]
         include:
           - os: ubuntu-latest
             pip_cache_path: ~/.cache/pip
@@ -20,7 +19,7 @@ jobs:
             pip_cache_path: ~\AppData\Local\pip\Cache
     defaults:
       run:
-        shell: bash -l {0} # TODO needed for conda?
+        shell: bash -l {0} # For conda
     env:
       # Increase this value to reset cache if conda.yml and requirements.txt have not changed
       CACHE_NUMBER: 0
@@ -31,7 +30,7 @@ jobs:
       - name: Cache conda
         uses: actions/cache@v2
         with:
-          path: ~/conda_pkgs_dir # defined by conda-incubator/setup-miniconda@v2
+          path: ~/conda_pkgs_dir # Defined by conda-incubator/setup-miniconda@v2
           key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
             hashFiles('conda.yml') }}
 
@@ -47,9 +46,9 @@ jobs:
         with:
           activate-environment: pytoda
           environment-file: conda.yml
-          # python-version: ${{ matrix.python-version }} # TODO check if this overwrited conda.yml specs
           auto-activate-base: false
           use-only-tar-bz2: true # This needs to be set for caching to work properly!
+          auto-update-conda: true # Required for windows for `use-only-tar-bz2`
 
       - name: Conda list
         run: conda list

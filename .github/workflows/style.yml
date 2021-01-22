@@ -38,7 +38,6 @@ jobs:
 
   super-linter:
     name: Super Linter
-    # Set the agent to run on
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,6 +46,7 @@ jobs:
       - name: Lint Code Base
         uses: github/super-linter@v3
         env:
+          LINTER_RULES_PATH: /
           PYTHON_BLACK_CONFIG_FILE: pyproject.toml
           PYTHON_FLAKE8_CONFIG_FILE: pyproject.toml
           PYTHON_ISORT_CONFIG_FILE: pyproject.toml
