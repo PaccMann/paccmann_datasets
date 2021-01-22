@@ -10,6 +10,8 @@ class TestFileContent:
     Inspired by: https://stackoverflow.com/a/54053967/10032558.
     """
 
+    __test__ = False  # avoid PytestCollectionWarning
+
     def __init__(self, content: str, **kwargs) -> None:
         """
         Initialize the file with a content.
