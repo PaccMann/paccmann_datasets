@@ -8,15 +8,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        experimental: [false]
         include:
           - os: ubuntu-latest
             pip_cache_path: ~/.cache/pip
+            experimental: false
           - os: macos-latest
             pip_cache_path: ~/Library/Caches/pip
+            experimental: false
           - os: windows-latest
-            experimental: true
             pip_cache_path: ~\AppData\Local\pip\Cache
+            experimental: true
     defaults:
       run:
         shell: bash -l {0} # For conda
