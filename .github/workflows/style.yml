@@ -49,5 +49,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # for PR annotations
           LINTER_RULES_PATH: /
           PYTHON_BLACK_CONFIG_FILE: pyproject.toml
-          PYTHON_FLAKE8_CONFIG_FILE: pyproject.toml
+          PYTHON_FLAKE8_CONFIG_FILE: setup.cfg
           PYTHON_ISORT_CONFIG_FILE: pyproject.toml
