@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/PaccMann/paccmann_datasets.svg?branch=master)](https://travis-ci.org/PaccMann/paccmann_datasets)[![codecov](https://codecov.io/gh/PaccMann/paccmann_datasets/branch/master/graph/badge.svg?token=C10ICE7S0Q)](https://codecov.io/gh/PaccMann/paccmann_datasets)[![License:
+[![.github/workflows/main.yml](https://github.com/PaccMann/paccmann_datasets/workflows/.github/workflows/main.yml/badge.svg)](https://github.com/PaccMann/paccmann_datasets/actions)
+[![codecov](https://codecov.io/gh/PaccMann/paccmann_datasets/branch/master/graph/badge.svg?token=C10ICE7S0Q)](https://codecov.io/gh/PaccMann/paccmann_datasets)[![License:
 MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # pytoda
