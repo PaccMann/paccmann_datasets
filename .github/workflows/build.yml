@@ -1,9 +1,10 @@
-on: [push]
-
+on: [push, pull_request]
+name: build
 jobs:
   conda-tests:
     name: Test with Conda (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ startsWith(runner.os, 'Windows') }}
     strategy:
       fail-fast: false
       matrix:
@@ -56,19 +57,7 @@ jobs:
       - name: Install pytoda
         run: pip install .
 
-      - name: Lint with flake8
-        run: |
-          pip install flake8
-          flake8 .
-        continue-on-error: true
-
-      - name: Format with black
-        run: |
-          pip install black
-          black . --check --diff --color
-        continue-on-error: true
-
-      - name: Test coverage report
+      - name: Test & coverage report
         run: |
           pip install pytest
           pip install pytest-cov

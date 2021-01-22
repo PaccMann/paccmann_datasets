@@ -1,0 +1,52 @@
+on: [push, pull_request]
+name: style
+jobs:
+  lint:
+    name: Lint with flake8
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+
+      - name: Install flake8
+        run: pip install flake8
+
+      - name: Lint
+        run: flake8 .
+
+  format:
+    name: Format with black
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+
+      - name: Install black
+        run: pip install black
+
+      - name: Format
+        run: black . --check --diff --color
+
+  super-linter:
+    name: Super Linter
+    # Set the agent to run on
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Lint Code Base
+        uses: github/super-linter@v3
+        env:
+          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+          PYTHON_FLAKE8_CONFIG_FILE: pyproject.toml
+          PYTHON_ISORT_CONFIG_FILE: pyproject.toml
