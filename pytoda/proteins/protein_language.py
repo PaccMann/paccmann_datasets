@@ -204,9 +204,7 @@ class ProteinLanguage(object):
         """
         return self._finalize_token_indexes_fn(
             [
-                self.token_to_index.get(
-                    token, self.unknown_token
-                )
+                self.token_to_index.get(token, self.unknown_token)
                 for token in self.tokenizer(sequence)
             ]
         )
