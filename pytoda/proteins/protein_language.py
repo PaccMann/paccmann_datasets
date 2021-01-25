@@ -158,7 +158,7 @@ class ProteinLanguage(object):
         """
         if file_type not in ['.csv', '.smi', '.fasta', '.fasta.gz']:
             raise ValueError(
-                "Please provide file of type " "{'.smi', '.csv', '.fasta','.fasta.gz'}"
+                "Please provide file of type {'.smi', '.csv', '.fasta','.fasta.gz'}"
             )
 
         if file_type == '.csv' or file_type == '.smi':
@@ -204,7 +204,9 @@ class ProteinLanguage(object):
         """
         return self._finalize_token_indexes_fn(
             [
-                self.token_to_index.get(token, self.unknown_token)
+                self.token_to_index.get(
+                    token, self.unknown_token
+                )
                 for token in self.tokenizer(sequence)
             ]
         )
