@@ -101,7 +101,7 @@ def find_undesired_smiles(
 
     canonicalizer = Canonicalization()
     if not canonical:
-        undesired_smiles = list(map(undesired_smiles, canonicalizer))
+        undesired_smiles = list(map(canonicalizer, undesired_smiles))
 
     smiles = canonicalizer(smiles)
 
