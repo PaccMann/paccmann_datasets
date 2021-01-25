@@ -52,7 +52,7 @@ class ProteinLanguage(object):
         else:
             raise ValueError(
                 "Choose dict as 'iupac' or 'unirep' or 'human-kinase-alignment' "
-                "(given was" f"{amino_acid_dict})."
+                f"(given was {amino_acid_dict})."
             )
         # Setup dictionary
         self.sequence_tokens = [
@@ -148,7 +148,7 @@ class ProteinLanguage(object):
 
         Args:
             filepath (str): path to the file.
-            file_type (str): Type of file, from {'.smi', '.csv', '.fasta', 
+            file_type (str): Type of file, from {'.smi', '.csv', '.fasta',
                 '.fasta.gz'}. If '.csv' is selected, it is assumed to be tab-
                 separated.
             chunk_size (int): number of rows to read in a chunk.
