@@ -50,7 +50,8 @@ def find_undesired_smiles_files(
 
     # Read undesired data
     undesired = read_smi(undesired_filepath, header=1)
-    undesired_smiles = undesired.apply(canonicalizer).tolist()
+    
+    undesired_smiles = undesired['SMILES'].apply(canonicalizer).tolist()
 
     # Read data filepath
     df = pd.read_csv(data_filepath)
