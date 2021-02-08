@@ -17,6 +17,10 @@ jobs:
           PYTHON_BLACK_CONFIG_FILE: pyproject.toml
           PYTHON_FLAKE8_CONFIG_FILE: setup.cfg
           PYTHON_ISORT_CONFIG_FILE: pyproject.toml
+          # NOTE: Pylint is superseded by black. 
+          #   E1136 errors in typing `'Union' is unsubscriptable`
+          VALIDATE_PYTHON_PYLINT: false 
+          JSCPD_CONFIG_FILE: .github/workflows/jscpd.json
 
   black-check:
     name: Black

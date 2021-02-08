@@ -1,0 +1,8 @@
+{
+    "gitignore": true,
+    "ignore": [
+        "**/tests/**"
+    ],
+    "minLines": 10,
+    "threshold": 5
+}
