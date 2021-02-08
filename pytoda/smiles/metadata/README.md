@@ -1,3 +1,4 @@
+# README
 The file `spe_chembl.txt` was taken from the `SmilesPE`
 [repository](https://github.com/XinhaoLi74/SmilesPE). While `SmilesPE` is a pypi
 package and a dependency of `pytoda`, the `spe_chembl.txt` is not part of the
