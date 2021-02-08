@@ -1,6 +1,8 @@
 """Testing DistributionalDataset."""
 import unittest
+
 import torch
+
 from pytoda.datasets import DistributionalDataset
 from pytoda.datasets.utils.factories import DISTRIBUTION_FUNCTION_FACTORY
 
@@ -25,7 +27,10 @@ class TestDistributionalDataset(unittest.TestCase):
                 for shape in item_shapes:
                     for seed in seeds:
                         dataset = DistributionalDataset(
-                            size, shape, distribution_function, seed=seed,
+                            size,
+                            shape,
+                            distribution_function,
+                            seed=seed,
                         )
                         self.assertEqual(len(dataset), size)
 
@@ -40,7 +45,10 @@ class TestDistributionalDataset(unittest.TestCase):
                 for shape in item_shapes:
                     for seed in seeds:
                         dataset = DistributionalDataset(
-                            size, shape, distribution_function, seed=seed,
+                            size,
+                            shape,
+                            distribution_function,
+                            seed=seed,
                         )
                         sample1_1 = dataset[42]
                         sample1_2 = dataset[42]

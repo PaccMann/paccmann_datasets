@@ -25,7 +25,8 @@ class TestSmi(unittest.TestCase):
                     with open(resulting_smiles_file.filename) as result_fp:
                         with open(filtered_smiles_file.filename) as filtered_fp:
                             self.assertEqual(
-                                result_fp.read().strip(), filtered_fp.read().strip(),
+                                result_fp.read().strip(),
+                                filtered_fp.read().strip(),
                             )
 
 

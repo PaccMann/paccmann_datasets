@@ -22,7 +22,7 @@ def range_tensor(
         NOTE: if a pattern [0,1,2] is required to fill a tensor of shape (2,5)
               specify value_range as [0,1,2,0,1] and repetiitons as (2,). The
               value_range is filled 'row-wise'. Simply transpose the output for
-              a 'column-wise' fill. 
+              a 'column-wise' fill.
     """
     return torch.from_numpy(np.tile(value_range, repetitions)).to(device)
 

@@ -123,7 +123,8 @@ class TestAnnotatedDataset(unittest.TestCase):
                     label_columns=['label_1'],
                 )
                 duplicate_ds = AnnotatedDataset(
-                    annotation_file.filename, dataset=smiles_dataset + smiles_dataset,
+                    annotation_file.filename,
+                    dataset=smiles_dataset + smiles_dataset,
                 )
 
         all_keys = [
@@ -249,12 +250,17 @@ class TestChangeIndexingReturn(unittest.TestCase):
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
                 smiles_dataset = keyed(
-                    indexed(SMILESTokenizerDataset(smiles_file.filename,))
+                    indexed(
+                        SMILESTokenizerDataset(
+                            smiles_file.filename,
+                        )
+                    )
                 )
                 annotated_dataset = indexed(
                     keyed(
                         AnnotatedDataset(
-                            annotation_file.filename, dataset=smiles_dataset,
+                            annotation_file.filename,
+                            dataset=smiles_dataset,
                         )
                     )
                 )

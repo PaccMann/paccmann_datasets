@@ -96,12 +96,14 @@ class TestSetMatchingDataset(unittest.TestCase):
 
                                     self.assertTrue(
                                         torch.equal(
-                                            sample1[1][sample1[2], :], sample1[0],
+                                            sample1[1][sample1[2], :],
+                                            sample1[0],
                                         )
                                     )
                                     self.assertTrue(
                                         torch.equal(
-                                            sample1[0][sample1[3], :], sample1[1],
+                                            sample1[0][sample1[3], :],
+                                            sample1[1],
                                         )
                                     )
 
@@ -109,12 +111,14 @@ class TestSetMatchingDataset(unittest.TestCase):
 
                                     self.assertFalse(
                                         torch.equal(
-                                            sample1[1][sample1[2], :], sample1[0],
+                                            sample1[1][sample1[2], :],
+                                            sample1[0],
                                         )
                                     )
                                     self.assertFalse(
                                         torch.equal(
-                                            sample1[0][sample1[3], :], sample1[1],
+                                            sample1[0][sample1[3], :],
+                                            sample1[1],
                                         )
                                     )
 
@@ -150,7 +154,9 @@ class TestSetMatchingDataset(unittest.TestCase):
                                         msg=f'{sample1},{sample2}',
                                     )
 
-                                self.assertFalse(torch.equal(sample1[1], sample2[1]),)
+                                self.assertFalse(
+                                    torch.equal(sample1[1], sample2[1]),
+                                )
 
                                 if noise == 0.0:
                                     self.assertTrue(
@@ -365,7 +371,8 @@ class TestSetMatchingDataset(unittest.TestCase):
                                 )
 
                                 data_loader = DataLoader(
-                                    setmatch_dataset, batch_size=25,
+                                    setmatch_dataset,
+                                    batch_size=25,
                                 )
 
                                 for batch_index, batch in enumerate(data_loader):
@@ -378,7 +385,12 @@ class TestSetMatchingDataset(unittest.TestCase):
                                     ) = batch
 
                                     self.assertEqual(
-                                        set1_batch.shape, (25, max_set_length, 4,),
+                                        set1_batch.shape,
+                                        (
+                                            25,
+                                            max_set_length,
+                                            4,
+                                        ),
                                     )
                                     self.assertTrue(
                                         torch.unique(set1_batch, dim=0).size(0) == 25

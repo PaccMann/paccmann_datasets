@@ -160,7 +160,8 @@ class _CsvStatistics:
 
 
 def reduce_csv_statistics(
-    csv_datasets: List[_CsvStatistics], feature_list: FeatureList = None,
+    csv_datasets: List[_CsvStatistics],
+    feature_list: FeatureList = None,
 ) -> Tuple[FeatureList, np.array, np.array, np.array, np.array]:
     """
     Reduce datasets statistics.
