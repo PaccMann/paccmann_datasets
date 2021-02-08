@@ -10,8 +10,8 @@ The code was retrieved from https://github.com/brentp/combat.py at 22.02.2020
 
 Reference:
     Johnson WE, Rabinovic A, Li C (2007). Adjusting batch effects in microarray
-    expression data using Empirical Bayes methods. Biostatistics 8:118-127.  
-    https://academic.oup.com/biostatistics/article/8/1/118/252073 
+    expression data using Empirical Bayes methods. Biostatistics 8:118-127.
+    https://academic.oup.com/biostatistics/article/8/1/118/252073
 """
 
 import sys
@@ -39,7 +39,7 @@ def design_mat(mod, numerical_covariates, batch_levels):
     mod = mod.drop(["batch"], axis=1)
     numerical_covariates = list(numerical_covariates)
     sys.stderr.write("found %i batches\n" % design.shape[1])
-    other_cols = [c for i, c in enumerate(mod.columns) if not i in numerical_covariates]
+    other_cols = [c for i, c in enumerate(mod.columns) if i not in numerical_covariates]
     factor_matrix = mod[other_cols]
     design = pd.concat((design, factor_matrix), axis=1)
     if numerical_covariates is not None:
@@ -97,12 +97,12 @@ def combat(data, batch, model=None, numerical_covariates=None):
 
     # drop intercept
     drop_cols = [cname for cname, inter in ((model == 1).all()).iteritems() if inter]
-    drop_idxs = [list(model.columns).index(cdrop) for cdrop in drop_cols]
-    model = model[[c for c in model.columns if not c in drop_cols]]
+    # drop_idxs = [list(model.columns).index(cdrop) for cdrop in drop_cols]
+    model = model[[c for c in model.columns if c not in drop_cols]]
     numerical_covariates = [
         list(model.columns).index(c) if isinstance(c, str) else c
         for c in numerical_covariates
-        if not c in drop_cols
+        if c not in drop_cols
     ]
 
     design = design_mat(model, numerical_covariates, batch_levels)

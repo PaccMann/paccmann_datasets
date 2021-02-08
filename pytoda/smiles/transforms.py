@@ -153,12 +153,13 @@ def compose_encoding_transforms(
 class SMILESToTokenIndexes(Transform):
     """Transform SMILES to token indexes using SMILES language."""
 
-    def __init__(self, smiles_language: 'SMILESLanguage') -> None:
+    def __init__(self, smiles_language) -> None:
         """
         Initialize a SMILES to token indexes object.
 
         Args:
             smiles_language (SMILESLanguage): a SMILES language.
+                NOTE: No typing used to prevent circular import.
         """
         self.smiles_language = smiles_language
 

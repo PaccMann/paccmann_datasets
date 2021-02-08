@@ -25,7 +25,7 @@ class TestFiles(unittest.TestCase):
         content = os.linesep.join(
             [
                 'CN(C)CCNC(=O)c1cc2CSc3cc(Cl)ccc3-c2s1\tdrug_0',
-                'CC(C)N1C(=O)S\C(=C\c2ccc(Sc3nc4ccccc4[nH]3)o2)C1=O\tdrug_1',
+                'CC(C)N1C(=O)S\\C(=C\\c2ccc(Sc3nc4ccccc4[nH]3)o2)C1=O\tdrug_1',
                 'C(Cn1c2ccccc2c2ccccc12)c1nc2ccccc2[nH]1\tdrug_2',
                 'C1CN(CCO1)c1nnc(-c2ccccc2)c(n1)-c1ccccc1\tdrug_3',
             ]
@@ -33,7 +33,7 @@ class TestFiles(unittest.TestCase):
         indexes = ['drug_0', 'drug_1', 'drug_2', 'drug_3']
         smiles = [
             'CN(C)CCNC(=O)c1cc2CSc3cc(Cl)ccc3-c2s1',
-            'CC(C)N1C(=O)S\C(=C\c2ccc(Sc3nc4ccccc4[nH]3)o2)C1=O',
+            'CC(C)N1C(=O)S\\C(=C\\c2ccc(Sc3nc4ccccc4[nH]3)o2)C1=O',
             'C(Cn1c2ccccc2c2ccccc12)c1nc2ccccc2[nH]1',
             'C1CN(CCO1)c1nnc(-c2ccccc2)c(n1)-c1ccccc1',
         ]
