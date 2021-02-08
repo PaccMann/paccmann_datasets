@@ -63,8 +63,8 @@ class TestSetMatchingDataset(unittest.TestCase):
                                 *datasets,
                                 min_len,
                                 cost_metric_function,
-                                set_padding_value,
-                                noise,
+                                set_padding_value=set_padding_value,
+                                noise_std=noise,
                                 seed=seed,
                             )
                             # Test length
@@ -268,8 +268,8 @@ class TestSetMatchingDataset(unittest.TestCase):
                             *datasets,
                             min_len,
                             cost_metric_function,
-                            set_padding_value,
-                            noise,
+                            set_padding_value=set_padding_value,
+                            noise_std=noise,
                             seed=seed,
                         )
                         # Test length
@@ -367,8 +367,8 @@ class TestSetMatchingDataset(unittest.TestCase):
                                     *datasets,
                                     min_len,
                                     cost_metric_function,
-                                    set_padding_value,
-                                    noise,
+                                    set_padding_value=set_padding_value,
+                                    noise_std=noise,
                                     seed=seed,
                                 )
 
