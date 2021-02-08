@@ -60,21 +60,7 @@ class PolymerTokenizer(SMILESTokenizer):
                 start=len(self.special_indexes),
             )
         )
-        # NOTE: include augmentation characters, paranthesis and numbers for
-        #    rings
-        additional_indexes_to_token = dict(
-            enumerate(
-                list('()')
-                + list(map(str, range(1, 10)))
-                + list('%{}'.format(index) for index in range(10, 30)),
-                start=len(self.special_indexes),
-            )
-        )
-        self.index_to_token = {**self.special_indexes, **additional_indexes_to_token}
-        self.number_of_tokens = len(self.index_to_token)
-        self.token_to_index = {
-            token: index for index, token in self.index_to_token.items()
-        }
+        self.setup_vocab()
 
         if kwargs.get('vocab_file', None):
             self.load_vocabulary(kwargs['vocab_file'])

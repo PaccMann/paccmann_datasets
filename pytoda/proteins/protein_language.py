@@ -54,12 +54,18 @@ class ProteinLanguage(object):
                 "Choose dict as 'iupac' or 'unirep' or 'human-kinase-alignment' "
                 f"(given was {amino_acid_dict})."
             )
+        self.tokenizer = tokenizer
+        self.setup_dict()
+
+    def setup_dict(self) -> None:
+        """
+        Setup the dictionary.
+
+        """
         # Setup dictionary
         self.sequence_tokens = [
             index for token, index in self.token_to_index.items() if '<' not in token
         ]
-
-        self.tokenizer = tokenizer
         self.number_of_tokens = len(self.token_to_index)
         self.index_to_token = {
             index: token for token, index in self.token_to_index.items()
