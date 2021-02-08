@@ -1,0 +1,18 @@
+on: push
+name: Slack Notification Demo
+jobs:
+  slackNotification:
+    name: Slack Notification
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Slack Notification
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_CHANNEL: paccmann-bots
+        SLACK_COLOR: '#3278BD'
+        SLACK_ICON: https://avatars.githubusercontent.com/u/55703663?s=400&u=bc451062d14ab1f4bf703a332d2388e3ee5f817b&v=4s
+        SLACK_MESSAGE: 'Post Content :rocket:'
+        SLACK_TITLE: Message
+        SLACK_USERNAME: Github Actions CI Bot
+        SLACK_WEBHOOK: ${{ secrets.SLACKWEBHOOK }}

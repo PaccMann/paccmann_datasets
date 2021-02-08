@@ -66,3 +66,6 @@ jobs:
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
         continue-on-error: true
+        target: number
+        threshold: 80%
+        
