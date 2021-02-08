@@ -1,23 +1,23 @@
 """Implementation of ProteinSequenceDataset."""
 import torch
 
-from ..proteins.protein_language import ProteinLanguage
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
+from ..proteins.protein_language import ProteinLanguage
 from ..proteins.transforms import SequenceToTokenIndexes
 from ..transforms import (
     AugmentByReversing,
     Compose,
     LeftPadding,
+    ListToTensor,
     Randomize,
     ToTensor,
-    ListToTensor,
 )
 from ._fasta_eager_dataset import _FastaEagerDataset
 from ._fasta_lazy_dataset import _FastaLazyDataset
 from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
-from .utils import concatenate_file_based_datasets
 from .base_dataset import DatasetDelegator, KeyDataset
+from .utils import concatenate_file_based_datasets
 
 SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
     '.csv': {

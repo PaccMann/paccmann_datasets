@@ -1,7 +1,7 @@
 """Protein language handling."""
-from .processing import AA_PROPERTIES_NUM, AA_FEAT, BLOSUM62, BLOSUM62_NORM
-from .protein_language import ProteinLanguage
 from ..types import Tokenizer
+from .processing import AA_FEAT, AA_PROPERTIES_NUM, BLOSUM62, BLOSUM62_NORM
+from .protein_language import ProteinLanguage
 
 
 class IndexesToSequenceError(Exception):

@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import Optional, Tuple, Union
 
 import torch
-from torch.utils.data import Dataset
 from torch.random import fork_rng
+from torch.utils.data import Dataset
 
 from pytoda.types import Any, Tensor
 

@@ -1,6 +1,7 @@
 """Testing .smi preprocessing utilities."""
-import unittest
 import os
+import unittest
+
 from pytoda.preprocessing.smi import filter_invalid_smi
 from pytoda.tests.utils import TestFileContent
 

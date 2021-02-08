@@ -4,8 +4,8 @@ import dill
 from upfp import parse_fasta
 
 from ..files import read_smi
-from ..types import Indexes, Tokens, Tokenizer
-from .processing import IUPAC_VOCAB, UNIREP_VOCAB, HUMAN_KINASE_ALIGNMENT_VOCAB
+from ..types import Indexes, Tokenizer, Tokens
+from .processing import HUMAN_KINASE_ALIGNMENT_VOCAB, IUPAC_VOCAB, UNIREP_VOCAB
 
 
 class ProteinLanguage(object):

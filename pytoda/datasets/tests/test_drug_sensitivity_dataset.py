@@ -1,8 +1,10 @@
 """Testing DrugSensitivityDataset."""
-import unittest
 import os
+import unittest
+
 import numpy as np
 from torch.utils.data import DataLoader
+
 from pytoda.datasets import DrugSensitivityDataset
 from pytoda.tests.utils import TestFileContent
 

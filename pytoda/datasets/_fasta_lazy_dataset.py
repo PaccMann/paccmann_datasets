@@ -1,8 +1,9 @@
 """Implementation of _FastaLazyDataset."""
-from pyfaidx import Fasta
 from itertools import islice
 
-from ..types import Hashable, Callable, Iterator
+from pyfaidx import Fasta
+
+from ..types import Callable, Hashable, Iterator
 from .base_dataset import KeyDataset
 
 

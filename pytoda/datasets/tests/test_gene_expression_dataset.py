@@ -1,9 +1,11 @@
 """Testing GeneExpressionDataset with eager backend."""
-import unittest
 import os
+import unittest
+
 import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
+
 from pytoda.datasets import GeneExpressionDataset
 from pytoda.tests.utils import TestFileContent
 

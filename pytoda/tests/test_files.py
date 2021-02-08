@@ -1,6 +1,7 @@
 """Testing files processing."""
-import unittest
 import os
+import unittest
+
 from pytoda.files import count_file_lines, read_smi
 from pytoda.tests.utils import TestFileContent
 

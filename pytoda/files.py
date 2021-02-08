@@ -1,8 +1,9 @@
 """Utilities for file handling."""
 import os
-import pandas as pd
-from itertools import takewhile, repeat
+from itertools import repeat, takewhile
 from typing import Sequence
+
+import pandas as pd
 
 
 def count_file_lines(filepath: str, buffer_size: int = 1024 * 1024) -> int:

@@ -1,6 +1,7 @@
-import torch
 import numpy as np
-from pytoda.types import Tuple, Any, Tensor
+import torch
+
+from pytoda.types import Any, Tensor, Tuple
 
 
 def range_tensor(

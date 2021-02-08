@@ -1,16 +1,18 @@
 """Testing SetMatchingDataset."""
-import torch
 import unittest
-from torch.utils.data import DataLoader
+
+import torch
 from scipy.optimize import linear_sum_assignment
+from torch.utils.data import DataLoader
+
 from pytoda.datasets import (
+    DistributionalDataset,
     PairedSetMatchingDataset,
     PermutedSetMatchingDataset,
-    DistributionalDataset,
 )
 from pytoda.datasets.utils.factories import (
-    METRIC_FUNCTION_FACTORY,
     DISTRIBUTION_FUNCTION_FACTORY,
+    METRIC_FUNCTION_FACTORY,
 )
 
 seeds = [None, 42]

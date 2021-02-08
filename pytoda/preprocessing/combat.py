@@ -14,11 +14,12 @@ Reference:
     https://academic.oup.com/biostatistics/article/8/1/118/252073 
 """
 
+import sys
+
+import numpy as np
+import numpy.linalg as la
 import pandas as pd
 import patsy
-import sys
-import numpy.linalg as la
-import numpy as np
 
 
 def adjust_nums(numerical_covariates, drop_idxs):

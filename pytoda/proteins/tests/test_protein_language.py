@@ -3,9 +3,9 @@ import os
 import unittest
 
 from pytoda.proteins.processing import (
+    HUMAN_KINASE_ALIGNMENT_VOCAB,
     IUPAC_VOCAB,
     UNIREP_VOCAB,
-    HUMAN_KINASE_ALIGNMENT_VOCAB,
 )
 from pytoda.proteins.protein_language import ProteinLanguage
 from pytoda.tests.utils import TestFileContent
