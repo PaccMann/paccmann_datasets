@@ -1,8 +1,9 @@
 {
     "gitignore": true,
     "ignore": [
-        "**/tests/**"
+        "**/tests/**",
+        "**/processing.py"
     ],
-    "minLines": 10,
+    "minLines": 15,
     "threshold": 5
 }
