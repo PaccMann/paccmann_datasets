@@ -131,7 +131,7 @@ class _CsvStatistics:
         """
         # feature_fn for current state of datasource
         feature_fn = self.get_feature_fn(feature_list)
-        statistics_indices = self.feature_mapping[feature_list].values
+        statistics_indices = self.feature_mapping[feature_list].values  # noqa
         # update datasource
         self.transform_datasource(transform_fn, feature_fn, impute)
         # update statistics ordering (this could allow inverse transformation)
