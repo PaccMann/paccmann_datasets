@@ -1,6 +1,7 @@
 """Utilities for the tests."""
 import os
 import tempfile
+import warnings
 
 
 class TestFileContent:
@@ -42,5 +43,8 @@ class TestFileContent:
 
     def __exit__(self, type, value, traceback) -> None:
         """Exit the `with` block."""
-        self.file.close()
-        os.remove(self.file.name)
+        try:
+            os.remove(self.file.name)
+        except Exception:
+            warnings.warn(f'File {self.file.name} could not be closed.')
+            self.file.close()
