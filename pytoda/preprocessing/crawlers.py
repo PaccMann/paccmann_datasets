@@ -8,7 +8,6 @@ from urllib.error import HTTPError
 import pubchempy as pcp
 from pubchempy import BadRequestError, PubChemHTTPError
 
-
 from pytoda.smiles.transforms import Canonicalization
 
 logger = logging.getLogger(__name__)
