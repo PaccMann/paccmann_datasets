@@ -63,13 +63,12 @@ jobs:
           pip install pytest-cov
           pytest -s --cov=./ --cov-report=xml
 
-
       - name: Send Slack notification
         uses: 8398a7/action-slack@v2
         if: always()
         with:
             status: ${{ job.status }}
-            text: "CI Build"
+            text: "CI Build ${{ matrix.os }}"
             author_name: ${{ github.actor }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

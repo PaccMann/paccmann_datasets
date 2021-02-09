@@ -197,27 +197,27 @@ class TestSetMatchingDataset(unittest.TestCase):
                                     self.assertTrue(torch.equal(sample1[2], sample2[2]))
                                     self.assertTrue(
                                         torch.equal(
-                                            sample1[1][sample1[2], :].long(),
-                                            sample1[0].long(),
+                                            sample1[1][sample1[2].long(), :],
+                                            sample1[0],
                                         )
                                     )
                                     self.assertTrue(
                                         torch.equal(
-                                            sample1[0][sample1[3], :].long(),
-                                            sample1[1].long(),
+                                            sample1[0][sample1[3].long(), :],
+                                            sample1[1],
                                         )
                                     )
                                 elif noise > 0.0:
                                     self.assertFalse(
                                         torch.equal(
-                                            sample1[1][sample1[2], :].long(),
-                                            sample1[0].long(),
+                                            sample1[1][sample1[2].long(), :],
+                                            sample1[0],
                                         )
                                     )
                                     self.assertFalse(
                                         torch.equal(
-                                            sample1[0][sample1[3], :].long(),
-                                            sample1[1].long(),
+                                            sample1[0][sample1[3].long(), :],
+                                            sample1[1],
                                         )
                                     )
 
@@ -293,12 +293,14 @@ class TestSetMatchingDataset(unittest.TestCase):
 
                         self.assertTrue(
                             torch.equal(
-                                sample1[2], torch.from_numpy(sample1_hungarian12).int()
+                                sample1[2].int(),
+                                torch.from_numpy(sample1_hungarian12).int(),
                             )
                         )
                         self.assertTrue(
                             torch.equal(
-                                sample1[3], torch.from_numpy(sample1_hungarian21).int()
+                                sample1[3].int(),
+                                torch.from_numpy(sample1_hungarian21).int(),
                             )
                         )
 
