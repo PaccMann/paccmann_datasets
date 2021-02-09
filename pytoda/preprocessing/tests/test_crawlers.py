@@ -15,8 +15,8 @@ class TestCrawlers(unittest.TestCase):
     def test_get_smiles_from_zinc(self) -> None:
         """Test get_smiles_from_zinc"""
 
-        # ZINC is down since quite some time, hence we skip these tests
-        return True
+        # # ZINC is down since quite some time, hence we skip these tests
+        # return True
 
         # Test text mode
         drug = 'Aspirin'

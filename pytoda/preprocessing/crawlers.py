@@ -6,7 +6,8 @@ from typing import Iterable, List, Tuple, Union
 from urllib.error import HTTPError
 
 import pubchempy as pcp
-from pubchempy import BadRequestError
+from pubchempy import BadRequestError, PubChemHTTPError
+
 
 from pytoda.smiles.transforms import Canonicalization
 
@@ -177,6 +178,9 @@ def query_pubchem(smiles: str) -> Tuple[bool, int]:
         return (False, -2)
     except ConnectionResetError:
         logger.warning(f'Skipping SMILES. ConnectionResetError with: {smiles}')
+        return (False, -2)
+    except PubChemHTTPError:
+        logger.warning(f'Skipping SMILES, server busy. with: {smiles}')
         return (False, -2)
 
     return (False, -1) if result.cid is None else (True, result.cid)
