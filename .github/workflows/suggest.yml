@@ -23,3 +23,14 @@ jobs:
         uses: reviewdog/action-suggester@v1
         with:
           tool_name: black
+
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v2
+        if: always()
+        with:
+            status: ${{ job.status }}
+            text: ":question: Incoming BLACK suggestions :question:"
+            author_name: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

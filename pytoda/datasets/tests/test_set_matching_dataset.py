@@ -197,23 +197,27 @@ class TestSetMatchingDataset(unittest.TestCase):
                                     self.assertTrue(torch.equal(sample1[2], sample2[2]))
                                     self.assertTrue(
                                         torch.equal(
-                                            sample1[1][sample1[2], :], sample1[0]
+                                            sample1[1][sample1[2], :].long(),
+                                            sample1[0].long(),
                                         )
                                     )
                                     self.assertTrue(
                                         torch.equal(
-                                            sample1[0][sample1[3], :], sample1[1]
+                                            sample1[0][sample1[3], :].long(),
+                                            sample1[1].long(),
                                         )
                                     )
                                 elif noise > 0.0:
                                     self.assertFalse(
                                         torch.equal(
-                                            sample1[1][sample1[2], :], sample1[0]
+                                            sample1[1][sample1[2], :].long(),
+                                            sample1[0].long(),
                                         )
                                     )
                                     self.assertFalse(
                                         torch.equal(
-                                            sample1[0][sample1[3], :], sample1[1]
+                                            sample1[0][sample1[3], :].long(),
+                                            sample1[1].long(),
                                         )
                                     )
 
@@ -289,12 +293,12 @@ class TestSetMatchingDataset(unittest.TestCase):
 
                         self.assertTrue(
                             torch.equal(
-                                sample1[2], torch.from_numpy(sample1_hungarian12)
+                                sample1[2], torch.from_numpy(sample1_hungarian12).int()
                             )
                         )
                         self.assertTrue(
                             torch.equal(
-                                sample1[3], torch.from_numpy(sample1_hungarian21)
+                                sample1[3], torch.from_numpy(sample1_hungarian21).int()
                             )
                         )
 
