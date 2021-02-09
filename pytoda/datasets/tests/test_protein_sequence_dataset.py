@@ -303,7 +303,8 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
             *(
                 pair.split('\t')
                 for pair in (
-                    self.smi_content.split('\n') + self.smi_other_content.split('\n')
+                    self.smi_content.split(os.linesep)
+                    + self.smi_other_content.split(os.linesep)
                 )
             )
         )

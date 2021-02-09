@@ -361,7 +361,8 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                 )
         all_keys = [
             row.split(',')[0]
-            for row in self.content.split('\n')[1:] + self.other_content.split('\n')[1:]
+            for row in self.content.split(os.linesep)[1:]
+            + self.other_content.split(os.linesep)[1:]
         ]
 
         for ds, keys in [

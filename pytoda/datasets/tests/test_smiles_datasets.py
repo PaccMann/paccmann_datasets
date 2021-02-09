@@ -293,7 +293,8 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
         all_smiles, all_keys = zip(
             *(
                 pair.split('\t')
-                for pair in self.content.split('\n') + self.other_content.split('\n')
+                for pair in self.content.split(os.linesep)
+                + self.other_content.split(os.linesep)
             )
         )
 

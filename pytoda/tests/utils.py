@@ -42,4 +42,5 @@ class TestFileContent:
 
     def __exit__(self, type, value, traceback) -> None:
         """Exit the `with` block."""
+        self.file.close()
         os.unlink(self.filename)

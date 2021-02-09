@@ -128,7 +128,7 @@ class TestAnnotatedDataset(unittest.TestCase):
                 )
 
         all_keys = [
-            row.split(',')[-1] for row in self.annotated_content.split('\n')[1:]
+            row.split(',')[-1] for row in self.annotated_content.split(os.linesep)[1:]
         ]
 
         for ds, keys in [
