@@ -163,24 +163,24 @@ class TestSetMatchingDataset(unittest.TestCase):
                                 if noise == 0.0:
                                     self.assertTrue(
                                         torch.equal(
-                                            sample1[1][sample1[2], :], sample1[0]
+                                            sample1[1][sample1[2].long(), :], sample1[0]
                                         )
                                     )
                                     self.assertTrue(
                                         torch.equal(
-                                            sample1[0][sample1[3], :], sample1[1]
+                                            sample1[0][sample1[3].long(), :], sample1[1]
                                         )
                                     )
 
                                 else:
                                     self.assertFalse(
                                         torch.equal(
-                                            sample1[1][sample1[2], :], sample1[0]
+                                            sample1[1][sample1[2].long(), :], sample1[0]
                                         )
                                     )
                                     self.assertFalse(
                                         torch.equal(
-                                            sample1[0][sample1[3], :], sample1[1]
+                                            sample1[0][sample1[3].long(), :], sample1[1]
                                         )
                                     )
 

@@ -2,6 +2,7 @@
 import os
 import random
 import unittest
+from time import time
 
 from torch.utils.data import DataLoader
 
@@ -236,6 +237,7 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
             self.assertEqual(len(a_tokenized_sequence), 206)
             # padded to length + start + stop
             self.assertEqual(sum(a_tokenized_sequence[:-123]), 0)
+            time.sleep(5)
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
@@ -352,6 +354,7 @@ class TestProteinSequenceDatasetLazyBackend(
             )
             # generic sequences
             self.assertEqual(len(protein_sequence_dataset), 3)
+            time.sleep(5)
 
 
 if __name__ == '__main__':

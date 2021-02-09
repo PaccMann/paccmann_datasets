@@ -56,7 +56,7 @@ jobs:
         if: always()
         with:
             status: ${{ job.status }}
-            text: ":black_circle:" ${{ github.job }} ":black_circle:"
+            text: ":black_circle: ${{ github.job }} :black_circle:"
             author_name: ${{ github.actor }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
