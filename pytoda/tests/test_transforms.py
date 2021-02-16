@@ -6,10 +6,10 @@ import torch
 
 from pytoda.transforms import (
     AugmentByReversing,
+    Compose,
     LeftPadding,
     ListToTensor,
     ToTensor,
-    Compose,
 )
 
 
