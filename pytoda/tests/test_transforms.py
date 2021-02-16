@@ -13,9 +13,6 @@ from pytoda.transforms import (
 )
 
 
-
-
-
 class TestTransforms(unittest.TestCase):
     """Testing transforms."""
 
