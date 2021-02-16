@@ -27,6 +27,18 @@ class Transform(object):
         """
         raise NotImplementedError
 
+    def __eq__(self, other: object) -> bool:
+        """Equality comparison of Transform objects. Two transform instances are
+        identical if the transforms are identical
+
+        Args:
+            other (Compose): Compose object for comparison.
+
+        Returns:
+            bool: Whether objects are identical
+        """
+        return vars(self) == vars(other)
+
 
 class StartStop(Transform):
     """Add start and stop token indexes at beginning and end of sequence."""
@@ -278,3 +290,18 @@ class Compose(Transform):
             format_string += '\t{}'.format(transform)
         format_string += '\n)'
         return format_string
+
+    def __eq__(self, other: Transform) -> bool:
+        """Equality comparison of Compose objects. Two compose instances are identical
+        if the transforms are identical
+
+        Args:
+            other (Compose): Compose object for comparison.
+
+        Returns:
+            bool: Whether objects are identical
+        """
+        if len(self.transforms) != len(other.transforms):
+            return False
+        else:
+            return all([a == b for a, b in zip(self.transforms, other.transforms)])

@@ -29,7 +29,7 @@ def hungarian_assignment(
     cost_matrix = cost_metric_function(set_reference, set_matching)
 
     matrix = torch.zeros_like(cost_matrix)
-    rows, cols = linear_sum_assignment(cost_matrix)
+    rows, cols = linear_sum_assignment(cost_matrix.cpu().numpy())
     matrix[rows, cols] = 1
     idx_12 = torch.from_numpy(cols)
     idx_21 = torch.nonzero(matrix.t(), as_tuple=True)[1]
@@ -356,7 +356,9 @@ class PermutedSetMatchingDataset(SetMatchingDataset):
         """
         # Setup dataset
         self.dataset = dataset
-        self.noise = torch.distributions.normal.Normal(loc=0, scale=noise_std)
+        loc_device = torch.tensor(0.0, device=device)
+        noise_std = torch.tensor(noise_std, device=device)
+        self.noise = torch.distributions.normal.Normal(loc=loc_device, scale=noise_std)
         super().__init__(
             # is user choice
             min_set_length,
