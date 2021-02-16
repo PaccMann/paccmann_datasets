@@ -9,11 +9,11 @@ from typing import (  # noqa
     Iterator,
     List,
     Mapping,
+    Optional,
+    OrderedDict,
     Sequence,
     Tuple,
     Union,
-    Optional,
-    OrderedDict,
 )
 
 from numpy import ndarray  # np.typing in development

@@ -244,9 +244,9 @@ class PairedSetMatchingDataset(SetMatchingDataset):
         min_set_length: int,
         cost_metric_function: nn.Module,
         set_padding_value: float,
-        noise_std: float = 0.0,
         seed: Optional[int] = None,
         shuffle: Optional[bool] = True,
+        noise_std: float = 0.0,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
@@ -266,15 +266,15 @@ class PairedSetMatchingDataset(SetMatchingDataset):
                 Defaults to 0.0. NOTE: No padding if min_set_length = max_set_length.
             cost_metric_function (nn.Module): Function wrapped as an nn.Module that
                 computes the metric used in constructing the cost matrix.
-            noise_std (float, optional): Standard deviation to use in generating
-                noise from a normal distribution with mean 0. Deafults to 0.0.
-                Dummy variable for this class for consistency purposes.
             seed (Optional[int]): If passed, all samples are generated once with
                 this seed (using a local RNG only). Defaults to None, where
                 individual samples are generated when the DistributionalDataset is
                 indexed (using the global RNG).
             shuffle (Optional[bool]): Whether the sets should be shuffled again before subsampling.
                 Adds another layer of randomness. Defaults to True.
+            noise_std (float, optional): Standard deviation to use in generating
+                noise from a normal distribution with mean 0. Deafults to 0.0.
+                Dummy variable for this class for consistency purposes.
             device (torch.device): Device where the tensors are stored.
                 Defaults to gpu, if available.
         """
@@ -323,8 +323,8 @@ class PermutedSetMatchingDataset(SetMatchingDataset):
         min_set_length: int,
         cost_metric_function: nn.Module,
         set_padding_value: float,
-        noise_std: float = 0.0,
         seed: Optional[int] = None,
+        noise_std: float = 0.0,
         shuffle: Optional[bool] = True,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -343,12 +343,12 @@ class PermutedSetMatchingDataset(SetMatchingDataset):
                 Defaults to 0.0. NOTE: No padding is done if min_set_length = max_set_length.
             cost_metric_function (nn.Module): Function wrapped as an nn.Module that
                 computes the metric used in constructing the cost matrix.
-            noise_std (float, optional): Standard deviation to use in generating noise from
-                a normal distribution with mean 0. Deafults to 0.0.
             seed (Optional[int]): If passed, all samples are generated once with
                 this seed (using a local RNG only). Defaults to None, where
                 individual samples are generated when the DistributionalDataset is
                 indexed (using the global RNG).
+            noise_std (float, optional): Standard deviation to use in generating noise from
+                a normal distribution with mean 0. Deafults to 0.0.
             shuffle (Optional[bool]): Whether the sets should be shuffled again before subsampling.
                 Adds another layer of randomness. Defaults to True.
             device (torch.device): device where the tensors are stored.

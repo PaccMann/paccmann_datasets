@@ -1,9 +1,11 @@
 """Testing GeneExpressionDataset with eager backend."""
-import unittest
 import os
+import unittest
+
 import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
+
 from pytoda.datasets import GeneExpressionDataset
 from pytoda.tests.utils import TestFileContent
 
@@ -359,7 +361,8 @@ class TestGeneExpressionDatasetEagerBackend(unittest.TestCase):
                 )
         all_keys = [
             row.split(',')[0]
-            for row in self.content.split('\n')[1:] + self.other_content.split('\n')[1:]
+            for row in self.content.split(os.linesep)[1:]
+            + self.other_content.split(os.linesep)[1:]
         ]
 
         for ds, keys in [

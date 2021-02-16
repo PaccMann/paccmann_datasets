@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Split in train and test a .csv."""
-import sys
-import logging
 import argparse
+import logging
+import sys
+
 from pytoda.data_splitter import csv_data_splitter
 
 # setting up logging

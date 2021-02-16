@@ -1,18 +1,14 @@
 """Testing ProteinFeatureLanguage."""
-import os
 import unittest
 
-# from upfp import parse_fasta
 from pytoda.proteins.processing import (
-    AA_PROPERTIES_NUM,
     AA_FEAT,
+    AA_PROPERTIES_NUM,
     BLOSUM62,
     BLOSUM62_NORM,
+    HUMAN_KINASE_ALIGNMENT_VOCAB,
     IUPAC_CODES,
-    HUMAN_KINASE_ALIGNMENT_VOCAB
 )
-
-# from pytoda.tests.utils import TestFileContent
 
 
 class TestProcessing(unittest.TestCase):

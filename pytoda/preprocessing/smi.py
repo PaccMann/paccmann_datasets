@@ -1,6 +1,7 @@
 """Processing utilities for .smi files."""
 import pandas as pd
 from rdkit import Chem
+
 from ..files import read_smi
 
 

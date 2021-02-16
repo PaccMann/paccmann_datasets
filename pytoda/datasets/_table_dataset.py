@@ -5,7 +5,7 @@ from functools import partial
 import numpy as np
 import torch
 
-from ..types import FeatureList, Files, Tensor, CsvSourceData, Optional
+from ..types import CsvSourceData, FeatureList, Files, Optional, Tensor
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
 from ._csv_statistics import reduce_csv_statistics

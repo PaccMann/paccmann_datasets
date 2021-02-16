@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Filter our invalid SMILES from a .smi file."""
 import argparse
+
 from pytoda.preprocessing.smi import filter_invalid_smi
 
 # define the parser arguments

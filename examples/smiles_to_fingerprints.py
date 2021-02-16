@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Convert SMILES to Morgan fingerprints."""
 import argparse
+
 import pandas as pd
+
 from pytoda.files import read_smi
 from pytoda.smiles.transforms import SMILESToMorganFingerprints
 

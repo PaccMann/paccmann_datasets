@@ -5,7 +5,7 @@ from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..smiles.polymer_language import PolymerTokenizer
-from ..types import List, Sequence, Tuple, Union, Tensor
+from ..types import List, Sequence, Tensor, Tuple, Union
 from .smiles_dataset import SMILESDataset
 
 
