@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Export vocabulary of SMILESLanguage from .smi files in directory."""
-import os
 import argparse
+import os
+
 from pytoda.smiles.smiles_language import SMILESLanguage
 
 # define the parser arguments

@@ -1,14 +1,16 @@
 """Testing SMILES processing."""
 import unittest
+
+import selfies as sf
+
 from pytoda.smiles.processing import (
-    tokenize_smiles,
-    tokenize_selfies,
     kmer_smiles_tokenizer,
     spe_smiles_tokenizer,
     split_selfies,
+    tokenize_selfies,
+    tokenize_smiles,
 )
 from pytoda.smiles.transforms import Selfies
-import selfies as sf
 
 
 class TestProcessing(unittest.TestCase):

@@ -1,5 +1,6 @@
 import argparse
 import os
+
 from pytoda.smiles import SMILESLanguage
 
 parser = argparse.ArgumentParser()

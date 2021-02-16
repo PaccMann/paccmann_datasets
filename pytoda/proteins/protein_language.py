@@ -4,8 +4,8 @@ import dill
 from upfp import parse_fasta
 
 from ..files import read_smi
-from ..types import Indexes, Tokens, Tokenizer
-from .processing import IUPAC_VOCAB, UNIREP_VOCAB, HUMAN_KINASE_ALIGNMENT_VOCAB
+from ..types import Indexes, Tokenizer, Tokens
+from .processing import HUMAN_KINASE_ALIGNMENT_VOCAB, IUPAC_VOCAB, UNIREP_VOCAB
 
 
 class ProteinLanguage(object):
@@ -52,14 +52,20 @@ class ProteinLanguage(object):
         else:
             raise ValueError(
                 "Choose dict as 'iupac' or 'unirep' or 'human-kinase-alignment' "
-                "(given was" f"{amino_acid_dict})."
+                f"(given was {amino_acid_dict})."
             )
+        self.tokenizer = tokenizer
+        self.setup_dict()
+
+    def setup_dict(self) -> None:
+        """
+        Setup the dictionary.
+
+        """
         # Setup dictionary
         self.sequence_tokens = [
             index for token, index in self.token_to_index.items() if '<' not in token
         ]
-
-        self.tokenizer = tokenizer
         self.number_of_tokens = len(self.token_to_index)
         self.index_to_token = {
             index: token for token, index in self.token_to_index.items()
@@ -148,7 +154,7 @@ class ProteinLanguage(object):
 
         Args:
             filepath (str): path to the file.
-            file_type (str): Type of file, from {'.smi', '.csv', '.fasta', 
+            file_type (str): Type of file, from {'.smi', '.csv', '.fasta',
                 '.fasta.gz'}. If '.csv' is selected, it is assumed to be tab-
                 separated.
             chunk_size (int): number of rows to read in a chunk.
@@ -158,7 +164,7 @@ class ProteinLanguage(object):
         """
         if file_type not in ['.csv', '.smi', '.fasta', '.fasta.gz']:
             raise ValueError(
-                "Please provide file of type " "{'.smi', '.csv', '.fasta','.fasta.gz'}"
+                "Please provide file of type {'.smi', '.csv', '.fasta','.fasta.gz'}"
             )
 
         if file_type == '.csv' or file_type == '.smi':

@@ -1,8 +1,9 @@
 """KeyDataset for pandas DataFrames ."""
 import numpy as np
 import pandas as pd
-from .base_dataset import KeyDataset
+
 from ..types import Hashable, Iterator
+from .base_dataset import KeyDataset
 
 
 class DataFrameDataset(KeyDataset):

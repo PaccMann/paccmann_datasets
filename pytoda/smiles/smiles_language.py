@@ -120,21 +120,7 @@ class SMILESLanguage(object):
             self.start_index: self.start_token,
             self.stop_index: self.stop_token,
         }
-        # NOTE: include augmentation characters, parenthesis and numbers for
-        #    rings
-        additional_indexes_to_token = dict(
-            enumerate(
-                list('()')
-                + list(map(str, range(1, 10)))
-                + list('%{}'.format(index) for index in range(10, 30)),
-                start=len(self.special_indexes),
-            )
-        )
-        self.index_to_token = {**self.special_indexes, **additional_indexes_to_token}
-        self.number_of_tokens = len(self.index_to_token)
-        self.token_to_index = {
-            token: index for index, token in self.index_to_token.items()
-        }
+        self.setup_vocab()
 
         if vocab_file:
             self.load_vocabulary(vocab_file)
@@ -155,6 +141,26 @@ class SMILESLanguage(object):
 
         self.transform_smiles = Compose([])  # identity
         self.transform_encoding = Compose([])
+
+    def setup_vocab(self) -> None:
+        """
+        Sets up the vocab by generating the special tokens.
+        """
+        # NOTE: include augmentation characters, parenthesis and numbers for
+        #    rings
+        additional_indexes_to_token = dict(
+            enumerate(
+                list('()')
+                + list(map(str, range(1, 10)))
+                + list('%{}'.format(index) for index in range(10, 30)),
+                start=len(self.special_indexes),
+            )
+        )
+        self.index_to_token = {**self.special_indexes, **additional_indexes_to_token}
+        self.number_of_tokens = len(self.index_to_token)
+        self.token_to_index = {
+            token: index for index, token in self.index_to_token.items()
+        }
 
     @staticmethod
     def load(filepath: str) -> 'SMILESLanguage':

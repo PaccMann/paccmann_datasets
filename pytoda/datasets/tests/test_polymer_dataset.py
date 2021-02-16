@@ -1,7 +1,9 @@
 """Testing AnnotatedDataset dataset with eager backend."""
-import unittest
 import os
+import unittest
+
 import numpy as np
+
 from pytoda.datasets import PolymerTokenizerDataset
 from pytoda.tests.utils import TestFileContent
 

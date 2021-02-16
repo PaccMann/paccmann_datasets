@@ -1,6 +1,7 @@
 import torch
-from pytoda.datasets.utils.wrappers import WrapperCDist, WrapperKLDiv
+
 from pytoda.datasets.utils.background_tensors import constant_value_tensor, range_tensor
+from pytoda.datasets.utils.wrappers import WrapperCDist, WrapperKLDiv
 
 METRIC_FUNCTION_FACTORY = {'p-norm': WrapperCDist, 'KL': WrapperKLDiv}
 

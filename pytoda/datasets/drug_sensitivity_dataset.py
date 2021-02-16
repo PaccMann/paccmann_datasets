@@ -1,11 +1,12 @@
 """Implementation of DrugSensitivityDataset."""
-import torch
 import pandas as pd
+import torch
 from torch.utils.data import Dataset
-from ..types import GeneList, DrugSensitivityData, Tuple, Iterable
+
 from ..smiles.smiles_language import SMILESLanguage
-from .smiles_dataset import SMILESTokenizerDataset
+from ..types import DrugSensitivityData, GeneList, Iterable, Tuple
 from .gene_expression_dataset import GeneExpressionDataset
+from .smiles_dataset import SMILESTokenizerDataset
 
 
 class DrugSensitivityDataset(Dataset):

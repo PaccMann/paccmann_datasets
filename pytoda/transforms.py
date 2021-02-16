@@ -131,17 +131,17 @@ class ToTensor(Transform):
                 Defaults to gpu, if available.
             dtype (torch.dtype): data type. Defaults to torch.short.
         """
-        if not isinstance(dtype, torch.dtype):
-            raise TypeError(f'Dtype must be torch.dtype not {type(dtype)}')
-        self.dtype = dtype
-
         if not isinstance(device, torch.device):
             raise TypeError(f'Device must be torch.device not {type(device)}')
         self.device = device
 
+        if not isinstance(dtype, torch.dtype):
+            raise TypeError(f'Dtype must be torch.dtype not {type(dtype)}')
+        self.dtype = dtype
+
     def __call__(self, token_indexes: Indexes) -> torch.Tensor:
         """
-        Apply the transform.
+        Apply the transform. Convert token_indexes (e.g. list) to a torch Tensor.
 
         Args:
             token_indexes (Indexes): token indexes.
@@ -159,7 +159,6 @@ class ToTensor(Transform):
 class ListToTensor(Transform):
     """
     2D Version of ToTensor.
-    Transform a list of token indexes to torch tensor.
     """
 
     def __init__(
@@ -187,7 +186,8 @@ class ListToTensor(Transform):
 
     def __call__(self, token_indexes: Indexes) -> torch.Tensor:
         """
-        Apply the transform.
+        Apply the transform (Transform a list of token indexes to torch tensor).
+            2D version of ToTensor.
 
         Args:
             token_indexes (Indexes): token indexes.
