@@ -1,6 +1,6 @@
 """Processing utilities for .smi files."""
-import logging
 import os
+import sys
 from typing import List
 
 import pandas as pd
@@ -9,8 +9,6 @@ from rdkit.Chem import Draw
 
 from ..files import read_smi
 from ..smiles.transforms import Canonicalization
-
-logger = logging.getLogger(__file__)
 
 
 def filter_invalid_smi(
@@ -35,7 +33,11 @@ def filter_invalid_smi(
 
 
 def find_undesired_smiles_files(
-    undesired_filepath: str, data_filepath: str, save_matches: bool = False
+    undesired_filepath: str,
+    data_filepath: str,
+    save_matches: bool = False,
+    file=sys.stdout,
+    **smi_kwargs,
 ):
     """
     Method to find undesired SMILES in a list of existing SMILES.
@@ -44,13 +46,13 @@ def find_undesired_smiles_files(
         undesired_filepath (str): Path to .smi file with a header at first row.
         data_filepath (str): Path to .csv file with a column 'SMILES'.
         save_matches (bool, optional): Whether found matches should be plotted and
-            saved Defaults to False.
+            saved. Defaults to False.
     """
     canonicalizer = Canonicalization()
 
     # Read undesired data
-    undesired = read_smi(undesired_filepath, header=1)
-    undesired_smiles = undesired.apply(canonicalizer).tolist()
+    undesired = read_smi(undesired_filepath, **smi_kwargs)
+    undesired_smiles = undesired['SMILES'].apply(canonicalizer).tolist()
 
     # Read data filepath
     df = pd.read_csv(data_filepath)
@@ -60,12 +62,12 @@ def find_undesired_smiles_files(
         match = find_undesired_smiles(row['SMILES'], undesired_smiles, canonical=True)
 
         if match:
-            logger.info(f'Found {row.SMILES} in list of undesired SMILES.')
+            print(f'Found {row.SMILES} in list of undesired SMILES.', file=file)
             matches.append(row.SMILES)
             idxs.append(idx)
 
     if len(matches) == 0:
-        logger.info('No matches found, shutting down.')
+        print('No matches found, shutting down.', file=file)
         return
 
     if save_matches:
