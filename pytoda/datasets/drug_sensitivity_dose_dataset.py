@@ -1,17 +1,17 @@
-"""Implementation of DrugSensitivityConcentrationDataset."""
+"""Implementation of DrugSensitivityDoseDataset."""
 from typing import Callable
 
 import numpy as np
 import torch
 
 from ..smiles.smiles_language import SMILESTokenizer
-from ..types import DrugSensitivityConcentrationData, GeneList, Tuple
+from ..types import DrugSensitivityDoseData, GeneList, Tuple
 from .drug_sensitivity_dataset import DrugSensitivityDataset
 
 
-class DrugSensitivityConcentrationDataset(DrugSensitivityDataset):
+class DrugSensitivityDoseDataset(DrugSensitivityDataset):
     """
-    Drug sensitivity concentration dataset implementation.
+    Drug sensitivity dose dataset implementation.
     """
 
     def __init__(
@@ -20,8 +20,8 @@ class DrugSensitivityConcentrationDataset(DrugSensitivityDataset):
         smi_filepath: str,
         gene_expression_filepath: str,
         smiles_language: SMILESTokenizer,
-        column_names: Tuple[str] = ['drug', 'cell_line', 'concentration', 'viability'],
-        concentration_transform: Callable[[float], float] = np.log10,
+        column_names: Tuple[str] = ['drug', 'cell_line', 'dose', 'viability'],
+        dose_transform: Callable[[float], float] = np.log10,
         iterate_dataset: bool = False,
         gene_list: GeneList = None,
         gene_expression_standardize: bool = True,
@@ -35,7 +35,7 @@ class DrugSensitivityConcentrationDataset(DrugSensitivityDataset):
         backend: str = 'eager',
     ) -> None:
         """
-        Initialize a drug sensitivity concentration dataset.
+        Initialize a drug sensitivity dose dataset.
 
         Args:
             drug_sensitivity_filepath (str): path to drug sensitivity .csv file.
@@ -48,11 +48,11 @@ class DrugSensitivityConcentrationDataset(DrugSensitivityDataset):
             smiles_language (SMILESTokenizer): a smiles language/tokenizer must be
                 passed. Specifies tokens and all transforms for SMILES conversion.
             column_names (Tuple[str]): Names of columns in data files to retrieve
-                molecules, cell-line-data, drug concentration and viability (label).
-                Defaults to ['drug', 'cell_line', 'concentration', 'viability'].
-                All but the 2nd last (concentration) are passed to
+                molecules, cell-line-data, drug dose and viability (label).
+                Defaults to ['drug', 'cell_line', 'dose', 'viability'].
+                All but the 2nd last (dosedose) are passed to
                 drug_sensitivity_dataset.
-            concentration_transform (Callable[[float], float]):  A callable to convert
+            dose_transform (Callable[[float], float]):  A callable to convert
                 the raw concentration into an input for the model. E.g. if raw
                 concentration is uMol, torch.log10 could make sense.
                 Defaults to torch.log10.
@@ -94,10 +94,10 @@ class DrugSensitivityConcentrationDataset(DrugSensitivityDataset):
             backend=backend,
         )
 
-        self.concentration_name = column_names[2]
-        self.concentration_transform = concentration_transform
+        self.dose_name = column_names[2]
+        self.dose_transform = dose_transform
 
-    def __getitem__(self, index: int) -> DrugSensitivityConcentrationData:
+    def __getitem__(self, index: int) -> DrugSensitivityDoseData:
         """
         Generates one sample of data.
 
@@ -105,7 +105,7 @@ class DrugSensitivityConcentrationDataset(DrugSensitivityDataset):
             index (int): index of the sample to fetch.
 
         Returns:
-            DrugSensitivityConcentrationData: a tuple containing four torch.Tensors,
+            DrugSensitivityDoseDataset: a tuple containing four torch.Tensors,
                 representing respectively:
                 - compound token indexes,
                 - gene expression values,
@@ -114,14 +114,10 @@ class DrugSensitivityConcentrationDataset(DrugSensitivityDataset):
         """
         token_indexes, gene_expression, viability = super().__getitem__(index)
 
-        concentration = torch.tensor(
-            [
-                self.concentration_transform(
-                    self.drug_sensitivity_df.iloc[index][self.concentration_name]
-                )
-            ],
+        dose = torch.tensor(
+            [self.dose_transform(self.drug_sensitivity_df.iloc[index][self.dose_name])],
             dtype=self.drug_sensitivity_dtype,
             device=self.device,
         )
 
-        return token_indexes, gene_expression, concentration, viability
+        return token_indexes, gene_expression, dose, viability

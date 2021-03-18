@@ -34,7 +34,7 @@ CallableOnSource = Union[
 ]
 TransformList = List[Callable[[Any], Any]]
 DrugSensitivityData = Tuple[Tensor, Tensor, Tensor]
-DrugSensitivityConcentrationData = Tuple[Tensor, Tensor, Tensor, Tensor]
+DrugSensitivityDoseData = Tuple[Tensor, Tensor, Tensor, Tensor]
 DrugAffinityData = Tuple[Tensor, Tensor, Tensor]
 AnnotatedData = Tuple[Any, Tensor]
 

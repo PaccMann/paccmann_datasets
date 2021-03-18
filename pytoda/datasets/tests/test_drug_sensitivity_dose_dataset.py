@@ -1,4 +1,4 @@
-"""Testing DrugSensitivityConcentrationDataset."""
+"""Testing DrugSensitivityDoseDataset."""
 import os
 import unittest
 
@@ -6,7 +6,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 
 from pytoda.smiles import SMILESTokenizer
-from pytoda.datasets import DrugSensitivityConcentrationDataset
+from pytoda.datasets import DrugSensitivityDoseDataset
 from pytoda.tests.utils import TestFileContent
 
 COLUMN_NAMES = [',drug,cell_line,concentration,viability', ',molecule,omic,dose,label']
@@ -31,8 +31,8 @@ GENE_EXPRESSION_CONTENT = os.linesep.join(
 )
 
 
-class TestDrugSensitivityConcentrationDataset(unittest.TestCase):
-    """Testing DrugSensitivityConcentrationDataset with eager backend."""
+class TestDrugSensitivityDoseDataset(unittest.TestCase):
+    """Testing DrugSensitivityDoseDataset with eager backend."""
 
     def setUp(self):
 
@@ -61,18 +61,14 @@ class TestDrugSensitivityConcentrationDataset(unittest.TestCase):
                     ) as gene_expression_file:
                         for f in [np.log10, lambda x: x]:
                             self.f = f
-                            self.drug_sensitivity_dataset = (
-                                DrugSensitivityConcentrationDataset(
-                                    drug_sensitivity_file.filename,
-                                    smiles_file.filename,
-                                    gene_expression_file.filename,
-                                    smiles_language=self.smiles_tokenizer,
-                                    gene_expression_kwargs={
-                                        'pandas_dtype': {'genes': str}
-                                    },
-                                    column_names=column_names.split(',')[1:],
-                                    concentration_transform=f,
-                                )
+                            self.drug_sensitivity_dataset = DrugSensitivityDoseDataset(
+                                drug_sensitivity_file.filename,
+                                smiles_file.filename,
+                                gene_expression_file.filename,
+                                smiles_language=self.smiles_tokenizer,
+                                gene_expression_kwargs={'pandas_dtype': {'genes': str}},
+                                column_names=column_names.split(',')[1:],
+                                dose_transform=f,
                             )
                         self.test___len__()
                         self.test___getitem__()

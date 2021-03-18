@@ -3,8 +3,8 @@ from .base_dataset import KeyDataset, DatasetDelegator, ConcatKeyDataset  # noqa
 from .smiles_dataset import SMILESDataset, SMILESTokenizerDataset  # noqa
 from .gene_expression_dataset import GeneExpressionDataset  # noqa
 from .drug_sensitivity_dataset import DrugSensitivityDataset  # noqa
-from .drug_sensitivity_concentration_dataset import (  # noqa
-    DrugSensitivityConcentrationDataset,
+from .drug_sensitivity_dose_dataset import (  # noqa
+    DrugSensitivityDoseDataset,
 )
 from .annotated_dataset import AnnotatedDataset  # noqa
 from .protein_sequence_dataset import ProteinSequenceDataset  # noqa
