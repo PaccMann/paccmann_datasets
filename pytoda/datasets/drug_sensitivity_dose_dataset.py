@@ -33,6 +33,7 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
         backend: str = 'eager',
+        **kwargs,
     ) -> None:
         """
         Initialize a drug sensitivity dose dataset.
@@ -76,6 +77,8 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
                 Note that at the moment only the gene expression and the
                 smiles datasets implement both backends. The drug sensitivity
                 data are loaded in memory.
+            **kwargs: Additional keyword arguments for parent class
+                (DrugSensitivityDataset).
         """
         super().__init__(
             drug_sensitivity_filepath=drug_sensitivity_filepath,
@@ -92,6 +95,7 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
             gene_expression_processing_parameters=gene_expression_processing_parameters,
             device=device,
             backend=backend,
+            **kwargs,
         )
 
         self.dose_name = column_names[2]
