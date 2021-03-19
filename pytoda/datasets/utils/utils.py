@@ -1,8 +1,9 @@
 """Utils for the dataset module."""
 from copy import copy
+
 import torch
 
-from ...types import Any, Files, Hashable, Tuple, List
+from ...types import Any, Files, Hashable, List, Tuple
 from ..base_dataset import AnyBaseDataset, ConcatKeyDataset
 from .factories import BACKGROUND_TENSOR_FACTORY
 

@@ -3,7 +3,9 @@ import os
 import unittest
 
 from pytoda.proteins.processing import (
-    IUPAC_VOCAB, UNIREP_VOCAB, HUMAN_KINASE_ALIGNMENT_VOCAB
+    HUMAN_KINASE_ALIGNMENT_VOCAB,
+    IUPAC_VOCAB,
+    UNIREP_VOCAB,
 )
 from pytoda.proteins.protein_language import ProteinLanguage
 from pytoda.tests.utils import TestFileContent
@@ -117,7 +119,7 @@ class TestProteinLanguage(unittest.TestCase):
                 HUMAN_KINASE_ALIGNMENT_VOCAB['A'],
                 HUMAN_KINASE_ALIGNMENT_VOCAB['C'],
                 HUMAN_KINASE_ALIGNMENT_VOCAB['-'],
-                HUMAN_KINASE_ALIGNMENT_VOCAB['C']
+                HUMAN_KINASE_ALIGNMENT_VOCAB['C'],
             ],
         )
         protein_language = ProteinLanguage(

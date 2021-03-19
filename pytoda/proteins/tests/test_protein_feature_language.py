@@ -2,11 +2,9 @@
 import os
 import unittest
 
-from upfp import parse_fasta
-
 from pytoda.proteins.processing import (
-    AA_PROPERTIES_NUM,
     AA_FEAT,
+    AA_PROPERTIES_NUM,
     BLOSUM62,
     BLOSUM62_NORM,
 )

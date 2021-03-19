@@ -1,12 +1,14 @@
 """Testing data splitter."""
-import unittest
-import tempfile
 import os
-import pandas as pd
+import tempfile
+import unittest
 from typing import Tuple
+
+import pandas as pd
+
 from pytoda.data_splitter import csv_data_splitter
-from pytoda.types import Files
 from pytoda.tests.utils import TestFileContent
+from pytoda.types import Files
 
 
 class TestDataSplitter(unittest.TestCase):

@@ -133,23 +133,39 @@ class TestTransforms(unittest.TestCase):
     def test_augment_tensor(self) -> None:
         sanitize_opts = [True, False]
         for sanitize in sanitize_opts:
-            self._test_augment_tensor(sanitize)
+            for canonical in [False, True]:
+                self._test_augment_tensor(sanitize, canonical)
 
-    def _test_augment_tensor(self, sanitize) -> None:
+    def _test_augment_tensor(self, sanitize, canonical) -> None:
         """Test AugmentTensor."""
-
         smiles = 'NCCS'
-        smiles_language = SMILESTokenizer(add_start_and_stop=True, padding=False)
+        smiles_language = SMILESTokenizer(
+            add_start_and_stop=True, padding=False, canonical=canonical
+        )
         smiles_language.add_smiles(smiles)
 
         np.random.seed(0)
         transform = AugmentTensor(smiles_language, sanitize=sanitize)
-        token_indexes_tensor = smiles_language.smiles_to_token_indexes(smiles)
+
+        def _transform_without_encoding(smile):
+            """Encode SMILES by skippping transforms in smiles language. This is
+            needed because the new SMILESTokenizer.smiles_to_token_indexes also
+            implements SMILES transforms. This could silently canonicalize all SMILES
+            if canonical=True in the smiles language object. Hence it's inappropriate
+            to generate the ground truth and replace by this method."""
+            return smiles_language.transform_encoding(
+                [
+                    smiles_language.token_to_index[t]
+                    for t in smiles_language.smiles_tokenizer(smile)
+                ]
+            )
+
+        token_indexes_tensor = _transform_without_encoding(smiles)
 
         for augmented_smile in ['C(S)CN', 'NCCS', 'SCCN', 'C(N)CS', 'C(CS)N']:
-            ground_truth = smiles_language.smiles_to_token_indexes(augmented_smile)
+            ground_truth = _transform_without_encoding(augmented_smile)
             self.assertSequenceEqual(
-                list(transform(token_indexes_tensor)), list(ground_truth)
+                transform(token_indexes_tensor).tolist(), ground_truth.tolist()
             )
 
         # Now test calling with a tensor of several SMILES
@@ -169,13 +185,13 @@ class TestTransforms(unittest.TestCase):
         for ind, augmented_smile in enumerate(
             ['C(S)CN', 'NCCS', 'SCCN', 'C(N)CS', 'C(CS)N']
         ):
-            ground_truth = smiles_language.smiles_to_token_indexes(augmented_smile)
+            ground_truth = _transform_without_encoding(augmented_smile)
             ground_truth = torch.nn.functional.pad(
                 ground_truth,
                 pad=(0, seq_len - len(ground_truth)),
                 value=smiles_language.padding_index,
             )
-            self.assertSequenceEqual(list(augmented[ind]), list(ground_truth))
+            self.assertSequenceEqual(augmented[ind].tolist(), ground_truth.tolist())
 
 
 if __name__ == '__main__':

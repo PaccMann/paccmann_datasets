@@ -27,6 +27,18 @@ class Transform(object):
         """
         raise NotImplementedError
 
+    def __eq__(self, other: object) -> bool:
+        """Equality comparison of Transform objects. Two transform instances are
+        identical if the transforms are identical
+
+        Args:
+            other (Compose): Compose object for comparison.
+
+        Returns:
+            bool: Whether objects are identical
+        """
+        return vars(self) == vars(other)
+
 
 class StartStop(Transform):
     """Add start and stop token indexes at beginning and end of sequence."""
@@ -119,17 +131,17 @@ class ToTensor(Transform):
                 Defaults to gpu, if available.
             dtype (torch.dtype): data type. Defaults to torch.short.
         """
-        if not isinstance(dtype, torch.dtype):
-            raise TypeError(f'Dtype must be torch.dtype not {type(dtype)}')
-        self.dtype = dtype
-
         if not isinstance(device, torch.device):
             raise TypeError(f'Device must be torch.device not {type(device)}')
         self.device = device
 
+        if not isinstance(dtype, torch.dtype):
+            raise TypeError(f'Dtype must be torch.dtype not {type(dtype)}')
+        self.dtype = dtype
+
     def __call__(self, token_indexes: Indexes) -> torch.Tensor:
         """
-        Apply the transform.
+        Apply the transform. Convert token_indexes (e.g. list) to a torch Tensor.
 
         Args:
             token_indexes (Indexes): token indexes.
@@ -147,7 +159,6 @@ class ToTensor(Transform):
 class ListToTensor(Transform):
     """
     2D Version of ToTensor.
-    Transform a list of token indexes to torch tensor.
     """
 
     def __init__(
@@ -175,7 +186,8 @@ class ListToTensor(Transform):
 
     def __call__(self, token_indexes: Indexes) -> torch.Tensor:
         """
-        Apply the transform.
+        Apply the transform (Transform a list of token indexes to torch tensor).
+            2D version of ToTensor.
 
         Args:
             token_indexes (Indexes): token indexes.
@@ -278,3 +290,18 @@ class Compose(Transform):
             format_string += '\t{}'.format(transform)
         format_string += '\n)'
         return format_string
+
+    def __eq__(self, other: Transform) -> bool:
+        """Equality comparison of Compose objects. Two compose instances are identical
+        if the transforms are identical
+
+        Args:
+            other (Compose): Compose object for comparison.
+
+        Returns:
+            bool: Whether objects are identical
+        """
+        if len(self.transforms) != len(other.transforms):
+            return False
+        else:
+            return all([a == b for a, b in zip(self.transforms, other.transforms)])

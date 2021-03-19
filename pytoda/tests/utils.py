@@ -1,6 +1,7 @@
 """Utilities for the tests."""
 import os
 import tempfile
+import warnings
 
 
 class TestFileContent:
@@ -9,6 +10,8 @@ class TestFileContent:
 
     Inspired by: https://stackoverflow.com/a/54053967/10032558.
     """
+
+    __test__ = False  # avoid PytestCollectionWarning
 
     def __init__(self, content: str, **kwargs) -> None:
         """
@@ -40,4 +43,8 @@ class TestFileContent:
 
     def __exit__(self, type, value, traceback) -> None:
         """Exit the `with` block."""
-        os.unlink(self.filename)
+        try:
+            os.remove(self.file.name)
+        except Exception:
+            warnings.warn(f'File {self.file.name} could not be closed.')
+            self.file.close()

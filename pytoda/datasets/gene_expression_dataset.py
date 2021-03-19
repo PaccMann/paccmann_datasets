@@ -1,8 +1,9 @@
 """GeneExpressionDataset module."""
 import torch
-from .base_dataset import DatasetDelegator
-from ._table_dataset import _TableEagerDataset, _TableLazyDataset
+
 from ..types import GeneList, Optional
+from ._table_dataset import _TableEagerDataset, _TableLazyDataset
+from .base_dataset import DatasetDelegator
 
 TABLE_DATASET_IMPLEMENTATIONS = {'eager': _TableEagerDataset, 'lazy': _TableLazyDataset}
 

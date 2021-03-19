@@ -1,6 +1,7 @@
 """Testing Protein Sequence dataset."""
 import os
 import random
+import time
 import unittest
 
 from torch.utils.data import DataLoader
@@ -63,6 +64,7 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
             )
             # eager only uniprot headers
             self.assertEqual(len(protein_sequence_dataset), 2)
+            time.sleep(1)
 
     def test___getitem__(self) -> None:
         """Test __getitem__."""
@@ -236,6 +238,7 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
             self.assertEqual(len(a_tokenized_sequence), 206)
             # padded to length + start + stop
             self.assertEqual(sum(a_tokenized_sequence[:-123]), 0)
+            time.sleep(1)
 
     def test_data_loader(self) -> None:
         """Test data_loader."""
@@ -303,7 +306,8 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
             *(
                 pair.split('\t')
                 for pair in (
-                    self.smi_content.split('\n') + self.smi_other_content.split('\n')
+                    self.smi_content.split(os.linesep)
+                    + self.smi_other_content.split(os.linesep)
                 )
             )
         )
@@ -351,6 +355,7 @@ class TestProteinSequenceDatasetLazyBackend(
             )
             # generic sequences
             self.assertEqual(len(protein_sequence_dataset), 3)
+            time.sleep(1)
 
 
 if __name__ == '__main__':

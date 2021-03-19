@@ -1,10 +1,11 @@
 """Testing Crawlers."""
 import unittest
+
 from pytoda.preprocessing.crawlers import (
-    get_smiles_from_zinc,
     get_smiles_from_pubchem,
-    remove_pubchem_smiles,
+    get_smiles_from_zinc,
     query_pubchem,
+    remove_pubchem_smiles,
 )
 
 
@@ -14,8 +15,8 @@ class TestCrawlers(unittest.TestCase):
     def test_get_smiles_from_zinc(self) -> None:
         """Test get_smiles_from_zinc"""
 
-        # ZINC is down since quite some time, hence we skip these tests
-        return True
+        # # ZINC is down since quite some time, hence we skip these tests
+        # return True
 
         # Test text mode
         drug = 'Aspirin'

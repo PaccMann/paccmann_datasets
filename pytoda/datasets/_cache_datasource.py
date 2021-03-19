@@ -5,6 +5,7 @@ import tempfile
 import warnings
 
 import diskcache as dc
+
 from .utils import sizeof_fmt
 
 
@@ -37,4 +38,5 @@ class _CacheDatasource:
 
     def __del__(self):
         """Delete the _CacheDatasource."""
+        self.cache.close()
         shutil.rmtree(self.cache_filepath)

@@ -1,6 +1,7 @@
 """SMILES transforms."""
 import logging
 import re
+from copy import deepcopy
 
 import rdkit  # Needs import before torch in some envs
 import numpy as np
@@ -153,12 +154,13 @@ def compose_encoding_transforms(
 class SMILESToTokenIndexes(Transform):
     """Transform SMILES to token indexes using SMILES language."""
 
-    def __init__(self, smiles_language: 'SMILESLanguage') -> None:
+    def __init__(self, smiles_language) -> None:
         """
         Initialize a SMILES to token indexes object.
 
         Args:
             smiles_language (SMILESLanguage): a SMILES language.
+                NOTE: No typing used to prevent circular import.
         """
         self.smiles_language = smiles_language
 
@@ -412,7 +414,11 @@ class AugmentTensor(Transform):
         sanitize=True,
     ) -> None:
         """NOTE:  These parameter need to be passed down to the enumerator."""
-        self.smiles_language = smiles_language
+        self.smiles_language = deepcopy(smiles_language)
+        # Remove all SMILES transforms
+        self.smiles_language.set_smiles_transforms(*[False] * 9)
+        assert self.smiles_language.transform_smiles == Compose([])
+
         self.kekule_smiles = kekule_smiles
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
@@ -440,8 +446,7 @@ class AugmentTensor(Transform):
             if smiles_numerical.ndim == 2:
                 return self.__call__tensor(smiles_numerical)
             elif smiles_numerical.ndim == 1:
-                smiles_numerical = smiles_numerical.numpy().flatten().tolist()
-
+                smiles_numerical = smiles_numerical.cpu().numpy().flatten().tolist()
         if type(smiles_numerical) == list:
             smiles = self.smiles_language.token_indexes_to_smiles(smiles_numerical)
             try:
@@ -468,7 +473,7 @@ class AugmentTensor(Transform):
 
         raise TypeError('Please pass either a torch.Tensor of ndim 1, 2 or alist.')
 
-    def __call__tensor(self, smiles_numerical: Tensor) -> str:
+    def __call__tensor(self, smiles_numerical: Tensor) -> torch.Tensor:
         """
         Wrapper of the transform for torch.Tensor.
 
@@ -476,7 +481,7 @@ class AugmentTensor(Transform):
             smiles_numerical (torch.Tensor): a Tensor with SMILES represented
                 as ints. Needs to have shape batch_size x sequence_length.
         Returns:
-            str: randomized SMILES representation.
+            torch.Tensor: Augmented SMILES representation of same shape.
         """
         # Infer the padding type to ensure returning tensor of same shape.
         if self.smiles_language.padding_index in smiles_numerical.flatten():
