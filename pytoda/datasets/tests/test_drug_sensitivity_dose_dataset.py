@@ -5,8 +5,8 @@ import unittest
 import numpy as np
 from torch.utils.data import DataLoader
 
-from pytoda.smiles import SMILESTokenizer
 from pytoda.datasets import DrugSensitivityDoseDataset
+from pytoda.smiles import SMILESTokenizer
 from pytoda.tests.utils import TestFileContent
 
 COLUMN_NAMES = [',drug,cell_line,concentration,viability', ',molecule,omic,dose,label']
