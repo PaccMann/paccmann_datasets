@@ -47,12 +47,16 @@ For some examples on how to use `pytoda` see [here](./examples)
 If you use `pytoda` in your projects, please cite the following:
 
 ```bib
-@inproceedings{born2020paccmann,
-  title={Paccmann rl: Designing anticancer drugs from transcriptomic data via reinforcement learning},
-  author={Born, Jannis and Manica, Matteo and Oskooei, Ali and Cadow, Joris and Mart{\'\i}nez, Mar{\'\i}a Rodr{\'\i}guez},
-  booktitle={International Conference on Research in Computational Molecular Biology},
-  pages={231--233},
-  year={2020},
-  organization={Springer}
+@article{born2021paccmannrl,
+    title = {PaccMann^{RL}: De novo generation of hit-like anticancer molecules from transcriptomic data via reinforcement learning},
+    journal = {iScience},
+    volume = {24},
+    number = {4},
+    pages = {102269},
+    year = {2021},
+    issn = {2589-0042},
+    doi = {https://doi.org/10.1016/j.isci.2021.102269},
+    url = {https://www.cell.com/iscience/fulltext/S2589-0042(21)00237-6},
+    author = {Jannis Born and Matteo Manica and Ali Oskooei and Joris Cadow and Greta Markert and María {Rodríguez Martínez}}
 }
 ```

@@ -58,7 +58,6 @@ jobs:
 
       - name: Install pytoda
         run: |
-          pip install -r dev_requirements.txt
           pip install .
 
       - name: Test & coverage report
