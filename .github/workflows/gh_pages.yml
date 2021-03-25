@@ -10,9 +10,6 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - name: Install dependencies
-        run: |
-          pip install -r dev_requirements.txt
       - uses: actions/checkout@v1
       - uses: ammaraskar/sphinx-action@master
         with:
