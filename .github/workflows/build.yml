@@ -57,7 +57,9 @@ jobs:
         run: conda list
 
       - name: Install pytoda
-        run: pip install .
+        run: |
+          pip install -r dev_requirements.txt
+          pip install .
 
       - name: Test & coverage report
         run: |
