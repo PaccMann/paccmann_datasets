@@ -1,0 +1,35 @@
+name: "Deploy docs to github pages"
+on: 
+  push:
+    branches:
+      - master
+      - doc_deployment
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      run: |
+        pip install -r dev_requirements.txt
+    - uses: actions/checkout@v1
+    - uses: ammaraskar/sphinx-action@master
+      with:
+        docs-folder: "docs/"
+
+   - name: Commit documentation changes
+      run: |
+        git clone https://github.com/PaccMann/paccmann_datasets --branch gh_pages --single-branch gh_pages
+        cp -r docs/_build/html/* gh_pages/
+        cd gh_pages
+        git config --local user.email "pytoda-actions@github.com"
+        git config --local user.name "GitHub Action"
+        git add .
+        git commit -m "Update documentation" -a || true
+        # The above command will fail if no changes were present, so we ignore
+        # the return code.
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        branch: gh_pages
+        directory: gh_pages
+        github_token: ${{ secrets.GH_TOKEN }}
