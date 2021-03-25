@@ -1,3 +1,4 @@
+---
 on: [push, pull_request]
 name: build
 jobs:
@@ -20,9 +21,10 @@ jobs:
             experimental: true
     defaults:
       run:
-        shell: bash -l {0} # For conda
+        shell: bash -l {0}  # For conda
     env:
-      # Increase this value to reset cache if conda.yml and requirements.txt have not changed
+      # Increase this value to reset cache if conda.yml and requirements.txt
+      # have not changed
       CACHE_NUMBER: 0
     steps:
       - name: Checkout
@@ -31,7 +33,7 @@ jobs:
       - name: Cache conda
         uses: actions/cache@v2
         with:
-          path: ~/conda_pkgs_dir # Defined by conda-incubator/setup-miniconda@v2
+          path: ~/conda_pkgs_dir  # from: conda-incubator/setup-miniconda@v2
           key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
             hashFiles('conda.yml') }}
 
@@ -48,8 +50,8 @@ jobs:
           activate-environment: pytoda
           environment-file: conda.yml
           auto-activate-base: false
-          use-only-tar-bz2: true # This needs to be set for caching to work properly!
-          auto-update-conda: true # Required for windows for `use-only-tar-bz2`
+          use-only-tar-bz2: true  # This needs to be set for proper caching
+          auto-update-conda: true  # Required for windows for `use-only-tar-bz2`
 
       - name: Conda list
         run: conda list
@@ -67,9 +69,9 @@ jobs:
         uses: 8398a7/action-slack@v2
         if: always()
         with:
-            status: ${{ job.status }}
-            text: "CI Build ${{ matrix.os }}"
-            author_name: ${{ github.actor }}
+          status: ${{ job.status }}
+          text: "CI Build ${{ matrix.os }}"
+          author_name: ${{ github.actor }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

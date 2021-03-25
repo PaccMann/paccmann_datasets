@@ -31,9 +31,10 @@ pip install .
 
 ### development
 
-Install in editable mode for development:
+Create the `conda` environment as before, then install in editable mode for development:
 
 ```sh
+pip install -r dev_requirements.txt
 pip install --user --no-use-pep517 -e .
 ```
 
