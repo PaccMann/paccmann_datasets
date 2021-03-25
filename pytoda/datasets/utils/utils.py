@@ -10,8 +10,7 @@ from .factories import BACKGROUND_TENSOR_FACTORY
 
 def sizeof_fmt(num, suffix='B'):
     """
-    Human readable file size.
-    Source: https://stackoverflow.com/a/1094933
+    Human readable file size. Source: https://stackoverflow.com/a/1094933
     """
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
@@ -36,9 +35,11 @@ def concatenate_file_based_datasets(
             but methods depending on key lookup will fail.
         kwargs (dict): additional arguments for
             dataset_class.__init__(filepath, **kwargs).
+
     Returns:
         ConcatKeyDataset: the concatenated dataset.
     """
+
     return ConcatKeyDataset(
         datasets=[dataset_class(filepath, **kwargs) for filepath in filepaths]
     )

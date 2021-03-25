@@ -156,12 +156,14 @@ def query_pubchem(smiles: str) -> Tuple[bool, int]:
     Queries pubchem for a given SMILES.
     Args:
         smiles (str): A SMILES string.
+
     Returns:
-        Tuple[bool, int]
+        Tuple[bool, int]:
             bool: Whether or not SMILES is known to PubChem.
             int: PubChem ID of matched SMILES, -1 if SMILES was not found.
                 Instead, -2 means an error in the PubChem query.
     """
+
     if not isinstance(smiles, str):
         raise TypeError(f'Please pass str, not {type(smiles)}')
     try:

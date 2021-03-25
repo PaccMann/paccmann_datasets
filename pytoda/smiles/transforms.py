@@ -541,11 +541,10 @@ class Selfies(Transform):
 
 
 class Canonicalization(Transform):
-    """
-    Convert any SMILES to RDKit-canonical SMILES.
+    """Convert any SMILES to RDKit-canonical SMILES.
     An example:
-     - input: 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
-     - output: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
+    - input: 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
+    - output: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
     """
 
     def __init__(self, sanitize=True):
