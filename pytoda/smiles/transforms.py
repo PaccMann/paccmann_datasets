@@ -542,15 +542,34 @@ class Selfies(Transform):
 
 class Canonicalization(Transform):
     """Convert any SMILES to RDKit-canonical SMILES.
-    An example:
-    - input: 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
-    - output: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
+    Example:
+        An example::
+
+            smiles = 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
+            c = Canonicalization()
+            c(smiles)
+        Result is: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
+
     """
 
-    def __init__(self, sanitize=True):
+    def __init__(self, sanitize: bool = True) -> None:
+        """Initialize a canonicalizer
+
+        Args:
+            sanitize (bool, optional): Whether molecule is sanitized. Defaults to True.
+        """
         self.sanitize = sanitize
 
     def __call__(self, smiles: str) -> str:
+        """
+        Forward function of canonicalization.
+
+        Args:
+            smiles (str): SMILES string for canonicalization.
+
+        Returns:
+            str: Canonicalized SMILES string.
+        """
         try:
             canon = Chem.MolToSmiles(
                 Chem.MolFromSmiles(smiles, sanitize=self.sanitize), canonical=True
