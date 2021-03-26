@@ -11,9 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: pytoda
+          environment-file: conda.yml
+          auto-activate-base: true
       - uses: ammaraskar/sphinx-action@master
         with:
-          pre-build-command: pip install -r requirements.txt && pip install -r dev_requirements.txt
+          pre-build-command: pip install -r dev_requirements.txt
           docs-folder: "docs/"
       - name: Commit documentation changes
         run: |
