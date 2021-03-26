@@ -18,7 +18,7 @@ jobs:
           auto-activate-base: true
       - uses: ammaraskar/sphinx-action@master
         with:
-          pre-build-command: pip install -r dev_requirements.txt
+          pre-build-command: conda activate pytoda && pip install -r dev_requirements.txt
           docs-folder: "docs/"
       - name: Commit documentation changes
         run: |
