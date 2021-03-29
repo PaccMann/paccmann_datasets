@@ -548,6 +548,7 @@ class Canonicalization(Transform):
             smiles = 'CN2C(=O)N(C)C(=O)C1=C2N=CN1C'
             c = Canonicalization()
             c(smiles)
+
         Result is: 'Cn1c(=O)c2c(ncn2C)n(C)c1=O'
 
     """
