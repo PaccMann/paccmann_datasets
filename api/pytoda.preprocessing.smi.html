@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.2.4
+                0.2.5
               </div>
             
           
@@ -201,6 +201,12 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.preprocessing.smi.filter_invalid_smi" title="pytoda.preprocessing.smi.filter_invalid_smi"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_invalid_smi</span></code></a></p></td>
 <td><p>Execute chunked invalid SMILES filtering in a .smi file.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.preprocessing.smi.find_undesired_smiles" title="pytoda.preprocessing.smi.find_undesired_smiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_undesired_smiles</span></code></a></p></td>
+<td><p>Whether or not a given SMILES is contained in a list of SMILES, respecting canonicalization.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.preprocessing.smi.find_undesired_smiles_files" title="pytoda.preprocessing.smi.find_undesired_smiles_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_undesired_smiles_files</span></code></a></p></td>
+<td><p>Method to find undesired SMILES in a list of existing SMILES.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -217,6 +223,45 @@
 <li><p><strong>output_filepath</strong> (<em>str</em>) – path where to store the filtered .smi file.</p></li>
 <li><p><strong>chunk_size</strong> (<em>int</em>) – size of the SMILES chunk. Defaults to 100000.</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pytoda.preprocessing.smi.find_undesired_smiles_files">
+<code class="sig-name descname">find_undesired_smiles_files</code><span class="sig-paren">(</span><em class="sig-param">undesired_filepath</em>, <em class="sig-param">data_filepath</em>, <em class="sig-param">save_matches=False</em>, <em class="sig-param">file=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='utf-8'&gt;</em>, <em class="sig-param">**smi_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/smi.html#find_undesired_smiles_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.smi.find_undesired_smiles_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to find undesired SMILES in a list of existing SMILES.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>undesired_filepath</strong> (<em>str</em>) – Path to .smi file with a header at first row.</p></li>
+<li><p><strong>data_filepath</strong> (<em>str</em>) – Path to .csv file with a column ‘SMILES’.</p></li>
+<li><p><strong>save_matches</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether found matches should be plotted and
+saved. Defaults to False.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pytoda.preprocessing.smi.find_undesired_smiles">
+<code class="sig-name descname">find_undesired_smiles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles</span></em>, <em class="sig-param"><span class="n">undesired_smiles</span></em>, <em class="sig-param"><span class="n">canonical</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/smi.html#find_undesired_smiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.smi.find_undesired_smiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether or not a given SMILES is contained in a list of SMILES, respecting
+canonicalization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>smiles</strong> (<em>str</em>) – Seed SMILES.</p></li>
+<li><p><strong>undesired_smiles</strong> (<em>List</em>) – List of SMILES for comparison</p></li>
+<li><p><strong>canonical</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether comparison list was canonicalized.
+Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Whether SMILES was present in undesired_smiles.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>

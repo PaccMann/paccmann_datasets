@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.2.4
+                0.2.5
               </div>
             
           
@@ -160,8 +160,9 @@
 <span></span><span class="sd">&quot;&quot;&quot;Testing .smi preprocessing utilities.&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
 
-<span class="kn">from</span> <span class="nn">pytoda.preprocessing.smi</span> <span class="kn">import</span> <span class="n">filter_invalid_smi</span>
+<span class="kn">from</span> <span class="nn">pytoda.preprocessing.smi</span> <span class="kn">import</span> <span class="n">filter_invalid_smi</span><span class="p">,</span> <span class="n">find_undesired_smiles_files</span>
 <span class="kn">from</span> <span class="nn">pytoda.tests.utils</span> <span class="kn">import</span> <span class="n">TestFileContent</span>
 
 
@@ -187,7 +188,41 @@
                             <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
                                 <span class="n">result_fp</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
                                 <span class="n">filtered_fp</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-                            <span class="p">)</span></div></div>
+                            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmi.test_find_undesired_smiles_files"><a class="viewcode-back" href="../../../../api/pytoda.preprocessing.tests.test_smi.html#pytoda.preprocessing.tests.test_smi.TestSmi.test_find_undesired_smiles_files">[docs]</a>    <span class="k">def</span> <span class="nf">test_find_undesired_smiles_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test find_undesired_smiles_files.&quot;&quot;&quot;</span>
+
+        <span class="n">UNDESIRED</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;CCO	CHEMBL545&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	CHEMBL602&#39;</span><span class="p">])</span>
+        <span class="n">MORE_UNDESIRED</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;NC(=O)O	CHEMBL123&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	CHEMBL602&#39;</span><span class="p">])</span>
+        <span class="n">CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;SMILES,ID&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;COCC(C)N,CHEMBL3184692&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;COCCOC,CHEMBL1232411&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;O=CC1CCC1,CHEMBL18475&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;NC(=O)O,CHEMBL125278&#39;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">undesired</span><span class="p">,</span> <span class="n">gt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">UNDESIRED</span><span class="p">,</span> <span class="n">MORE_UNDESIRED</span><span class="p">],</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;No matches found, shutting down.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;Found NC(=O)O in list of undesired SMILES.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">):</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">CONTENT</span><span class="p">)</span> <span class="k">as</span> <span class="n">content</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">undesired</span><span class="p">)</span> <span class="k">as</span> <span class="n">undesired_content</span><span class="p">:</span>
+
+                    <span class="n">mystdout</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+                    <span class="n">find_undesired_smiles_files</span><span class="p">(</span>
+                        <span class="n">undesired_content</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                        <span class="n">content</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                        <span class="n">save_matches</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">file</span><span class="o">=</span><span class="n">mystdout</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">mystdout</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span> <span class="n">gt</span><span class="p">)</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>

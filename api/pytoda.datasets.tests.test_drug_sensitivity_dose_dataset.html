@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pytoda.datasets.tests.test_annotated_dataset module &mdash; pytoda  documentation</title>
+  <title>pytoda.datasets.tests.test_drug_sensitivity_dose_dataset module &mdash; pytoda  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="pytoda.datasets.tests.test_base_dataset module" href="pytoda.datasets.tests.test_base_dataset.html" />
-    <link rel="prev" title="pytoda.datasets.tests package" href="pytoda.datasets.tests.html" /> 
+    <link rel="next" title="pytoda.datasets.tests.test_gene_expression_dataset module" href="pytoda.datasets.tests.test_gene_expression_dataset.html" />
+    <link rel="prev" title="pytoda.datasets.tests.test_drug_sensitivity_dataset module" href="pytoda.datasets.tests.test_drug_sensitivity_dataset.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -112,12 +112,12 @@
 <li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.set_matching_dataset.html">pytoda.datasets.set_matching_dataset module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.smiles_dataset.html">pytoda.datasets.smiles_dataset module</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="pytoda.datasets.tests.html">pytoda.datasets.tests package</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">pytoda.datasets.tests.test_annotated_dataset module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pytoda.datasets.tests.test_annotated_dataset.html">pytoda.datasets.tests.test_annotated_dataset module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pytoda.datasets.tests.test_base_dataset.html">pytoda.datasets.tests.test_base_dataset module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pytoda.datasets.tests.test_distributional_dataset.html">pytoda.datasets.tests.test_distributional_dataset module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pytoda.datasets.tests.test_drug_affinity_dataset.html">pytoda.datasets.tests.test_drug_affinity_dataset module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pytoda.datasets.tests.test_drug_sensitivity_dataset.html">pytoda.datasets.tests.test_drug_sensitivity_dataset module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.html">pytoda.datasets.tests.test_drug_sensitivity_dose_dataset module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">pytoda.datasets.tests.test_drug_sensitivity_dose_dataset module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pytoda.datasets.tests.test_gene_expression_dataset.html">pytoda.datasets.tests.test_gene_expression_dataset module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pytoda.datasets.tests.test_polymer_dataset.html">pytoda.datasets.tests.test_polymer_dataset module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pytoda.datasets.tests.test_protein_protein_interaction_dataset.html">pytoda.datasets.tests.test_protein_protein_interaction_dataset module</a></li>
@@ -191,13 +191,13 @@
         
           <li><a href="pytoda.datasets.tests.html">pytoda.datasets.tests package</a> &raquo;</li>
         
-      <li>pytoda.datasets.tests.test_annotated_dataset module</li>
+      <li>pytoda.datasets.tests.test_drug_sensitivity_dose_dataset module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/api/pytoda.datasets.tests.test_annotated_dataset.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -210,9 +210,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-pytoda.datasets.tests.test_annotated_dataset">
-<span id="pytoda-datasets-tests-test-annotated-dataset-module"></span><h1>pytoda.datasets.tests.test_annotated_dataset module<a class="headerlink" href="#module-pytoda.datasets.tests.test_annotated_dataset" title="Permalink to this headline">¶</a></h1>
-<p>Testing AnnotatedDataset dataset with eager backend.</p>
+  <div class="section" id="module-pytoda.datasets.tests.test_drug_sensitivity_dose_dataset">
+<span id="pytoda-datasets-tests-test-drug-sensitivity-dose-dataset-module"></span><h1>pytoda.datasets.tests.test_drug_sensitivity_dose_dataset module<a class="headerlink" href="#module-pytoda.datasets.tests.test_drug_sensitivity_dose_dataset" title="Permalink to this headline">¶</a></h1>
+<p>Testing DrugSensitivityDoseDataset.</p>
 <div class="section" id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
 <p>Classes:</p>
@@ -222,11 +222,8 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset" title="pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestAnnotatedDataset</span></code></a></p></td>
-<td><p>Testing annotated dataset.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn" title="pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestChangeIndexingReturn</span></code></a></p></td>
-<td><p>Testing annotated dataset.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset" title="pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestDrugSensitivityDoseDataset</span></code></a></p></td>
+<td><p>Testing DrugSensitivityDoseDataset with eager backend.</p></td>
 </tr>
 </tbody>
 </table>
@@ -234,19 +231,30 @@
 <div class="section" id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset">
-<em class="property">class </em><code class="sig-name descname">TestAnnotatedDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestAnnotatedDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset" title="Permalink to this definition">¶</a></dt>
+<dt id="pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset">
+<em class="property">class </em><code class="sig-name descname">TestDrugSensitivityDoseDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_drug_sensitivity_dose_dataset.html#TestDrugSensitivityDoseDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
-<p>Testing annotated dataset.</p>
+<p>Testing DrugSensitivityDoseDataset with eager backend.</p>
 <dl class="py method">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.setUp">
-<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestAnnotatedDataset.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.setUp" title="Permalink to this definition">¶</a></dt>
+<dt id="pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset.setUp">
+<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_drug_sensitivity_dose_dataset.html#TestDrugSensitivityDoseDataset.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset.setUp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hook method for setting up the test fixture before exercising it.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.test___getitem__">
-<code class="sig-name descname">test___getitem__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestAnnotatedDataset.test___getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.test___getitem__" title="Permalink to this definition">¶</a></dt>
+<dt id="pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset.test___len__">
+<code class="sig-name descname">test___len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_drug_sensitivity_dose_dataset.html#TestDrugSensitivityDoseDataset.test___len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset.test___len__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test __len__.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset.test___getitem__">
+<code class="sig-name descname">test___getitem__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_drug_sensitivity_dose_dataset.html#TestDrugSensitivityDoseDataset.test___getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset.test___getitem__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test __getitem__.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
@@ -256,71 +264,14 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.test___getitem___from_indexed_annotation">
-<code class="sig-name descname">test___getitem___from_indexed_annotation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestAnnotatedDataset.test___getitem___from_indexed_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.test___getitem___from_indexed_annotation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Test __getitem__ with index in the annotation file.</p>
+<dt id="pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset.test_data_loader">
+<code class="sig-name descname">test_data_loader</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_drug_sensitivity_dose_dataset.html#TestDrugSensitivityDoseDataset.test_data_loader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_drug_sensitivity_dose_dataset.TestDrugSensitivityDoseDataset.test_data_loader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test data_loader.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.test_all_base_for_indexed_methods">
-<code class="sig-name descname">test_all_base_for_indexed_methods</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestAnnotatedDataset.test_all_base_for_indexed_methods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.test_all_base_for_indexed_methods" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn">
-<em class="property">class </em><code class="sig-name descname">TestChangeIndexingReturn</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestChangeIndexingReturn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
-<p>Testing annotated dataset.</p>
-<dl class="py method">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.setUp">
-<code class="sig-name descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestChangeIndexingReturn.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.setUp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Hook method for setting up the test fixture before exercising it.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.test_return_integer_index">
-<code class="sig-name descname">test_return_integer_index</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestChangeIndexingReturn.test_return_integer_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.test_return_integer_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Test __getitem__ with index in dataset.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.test_return_key">
-<code class="sig-name descname">test_return_key</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestChangeIndexingReturn.test_return_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.test_return_key" title="Permalink to this definition">¶</a></dt>
-<dd><p>Test __getitem__ with key in dataset.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.test_return_key_index_stacked">
-<code class="sig-name descname">test_return_key_index_stacked</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestChangeIndexingReturn.test_return_key_index_stacked"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.test_return_key_index_stacked" title="Permalink to this definition">¶</a></dt>
-<dd><p>Test __getitem__ with key in dataset.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.check_CHEMBL602">
-<code class="sig-name descname">check_CHEMBL602</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles_tokens</span></em>, <em class="sig-param"><span class="n">labels</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/tests/test_annotated_dataset.html#TestChangeIndexingReturn.check_CHEMBL602"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.check_CHEMBL602" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check indexing results lack unwanted index/key from hidden calls</p>
 </dd></dl>
 
 </dd></dl>
@@ -334,8 +285,8 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="pytoda.datasets.tests.test_base_dataset.html" class="btn btn-neutral float-right" title="pytoda.datasets.tests.test_base_dataset module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="pytoda.datasets.tests.html" class="btn btn-neutral float-left" title="pytoda.datasets.tests package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pytoda.datasets.tests.test_gene_expression_dataset.html" class="btn btn-neutral float-right" title="pytoda.datasets.tests.test_gene_expression_dataset module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pytoda.datasets.tests.test_drug_sensitivity_dataset.html" class="btn btn-neutral float-left" title="pytoda.datasets.tests.test_drug_sensitivity_dataset module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

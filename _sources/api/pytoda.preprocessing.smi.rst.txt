@@ -7,7 +7,7 @@ pytoda.preprocessing.smi module
 .. currentmodule:: pytoda.preprocessing.smi
 
 .. automodule:: pytoda.preprocessing.smi
-    :members: filter_invalid_smi
+    :members: filter_invalid_smi, find_undesired_smiles, find_undesired_smiles_files
     :undoc-members:
     :show-inheritance:
     :member-order: bysource
@@ -21,6 +21,8 @@ pytoda.preprocessing.smi module
         :nosignatures:
 
         filter_invalid_smi
+        find_undesired_smiles
+        find_undesired_smiles_files
 
 
 

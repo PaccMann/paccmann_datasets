@@ -19,6 +19,7 @@ pytoda.datasets package
        pytoda.datasets.distributional_dataset
        pytoda.datasets.drug_affinity_dataset
        pytoda.datasets.drug_sensitivity_dataset
+       pytoda.datasets.drug_sensitivity_dose_dataset
        pytoda.datasets.gene_expression_dataset
        pytoda.datasets.polymer_dataset
        pytoda.datasets.protein_protein_interaction_dataset
