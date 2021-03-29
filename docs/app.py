@@ -9,7 +9,7 @@ app.secret_key = "super secret string"  # Change this!
 login_manager = flask_login.LoginManager()
 login_manager.init_app(app)
 
-users = {"pytoda-team@ibm": {"password": os.environ["PYTODA_S3_SECRET_KEY"]}}
+users = {"paccmann-team": {"password": os.environ["PYTODA_DOCS_PASSWORD"]}}
 
 
 class User(flask_login.UserMixin):
