@@ -6,7 +6,7 @@
 pytoda - PaccMann P*yTo*rch *Da*taset Classes
 
 A python package that eases handling biochemical data for deep learning applications with pytorch.
-Please find the full documentation [https://paccmann.github.io/paccmann_datasets/](here).
+Please find the full documentation [here](https://paccmann.github.io/paccmann_datasets/).
 
 ## Requirements
 

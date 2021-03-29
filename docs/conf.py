@@ -43,8 +43,8 @@ def get_version(rel_path):
 # -- Project information -----------------------------------------------------
 
 project = "pytoda"
-copyright = "IBM Corp. 2021"
-author = "IBM Research"
+copyright = "PaccMann team"
+author = "PaccMann team"
 version = get_version('../pytoda/__init__.py')
 
 
