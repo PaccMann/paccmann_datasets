@@ -28,7 +28,7 @@ cost_metric = 'p-norm'
 cost_metric_args = {'p': 2}
 distribution_type = ['normal', 'uniform']
 distribution_args = [{'loc': 0.0, 'scale': 1.0}, {'low': 0, 'high': 1}]
-noise_std = [0.001, 0.1] # Pytorch >1.7 errors with a noise of 0.0.
+noise_std = [0.001, 0.1]  # Pytorch >1.7 errors with a noise of 0.0.
 
 cost_metric_function = METRIC_FUNCTION_FACTORY[cost_metric](**cost_metric_args)
 
