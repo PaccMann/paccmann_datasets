@@ -14,8 +14,13 @@ import codecs
 #
 import os
 import sys
+from unittest import mock
 
 sys.path.insert(0, os.path.abspath(".."))
+
+autodoc_mock_imports = ["rdkit"]
+rdkit = sys.modules['rdkit'] = mock.Mock()
+rdkit.Chem = sys.modules['rdkit.Chem'] = mock.Mock()
 
 # -- Helper functions -----------------------------------------------------
 
@@ -91,7 +96,6 @@ templates_path = ["_templates"]
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-
 
 # -- Options for HTML output -------------------------------------------------
 
