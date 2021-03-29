@@ -111,5 +111,20 @@
 {% if members %}
     Reference
     ---------
+    If you use `pytoda` in your projects, please cite the following:
+
+    .. code-block:: python
+    
+        @article{born2021paccmannrl,
+            title = {PaccMann$^{RL}$: De novo generation of hit-like anticancer molecules from transcriptomic data via reinforcement learning},
+            journal = {iScience},
+            volume = {24},
+            number = {4},
+            year = {2021},
+            issn = {2589-0042},
+            doi = {https://doi.org/10.1016/j.isci.2021.102269},
+            url = {https://www.cell.com/iscience/fulltext/S2589-0042(21)00237-6},
+            author = {Jannis Born and Matteo Manica and Ali Oskooei and Joris Cadow and Greta Markert and Mar{\'\i}a Rodr{\'\i}guez Mart{\'\i}nez}}
+        }
 
 {%- endif %}
