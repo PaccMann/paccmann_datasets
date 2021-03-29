@@ -1,5 +1,6 @@
 """Testing SetMatchingDataset."""
 import unittest
+from typing import List
 
 import torch
 from scipy.optimize import linear_sum_assignment
@@ -41,7 +42,8 @@ class TestSetMatchingDataset(unittest.TestCase):
     def test_permuted_set_matching_dataset(self) -> None:
         """Test PermutedSetMatchingDataset class."""
 
-        tolist = lambda x: x.flatten().tolist()
+        def tolist(x: torch.Tensor) -> List:
+            return x.flatten().tolist()
 
         for dist_type, dist_args in zip(distribution_type, distribution_args):
 
