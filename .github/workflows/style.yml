@@ -1,6 +1,9 @@
 ---
-on: [push]
 name: style
+on:
+  push:
+    branches-ignore:
+      - 'gh_pages'
 jobs:
   super-linter:
     name: Super Linter
@@ -25,7 +28,7 @@ jobs:
 
       - name: Send Slack notification
         uses: 8398a7/action-slack@v2
-        if: always()
+        if: failure()
         with:
           status: ${{ job.status }}
           text: ":mag: ${{ github.job }} :mag:"

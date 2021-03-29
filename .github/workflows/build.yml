@@ -1,6 +1,10 @@
 ---
-on: [push, pull_request]
 name: build
+on:
+  pull_request:
+  push:
+    branches-ignore:
+      - 'gh_pages'
 jobs:
   conda-tests:
     name: Test with conda (${{ matrix.os }})
