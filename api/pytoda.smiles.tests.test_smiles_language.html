@@ -1,0 +1,418 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.smiles.tests.test_smiles_language module &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pytoda.smiles.tests.test_transforms module" href="pytoda.smiles.tests.test_transforms.html" />
+    <link rel="prev" title="pytoda.smiles.tests.test_processing module" href="pytoda.smiles.tests.test_processing.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pytoda.html">API of the pytoda package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pytoda.data_splitter.html">pytoda.data_splitter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.files.html">pytoda.files module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.transforms.html">pytoda.transforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.preprocessing.html">pytoda.preprocessing package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.proteins.html">pytoda.proteins package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pytoda.smiles.html">pytoda.smiles package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.polymer_language.html">pytoda.smiles.polymer_language module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.processing.html">pytoda.smiles.processing module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.smiles_language.html">pytoda.smiles.smiles_language module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.transforms.html">pytoda.smiles.transforms module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.metadata.html">pytoda.smiles.metadata package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="pytoda.smiles.tests.html">pytoda.smiles.tests package</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pytoda.smiles.tests.test_polymer_language.html">pytoda.smiles.tests.test_polymer_language module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pytoda.smiles.tests.test_processing.html">pytoda.smiles.tests.test_processing module</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">pytoda.smiles.tests.test_smiles_language module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pytoda.smiles.tests.test_transforms.html">pytoda.smiles.tests.test_transforms module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.tests.html">pytoda.tests package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#summary">Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="pytoda.html">pytoda package</a> &raquo;</li>
+        
+          <li><a href="pytoda.smiles.html">pytoda.smiles package</a> &raquo;</li>
+        
+          <li><a href="pytoda.smiles.tests.html">pytoda.smiles.tests package</a> &raquo;</li>
+        
+      <li>pytoda.smiles.tests.test_smiles_language module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/pytoda.smiles.tests.test_smiles_language.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pytoda.smiles.tests.test_smiles_language">
+<span id="pytoda-smiles-tests-test-smiles-language-module"></span><h1>pytoda.smiles.tests.test_smiles_language module<a class="headerlink" href="#module-pytoda.smiles.tests.test_smiles_language" title="Permalink to this headline">¶</a></h1>
+<p>Testing SMILESLanguage.</p>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Classes:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.smiles.tests.test_smiles_language.TestSelfiesLanguage" title="pytoda.smiles.tests.test_smiles_language.TestSelfiesLanguage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestSelfiesLanguage</span></code></a></p></td>
+<td><p>Testing SELFIESLanguage.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage" title="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TestSmilesLanguage</span></code></a></p></td>
+<td><p>Testing SMILESLanguage.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage">
+<em class="property">class </em><code class="sig-name descname">TestSmilesLanguage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<p>Testing SMILESLanguage.</p>
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test__update_max_token_sequence_length">
+<code class="sig-name descname">test__update_max_token_sequence_length</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test__update_max_token_sequence_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test__update_max_token_sequence_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test _update_max_token_sequence_length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test__update_language_dictionaries_with_tokens">
+<code class="sig-name descname">test__update_language_dictionaries_with_tokens</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test__update_language_dictionaries_with_tokens"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test__update_language_dictionaries_with_tokens" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test _update_language_dictionaries_with_tokens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_smis">
+<code class="sig-name descname">test_add_smis</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_add_smis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_smis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test add_smis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_smi">
+<code class="sig-name descname">test_add_smi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_add_smi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_smi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test add_smi.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_smiles">
+<code class="sig-name descname">test_add_smiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_add_smiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_smiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test add_smiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_token">
+<code class="sig-name descname">test_add_token</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_add_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test add_token.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_multi_processing">
+<code class="sig-name descname">test_multi_processing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_multi_processing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_multi_processing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test multiprocessing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_smiles_to_token_indexes">
+<code class="sig-name descname">test_smiles_to_token_indexes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_smiles_to_token_indexes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_smiles_to_token_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test smiles_to_token_indexes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_token_indexes_to_smiles">
+<code class="sig-name descname">test_token_indexes_to_smiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_token_indexes_to_smiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_token_indexes_to_smiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test token_indexes_to_smiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_smiles_roundtrip">
+<code class="sig-name descname">test_smiles_roundtrip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_smiles_roundtrip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_smiles_roundtrip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test smiles_to_token_indexes and token_indexes_to_smiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_smiles_to_selfies">
+<code class="sig-name descname">test_smiles_to_selfies</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_smiles_to_selfies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_smiles_to_selfies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test smiles_to_selfies and selfies_to_smiles</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_transform_changes">
+<code class="sig-name descname">test_transform_changes</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_transform_changes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_transform_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test update of transforms on parameter assignment</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_vocab_roundtrip">
+<code class="sig-name descname">test_vocab_roundtrip</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSmilesLanguage.test_vocab_roundtrip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_vocab_roundtrip" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSelfiesLanguage">
+<em class="property">class </em><code class="sig-name descname">TestSelfiesLanguage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSelfiesLanguage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSelfiesLanguage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<p>Testing SELFIESLanguage.</p>
+<dl class="py method">
+<dt id="pytoda.smiles.tests.test_smiles_language.TestSelfiesLanguage.test_add_dataset">
+<code class="sig-name descname">test_add_dataset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/tests/test_smiles_language.html#TestSelfiesLanguage.test_add_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.tests.test_smiles_language.TestSelfiesLanguage.test_add_dataset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="pytoda.smiles.tests.test_transforms.html" class="btn btn-neutral float-right" title="pytoda.smiles.tests.test_transforms module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pytoda.smiles.tests.test_processing.html" class="btn btn-neutral float-left" title="pytoda.smiles.tests.test_processing module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

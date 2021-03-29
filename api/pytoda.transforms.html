@@ -1,0 +1,409 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.transforms module &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pytoda.types module" href="pytoda.types.html" />
+    <link rel="prev" title="pytoda.files module" href="pytoda.files.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pytoda.html">API of the pytoda package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pytoda.data_splitter.html">pytoda.data_splitter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.files.html">pytoda.files module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pytoda.transforms module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#summary">Summary</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.preprocessing.html">pytoda.preprocessing package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.proteins.html">pytoda.proteins package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.smiles.html">pytoda.smiles package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.tests.html">pytoda.tests package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#summary">Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="pytoda.html">pytoda package</a> &raquo;</li>
+        
+      <li>pytoda.transforms module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/pytoda.transforms.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pytoda.transforms">
+<span id="pytoda-transforms-module"></span><h1>pytoda.transforms module<a class="headerlink" href="#module-pytoda.transforms" title="Permalink to this headline">¶</a></h1>
+<p>Transform utilities.</p>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Classes:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.transforms.AugmentByReversing" title="pytoda.transforms.AugmentByReversing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AugmentByReversing</span></code></a></p></td>
+<td><p>Augment an sequence by (eventually) flipping order</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.transforms.Compose" title="pytoda.transforms.Compose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compose</span></code></a></p></td>
+<td><p>Composes several transforms together.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.transforms.LeftPadding" title="pytoda.transforms.LeftPadding"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LeftPadding</span></code></a></p></td>
+<td><p>Left pad token indexes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.transforms.ListToTensor" title="pytoda.transforms.ListToTensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ListToTensor</span></code></a></p></td>
+<td><p>2D Version of ToTensor.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.transforms.Randomize" title="pytoda.transforms.Randomize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Randomize</span></code></a></p></td>
+<td><p>Randomize a sequence all tokens.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.transforms.StartStop" title="pytoda.transforms.StartStop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StartStop</span></code></a></p></td>
+<td><p>Add start and stop token indexes at beginning and end of sequence.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.transforms.ToTensor" title="pytoda.transforms.ToTensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToTensor</span></code></a></p></td>
+<td><p>Transform token indexes to torch tensor.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p></td>
+<td><p>Transform abstract class.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pytoda.transforms.Transform">
+<em class="property">class </em><code class="sig-name descname">Transform</code><a class="reference internal" href="../_modules/pytoda/transforms.html#Transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.Transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Transform abstract class.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.transforms.StartStop">
+<em class="property">class </em><code class="sig-name descname">StartStop</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_index</span></em>, <em class="sig-param"><span class="n">stop_index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#StartStop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.StartStop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Add start and stop token indexes at beginning and end of sequence.</p>
+<dl class="py method">
+<dt id="pytoda.transforms.StartStop.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start_index</span></em>, <em class="sig-param"><span class="n">stop_index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#StartStop.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.StartStop.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a left padding token indexes object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>start_index</strong> (<em>int</em>) – index of start token in vocabulary.</p></li>
+<li><p><strong>start_index</strong> – index of stop token in vocabulary.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.transforms.LeftPadding">
+<em class="property">class </em><code class="sig-name descname">LeftPadding</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">padding_length</span></em>, <em class="sig-param"><span class="n">padding_index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#LeftPadding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.LeftPadding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Left pad token indexes.</p>
+<dl class="py method">
+<dt id="pytoda.transforms.LeftPadding.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">padding_length</span></em>, <em class="sig-param"><span class="n">padding_index</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#LeftPadding.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.LeftPadding.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a left padding token indexes object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>padding_length</strong> (<em>int</em>) – length of the padding.</p></li>
+<li><p><strong>padding_index</strong> (<em>int</em>) – padding index.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.transforms.ToTensor">
+<em class="property">class </em><code class="sig-name descname">ToTensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int16</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ToTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ToTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Transform token indexes to torch tensor.</p>
+<dl class="py method">
+<dt id="pytoda.transforms.ToTensor.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int16</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ToTensor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ToTensor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a token indexes to tensor object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> (<em>torch.device</em>) – device where the tensors are stored.
+Defaults to gpu, if available.</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em>) – data type. Defaults to torch.short.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.transforms.ListToTensor">
+<em class="property">class </em><code class="sig-name descname">ListToTensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.float32</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ListToTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ListToTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>2D Version of ToTensor.</p>
+<dl class="py method">
+<dt id="pytoda.transforms.ListToTensor.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.float32</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ListToTensor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ListToTensor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a token indexes to tensor object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> (<em>torch.device</em>) – device where the tensors are stored.
+Defaults to gpu, if available.</p></li>
+<li><p><strong>dtype</strong> (<em>torch.dtype</em>) – data type. Defaults to torch.float.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.transforms.Randomize">
+<em class="property">class </em><code class="sig-name descname">Randomize</code><a class="reference internal" href="../_modules/pytoda/transforms.html#Randomize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.Randomize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Randomize a sequence all tokens.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.transforms.AugmentByReversing">
+<em class="property">class </em><code class="sig-name descname">AugmentByReversing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="o">=</span><span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#AugmentByReversing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.AugmentByReversing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Augment an sequence by (eventually) flipping order</p>
+<dl class="py method">
+<dt id="pytoda.transforms.AugmentByReversing.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="o">=</span><span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#AugmentByReversing.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.AugmentByReversing.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>AugmentByReversing constructor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>p</strong> (<em>float</em>) – Probability that reverting occurs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.transforms.Compose">
+<em class="property">class </em><code class="sig-name descname">Compose</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transforms</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#Compose"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.Compose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Composes several transforms together.</p>
+<p>From:
+<a class="reference external" href="https://pytorch.org/docs/stable/torchvision/transforms.html#torchvision.transforms.Compose">https://pytorch.org/docs/stable/torchvision/transforms.html#torchvision.transforms.Compose</a>.</p>
+<dl class="py method">
+<dt id="pytoda.transforms.Compose.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">transforms</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#Compose.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.Compose.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a compose transform object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>transforms</strong> (<em>TransformList</em>) – a list of transforms.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="pytoda.types.html" class="btn btn-neutral float-right" title="pytoda.types module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pytoda.files.html" class="btn btn-neutral float-left" title="pytoda.files module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

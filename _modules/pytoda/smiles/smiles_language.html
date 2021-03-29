@@ -1,0 +1,1195 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.smiles.smiles_language &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.smiles.smiles_language</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.smiles.smiles_language</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2020 Matteo Manica, Jannis Born, Ali Oskooei, Joris Cadow</span>
+<span class="c1"># Most parts of this file are Licenced under the MIT Licence.</span>
+<span class="c1"># Specifically the functions from_pretrained and save_pretrained are derivative</span>
+<span class="c1"># works with sources under the following licence:</span>
+<span class="c1"># Copyright 2018 The Open AI Team Authors and The HuggingFace Inc. team.</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use these functions except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;SMILES language handling.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+
+<span class="kn">import</span> <span class="nn">rdkit</span>  <span class="c1"># Needs import before torch in some envs</span>
+<span class="kn">import</span> <span class="nn">dill</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">selfies</span> <span class="kn">import</span> <span class="n">decoder</span> <span class="k">as</span> <span class="n">selfies_decoder</span>
+<span class="kn">from</span> <span class="nn">selfies</span> <span class="kn">import</span> <span class="n">encoder</span> <span class="k">as</span> <span class="n">selfies_encoder</span>
+
+<span class="kn">from</span> <span class="nn">..files</span> <span class="kn">import</span> <span class="n">read_smi</span>
+<span class="kn">from</span> <span class="nn">..transforms</span> <span class="kn">import</span> <span class="n">Compose</span>
+<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Files</span><span class="p">,</span>
+    <span class="n">Indexes</span><span class="p">,</span>
+    <span class="n">Iterable</span><span class="p">,</span>
+    <span class="n">Sequence</span><span class="p">,</span>
+    <span class="n">Tensor</span><span class="p">,</span>
+    <span class="n">Tokenizer</span><span class="p">,</span>
+    <span class="n">Tokens</span><span class="p">,</span>
+    <span class="n">Tuple</span><span class="p">,</span>
+    <span class="n">Union</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.processing</span> <span class="kn">import</span> <span class="n">TOKENIZER_FUNCTIONS</span><span class="p">,</span> <span class="n">tokenize_smiles</span>
+<span class="kn">from</span> <span class="nn">.transforms</span> <span class="kn">import</span> <span class="n">compose_encoding_transforms</span><span class="p">,</span> <span class="n">compose_smiles_transforms</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># mimicry of huggingface tokenizers</span>
+<span class="c1"># see PreTrainedTokenizer</span>
+<span class="n">VOCAB_FILES_NAMES</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">:</span> <span class="s1">&#39;vocab.json&#39;</span><span class="p">}</span>
+<span class="c1"># see PreTrainedTokenizerBase</span>
+<span class="n">TOKENIZER_CONFIG_FILE</span> <span class="o">=</span> <span class="s1">&#39;tokenizer_config.json&#39;</span>
+<span class="c1"># our</span>
+<span class="n">TOKEN_COUNTS_FILE</span> <span class="o">=</span> <span class="s1">&#39;token_count.json&#39;</span>
+
+
+<div class="viewcode-block" id="UnknownMaxLengthError"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.UnknownMaxLengthError">[docs]</a><span class="k">class</span> <span class="nc">UnknownMaxLengthError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SMILESLanguage"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage">[docs]</a><span class="k">class</span> <span class="nc">SMILESLanguage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SMILESLanguage class.</span>
+
+<span class="sd">    SMILESLanguage handle SMILES data defining the vocabulary and</span>
+<span class="sd">    utilities to manipulate it, including encoding to token indexes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">vocab_files_names</span> <span class="o">=</span> <span class="n">VOCAB_FILES_NAMES</span>
+
+<div class="viewcode-block" id="SMILESLanguage.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;smiles-language&#39;</span><span class="p">,</span>
+        <span class="n">smiles_tokenizer</span><span class="p">:</span> <span class="n">Tokenizer</span> <span class="o">=</span> <span class="n">tokenize_smiles</span><span class="p">,</span>
+        <span class="n">tokenizer_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Literal only in python 3.8</span>
+        <span class="n">vocab_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_token_sequence_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize SMILES language.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): name of the SMILESLanguage.</span>
+<span class="sd">            smiles_tokenizer (Tokenizer): optional SMILES tokenization</span>
+<span class="sd">                function. Defaults to tokenize_smiles, but tokenizer_name takes</span>
+<span class="sd">                precedence when found in available TOKENIZER_FUNCTIONS.</span>
+<span class="sd">            tokenizer_name (str): name, mapping to Tokenizer used to save and</span>
+<span class="sd">                restore object from text files. Defaults to None, i.e.</span>
+<span class="sd">                using default smiles_tokenizer. Examples for available names</span>
+<span class="sd">                are &#39;smiles&#39;, &#39;selfies&#39; or &#39;spe_smiles&#39;.</span>
+<span class="sd">            vocab_file (str): optional filepath to vocab json or directory</span>
+<span class="sd">                containing it.</span>
+<span class="sd">            max_token_sequence_length (int): initial value for keeping track</span>
+<span class="sd">                of longest sequence. Defaults to 0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer_name</span> <span class="o">=</span> <span class="n">tokenizer_name</span>
+        <span class="k">if</span> <span class="n">tokenizer_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">tokenizer_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">TOKENIZER_FUNCTIONS</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Given tokenizer_name </span><span class="si">{tokenizer_name}</span><span class="s1"> was not found, using&#39;</span>
+                <span class="s1">&#39;default tokenizer function.&#39;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_tokenizer</span> <span class="o">=</span> <span class="n">TOKENIZER_FUNCTIONS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">tokenizer_name</span><span class="p">,</span> <span class="n">smiles_tokenizer</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding_token</span> <span class="o">=</span> <span class="s1">&#39;&lt;PAD&gt;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span> <span class="o">=</span> <span class="s1">&#39;&lt;UNK&gt;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_token</span> <span class="o">=</span> <span class="s1">&#39;&lt;START&gt;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_token</span> <span class="o">=</span> <span class="s1">&#39;&lt;STOP&gt;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unknown_index</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_count</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">special_indexes</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding_token</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unknown_index</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_token</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_token</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_vocab</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">vocab_file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_vocabulary</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">)</span>
+
+        <span class="c1"># updated when adding smiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">=</span> <span class="n">max_token_sequence_length</span>
+        <span class="c1"># updated by transformations, e.g. padding</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens_fn</span> <span class="o">=</span> <span class="nb">len</span>
+
+        <span class="c1"># inputs and kwargs for saving and re-loading (TOKENIZER_CONFIG_FILE)</span>
+        <span class="c1"># (see ``from_pretrained`` and ``save_pretrained``)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_inputs</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s1">&#39;tokenizer_name&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer_name</span><span class="p">,</span>
+            <span class="s1">&#39;max_token_sequence_length&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform_smiles</span> <span class="o">=</span> <span class="n">Compose</span><span class="p">([])</span>  <span class="c1"># identity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform_encoding</span> <span class="o">=</span> <span class="n">Compose</span><span class="p">([])</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.setup_vocab"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.setup_vocab">[docs]</a>    <span class="k">def</span> <span class="nf">setup_vocab</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets up the vocab by generating the special tokens.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># NOTE: include augmentation characters, parenthesis and numbers for</span>
+        <span class="c1">#    rings</span>
+        <span class="n">additional_indexes_to_token</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="nb">enumerate</span><span class="p">(</span>
+                <span class="nb">list</span><span class="p">(</span><span class="s1">&#39;()&#39;</span><span class="p">)</span>
+                <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)))</span>
+                <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="s1">&#39;%</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">30</span><span class="p">)),</span>
+                <span class="n">start</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">special_indexes</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">special_indexes</span><span class="p">,</span> <span class="o">**</span><span class="n">additional_indexes_to_token</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">token</span><span class="p">:</span> <span class="n">index</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.load"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.load">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;SMILESLanguage&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Static method to load a SMILESLanguage object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filepath (str): path to the file.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            SMILESLanguage: the loaded SMILES language object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Loading languages will use a text files in the future&quot;</span><span class="p">,</span> <span class="ne">FutureWarning</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">smiles_language</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.dump"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.dump">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="n">smiles_language</span><span class="p">:</span> <span class="s1">&#39;SMILESLanguage&#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Static method to save a smiles_language object to disk.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles_language (SMILESLanguage): a SMILESLanguage object.</span>
+<span class="sd">            filepath (str): path where to dump the SMILESLanguage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">dill</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">smiles_language</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.save"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instance method to save/dump smiles language object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filepath (str): path where to save the SMILESLanguage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Saving languages will only store a text files in the future&quot;</span><span class="p">,</span> <span class="ne">FutureWarning</span>
+        <span class="p">)</span>
+        <span class="n">SMILESLanguage</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.load_vocabulary"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.load_vocabulary">[docs]</a>    <span class="k">def</span> <span class="nf">load_vocabulary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load a vocabulary mapping from token to token indexes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vocab_file (str): a .json with tokens mapping to index. Can also</span>
+<span class="sd">                be path to directory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">):</span>
+            <span class="n">vocab_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_files_names</span><span class="p">[</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">])</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">vocab</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+        <span class="c1"># encoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_specials</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
+        <span class="c1"># decoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_check_specials</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check that defined special tokens match class definitions.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">special_indexes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">vocab</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="o">!=</span> <span class="n">index</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;The vocab does not have matching special tokens: &#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{token}</span><span class="s1"> is </span><span class="si">{vocab[token]}</span><span class="s1">, but was defined as &#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{index}</span><span class="s1">.&#39;</span><span class="p">,</span>
+                    <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The vocab is missing a special token: </span><span class="si">{token}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vocab</span>
+
+<div class="viewcode-block" id="SMILESLanguage.from_pretrained"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.from_pretrained">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pretrained_path</span><span class="p">,</span> <span class="o">*</span><span class="n">init_inputs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># directory with vocab files</span>
+        <span class="c1"># not handling ADDED_TOKENS_FILE or SPECIAL_TOKENS_MAP_FILE</span>
+        <span class="c1"># only handle case of files on disk here</span>
+        <span class="c1"># but include handling optional counts</span>
+        <span class="n">resolved_vocab_files</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">additional_files_names</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;tokenizer_config_file&#39;</span><span class="p">:</span> <span class="n">TOKENIZER_CONFIG_FILE</span><span class="p">,</span>
+            <span class="s1">&#39;token_count_file&#39;</span><span class="p">:</span> <span class="n">TOKEN_COUNTS_FILE</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Look for the tokenizer main vocabulary files</span>
+        <span class="c1"># and the additional tokens files</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">pretrained_path</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">file_id</span><span class="p">,</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="p">{</span>
+                <span class="o">**</span><span class="bp">cls</span><span class="o">.</span><span class="n">vocab_files_names</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">additional_files_names</span><span class="p">,</span>
+            <span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">full_file_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pretrained_path</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">full_file_name</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s2">&quot;Didn&#39;t find file </span><span class="si">{}</span><span class="s2">. We won&#39;t load it.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">full_file_name</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">full_file_name</span> <span class="o">=</span> <span class="kc">None</span>
+
+                <span class="n">resolved_vocab_files</span><span class="p">[</span><span class="n">file_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">full_file_name</span>
+
+        <span class="c1"># Prepare tokenizer initialization kwargs</span>
+        <span class="n">tokenizer_config_file</span> <span class="o">=</span> <span class="n">resolved_vocab_files</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;tokenizer_config_file&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tokenizer_config_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tokenizer_config_file</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">config_file</span><span class="p">:</span>
+                <span class="n">init_kwargs</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+            <span class="n">saved_init_inputs</span> <span class="o">=</span> <span class="n">init_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;init_inputs&quot;</span><span class="p">,</span> <span class="p">())</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">init_inputs</span><span class="p">:</span>
+                <span class="n">init_inputs</span> <span class="o">=</span> <span class="n">saved_init_inputs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">init_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># Update with newly provided kwargs</span>
+        <span class="n">init_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">token_count_file</span> <span class="o">=</span> <span class="n">resolved_vocab_files</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;token_count_file&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># adds remaining (i.e. vocab_file) to kwargs</span>
+        <span class="k">for</span> <span class="n">args_name</span><span class="p">,</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">resolved_vocab_files</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">args_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">init_kwargs</span><span class="p">:</span>
+                <span class="n">init_kwargs</span><span class="p">[</span><span class="n">args_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_path</span>
+
+        <span class="c1"># Instantiate tokenizer.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tokenizer</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">init_inputs</span><span class="p">,</span> <span class="o">**</span><span class="n">init_kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span>
+                <span class="s1">&#39;Unable to load vocabulary from file. &#39;</span>
+                <span class="s1">&#39;Please check that the provided vocabulary is accessible &#39;</span>
+                <span class="s1">&#39;and not corrupted.&#39;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">token_count_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">token_count_file</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">counts_file</span><span class="p">:</span>
+                <span class="n">tokenizer</span><span class="o">.</span><span class="n">token_count</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">counts_file</span><span class="p">))</span>
+
+        <span class="c1"># set args and kwargs explicitly here.</span>
+        <span class="n">tokenizer</span><span class="o">.</span><span class="n">init_inputs</span> <span class="o">=</span> <span class="n">init_inputs</span>
+        <span class="n">tokenizer</span><span class="o">.</span><span class="n">init_kwargs</span> <span class="o">=</span> <span class="n">init_kwargs</span>
+
+        <span class="k">return</span> <span class="n">tokenizer</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.save_vocabulary"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.save_vocabulary">[docs]</a>    <span class="k">def</span> <span class="nf">save_vocabulary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Save the vocabulary mapping tokens to indexes to file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vocab_file (str): a .json to save tokens mapping to index. Can also</span>
+<span class="sd">                be path to directory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">):</span>
+            <span class="n">vocab_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_files_names</span><span class="p">[</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">])</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">vocab_file</span><span class="p">,)</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.save_pretrained"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.save_pretrained">[docs]</a>    <span class="k">def</span> <span class="nf">save_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_directory</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save the tokenizer vocabulary files together with</span>
+<span class="sd">        tokenizer instantiation positional and keywords inputs.</span>
+
+<span class="sd">        This method make sure the full tokenizer can then be re-loaded</span>
+<span class="sd">        using the `from_pretrained` class method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">save_directory</span><span class="p">):</span>
+            <span class="c1"># TODO raise?</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;Saving directory (</span><span class="si">{}</span><span class="s1">) should be a directory&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">save_directory</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">tokenizer_config_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_directory</span><span class="p">,</span> <span class="n">TOKENIZER_CONFIG_FILE</span><span class="p">)</span>
+        <span class="n">tokenizer_counts_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_directory</span><span class="p">,</span> <span class="n">TOKEN_COUNTS_FILE</span><span class="p">)</span>
+
+        <span class="n">tokenizer_config</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">tokenizer_config</span><span class="p">[</span><span class="s1">&#39;init_inputs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">init_inputs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">file_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_files_names</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">tokenizer_config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tokenizer_config_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">tokenizer_config</span><span class="p">,</span> <span class="n">fp</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tokenizer_counts_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token_count</span><span class="p">,</span> <span class="n">fp</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">vocab_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_vocabulary</span><span class="p">(</span><span class="n">save_directory</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">vocab_files</span> <span class="o">+</span> <span class="p">(</span><span class="n">tokenizer_counts_file</span><span class="p">,)</span></div>
+
+    <span class="k">def</span> <span class="nf">_load_vocabulary_from_pickled_language</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">include_metadata</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Save the vocabulary mapping tokens to indexes from file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filepath (str): path to the dump of the SMILESLanguage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">a_language</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="c1"># encoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_specials</span><span class="p">(</span><span class="n">a_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">)</span>
+        <span class="c1"># decoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_from_legacy_pickled_language</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Load a current language instance from pickled legacy language.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filepath (str): path to the dump of the SMILESLanguage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;Loading from legacy languages will be deprecated&quot;</span><span class="p">,</span> <span class="ne">DeprecationWarning</span>
+        <span class="p">)</span>
+        <span class="n">a_language</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="c1"># encoder</span>
+        <span class="c1"># missing special tokens</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">a_language</span><span class="o">.</span><span class="n">token_to_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">t</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">special_indexes</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="c1"># decoder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">=</span> <span class="n">a_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span>  <span class="c1"># noqa</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_kwargs</span><span class="p">[</span><span class="s1">&#39;max_token_sequence_length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_count</span> <span class="o">=</span> <span class="n">a_language</span><span class="o">.</span><span class="n">_token_count</span>
+
+    <span class="k">def</span> <span class="nf">_update_max_token_sequence_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">:</span> <span class="n">Tokens</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the max token sequence length.</span>
+<span class="sd">        Uses method possibly overloaded by transformation setup to assess the</span>
+<span class="sd">        length of tokens after transformations prior to their application.</span>
+<span class="sd">        For example this allows handling start and stop tokens.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tokens (Tokens): tokens considered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">total_number_of_tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens_fn</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">total_number_of_tokens</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">=</span> <span class="n">total_number_of_tokens</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_kwargs</span><span class="p">[</span><span class="s1">&#39;max_token_sequence_length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_number_of_tokens</span>
+
+    <span class="k">def</span> <span class="nf">_update_language_dictionaries_with_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">:</span> <span class="n">Tokens</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the language dictionaries with provided tokens.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tokens (Tokens): tokens considered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># count tokens</span>
+        <span class="n">tokens_counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="c1"># index to token</span>
+        <span class="n">index_to_token</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="nb">enumerate</span><span class="p">(</span>
+                <span class="n">tokens_counter</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="c1"># update language</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_count</span> <span class="o">+=</span> <span class="n">tokens_counter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">index_to_token</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="p">{</span><span class="n">token</span><span class="p">:</span> <span class="n">index</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">index_to_token</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">index_to_token</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SMILESLanguage.add_smis"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.add_smis">[docs]</a>    <span class="k">def</span> <span class="nf">add_smis</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">smi_filepaths</span><span class="p">:</span> <span class="n">Files</span><span class="p">,</span>
+        <span class="n">index_col</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;SMILES&#39;</span><span class="p">,</span>
+        <span class="n">names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a set of SMILES from a list of .smi files, applying</span>
+<span class="sd">        `transform_smiles`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smi_filepaths (Files): a list of paths to .smi files.</span>
+<span class="sd">            index_col (int): Data column used for indexing, defaults to 1.</span>
+<span class="sd">            chunk_size (int): size of the chunks. Defaults to 10000.</span>
+<span class="sd">            name (str): type of dataset, used to index columns in smi, and must</span>
+<span class="sd">                be in names. Defaults to &#39;SMILES&#39;.</span>
+<span class="sd">            names (Sequence[str]): User-assigned names given to the columns.</span>
+<span class="sd">                Defaults to `[name]`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">smi_filepath</span> <span class="ow">in</span> <span class="n">smi_filepaths</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_smi</span><span class="p">(</span>
+                <span class="n">smi_filepath</span><span class="p">,</span>
+                <span class="n">index_col</span><span class="o">=</span><span class="n">index_col</span><span class="p">,</span>
+                <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.add_smi"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.add_smi">[docs]</a>    <span class="k">def</span> <span class="nf">add_smi</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">smi_filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">index_col</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;SMILES&#39;</span><span class="p">,</span>
+        <span class="n">names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a set of SMILES from a .smi file, applying `transform_smiles`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smi_filepath (str): path to the .smi file.</span>
+<span class="sd">            index_col (int): Data column used for indexing, defaults to 1.</span>
+<span class="sd">            chunk_size (int): number of rows to read in a chunk.</span>
+<span class="sd">                Defaults to 100000.</span>
+<span class="sd">            name (str): type of dataset, used to index columns in smi, and must</span>
+<span class="sd">                be in names. Defaults to &#39;SMILES&#39;.</span>
+<span class="sd">            names (Sequence[str]): User-assigned names given to the columns.</span>
+<span class="sd">                Defaults to `[name]`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">names</span> <span class="ow">or</span> <span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">read_smi</span><span class="p">(</span>
+                <span class="n">smi_filepath</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="n">index_col</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">names</span>
+            <span class="p">):</span>
+                <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">chunk</span><span class="p">[</span><span class="n">name</span><span class="p">]:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">transformed_smiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">transformed_smiles</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                            <span class="s1">&#39;transformation of smiles or adding result to &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;the language failed for: </span><span class="si">{smiles}</span><span class="s1">&#39;</span>
+                        <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="s1">&#39;There must be one name per column in names.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;{str(error)}. Check index_col and that name </span><span class="si">{name}</span><span class="s1"> is in &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39; names </span><span class="si">{names}</span><span class="s1">&#39;</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.add_dataset"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.add_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">add_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a set of SMILES from an iterable, applying `transform_smiles`.</span>
+
+<span class="sd">        Collects and warns about invalid SMILES, and warns on finding new</span>
+<span class="sd">        tokens.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dataset (Iterable): returning SMILES strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">initial_vocab_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">invalid_molecules</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">failed_transform_smiles</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">rdkit</span><span class="o">.</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">invalid_molecules</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">index</span><span class="p">,</span> <span class="n">smiles</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">transformed_smiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">failed_transform_smiles</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">index</span><span class="p">,</span> <span class="n">smiles</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">transformed_smiles</span><span class="p">)</span>
+
+        <span class="c1"># Raise warning about invalid molecules</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">invalid_molecules</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;NOTE: We found {len(self.invalid_molecules)} invalid  &#39;</span>
+                <span class="s1">&#39;smiles. Check the warning trace and inspect the  attribute &#39;</span>
+                <span class="s1">&#39;`invalid_molecules`. To remove invalid  SMILES in your .smi &#39;</span>
+                <span class="s1">&#39;file, we recommend using &#39;</span>
+                <span class="s1">&#39;`pytoda.preprocessing.smi.smi_cleaner`.&#39;</span>
+            <span class="p">)</span>
+        <span class="c1"># Raise warning about failed transformations</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">failed_transform_smiles</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;NOTE: We found {len(self.failed_transform_smiles)} smiles &#39;</span>
+                <span class="s1">&#39;that failed to be transformed (excluding invalid smiles). &#39;</span>
+                <span class="s1">&#39;Inspect the attribute `failed_transform_smiles`.&#39;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Raise warning if new tokens were added.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">initial_vocab_length</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;{len(self.token_to_index) - initial_vocab_length}&#39;</span>
+                <span class="s1">&#39; new token(s) were added to SMILES language.&#39;</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.add_smiles"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.add_smiles">[docs]</a>    <span class="k">def</span> <span class="nf">add_smiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a SMILES to the language.</span>
+
+<span class="sd">        Updates `max_token_sequence_length`.</span>
+<span class="sd">        Adds missing tokens to the language.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): a SMILES representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_tokenizer</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_max_token_sequence_length</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_language_dictionaries_with_tokens</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.add_token"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.add_token">[docs]</a>    <span class="k">def</span> <span class="nf">add_token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a token to the language.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            token (str): a token.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_count</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_count</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span><span class="p">]</span> <span class="o">=</span> <span class="n">token</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.smiles_to_token_indexes"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.smiles_to_token_indexes">[docs]</a>    <span class="k">def</span> <span class="nf">smiles_to_token_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Indexes</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform character-level SMILES into a sequence of token indexes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): a SMILES (or SELFIES) representation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Union[Indexes, Tensor]: indexes representation for the</span>
+<span class="sd">                SMILES/SELFIES provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_encoding</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_index</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_tokenizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transform_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">))</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.token_indexes_to_smiles"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.token_indexes_to_smiles">[docs]</a>    <span class="k">def</span> <span class="nf">token_indexes_to_smiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_indexes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Indexes</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform a sequence of token indexes into SMILES, ignoring special</span>
+<span class="sd">        tokens.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            token_indexes (Union[Indexes, Tensor]): Sequence of integers</span>
+<span class="sd">                representing tokens in vocabulary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: a SMILES (or SELFIES) representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_indexes</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token_index</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">token_index</span> <span class="ow">in</span> <span class="n">token_indexes</span>
+                <span class="c1"># consider only valid SMILES token indexes</span>
+                <span class="k">if</span> <span class="n">token_index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">special_indexes</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.tensor_to_indexes"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.tensor_to_indexes">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">tensor_to_indexes</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Indexes</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Indexes</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Utility to get Indexes from Tensors.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            token_indexes (Union[Indexes, Tensor]): from single SMILES.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: in case the Tensor is not shaped correctly</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Indexes: list from Tensor or else the initial token_indexes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">token_indexes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only token indexes for a single SMILES are supported&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">token_indexes</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">token_indexes</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.selfies_to_smiles"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.selfies_to_smiles">[docs]</a>    <span class="k">def</span> <span class="nf">selfies_to_smiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selfies</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        SELFIES to SMILES converter method.</span>
+<span class="sd">        Based on: https://arxiv.org/abs/1905.13741</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            selfies (str): SELFIES representation</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: A SMILES string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selfies</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Wrong data type: {type(selfies)}. Use strings.&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">selfies_decoder</span><span class="p">(</span><span class="n">selfies</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Could not convert SELFIES </span><span class="si">{selfies}</span><span class="s1"> to SMILES, returning &#39;</span>
+                <span class="s1">&#39;the SELFIES instead&#39;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">selfies</span></div>
+
+<div class="viewcode-block" id="SMILESLanguage.smiles_to_selfies"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.smiles_to_selfies">[docs]</a>    <span class="k">def</span> <span class="nf">smiles_to_selfies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        SMILES to SELFIES converter method.</span>
+<span class="sd">        Based on: https://arxiv.org/abs/1905.13741</span>
+
+<span class="sd">        Arguments:</span>
+<span class="sd">            smiles (str): SMILES representation</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: A SELFIES string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Wrong data type: {type(smiles)}. Use strings.&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">selfies_encoder</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Could not convert SMILES </span><span class="si">{smiles}</span><span class="s1"> to SELFIES, returning &#39;</span>
+                <span class="s1">&#39;the SMILES instead&#39;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">smiles</span></div></div>
+
+
+<div class="viewcode-block" id="SELFIESLanguage"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SELFIESLanguage">[docs]</a><span class="k">class</span> <span class="nc">SELFIESLanguage</span><span class="p">(</span><span class="n">SMILESLanguage</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SELFIESLanguage is a SMILESLanguage with a different default tokenizer,</span>
+<span class="sd">    transforming SMILES to SELFIES.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SELFIESLanguage.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SELFIESLanguage.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;selfies-language&#39;</span><span class="p">,</span>
+        <span class="n">vocab_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_token_sequence_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize SMILES language.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): name of the SMILESLanguage.</span>
+<span class="sd">            vocab_file (str): optional filepath to vocab json or directory</span>
+<span class="sd">                containing it.</span>
+<span class="sd">            max_token_sequence_length (int): initial value for keeping track</span>
+<span class="sd">                of longest sequence. Defaults to 0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">tokenizer_name</span><span class="o">=</span><span class="s1">&#39;selfies&#39;</span><span class="p">,</span>
+            <span class="n">vocab_file</span><span class="o">=</span><span class="n">vocab_file</span><span class="p">,</span>
+            <span class="n">max_token_sequence_length</span><span class="o">=</span><span class="n">max_token_sequence_length</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform_smiles</span> <span class="o">=</span> <span class="n">selfies_encoder</span></div></div>
+
+
+<div class="viewcode-block" id="SMILESTokenizer"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESTokenizer">[docs]</a><span class="k">class</span> <span class="nc">SMILESTokenizer</span><span class="p">(</span><span class="n">SMILESLanguage</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    SMILESTokenizer class, based on SMILESLanguage applying transforms and</span>
+<span class="sd">    and encoding of SMILES string to sequence of token indexes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SMILESTokenizer.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESTokenizer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;smiles-language&#39;</span><span class="p">,</span>
+        <span class="n">smiles_tokenizer</span><span class="p">:</span> <span class="n">Tokenizer</span> <span class="o">=</span> <span class="n">tokenize_smiles</span><span class="p">,</span>
+        <span class="n">tokenizer_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">vocab_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_token_sequence_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">canonical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">augment</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">kekulize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_bonds_explicit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_hs_explicit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">remove_bonddir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">remove_chirality</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">selfies</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">sanitize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">randomize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">padding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">padding_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span>
+            <span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span>
+        <span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize SMILES language.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): name of the SMILESLanguage.</span>
+<span class="sd">            smiles_tokenizer (Tokenizer): optional SMILES tokenization</span>
+<span class="sd">                function. Defaults to tokenize_smiles, but tokenizer_name takes</span>
+<span class="sd">                precedence when found in available TOKENIZER_FUNCTIONS.</span>
+<span class="sd">            tokenizer_name (str): optional name mapping to Tokenizer. Defaults</span>
+<span class="sd">                to None, i.e. using default smiles_tokenizer.</span>
+<span class="sd">            vocab_file (str): optional filepath to vocab json or directory</span>
+<span class="sd">                containing it.</span>
+<span class="sd">            max_token_sequence_length (int): initial value for keeping track</span>
+<span class="sd">                of longest sequence. Defaults to 0.</span>
+<span class="sd">            canonical (bool): performs canonicalization of SMILES (one</span>
+<span class="sd">                original string for one molecule), if True, then other</span>
+<span class="sd">                transformations (augment etc, see below) do not apply</span>
+<span class="sd">            augment (bool): perform SMILES augmentation. Defaults to False.</span>
+<span class="sd">            kekulize (bool): kekulizes SMILES (implicit aromaticity only).</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            all_bonds_explicit (bool): Makes all bonds explicit. Defaults to</span>
+<span class="sd">                False, only applies if kekulize = True.</span>
+<span class="sd">            all_hs_explicit (bool): Makes all hydrogens explicit. Defaults to</span>
+<span class="sd">                False, only applies if kekulize = True.</span>
+<span class="sd">            randomize (bool): perform a true randomization of SMILES tokens.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            remove_bonddir (bool): Remove directional info of bonds.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            remove_chirality (bool): Remove chirality information.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            selfies (bool): Whether selfies is used instead of smiles, defaults</span>
+<span class="sd">                to False.</span>
+<span class="sd">            sanitize (bool): Sanitize SMILES. Defaults to True.</span>
+<span class="sd">            add_start_and_stop (bool): add start and stop token indexes.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            padding (bool): pad sequences from the left to matching length.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            padding_length (int): common length of all token sequences,</span>
+<span class="sd">                applies only if padding is True. See `set_max_padding` to set</span>
+<span class="sd">                it to longest token sequence the smiles language encountered.</span>
+<span class="sd">                Defaults to None.</span>
+<span class="sd">            device (torch.device): device where the tensors are stored.</span>
+<span class="sd">                Defaults to gpu, if available.</span>
+
+<span class="sd">        NOTE:</span>
+<span class="sd">            See `set_smiles_transforms` and `set_encoding_transforms` to change</span>
+<span class="sd">            the transforms temporarily and reset with</span>
+<span class="sd">            `reset_initial_transforms`. Assignment of class attributes</span>
+<span class="sd">            in the parameter list will trigger such a reset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">smiles_tokenizer</span><span class="o">=</span><span class="n">smiles_tokenizer</span><span class="p">,</span>
+            <span class="n">tokenizer_name</span><span class="o">=</span><span class="n">tokenizer_name</span><span class="p">,</span>
+            <span class="n">vocab_file</span><span class="o">=</span><span class="n">vocab_file</span><span class="p">,</span>
+            <span class="n">max_token_sequence_length</span><span class="o">=</span><span class="n">max_token_sequence_length</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># smiles transforms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canonical</span> <span class="o">=</span> <span class="n">canonical</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">augment</span> <span class="o">=</span> <span class="n">augment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kekulize</span> <span class="o">=</span> <span class="n">kekulize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span> <span class="o">=</span> <span class="n">all_bonds_explicit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span> <span class="o">=</span> <span class="n">all_hs_explicit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_bonddir</span> <span class="o">=</span> <span class="n">remove_bonddir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_chirality</span> <span class="o">=</span> <span class="n">remove_chirality</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selfies</span> <span class="o">=</span> <span class="n">selfies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span> <span class="o">=</span> <span class="n">sanitize</span>
+        <span class="c1"># encoding transforms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">randomize</span> <span class="o">=</span> <span class="n">randomize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span> <span class="o">=</span> <span class="n">add_start_and_stop</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">padding</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span> <span class="o">=</span> <span class="n">padding_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_attributes</span> <span class="o">=</span> <span class="p">[</span>  <span class="c1"># additions to init_kwargs for pretrained</span>
+            <span class="s1">&#39;canonical&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;augment&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;kekulize&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;all_bonds_explicit&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;all_hs_explicit&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;remove_bonddir&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;remove_chirality&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;selfies&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;sanitize&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;randomize&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;add_start_and_stop&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;padding&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;padding_length&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="c1"># update save/load pretrained kwargs</span>
+        <span class="k">for</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_attributes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_kwargs</span><span class="p">[</span><span class="n">keyword</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keyword</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_initial_transforms</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_attributes_to_trigger_reset</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_attributes</span><span class="p">,</span>
+            <span class="s1">&#39;device&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;start_index&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;stop_index&#39;</span><span class="p">,</span>
+        <span class="p">]</span>  <span class="c1"># could be updated in inheritance</span>
+
+        <span class="c1"># only now &#39;activate&#39; setter that resets the transforms and warns on</span>
+        <span class="c1"># truncating padding_length</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialized</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Also updates the transforms if the set attribute affects them.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_initialized&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes_to_trigger_reset</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reset_initial_transforms</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_init_attributes</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">init_kwargs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;padding_length&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">&gt;</span> <span class="n">value</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="s1">&#39;The language has seen sequences of length &#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{self.max_token_sequence_length}</span><span class="s1"> that will be &#39;</span>
+                        <span class="s1">&#39;truncated by given padding length of &#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{value}</span><span class="s1">. Consider `set_max_padding`.&#39;</span>
+                    <span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__get_total_number_of_tokens_with_start_stop_fn</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
+
+    <span class="k">def</span> <span class="nf">_set_token_len_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">add_start_and_stop</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Defines a Callable that given a sequence of naive tokens, i.e. before</span>
+<span class="sd">        applying the encoding transforms, computes the number of</span>
+<span class="sd">        implicit tokens after transforms (implicit because it&#39;s the</span>
+<span class="sd">        number of token indexes, not actual tokens).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">add_start_and_stop</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens_fn</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__get_total_number_of_tokens_with_start_stop_fn</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens_fn</span> <span class="o">=</span> <span class="nb">len</span>
+
+<div class="viewcode-block" id="SMILESTokenizer.set_max_padding"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESTokenizer.set_max_padding">[docs]</a>    <span class="k">def</span> <span class="nf">set_max_padding</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set padding_length that does not truncate any sequence. Requires</span>
+<span class="sd">        updated max_token_sequence_length.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            UnknownMaxLengthError: When max_token_sequence_length is 0 because</span>
+<span class="sd">                no SMILES were added to the language.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UnknownMaxLengthError</span><span class="p">(</span>
+                <span class="s1">&#39;No check possible for naive SMILESTokenizer. Instance needs &#39;</span>
+                <span class="s1">&#39;a pass over the data, setting max_token_sequence_length. &#39;</span>
+                <span class="s1">&#39;See for example `add_smis`, `add_dataset` or `add_smiles` &#39;</span>
+                <span class="s1">&#39;methods.&#39;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># also triggers reset of transforms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span></div>
+
+<div class="viewcode-block" id="SMILESTokenizer.reset_initial_transforms"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESTokenizer.reset_initial_transforms">[docs]</a>    <span class="k">def</span> <span class="nf">reset_initial_transforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset smiles and token indexes transforms as on initialization.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform_smiles</span> <span class="o">=</span> <span class="n">compose_smiles_transforms</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canonical</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">augment</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kekulize</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_bonddir</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_chirality</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selfies</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform_encoding</span> <span class="o">=</span> <span class="n">compose_encoding_transforms</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">randomize</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_token_len_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMILESTokenizer.set_smiles_transforms"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESTokenizer.set_smiles_transforms">[docs]</a>    <span class="k">def</span> <span class="nf">set_smiles_transforms</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">canonical</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">augment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">kekulize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">remove_bonddir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">remove_chirality</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">selfies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sanitize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Helper function to reversibly change steps of the transforms.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform_smiles</span> <span class="o">=</span> <span class="n">compose_smiles_transforms</span><span class="p">(</span>
+            <span class="n">canonical</span><span class="o">=</span><span class="n">canonical</span> <span class="k">if</span> <span class="n">canonical</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonical</span><span class="p">,</span>
+            <span class="n">augment</span><span class="o">=</span><span class="n">augment</span> <span class="k">if</span> <span class="n">augment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">augment</span><span class="p">,</span>
+            <span class="n">kekulize</span><span class="o">=</span><span class="n">kekulize</span> <span class="k">if</span> <span class="n">kekulize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">kekulize</span><span class="p">,</span>
+            <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="n">all_bonds_explicit</span>
+            <span class="k">if</span> <span class="n">all_bonds_explicit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+            <span class="n">all_hs_explicit</span><span class="o">=</span><span class="n">all_hs_explicit</span>
+            <span class="k">if</span> <span class="n">all_hs_explicit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+            <span class="n">remove_bonddir</span><span class="o">=</span><span class="n">remove_bonddir</span>
+            <span class="k">if</span> <span class="n">remove_bonddir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_bonddir</span><span class="p">,</span>
+            <span class="n">remove_chirality</span><span class="o">=</span><span class="n">remove_chirality</span>
+            <span class="k">if</span> <span class="n">remove_chirality</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_chirality</span><span class="p">,</span>
+            <span class="n">selfies</span><span class="o">=</span><span class="n">selfies</span> <span class="k">if</span> <span class="n">selfies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">selfies</span><span class="p">,</span>
+            <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span> <span class="k">if</span> <span class="n">sanitize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SMILESTokenizer.set_encoding_transforms"><a class="viewcode-back" href="../../../api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESTokenizer.set_encoding_transforms">[docs]</a>    <span class="k">def</span> <span class="nf">set_encoding_transforms</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">randomize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">padding_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Helper function to reversibly change steps of the transforms.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform_encoding</span> <span class="o">=</span> <span class="n">compose_encoding_transforms</span><span class="p">(</span>
+            <span class="n">randomize</span><span class="o">=</span><span class="n">randomize</span> <span class="k">if</span> <span class="n">randomize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">randomize</span><span class="p">,</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">add_start_and_stop</span>
+            <span class="k">if</span> <span class="n">add_start_and_stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span><span class="p">,</span>
+            <span class="n">start_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start_index</span><span class="p">,</span>
+            <span class="n">stop_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="n">padding</span> <span class="k">if</span> <span class="n">padding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span>
+            <span class="n">padding_length</span><span class="o">=</span><span class="n">padding_length</span>
+            <span class="k">if</span> <span class="n">padding_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span><span class="p">,</span>
+            <span class="n">padding_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span> <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">add_start_and_stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_token_len_fn</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

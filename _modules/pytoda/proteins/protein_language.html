@@ -1,0 +1,436 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.proteins.protein_language &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.proteins.protein_language</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.proteins.protein_language</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Protein language handling.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">dill</span>
+<span class="kn">from</span> <span class="nn">upfp</span> <span class="kn">import</span> <span class="n">parse_fasta</span>
+
+<span class="kn">from</span> <span class="nn">..files</span> <span class="kn">import</span> <span class="n">read_smi</span>
+<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Indexes</span><span class="p">,</span> <span class="n">Tokenizer</span><span class="p">,</span> <span class="n">Tokens</span>
+<span class="kn">from</span> <span class="nn">.processing</span> <span class="kn">import</span> <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">,</span> <span class="n">IUPAC_VOCAB</span><span class="p">,</span> <span class="n">UNIREP_VOCAB</span>
+
+
+<div class="viewcode-block" id="ProteinLanguage"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage">[docs]</a><span class="k">class</span> <span class="nc">ProteinLanguage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ProteinLanguage class.</span>
+
+<span class="sd">    ProteinLanguage handle Protein data defining the vocabulary and</span>
+<span class="sd">    utilities to manipulate it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">unknown_token</span> <span class="o">=</span> <span class="s1">&#39;&lt;UNK&gt;&#39;</span>
+
+<div class="viewcode-block" id="ProteinLanguage.__init__"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;protein-language&#39;</span><span class="p">,</span>
+        <span class="n">amino_acid_dict</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;iupac&#39;</span><span class="p">,</span>
+        <span class="n">tokenizer</span><span class="p">:</span> <span class="n">Tokenizer</span> <span class="o">=</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize Protein language.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): name of the ProteinLanguage.</span>
+<span class="sd">            amino_acid_dict (str): Tokenization regime for amino acid</span>
+<span class="sd">                sequence. Defaults to &#39;iupac&#39;, alternative is &#39;unirep&#39; or</span>
+<span class="sd">                &#39;human-kinase-alignment&#39;.</span>
+<span class="sd">            tokenizer (Tokenizer): This needs to be a function used to tokenize</span>
+<span class="sd">                the amino acid sequences. The default is list which simply</span>
+<span class="sd">                splits the sequence character-by-character.</span>
+<span class="sd">            add_start_and_stop (bool): add &lt;START&gt; and &lt;STOP&gt; in the sequence,</span>
+<span class="sd">                of tokens. Defaults to True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="n">amino_acid_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span> <span class="o">=</span> <span class="n">add_start_and_stop</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">==</span> <span class="s1">&#39;iupac&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">IUPAC_VOCAB</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">==</span> <span class="s1">&#39;unirep&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">UNIREP_VOCAB</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">==</span> <span class="s1">&#39;human-kinase-alignment&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Choose dict as &#39;iupac&#39; or &#39;unirep&#39; or &#39;human-kinase-alignment&#39; &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(given was </span><span class="si">{amino_acid_dict}</span><span class="s2">).&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">tokenizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_dict</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ProteinLanguage.setup_dict"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.setup_dict">[docs]</a>    <span class="k">def</span> <span class="nf">setup_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setup the dictionary.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Setup dictionary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequence_tokens</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">index</span> <span class="k">for</span> <span class="n">token</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s1">&#39;&lt;&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">token</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">index</span><span class="p">:</span> <span class="n">token</span> <span class="k">for</span> <span class="n">token</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">tokens</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_token_indexes_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">token_indexes</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">]]</span>
+                <span class="o">+</span> <span class="n">token_indexes</span>
+                <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">]]</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens_fn</span> <span class="o">=</span> <span class="nb">len</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_token_indexes_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">token_indexes</span><span class="p">:</span> <span class="n">token_indexes</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;PAD&gt;&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">]</span></div>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Number of characters the language knows.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span>
+
+<div class="viewcode-block" id="ProteinLanguage.load"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.load">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ProteinLanguage&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Static method to load a ProteinLanguage object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filepath (str): path to the file.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ProteinLanguage: the loaded Protein language object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">protein_language</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">protein_language</span></div>
+
+<div class="viewcode-block" id="ProteinLanguage.dump"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.dump">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="n">protein_language</span><span class="p">:</span> <span class="s1">&#39;ProteinLanguage&#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Static method to save a Protein_language object to disk.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            protein_language (ProteinLanguage): a ProteinLanguage object.</span>
+<span class="sd">            filepath (str): path where to dump the ProteinLanguage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">dill</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">protein_language</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProteinLanguage.save"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instance method to save/dump Protein language object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filepath (str): path where to save the ProteinLanguage.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ProteinLanguage</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_update_max_token_sequence_length</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">:</span> <span class="n">Tokens</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the max token sequence length.</span>
+<span class="sd">        Uses method possibly overloaded by transformation setup to assess the</span>
+<span class="sd">        length of tokens after transformations prior to their application.</span>
+<span class="sd">        For example this allows handling start and stop tokens.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tokens (Tokens): tokens considered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">total_number_of_tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens_fn</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">total_number_of_tokens</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">=</span> <span class="n">total_number_of_tokens</span>
+
+<div class="viewcode-block" id="ProteinLanguage.add_file"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.add_file">[docs]</a>    <span class="k">def</span> <span class="nf">add_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">file_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;.smi&#39;</span><span class="p">,</span>
+        <span class="n">index_col</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a set of protein sequences from a file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filepath (str): path to the file.</span>
+<span class="sd">            file_type (str): Type of file, from {&#39;.smi&#39;, &#39;.csv&#39;, &#39;.fasta&#39;,</span>
+<span class="sd">                &#39;.fasta.gz&#39;}. If &#39;.csv&#39; is selected, it is assumed to be tab-</span>
+<span class="sd">                separated.</span>
+<span class="sd">            chunk_size (int): number of rows to read in a chunk.</span>
+<span class="sd">                Defaults to 100000. Does not apply for fasta files.</span>
+<span class="sd">            index_col (int): Data column used for indexing, defaults to 1, does</span>
+<span class="sd">                not apply to fasta files.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">file_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.smi&#39;</span><span class="p">,</span> <span class="s1">&#39;.fasta&#39;</span><span class="p">,</span> <span class="s1">&#39;.fasta.gz&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Please provide file of type {&#39;.smi&#39;, &#39;.csv&#39;, &#39;.fasta&#39;,&#39;.fasta.gz&#39;}&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;.csv&#39;</span> <span class="ow">or</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;.smi&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">read_smi</span><span class="p">(</span>
+                    <span class="n">filepath</span><span class="p">,</span>
+                    <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="n">index_col</span><span class="p">,</span>
+                    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Sequence&#39;</span><span class="p">],</span>
+                <span class="p">):</span>
+                    <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;Sequence&#39;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                    <span class="s2">&quot;.smi file needs to have 2 columns, index needs to be in &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;column (</span><span class="si">{index_col}</span><span class="s2">), sequences in the other.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;.fasta&#39;</span><span class="p">:</span>
+            <span class="n">database</span> <span class="o">=</span> <span class="n">parse_fasta</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">gzipped</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">database</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;sequence&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ProteinLanguage.add_sequence"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.add_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">add_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a amino acid sequence to the language.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence (str): a sequence of amino acids.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_max_token_sequence_length</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProteinLanguage.sequence_to_token_indexes"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.sequence_to_token_indexes">[docs]</a>    <span class="k">def</span> <span class="nf">sequence_to_token_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Indexes</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform character-level amino acid sequence (AAS) into a sequence of</span>
+<span class="sd">        token indexes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence (str): an AAS representation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Indexes: indexes representation for the AAS provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_token_indexes_fn</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProteinLanguage.token_indexes_to_sequence"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.token_indexes_to_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">token_indexes_to_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_indexes</span><span class="p">:</span> <span class="n">Indexes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform a sequence of token indexes into amino acid sequence.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            token_indexes (Indexes): a sequence of token indexes.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: an amino acid sequence representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token_index</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">token_index</span> <span class="ow">in</span> <span class="n">token_indexes</span>
+                <span class="k">if</span> <span class="n">token_index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence_tokens</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

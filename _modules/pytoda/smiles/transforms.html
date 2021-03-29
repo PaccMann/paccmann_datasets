@@ -1,0 +1,830 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.smiles.transforms &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.smiles.transforms</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.smiles.transforms</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;SMILES transforms.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">import</span> <span class="nn">rdkit</span>  <span class="c1"># Needs import before torch in some envs</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span>
+<span class="kn">from</span> <span class="nn">selfies</span> <span class="kn">import</span> <span class="n">encoder</span> <span class="k">as</span> <span class="n">selfies_encoder</span>
+
+<span class="kn">import</span> <span class="nn">pytoda</span>
+
+<span class="kn">from</span> <span class="nn">..transforms</span> <span class="kn">import</span> <span class="n">Compose</span><span class="p">,</span> <span class="n">LeftPadding</span><span class="p">,</span> <span class="n">Randomize</span><span class="p">,</span> <span class="n">StartStop</span><span class="p">,</span> <span class="n">ToTensor</span><span class="p">,</span> <span class="n">Transform</span>
+<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Indexes</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;pytoda_SMILES_transforms&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="compose_smiles_transforms"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.compose_smiles_transforms">[docs]</a><span class="k">def</span> <span class="nf">compose_smiles_transforms</span><span class="p">(</span>
+    <span class="n">canonical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">augment</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">kekulize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">all_bonds_explicit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">all_hs_explicit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">remove_bonddir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">remove_chirality</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">selfies</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">sanitize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Compose</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Setup a composition of SMILES to SMILES (or SELFIES) transformations.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        canonical (bool, optional): performs canonicalization of SMILES</span>
+<span class="sd">            (one original string for one molecule). If True, then other</span>
+<span class="sd">            transformations (augment etc, see below) do not apply. Defaults to</span>
+<span class="sd">            False.</span>
+<span class="sd">        augment (bool, optional): perform SMILES augmentation. Defaults to</span>
+<span class="sd">            False.</span>
+<span class="sd">        kekulize (bool, optional): kekulizes SMILES (implicit aromaticity</span>
+<span class="sd">            only). Defaults to False.</span>
+<span class="sd">        all_bonds_explicit (bool, optional): makes all bonds explicit.</span>
+<span class="sd">            Defaults to False, only applies if kekulize is True.</span>
+<span class="sd">        all_hs_explicit (bool, optional): makes all hydrogens explicit.</span>
+<span class="sd">            Defaults to False, only applies if kekulize is True.</span>
+<span class="sd">        remove_bonddir (bool, optional): remove directional info of bonds.</span>
+<span class="sd">            Defaults to False.</span>
+<span class="sd">        remove_chirality (bool, optional): remove chirality information.</span>
+<span class="sd">            Defaults to False.</span>
+<span class="sd">        selfies (bool, optional): whether selfies is used instead of</span>
+<span class="sd">            smiles. Defaults to False.</span>
+<span class="sd">        sanitize (bool, optional): RDKit sanitization of the molecule.</span>
+<span class="sd">            Defaults to True.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Compose: A Callable that applies composition of SMILES transforms.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Build up composition from optional SMILES to SMILES transformations</span>
+    <span class="n">smiles_transforms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">canonical</span><span class="p">:</span>
+        <span class="n">smiles_transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Canonicalization</span><span class="p">()]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">remove_bonddir</span> <span class="ow">or</span> <span class="n">remove_chirality</span><span class="p">:</span>
+            <span class="n">smiles_transforms</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">RemoveIsomery</span><span class="p">(</span><span class="n">bonddir</span><span class="o">=</span><span class="n">remove_bonddir</span><span class="p">,</span> <span class="n">chirality</span><span class="o">=</span><span class="n">remove_chirality</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">if</span> <span class="n">kekulize</span><span class="p">:</span>
+            <span class="n">smiles_transforms</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">Kekulize</span><span class="p">(</span>
+                    <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+                    <span class="n">all_hs_explicit</span><span class="o">=</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+                    <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">elif</span> <span class="n">all_bonds_explicit</span> <span class="ow">or</span> <span class="n">all_hs_explicit</span> <span class="ow">or</span> <span class="n">sanitize</span><span class="p">:</span>
+            <span class="n">smiles_transforms</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">NotKekulize</span><span class="p">(</span>
+                    <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+                    <span class="n">all_hs_explicit</span><span class="o">=</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+                    <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">if</span> <span class="n">augment</span><span class="p">:</span>
+            <span class="n">smiles_transforms</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">Augment</span><span class="p">(</span>
+                    <span class="n">kekule_smiles</span><span class="o">=</span><span class="n">kekulize</span><span class="p">,</span>
+                    <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+                    <span class="n">all_hs_explicit</span><span class="o">=</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+                    <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">if</span> <span class="n">selfies</span><span class="p">:</span>
+            <span class="n">smiles_transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Selfies</span><span class="p">()]</span>
+
+    <span class="k">return</span> <span class="n">Compose</span><span class="p">(</span><span class="n">smiles_transforms</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="compose_encoding_transforms"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.compose_encoding_transforms">[docs]</a><span class="k">def</span> <span class="nf">compose_encoding_transforms</span><span class="p">(</span>
+    <span class="n">randomize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">start_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">stop_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="n">padding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">padding_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">padding_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Compose</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Setup a composition of token indexes to token indexes transformations.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        randomize (bool, optional): perform a true randomization of</span>
+<span class="sd">            token indexes. Defaults to False.</span>
+<span class="sd">        add_start_and_stop (bool, optional): add start and stop token</span>
+<span class="sd">            indexes. Defaults to False.</span>
+<span class="sd">        start_index (int, optional): index of start token in vocabulary.</span>
+<span class="sd">            Default to 2.</span>
+<span class="sd">        stop_index (int, optional): index of stop token in vocabulary.</span>
+<span class="sd">            Default to 3.</span>
+<span class="sd">        padding (bool, optional): pad sequences to given padding_length.</span>
+<span class="sd">            Defaults to True.</span>
+<span class="sd">        padding_length (int, optional): manually sets number of applied</span>
+<span class="sd">            paddings, applies only if padding is True. Defaults to None, but</span>
+<span class="sd">            must be passed in case of padding.</span>
+<span class="sd">        padding_index (int, optional): index of padding token in vocabulary.</span>
+<span class="sd">            Default to 0.</span>
+<span class="sd">        device (torch.device): device where the tensors are stored.</span>
+<span class="sd">            Defaults to gpu, if available.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Compose: A Callable that applies composition of transforms on</span>
+<span class="sd">            token indexes.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Transformations can change the number of tokens.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">encoding_transforms</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">randomize</span><span class="p">:</span>
+        <span class="n">encoding_transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Randomize</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="n">add_start_and_stop</span><span class="p">:</span>
+        <span class="n">encoding_transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">StartStop</span><span class="p">(</span><span class="n">start_index</span><span class="p">,</span> <span class="n">stop_index</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">padding</span><span class="p">:</span>
+        <span class="n">encoding_transforms</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">LeftPadding</span><span class="p">(</span><span class="n">padding_length</span><span class="o">=</span><span class="n">padding_length</span><span class="p">,</span> <span class="n">padding_index</span><span class="o">=</span><span class="n">padding_index</span><span class="p">)</span>
+        <span class="p">]</span>
+
+    <span class="n">encoding_transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ToTensor</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">Compose</span><span class="p">(</span><span class="n">encoding_transforms</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SMILESToTokenIndexes"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.SMILESToTokenIndexes">[docs]</a><span class="k">class</span> <span class="nc">SMILESToTokenIndexes</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Transform SMILES to token indexes using SMILES language.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SMILESToTokenIndexes.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.SMILESToTokenIndexes.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles_language</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a SMILES to token indexes object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles_language (SMILESLanguage): a SMILES language.</span>
+<span class="sd">                NOTE: No typing used to prevent circular import.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span> <span class="o">=</span> <span class="n">smiles_language</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Indexes</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the SMILES tokenization transformation</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): a SMILES representation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Indexes: indexes representation for the SMILES provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RemoveIsomery"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.RemoveIsomery">[docs]</a><span class="k">class</span> <span class="nc">RemoveIsomery</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Remove isomery (isotopic and chiral specifications) from SMILES &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="RemoveIsomery.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.RemoveIsomery.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bonddir</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chirality</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize isomery removal.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            bonddir (bool): whether bond direction information should be</span>
+<span class="sd">                removed or not (default: {True})</span>
+<span class="sd">            chirality (bool): whether chirality information should be removed</span>
+<span class="sd">                (default: {True}).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">chirality_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;[&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;]&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;@&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bond_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;/&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">charge</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\[\w+\@?\@?[\+\-]\d?\]&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multichar_atom</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\[[0-9]?[A-Za-z][a-z]?\w?[2-8]?\]&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bonddir</span> <span class="o">=</span> <span class="n">bonddir</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chirality</span> <span class="o">=</span> <span class="n">chirality</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span> <span class="o">=</span> <span class="n">sanitize</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bonddir</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">chirality</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_call_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">smiles</span><span class="p">:</span> <span class="n">smiles</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">bonddir</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">chirality</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updates</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">maketrans</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bond_dict</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_call_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isomery_call_fn</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">chirality</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bonddir</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updates</span> <span class="o">=</span> <span class="nb">str</span><span class="o">.</span><span class="n">maketrans</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chirality_dict</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_call_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isomery_call_fn</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_call_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">smiles</span><span class="p">:</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span>
+                <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span><span class="p">),</span>
+                <span class="n">isomericSmiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">canonical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_isomery_call_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove the stereoinfo of the SMILES. That can either be the removal of</span>
+<span class="sd">        only the chirality information (at tetrahedral carbons with four</span>
+<span class="sd">        different substituents) and/or the removal of the bond direction</span>
+<span class="sd">        information (either the highest CIP-rated substituents on the same side</span>
+<span class="sd">        of the two carbons of the double bond (Z) or on differnet sides (E)).</span>
+
+<span class="sd">        NOTE: If bonddir=True and chirality=True, no transformation is applied.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): a SMILES representation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: SMILES representation of original smiles string with removed</span>
+<span class="sd">                stereoinfo checked for validity</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="n">smiles</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[nH]&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">)</span>
+        <span class="n">protect</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+            <span class="n">list_charg</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">(),</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()))</span>
+            <span class="n">protect</span> <span class="o">+=</span> <span class="n">list_charg</span>
+
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">multichar_atom</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+            <span class="n">list_mc</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">start</span><span class="p">(),</span> <span class="n">m</span><span class="o">.</span><span class="n">end</span><span class="p">()))</span>
+            <span class="n">protect</span> <span class="o">+=</span> <span class="n">list_mc</span>
+
+        <span class="n">new_str</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">updates</span><span class="p">)</span> <span class="k">if</span> <span class="n">index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">protect</span> <span class="k">else</span> <span class="n">i</span>
+            <span class="n">new_str</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">new_str</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N@@&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;N@&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">Chem</span><span class="o">.</span><span class="n">SanitizeMol</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">smiles</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Invalid SMILES </span><span class="si">{smiles}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executable of RemoveIsomery class. The _call_fn is determined in</span>
+<span class="sd">        the constructor based on the bonddir and chirality parameter.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): a SMILES sequence.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: SMILES after the _call_fn was applied.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_fn</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Kekulize"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.Kekulize">[docs]</a><span class="k">class</span> <span class="nc">Kekulize</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Transform SMILES to Kekule version.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+        <span class="c1"># NOTE: Explicit bonds or Hs without Kekulization is not supported</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span> <span class="o">=</span> <span class="n">all_bonds_explicit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span> <span class="o">=</span> <span class="n">all_hs_explicit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span> <span class="o">=</span> <span class="n">sanitize</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the kekulization transform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): a SMILES representation.</span>
+<span class="sd">            all_bonds_explicit (bool): whether bonds are explicitly encoded.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Kekulized SMILES of same molecule.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">molecule</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">:</span>
+                <span class="c1"># Properties as valence are not calculated if sanitize is False</span>
+                <span class="n">molecule</span><span class="o">.</span><span class="n">UpdatePropertyCache</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">Chem</span><span class="o">.</span><span class="n">Kekulize</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span>
+                <span class="n">molecule</span><span class="p">,</span>
+                <span class="n">kekuleSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">allBondsExplicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+                <span class="n">allHsExplicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+                <span class="n">canonical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Invalid SMILES </span><span class="si">{smiles}</span><span class="s1">, no kekulization done &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;bondsExplicit: </span><span class="si">{self.all_bonds_explicit}</span><span class="s1"> &amp; HsExplicit: &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{self.all_hs_explicit}</span><span class="s1"> are also ignored.&#39;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">smiles</span></div>
+
+
+<div class="viewcode-block" id="NotKekulize"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.NotKekulize">[docs]</a><span class="k">class</span> <span class="nc">NotKekulize</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Transform SMILES without explicitly converting to Kekule version &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span> <span class="o">=</span> <span class="n">all_bonds_explicit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span> <span class="o">=</span> <span class="n">all_hs_explicit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span> <span class="o">=</span> <span class="n">sanitize</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply transform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): a SMILES representation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: SMILES of same molecule.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">molecule</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span>
+                <span class="n">molecule</span><span class="p">,</span>
+                <span class="n">allBondsExplicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+                <span class="n">allHsExplicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+                <span class="n">canonical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Invalid SMILES </span><span class="si">{smiles}</span><span class="s1">, HsExplicit:</span><span class="si">{self.all_hs_explicit}</span><span class="s1">&#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;and bondsExplicit: </span><span class="si">{self.all_bonds_explicit}</span><span class="s1"> are ignored.&#39;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">smiles</span></div>
+
+
+<div class="viewcode-block" id="Augment"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.Augment">[docs]</a><span class="k">class</span> <span class="nc">Augment</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Augment a SMILES string, according to Bjerrum (2017).&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Augment.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.Augment.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">kekule_smiles</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_bonds_explicit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_hs_explicit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">sanitize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; NOTE:  These parameter need to be passed down to the enumerator.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kekule_smiles</span> <span class="o">=</span> <span class="n">kekule_smiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span> <span class="o">=</span> <span class="n">all_bonds_explicit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span> <span class="o">=</span> <span class="n">all_hs_explicit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span> <span class="o">=</span> <span class="n">sanitize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the transform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): a SMILES representation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: randomized SMILES representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">molecule</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">molecule</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Augmentation skipped for invalid mol: </span><span class="si">{smiles}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">smiles</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">:</span>
+            <span class="n">molecule</span><span class="o">.</span><span class="n">UpdatePropertyCache</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">atom_indexes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">molecule</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">atom_indexes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># RDkit error handling</span>
+            <span class="k">return</span> <span class="n">smiles</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">atom_indexes</span><span class="p">)</span>
+        <span class="n">renumbered_molecule</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RenumberAtoms</span><span class="p">(</span><span class="n">molecule</span><span class="p">,</span> <span class="n">atom_indexes</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kekule_smiles</span><span class="p">:</span>
+            <span class="n">Chem</span><span class="o">.</span><span class="n">Kekulize</span><span class="p">(</span><span class="n">renumbered_molecule</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span>
+            <span class="n">renumbered_molecule</span><span class="p">,</span>
+            <span class="n">canonical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">kekuleSmiles</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kekule_smiles</span><span class="p">,</span>
+            <span class="n">allBondsExplicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+            <span class="n">allHsExplicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AugmentTensor"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.AugmentTensor">[docs]</a><span class="k">class</span> <span class="nc">AugmentTensor</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Augment a SMILES (represented as a Tensor) according to Bjerrum (2017).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AugmentTensor.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.AugmentTensor.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">smiles_language</span><span class="p">,</span>
+        <span class="n">kekule_smiles</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">sanitize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;NOTE:  These parameter need to be passed down to the enumerator.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">smiles_language</span><span class="p">)</span>
+        <span class="c1"># Remove all SMILES transforms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">set_smiles_transforms</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="mi">9</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">transform_smiles</span> <span class="o">==</span> <span class="n">Compose</span><span class="p">([])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">kekule_smiles</span> <span class="o">=</span> <span class="n">kekule_smiles</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span> <span class="o">=</span> <span class="n">all_bonds_explicit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span> <span class="o">=</span> <span class="n">all_hs_explicit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span> <span class="o">=</span> <span class="n">sanitize</span></div>
+
+<div class="viewcode-block" id="AugmentTensor.update_smiles_language"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.AugmentTensor.update_smiles_language">[docs]</a>    <span class="k">def</span> <span class="nf">update_smiles_language</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles_language</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">smiles_language</span><span class="p">,</span> <span class="n">pytoda</span><span class="o">.</span><span class="n">smiles</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">SMILESLanguage</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please pass a SMILES language object&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span> <span class="o">=</span> <span class="n">smiles_language</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles_numerical</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Indexes</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the transform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles_numerical (Union[list, torch.Tensor]): either a SMILES</span>
+<span class="sd">                represented as list of ints or a Tensor.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: randomized SMILES representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">smiles_numerical</span><span class="p">)</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">smiles_numerical</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__call__tensor</span><span class="p">(</span><span class="n">smiles_numerical</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">smiles_numerical</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">smiles_numerical</span> <span class="o">=</span> <span class="n">smiles_numerical</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">smiles_numerical</span><span class="p">)</span> <span class="o">==</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">smiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_indexes_to_smiles</span><span class="p">(</span><span class="n">smiles_numerical</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">molecule</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">)</span>
+                <span class="n">atom_indexes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">molecule</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">atom_indexes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># RDkit error handling</span>
+                    <span class="k">return</span> <span class="n">smiles</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">atom_indexes</span><span class="p">)</span>
+                <span class="n">renumbered_molecule</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RenumberAtoms</span><span class="p">(</span><span class="n">molecule</span><span class="p">,</span> <span class="n">atom_indexes</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kekule_smiles</span><span class="p">:</span>
+                    <span class="n">Chem</span><span class="o">.</span><span class="n">Kekulize</span><span class="p">(</span><span class="n">renumbered_molecule</span><span class="p">)</span>
+
+                <span class="n">augmented_smiles</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span>
+                    <span class="n">renumbered_molecule</span><span class="p">,</span>
+                    <span class="n">canonical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">kekuleSmiles</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kekule_smiles</span><span class="p">,</span>
+                    <span class="n">allBondsExplicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+                    <span class="n">allHsExplicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Augmentation skipped, mol invalid: </span><span class="si">{smiles}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">augmented_smiles</span> <span class="o">=</span> <span class="n">smiles</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">augmented_smiles</span><span class="p">)</span>
+
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Please pass either a torch.Tensor of ndim 1, 2 or alist.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles_numerical</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper of the transform for torch.Tensor.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles_numerical (torch.Tensor): a Tensor with SMILES represented</span>
+<span class="sd">                as ints. Needs to have shape batch_size x sequence_length.</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: Augmented SMILES representation of same shape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Infer the padding type to ensure returning tensor of same shape.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_index</span> <span class="ow">in</span> <span class="n">smiles_numerical</span><span class="o">.</span><span class="n">flatten</span><span class="p">():</span>
+
+            <span class="n">padding</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">left_padding</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_index</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">smiles_numerical</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">right_padding</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_index</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">smiles_numerical</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">left_padding</span> <span class="ow">and</span> <span class="n">right_padding</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">left_padding</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">right_padding</span>
+            <span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;Could not uniqely infer padding type. Leftpadding was &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{left_padding}</span><span class="s1">, right_padding was </span><span class="si">{right_padding}</span><span class="s1">.&#39;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">padding</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">seq_len</span> <span class="o">=</span> <span class="n">smiles_numerical</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Loop over tensor (SMILES by SMILES) and augment. Exclude augmentation</span>
+        <span class="c1"># if it violates the padding</span>
+        <span class="n">augmented</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">smiles_numerical</span><span class="p">:</span>
+
+            <span class="n">lenx</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">while</span> <span class="n">lenx</span> <span class="o">&gt;</span> <span class="n">seq_len</span><span class="p">:</span>
+                <span class="n">augmented_smiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+                <span class="n">lenx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">augmented_smiles</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">padding</span><span class="p">:</span>
+                <span class="n">pl</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">augmented_smiles</span><span class="p">)</span>
+                <span class="n">pad</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pl</span><span class="p">)</span> <span class="k">if</span> <span class="n">right_padding</span> <span class="k">else</span> <span class="p">(</span><span class="n">pl</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">augmented_smiles</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+                    <span class="n">augmented_smiles</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_index</span>
+                <span class="p">)</span>
+
+            <span class="n">augmented</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="n">augmented_smiles</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="n">augmented</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">augmented</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">augmented</span></div>
+
+
+<div class="viewcode-block" id="Selfies"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.Selfies">[docs]</a><span class="k">class</span> <span class="nc">Selfies</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Convert a molecule from SMILES to SELFIES. &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">selfies_encoder</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Canonicalization"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.Canonicalization">[docs]</a><span class="k">class</span> <span class="nc">Canonicalization</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert any SMILES to RDKit-canonical SMILES.</span>
+<span class="sd">    Example:</span>
+<span class="sd">        An example::</span>
+
+<span class="sd">            smiles = &#39;CN2C(=O)N(C)C(=O)C1=C2N=CN1C&#39;</span>
+<span class="sd">            c = Canonicalization()</span>
+<span class="sd">            c(smiles)</span>
+
+<span class="sd">        Result is: &#39;Cn1c(=O)c2c(ncn2C)n(C)c1=O&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Canonicalization.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.Canonicalization.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sanitize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a canonicalizer</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sanitize (bool, optional): Whether molecule is sanitized. Defaults to True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span> <span class="o">=</span> <span class="n">sanitize</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Forward function of canonicalization.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): SMILES string for canonicalization.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: Canonicalized SMILES string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">canon</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span>
+                <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">),</span> <span class="n">canonical</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">canon</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Invalid SMILES </span><span class="si">{smiles}</span><span class="s1">, no canonicalization done&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">smiles</span></div>
+
+
+<div class="viewcode-block" id="SMILESToMorganFingerprints"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.SMILESToMorganFingerprints">[docs]</a><span class="k">class</span> <span class="nc">SMILESToMorganFingerprints</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get fingerprints starting from SMILES.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SMILESToMorganFingerprints.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.SMILESToMorganFingerprints.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">bits</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span> <span class="n">chirality</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a SMILES to fingerprints object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            radius (int): radius of the fingerprints.</span>
+<span class="sd">            bits (int): bits used to represent the fingerprints.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="n">radius</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bits</span> <span class="o">=</span> <span class="n">bits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chirality</span> <span class="o">=</span> <span class="n">chirality</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span> <span class="o">=</span> <span class="n">sanitize</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the transform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): a SMILES representation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.array: the fingerprints.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">molecule</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">:</span>
+                <span class="n">molecule</span><span class="o">.</span><span class="n">UpdatePropertyCache</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">AllChem</span><span class="o">.</span><span class="n">FastFindRings</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+            <span class="n">fingerprint</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">GetMorganFingerprintAsBitVect</span><span class="p">(</span>
+                <span class="n">molecule</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">nBits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bits</span><span class="p">,</span> <span class="n">useChirality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">chirality</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Invalid SMILES </span><span class="si">{smiles}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">molecule</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="n">fingerprint</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">GetMorganFingerprintAsBitVect</span><span class="p">(</span>
+                <span class="n">molecule</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">nBits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bits</span>
+            <span class="p">)</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,))</span>
+        <span class="n">rdkit</span><span class="o">.</span><span class="n">DataStructs</span><span class="o">.</span><span class="n">ConvertToNumpyArray</span><span class="p">(</span><span class="n">fingerprint</span><span class="p">,</span> <span class="n">array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">array</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

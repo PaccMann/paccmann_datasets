@@ -1,0 +1,491 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.smiles.tests.test_smiles_language &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.smiles.tests.test_smiles_language</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.smiles.tests.test_smiles_language</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Testing SMILESLanguage.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.smiles.processing</span> <span class="kn">import</span> <span class="n">split_selfies</span>
+<span class="kn">from</span> <span class="nn">pytoda.smiles.smiles_language</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SELFIESLanguage</span><span class="p">,</span>
+    <span class="n">SMILESLanguage</span><span class="p">,</span>
+    <span class="n">SMILESTokenizer</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pytoda.smiles.transforms</span> <span class="kn">import</span> <span class="n">Selfies</span>
+<span class="kn">from</span> <span class="nn">pytoda.tests.utils</span> <span class="kn">import</span> <span class="n">TestFileContent</span>
+
+
+<div class="viewcode-block" id="TestSmilesLanguage"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage">[docs]</a><span class="k">class</span> <span class="nc">TestSmilesLanguage</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing SMILESLanguage.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test__update_max_token_sequence_length"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test__update_max_token_sequence_length">[docs]</a>    <span class="k">def</span> <span class="nf">test__update_max_token_sequence_length</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test _update_max_token_sequence_length.&quot;&quot;&quot;</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test__update_language_dictionaries_with_tokens"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test__update_language_dictionaries_with_tokens">[docs]</a>    <span class="k">def</span> <span class="nf">test__update_language_dictionaries_with_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test _update_language_dictionaries_with_tokens.&quot;&quot;&quot;</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">_update_language_dictionaries_with_tokens</span><span class="p">(</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_tokenizer</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+            <span class="s1">&#39;C&#39;</span> <span class="ow">in</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span>
+            <span class="ow">and</span> <span class="s1">&#39;O&#39;</span> <span class="ow">in</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">number_of_tokens</span><span class="p">,</span> <span class="mi">37</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_add_smis"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_smis">[docs]</a>    <span class="k">def</span> <span class="nf">test_add_smis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test add_smis.&quot;&quot;&quot;</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;CCO	CHEMBL545&#39;</span><span class="p">,</span> <span class="s1">&#39;C	CHEMBL17564&#39;</span><span class="p">,</span> <span class="s1">&#39;CO	CHEMBL14688&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	CHEMBL602&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">another_test_file</span><span class="p">:</span>
+                <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+                <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smis</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">number_of_tokens</span><span class="p">,</span> <span class="mi">39</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_add_smi"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_smi">[docs]</a>    <span class="k">def</span> <span class="nf">test_add_smi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test add_smi.&quot;&quot;&quot;</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;CCO	CHEMBL545&#39;</span><span class="p">,</span> <span class="s1">&#39;C	CHEMBL17564&#39;</span><span class="p">,</span> <span class="s1">&#39;CO	CHEMBL14688&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	CHEMBL602&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">test_file</span><span class="p">:</span>
+            <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smi</span><span class="p">(</span><span class="n">test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">number_of_tokens</span><span class="p">,</span> <span class="mi">39</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_add_smiles"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_smiles">[docs]</a>    <span class="k">def</span> <span class="nf">test_add_smiles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test add_smiles.&quot;&quot;&quot;</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">number_of_tokens</span><span class="p">,</span> <span class="mi">37</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_add_token"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_add_token">[docs]</a>    <span class="k">def</span> <span class="nf">test_add_token</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test add_token.&quot;&quot;&quot;</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="s1">&#39;token&#39;</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_token</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">number_of_tokens</span><span class="p">,</span> <span class="mi">36</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_multi_processing"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_multi_processing">[docs]</a>    <span class="k">def</span> <span class="nf">test_multi_processing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test multiprocessing&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">start_stop</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">start_stop</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span>
+                    <span class="n">s</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">nprocs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">start_method</span><span class="o">=</span><span class="s1">&#39;spawn&#39;</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="c1"># Catch this exception since it is likely caused by Pickling Error</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="c1"># Other errors are okay since s is not callable and raises a TypeError</span>
+                <span class="c1"># But spawn doesn&#39;t allow to catch error types, so we use bare Exception</span>
+                <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_smiles_to_token_indexes"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_smiles_to_token_indexes">[docs]</a>    <span class="k">def</span> <span class="nf">test_smiles_to_token_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test smiles_to_token_indexes.&quot;&quot;&quot;</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">smiles</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">token_indexes</span>
+        <span class="p">)</span>
+
+        <span class="c1"># unknown token</span>
+        <span class="n">smiles_u</span> <span class="o">=</span> <span class="s1">&#39;CCN&#39;</span>
+        <span class="n">token_indexes_u</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">unknown_index</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">smiles_u</span><span class="p">),</span> <span class="n">token_indexes_u</span>
+        <span class="p">)</span>
+
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># fail with no padding_length defined</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">TypeError</span><span class="p">):</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">set_max_padding</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">smiles</span><span class="p">)),</span>
+            <span class="p">[</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">start_index</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">token_indexes</span>
+            <span class="o">+</span> <span class="p">[</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">stop_index</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># SELFIES</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">(</span><span class="n">smiles_tokenizer</span><span class="o">=</span><span class="n">split_selfies</span><span class="p">)</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">Selfies</span><span class="p">()</span>
+        <span class="n">selfies</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">selfies</span><span class="p">,</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_selfies</span><span class="p">(</span><span class="n">smiles</span><span class="p">))</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">selfies</span><span class="p">)</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[O]&#39;</span><span class="p">]</span>
+        <span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">selfies</span><span class="p">),</span> <span class="n">token_indexes</span>
+        <span class="p">)</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="p">(</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">smiles_tokenizer</span><span class="o">=</span><span class="n">split_selfies</span>
+        <span class="p">)</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">selfies</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">selfies</span><span class="p">)),</span>
+            <span class="p">[</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">start_index</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">token_indexes</span>
+            <span class="o">+</span> <span class="p">[</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">stop_index</span><span class="p">],</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_token_indexes_to_smiles"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_token_indexes_to_smiles">[docs]</a>    <span class="k">def</span> <span class="nf">test_token_indexes_to_smiles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test token_indexes_to_smiles.&quot;&quot;&quot;</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">smiles</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_indexes_to_smiles</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">),</span> <span class="s1">&#39;CCO&#39;</span><span class="p">)</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">start_index</span><span class="p">]</span> <span class="o">+</span> <span class="n">token_indexes</span> <span class="o">+</span> <span class="p">[</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">stop_index</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_indexes_to_smiles</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">),</span> <span class="s1">&#39;CCO&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_smiles_roundtrip"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_smiles_roundtrip">[docs]</a>    <span class="k">def</span> <span class="nf">test_smiles_roundtrip</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test smiles_to_token_indexes and token_indexes_to_smiles.&quot;&quot;&quot;</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_indexes_to_smiles</span><span class="p">(</span>
+                <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="s1">&#39;CCO&#39;</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="s1">&#39;CCO&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_indexes_to_smiles</span><span class="p">(</span>
+                <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="s1">&#39;CCO&#39;</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="s1">&#39;CCO&#39;</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_smiles_to_selfies"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_smiles_to_selfies">[docs]</a>    <span class="k">def</span> <span class="nf">test_smiles_to_selfies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test smiles_to_selfies and selfies_to_smiles&quot;&quot;&quot;</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">smiles</span><span class="p">,</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">selfies_to_smiles</span><span class="p">(</span>
+                <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_selfies</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_transform_changes"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_transform_changes">[docs]</a>    <span class="k">def</span> <span class="nf">test_transform_changes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Test update of transforms on parameter assignment&quot;&quot;&quot;</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_start_and_stop</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>  <span class="c1"># is length function set?</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Expected warning on setting padding length too small:&quot;</span><span class="p">)</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_length</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c1"># 2 &lt; 5</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Expected warning when actually truncating token indexes:&quot;</span><span class="p">)</span>
+        <span class="n">tokens_</span> <span class="o">=</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tokens_</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertSequenceEqual</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">tokens</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">smiles</span><span class="p">))</span>
+        <span class="p">)</span>
+
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">set_encoding_transforms</span><span class="p">(</span><span class="n">padding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padding_length</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Expected warning when actually truncating token indexes:&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertSequenceEqual</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">tokens_</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">smiles</span><span class="p">))</span>
+        <span class="p">)</span>
+
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">reset_initial_transforms</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertSequenceEqual</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">tokens</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="n">smiles</span><span class="p">))</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestSmilesLanguage.test_vocab_roundtrip"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSmilesLanguage.test_vocab_roundtrip">[docs]</a>    <span class="k">def</span> <span class="nf">test_vocab_roundtrip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">source_language</span> <span class="o">=</span> <span class="n">SMILESLanguage</span><span class="p">()</span>
+        <span class="n">source_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="c1"># to test</span>
+        <span class="n">vocab</span> <span class="o">=</span> <span class="n">source_language</span><span class="o">.</span><span class="n">token_to_index</span>
+        <span class="n">vocab_</span> <span class="o">=</span> <span class="n">source_language</span><span class="o">.</span><span class="n">index_to_token</span>
+        <span class="n">max_len</span> <span class="o">=</span> <span class="n">source_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">source_language</span><span class="o">.</span><span class="n">token_count</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">source_language</span><span class="o">.</span><span class="n">number_of_tokens</span>
+
+        <span class="c1"># just vocab</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tempdir</span><span class="p">:</span>
+            <span class="n">source_language</span><span class="o">.</span><span class="n">save_vocabulary</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>
+
+            <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="p">()</span>
+            <span class="n">smiles_language</span><span class="o">.</span><span class="n">load_vocabulary</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertDictEqual</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertDictEqual</span><span class="p">(</span><span class="n">vocab_</span><span class="p">,</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">index_to_token</span><span class="p">)</span>
+
+        <span class="c1"># pretrained</span>
+        <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tempdir</span><span class="p">:</span>
+            <span class="n">source_language</span><span class="o">.</span><span class="n">save_pretrained</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>
+
+            <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertDictEqual</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertDictEqual</span><span class="p">(</span><span class="n">vocab_</span><span class="p">,</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">index_to_token</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">max_len</span><span class="p">,</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertDictEqual</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_count</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">number_of_tokens</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="TestSelfiesLanguage"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSelfiesLanguage">[docs]</a><span class="k">class</span> <span class="nc">TestSelfiesLanguage</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing SELFIESLanguage.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestSelfiesLanguage.test_add_dataset"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_smiles_language.html#pytoda.smiles.tests.test_smiles_language.TestSelfiesLanguage.test_add_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">test_add_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;C(&#39;</span><span class="p">,</span> <span class="s1">&#39;CC)&#39;</span><span class="p">,</span> <span class="s1">&#39;CCO&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;CO&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS&#39;</span><span class="p">]</span>
+        <span class="n">selfies_language</span> <span class="o">=</span> <span class="n">SELFIESLanguage</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Expected &#39;SMILES Parse Error&#39;s while iterating a dataset:&quot;</span><span class="p">)</span>
+        <span class="n">selfies_language</span><span class="o">.</span><span class="n">add_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;C(&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">selfies_language</span><span class="o">.</span><span class="n">invalid_molecules</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CC)&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">selfies_language</span><span class="o">.</span><span class="n">invalid_molecules</span><span class="p">)</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

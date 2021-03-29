@@ -1,0 +1,512 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.tests.test_annotated_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.tests.test_annotated_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.tests.test_annotated_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Testing AnnotatedDataset dataset with eager backend.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.datasets</span> <span class="kn">import</span> <span class="n">AnnotatedDataset</span><span class="p">,</span> <span class="n">SMILESTokenizerDataset</span><span class="p">,</span> <span class="n">indexed</span><span class="p">,</span> <span class="n">keyed</span>
+<span class="kn">from</span> <span class="nn">pytoda.tests.utils</span> <span class="kn">import</span> <span class="n">TestFileContent</span>
+
+<span class="c1"># must contain all keys in annotated</span>
+<span class="n">SMILES_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="p">[</span><span class="s1">&#39;CCO	CHEMBL545&#39;</span><span class="p">,</span> <span class="s1">&#39;C	CHEMBL17564&#39;</span><span class="p">,</span> <span class="s1">&#39;CO	CHEMBL14688&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	CHEMBL602&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">ANNOTATED_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="s1">&#39;label_0,label_1,annotation_index&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;2.3,3.4,CHEMBL545&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;4.5,5.6,CHEMBL17564&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;6.7,7.8,CHEMBL602&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="TestAnnotatedDataset"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset">[docs]</a><span class="k">class</span> <span class="nc">TestAnnotatedDataset</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing annotated dataset.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestAnnotatedDataset.setUp"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span> <span class="o">=</span> <span class="n">SMILES_CONTENT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotated_content</span> <span class="o">=</span> <span class="n">ANNOTATED_CONTENT</span></div>
+
+<div class="viewcode-block" id="TestAnnotatedDataset.test___getitem__"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.test___getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">test___getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __getitem__.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">smiles_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotated_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">annotation_file</span><span class="p">:</span>
+                <span class="n">smiles_dataset</span> <span class="o">=</span> <span class="n">SMILESTokenizerDataset</span><span class="p">(</span>
+                    <span class="n">smiles_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;eager&#39;</span>
+                <span class="p">)</span>
+                <span class="n">annotated_dataset</span> <span class="o">=</span> <span class="n">AnnotatedDataset</span><span class="p">(</span>
+                    <span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">smiles_dataset</span>
+                <span class="p">)</span>
+        <span class="n">pad_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_index</span>
+        <span class="n">start_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">start_index</span>
+        <span class="n">stop_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">stop_index</span>
+        <span class="n">c_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span>
+        <span class="n">o_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span>
+        <span class="n">n_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span>
+        <span class="n">s_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">]</span>
+        <span class="c1"># test first sample</span>
+        <span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">smiles_tokens</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="p">[</span><span class="n">pad_index</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">c_index</span><span class="p">,</span> <span class="n">c_index</span><span class="p">,</span> <span class="n">o_index</span><span class="p">,</span> <span class="n">stop_index</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="p">[</span><span class="mf">2.3</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">]))</span>
+        <span class="c1"># test last sample</span>
+        <span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">smiles_tokens</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="p">[</span><span class="n">start_index</span><span class="p">,</span> <span class="n">n_index</span><span class="p">,</span> <span class="n">c_index</span><span class="p">,</span> <span class="n">c_index</span><span class="p">,</span> <span class="n">s_index</span><span class="p">,</span> <span class="n">stop_index</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="p">[</span><span class="mf">6.7</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="TestAnnotatedDataset.test___getitem___from_indexed_annotation"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.test___getitem___from_indexed_annotation">[docs]</a>    <span class="k">def</span> <span class="nf">test___getitem___from_indexed_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __getitem__ with index in the annotation file.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">smiles_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotated_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">annotation_file</span><span class="p">:</span>
+                <span class="n">smiles_dataset</span> <span class="o">=</span> <span class="n">SMILESTokenizerDataset</span><span class="p">(</span>
+                    <span class="n">smiles_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;eager&#39;</span>
+                <span class="p">)</span>
+                <span class="n">annotated_dataset</span> <span class="o">=</span> <span class="n">AnnotatedDataset</span><span class="p">(</span>
+                    <span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">smiles_dataset</span>
+                <span class="p">)</span>
+
+        <span class="n">pad_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_index</span>
+        <span class="n">start_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">start_index</span>
+        <span class="n">stop_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">stop_index</span>
+        <span class="n">c_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">]</span>
+        <span class="n">o_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]</span>
+        <span class="n">n_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span>
+        <span class="n">s_index</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">]</span>
+        <span class="c1"># test first sample</span>
+        <span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">smiles_tokens</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="p">[</span><span class="n">pad_index</span><span class="p">,</span> <span class="n">start_index</span><span class="p">,</span> <span class="n">c_index</span><span class="p">,</span> <span class="n">c_index</span><span class="p">,</span> <span class="n">o_index</span><span class="p">,</span> <span class="n">stop_index</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="p">[</span><span class="mf">2.3</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">]))</span>
+        <span class="c1"># test last sample</span>
+        <span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">smiles_tokens</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+            <span class="p">[</span><span class="n">start_index</span><span class="p">,</span> <span class="n">n_index</span><span class="p">,</span> <span class="n">c_index</span><span class="p">,</span> <span class="n">c_index</span><span class="p">,</span> <span class="n">s_index</span><span class="p">,</span> <span class="n">stop_index</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="p">[</span><span class="mf">6.7</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">]))</span></div>
+
+    <span class="k">def</span> <span class="nf">_test_indexed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">positive_index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+        <span class="c1"># get_key (support for negative index?)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">positive_index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="c1"># get_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">positive_index</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="c1"># get_item_from_key returning labels as well</span>
+        <span class="k">for</span> <span class="n">from_index</span><span class="p">,</span> <span class="n">from_key</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span><span class="n">key</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">from_index</span> <span class="o">==</span> <span class="n">from_key</span><span class="p">))</span>
+        <span class="c1"># keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertSequenceEqual</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="c1"># duplicate keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestAnnotatedDataset.test_all_base_for_indexed_methods"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestAnnotatedDataset.test_all_base_for_indexed_methods">[docs]</a>    <span class="k">def</span> <span class="nf">test_all_base_for_indexed_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">smiles_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotated_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">annotation_file</span><span class="p">:</span>
+                <span class="n">smiles_dataset</span> <span class="o">=</span> <span class="n">SMILESTokenizerDataset</span><span class="p">(</span>
+                    <span class="n">smiles_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;eager&#39;</span>
+                <span class="p">)</span>
+                <span class="n">annotated_dataset</span> <span class="o">=</span> <span class="n">AnnotatedDataset</span><span class="p">(</span>
+                    <span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">dataset</span><span class="o">=</span><span class="n">smiles_dataset</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">label_columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;label_1&#39;</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="n">duplicate_ds</span> <span class="o">=</span> <span class="n">AnnotatedDataset</span><span class="p">(</span>
+                    <span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">dataset</span><span class="o">=</span><span class="n">smiles_dataset</span> <span class="o">+</span> <span class="n">smiles_dataset</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="n">all_keys</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotated_content</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">ds</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">annotated_dataset</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_indexed</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+
+        <span class="c1"># duplicates in datasource can be checked directly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">duplicate_ds</span><span class="o">.</span><span class="n">datasource</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">)</span>
+        <span class="c1"># DataFrame is the dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">duplicate_ds</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="TestChangeIndexingReturn"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn">[docs]</a><span class="k">class</span> <span class="nc">TestChangeIndexingReturn</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing annotated dataset.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestChangeIndexingReturn.setUp"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span> <span class="o">=</span> <span class="n">SMILES_CONTENT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotated_content</span> <span class="o">=</span> <span class="n">ANNOTATED_CONTENT</span></div>
+
+<div class="viewcode-block" id="TestChangeIndexingReturn.test_return_integer_index"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.test_return_integer_index">[docs]</a>    <span class="k">def</span> <span class="nf">test_return_integer_index</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __getitem__ with index in dataset.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">smiles_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotated_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">annotation_file</span><span class="p">:</span>
+                <span class="n">smiles_dataset</span> <span class="o">=</span> <span class="n">SMILESTokenizerDataset</span><span class="p">(</span><span class="n">smiles_file</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+                <span class="c1"># default</span>
+                <span class="n">default_annotated_dataset</span> <span class="o">=</span> <span class="n">AnnotatedDataset</span><span class="p">(</span>
+                    <span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">smiles_dataset</span>
+                <span class="p">)</span>
+                <span class="c1"># outer</span>
+                <span class="n">indexed_annotated_dataset</span> <span class="o">=</span> <span class="n">indexed</span><span class="p">(</span><span class="n">default_annotated_dataset</span><span class="p">)</span>
+                <span class="c1"># inner</span>
+                <span class="n">annotated_dataset</span> <span class="o">=</span> <span class="n">AnnotatedDataset</span><span class="p">(</span>
+                    <span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">indexed</span><span class="p">(</span><span class="n">smiles_dataset</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="c1"># default</span>
+        <span class="c1"># relevant to check that `smiles_dataset` was not mutated from</span>
+        <span class="c1"># the `indexed(smiles_dataset)` call</span>
+        <span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">default_annotated_dataset</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># outer __getitem__</span>
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">),</span> <span class="n">sample_index</span> <span class="o">=</span> <span class="n">indexed_annotated_dataset</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">sample_index</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="c1"># outer get_item_from_key</span>
+        <span class="p">(</span>
+            <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">),</span>
+            <span class="n">sample_index</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">indexed_annotated_dataset</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span><span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">sample_index</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># inner __getitem__</span>
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">sample_index</span><span class="p">),</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">sample_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># inner __getitem__ with different index in smiles_dataset</span>
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">sample_index</span><span class="p">),</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">sample_index</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="c1"># inner get_item_from_key</span>
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">sample_index</span><span class="p">),</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span>
+            <span class="s1">&#39;CHEMBL602&#39;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">sample_index</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestChangeIndexingReturn.test_return_key"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.test_return_key">[docs]</a>    <span class="k">def</span> <span class="nf">test_return_key</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __getitem__ with key in dataset.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">smiles_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotated_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">annotation_file</span><span class="p">:</span>
+                <span class="n">smiles_dataset</span> <span class="o">=</span> <span class="n">SMILESTokenizerDataset</span><span class="p">(</span><span class="n">smiles_file</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+                <span class="c1"># default</span>
+                <span class="n">default_annotated_dataset</span> <span class="o">=</span> <span class="n">AnnotatedDataset</span><span class="p">(</span>
+                    <span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">smiles_dataset</span>
+                <span class="p">)</span>
+                <span class="c1"># outer</span>
+                <span class="n">keyed_annotated_dataset</span> <span class="o">=</span> <span class="n">keyed</span><span class="p">(</span><span class="n">default_annotated_dataset</span><span class="p">)</span>
+                <span class="c1"># inner</span>
+                <span class="n">annotated_dataset</span> <span class="o">=</span> <span class="n">AnnotatedDataset</span><span class="p">(</span>
+                    <span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">dataset</span><span class="o">=</span><span class="n">keyed</span><span class="p">(</span><span class="n">smiles_dataset</span><span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="c1"># default</span>
+        <span class="c1"># relevant to check that `smiles_dataset` was not mutated from</span>
+        <span class="c1"># the `keyed(smiles_dataset)` call</span>
+        <span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">default_annotated_dataset</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># outer __getitem__</span>
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">),</span> <span class="n">sample_key</span> <span class="o">=</span> <span class="n">keyed_annotated_dataset</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">sample_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="c1"># outer get_item_from_key</span>
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">),</span> <span class="n">sample_key</span> <span class="o">=</span> <span class="n">keyed_annotated_dataset</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span>
+            <span class="s1">&#39;CHEMBL602&#39;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">sample_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># inner __getitem__</span>
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">sample_key</span><span class="p">),</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">sample_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL545&#39;</span><span class="p">)</span>
+        <span class="c1"># inner __getitem__ with different index in smiles_dataset</span>
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">sample_key</span><span class="p">),</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">sample_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+        <span class="c1"># inner get_item_from_key</span>
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">sample_key</span><span class="p">),</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span>
+            <span class="s1">&#39;CHEMBL602&#39;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">sample_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestChangeIndexingReturn.test_return_key_index_stacked"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.test_return_key_index_stacked">[docs]</a>    <span class="k">def</span> <span class="nf">test_return_key_index_stacked</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __getitem__ with key in dataset.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">smiles_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotated_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">annotation_file</span><span class="p">:</span>
+                <span class="n">smiles_dataset</span> <span class="o">=</span> <span class="n">keyed</span><span class="p">(</span>
+                    <span class="n">indexed</span><span class="p">(</span>
+                        <span class="n">SMILESTokenizerDataset</span><span class="p">(</span>
+                            <span class="n">smiles_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">annotated_dataset</span> <span class="o">=</span> <span class="n">indexed</span><span class="p">(</span>
+                    <span class="n">keyed</span><span class="p">(</span>
+                        <span class="n">AnnotatedDataset</span><span class="p">(</span>
+                            <span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="n">dataset</span><span class="o">=</span><span class="n">smiles_dataset</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">smiles_index</span><span class="p">),</span> <span class="n">smiles_key</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_index</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">smiles_index</span><span class="p">),</span> <span class="n">smiles_key</span> <span class="o">=</span> <span class="n">smiles_dataset</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span>
+            <span class="s1">&#39;CHEMBL602&#39;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_index</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_CHEMBL602</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="p">)</span>
+
+        <span class="p">(</span>
+            <span class="p">(</span>
+                <span class="p">(((</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">smiles_index</span><span class="p">),</span> <span class="n">smiles_key</span><span class="p">),</span> <span class="n">labels</span><span class="p">),</span>  <span class="c1"># inner</span>
+                <span class="n">annotation_key</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">annotation_index</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_index</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annotation_index</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annotation_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="p">(</span>
+            <span class="p">(</span>
+                <span class="p">(((</span><span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">smiles_index</span><span class="p">),</span> <span class="n">smiles_key</span><span class="p">),</span> <span class="n">labels</span><span class="p">),</span>  <span class="c1"># inner</span>
+                <span class="n">annotation_key</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">annotation_index</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">annotated_dataset</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span><span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_index</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annotation_index</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">annotation_key</span><span class="p">,</span> <span class="s1">&#39;CHEMBL602&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestChangeIndexingReturn.check_CHEMBL602"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_annotated_dataset.html#pytoda.datasets.tests.test_annotated_dataset.TestChangeIndexingReturn.check_CHEMBL602">[docs]</a>    <span class="k">def</span> <span class="nf">check_CHEMBL602</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles_tokens</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check indexing results lack unwanted index/key from hidden calls&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">smiles_tokens</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()),</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()),</span> <span class="mi">2</span><span class="p">)</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

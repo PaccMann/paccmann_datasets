@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.tests.test_drug_affinity_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.tests.test_drug_affinity_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.tests.test_drug_affinity_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Testing DrugAffinityDataset.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.datasets</span> <span class="kn">import</span> <span class="n">DrugAffinityDataset</span>
+<span class="kn">from</span> <span class="nn">pytoda.tests.utils</span> <span class="kn">import</span> <span class="n">TestFileContent</span>
+
+<span class="n">COLUMN_NAMES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;,ligand_name,sequence_id,label&#39;</span><span class="p">,</span> <span class="s1">&#39;,drug,protein,class&#39;</span><span class="p">]</span>
+<span class="n">DRUG_AFFINITY_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="s1">&#39;0,CHEMBL14688,name=20S proteasome chymotrypsin-like-organism=Homo sapiens,1&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+        <span class="s1">&#39;1,CHEMBL14688,name=21S proteasome chymotrypsin-like-organism=Homo sapiens,0&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+        <span class="s1">&#39;2,CHEMBL17564,name=20S proteasome chymotrypsin-like-organism=Homo sapiens,0&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+        <span class="s1">&#39;3,CHEMBL17564,name=21S proteasome chymotrypsin-like-organism=Homo sapiens,1&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">SMILES_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="p">[</span><span class="s1">&#39;CCO	CHEMBL545&#39;</span><span class="p">,</span> <span class="s1">&#39;C	CHEMBL17564&#39;</span><span class="p">,</span> <span class="s1">&#39;CO	CHEMBL14688&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	CHEMBL602&#39;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">PROTEIN_SEQUENCE_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="s1">&#39;ABC</span><span class="se">\t</span><span class="s1">name=20S proteasome chymotrypsin-like-organism=Homo sapiens&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+        <span class="s1">&#39;DEFG</span><span class="se">\t</span><span class="s1">name=21S proteasome chymotrypsin-like-organism=Homo sapiens&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+        <span class="s1">&#39;CDEF</span><span class="se">\t</span><span class="s1">name=22S proteasome chymotrypsin-like-organism=Homo sapiens&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+        <span class="s1">&#39;XZSDASDFF</span><span class="se">\t</span><span class="s1">name=23S proteasome chymotrypsin-like-organism=Homo sapiens&#39;</span><span class="p">,</span>  <span class="c1"># noqa</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="TestDrugAffinityDatasetEagerBackend"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_drug_affinity_dataset.html#pytoda.datasets.tests.test_drug_affinity_dataset.TestDrugAffinityDatasetEagerBackend">[docs]</a><span class="k">class</span> <span class="nc">TestDrugAffinityDatasetEagerBackend</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing DrugAffinityDataset with eager backend.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestDrugAffinityDatasetEagerBackend.setUp"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_drug_affinity_dataset.html#pytoda.datasets.tests.test_drug_affinity_dataset.TestDrugAffinityDatasetEagerBackend.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;backend is </span><span class="si">{self.backend}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span> <span class="o">=</span> <span class="n">SMILES_CONTENT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protein_sequence_content</span> <span class="o">=</span> <span class="n">PROTEIN_SEQUENCE_CONTENT</span>
+
+        <span class="k">for</span> <span class="n">column_names</span> <span class="ow">in</span> <span class="n">COLUMN_NAMES</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_content</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">column_names</span><span class="p">,</span> <span class="n">DRUG_AFFINITY_CONTENT</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">drug_affinity_file</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">smiles_file</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">protein_sequence_content</span>
+                    <span class="p">)</span> <span class="k">as</span> <span class="n">protein_sequence_file</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span> <span class="o">=</span> <span class="n">DrugAffinityDataset</span><span class="p">(</span>
+                            <span class="n">drug_affinity_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="n">smiles_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="n">protein_sequence_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                            <span class="n">column_names</span><span class="o">=</span><span class="n">column_names</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span>
+                        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestDrugAffinityDatasetEagerBackend.test___len__"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_drug_affinity_dataset.html#pytoda.datasets.tests.test_drug_affinity_dataset.TestDrugAffinityDatasetEagerBackend.test___len__">[docs]</a>    <span class="k">def</span> <span class="nf">test___len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __len__.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestDrugAffinityDatasetEagerBackend.test___getitem__"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_drug_affinity_dataset.html#pytoda.datasets.tests.test_drug_affinity_dataset.TestDrugAffinityDatasetEagerBackend.test___getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">test___getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __getitem__.&quot;&quot;&quot;</span>
+        <span class="n">smiles_padding_index</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span><span class="o">.</span><span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_index</span>
+        <span class="p">)</span>
+        <span class="n">smiles_c_index</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span><span class="o">.</span><span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span>
+                <span class="s1">&#39;C&#39;</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">smiles_o_index</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span><span class="o">.</span><span class="n">smiles_dataset</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span>
+                <span class="s1">&#39;O&#39;</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">protein_sequence_padding_index</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span><span class="o">.</span><span class="n">protein_sequence_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">padding_index</span>
+        <span class="p">)</span>
+        <span class="n">protein_sequence_a_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span><span class="o">.</span><span class="n">protein_sequence_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span>
+            <span class="s1">&#39;A&#39;</span>
+        <span class="p">]</span>
+        <span class="n">protein_sequence_b_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span><span class="o">.</span><span class="n">protein_sequence_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span>
+            <span class="s1">&#39;B&#39;</span>
+        <span class="p">]</span>
+        <span class="n">protein_sequence_c_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span><span class="o">.</span><span class="n">protein_sequence_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span>
+            <span class="s1">&#39;C&#39;</span>
+        <span class="p">]</span>
+        <span class="p">(</span>
+            <span class="n">smiles_indexes_tensor</span><span class="p">,</span>
+            <span class="n">protein_sequence_indexes_tensor</span><span class="p">,</span>
+            <span class="n">label_tensor</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span>
+            <span class="n">smiles_indexes_tensor</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">smiles_padding_index</span><span class="p">,</span>
+                    <span class="n">smiles_padding_index</span><span class="p">,</span>
+                    <span class="n">smiles_c_index</span><span class="p">,</span>
+                    <span class="n">smiles_o_index</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span>
+            <span class="n">protein_sequence_indexes_tensor</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="mi">6</span> <span class="o">*</span> <span class="p">[</span><span class="n">protein_sequence_padding_index</span><span class="p">]</span>
+                <span class="o">+</span> <span class="p">[</span>
+                    <span class="n">protein_sequence_a_index</span><span class="p">,</span>
+                    <span class="n">protein_sequence_b_index</span><span class="p">,</span>
+                    <span class="n">protein_sequence_c_index</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span><span class="n">label_tensor</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TestDrugAffinityDatasetEagerBackend.test_data_loader"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_drug_affinity_dataset.html#pytoda.datasets.tests.test_drug_affinity_dataset.TestDrugAffinityDatasetEagerBackend.test_data_loader">[docs]</a>    <span class="k">def</span> <span class="nf">test_data_loader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test data_loader.&quot;&quot;&quot;</span>
+        <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">batch_index</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">smiles_indexes_batch</span><span class="p">,</span> <span class="n">protein_sequence_indexes_batch</span><span class="p">,</span> <span class="n">label_batch</span><span class="p">),</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data_loader</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_indexes_batch</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_sequence_indexes_batch</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">label_batch</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">batch_index</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="k">break</span></div></div>
+
+
+<div class="viewcode-block" id="TestDrugAffinityDatasetLazyBackend"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_drug_affinity_dataset.html#pytoda.datasets.tests.test_drug_affinity_dataset.TestDrugAffinityDatasetLazyBackend">[docs]</a><span class="k">class</span> <span class="nc">TestDrugAffinityDatasetLazyBackend</span><span class="p">(</span><span class="n">TestDrugAffinityDatasetEagerBackend</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing DrugAffinityDataset with lazy backend.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestDrugAffinityDatasetLazyBackend.setUp"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_drug_affinity_dataset.html#pytoda.datasets.tests.test_drug_affinity_dataset.TestDrugAffinityDatasetLazyBackend.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;lazy&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;backend is </span><span class="si">{self.backend}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span> <span class="o">=</span> <span class="n">SMILES_CONTENT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protein_sequence_content</span> <span class="o">=</span> <span class="n">PROTEIN_SEQUENCE_CONTENT</span>
+
+        <span class="k">for</span> <span class="n">column_names</span> <span class="ow">in</span> <span class="n">COLUMN_NAMES</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_content</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">column_names</span><span class="p">,</span> <span class="n">DRUG_AFFINITY_CONTENT</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">drug_affinity_file</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">smiles_file</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">protein_sequence_content</span>
+                    <span class="p">)</span> <span class="k">as</span> <span class="n">protein_sequence_file</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dataset</span> <span class="o">=</span> <span class="n">DrugAffinityDataset</span><span class="p">(</span>
+                            <span class="n">drug_affinity_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="n">smiles_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="n">protein_sequence_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                            <span class="n">column_names</span><span class="o">=</span><span class="n">column_names</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:],</span>
+                        <span class="p">)</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.protein_sequence_dataset module &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pytoda.datasets.set_matching_dataset module" href="pytoda.datasets.set_matching_dataset.html" />
+    <link rel="prev" title="pytoda.datasets.protein_protein_interaction_dataset module" href="pytoda.datasets.protein_protein_interaction_dataset.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pytoda.html">API of the pytoda package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pytoda.data_splitter.html">pytoda.data_splitter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.files.html">pytoda.files module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.transforms.html">pytoda.transforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.annotated_dataset.html">pytoda.datasets.annotated_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.base_dataset.html">pytoda.datasets.base_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.dataframe_dataset.html">pytoda.datasets.dataframe_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.distributional_dataset.html">pytoda.datasets.distributional_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.drug_affinity_dataset.html">pytoda.datasets.drug_affinity_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.drug_sensitivity_dataset.html">pytoda.datasets.drug_sensitivity_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.gene_expression_dataset.html">pytoda.datasets.gene_expression_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.polymer_dataset.html">pytoda.datasets.polymer_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.protein_protein_interaction_dataset.html">pytoda.datasets.protein_protein_interaction_dataset module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">pytoda.datasets.protein_sequence_dataset module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.set_matching_dataset.html">pytoda.datasets.set_matching_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.smiles_dataset.html">pytoda.datasets.smiles_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.tests.html">pytoda.datasets.tests package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.utils.html">pytoda.datasets.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.preprocessing.html">pytoda.preprocessing package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.proteins.html">pytoda.proteins package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.smiles.html">pytoda.smiles package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.tests.html">pytoda.tests package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#summary">Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="pytoda.html">pytoda package</a> &raquo;</li>
+        
+          <li><a href="pytoda.datasets.html">pytoda.datasets package</a> &raquo;</li>
+        
+      <li>pytoda.datasets.protein_sequence_dataset module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/pytoda.datasets.protein_sequence_dataset.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pytoda.datasets.protein_sequence_dataset">
+<span id="pytoda-datasets-protein-sequence-dataset-module"></span><h1>pytoda.datasets.protein_sequence_dataset module<a class="headerlink" href="#module-pytoda.datasets.protein_sequence_dataset" title="Permalink to this headline">¶</a></h1>
+<p>Implementation of ProteinSequenceDataset.</p>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Classes:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset" title="pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProteinSequenceDataset</span></code></a></p></td>
+<td><p>Protein Sequence dataset using a Language to transform sequences.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Functions:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.datasets.protein_sequence_dataset.protein_sequence_dataset" title="pytoda.datasets.protein_sequence_dataset.protein_sequence_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">protein_sequence_dataset</span></code></a></p></td>
+<td><p>Return a dataset of protein sequences.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="pytoda.datasets.protein_sequence_dataset.protein_sequence_dataset">
+<code class="sig-name descname">protein_sequence_dataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filepaths</span></em>, <em class="sig-param"><span class="n">filetype</span></em>, <em class="sig-param"><span class="n">backend</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/protein_sequence_dataset.html#protein_sequence_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.protein_sequence_dataset.protein_sequence_dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dataset of protein sequences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.KeyDataset" title="pytoda.datasets.base_dataset.KeyDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyDataset</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset">
+<em class="property">class </em><code class="sig-name descname">ProteinSequenceDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filepaths</span></em>, <em class="sig-param"><span class="n">filetype</span><span class="o">=</span><span class="default_value">'.smi'</span></em>, <em class="sig-param"><span class="n">protein_language</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">amino_acid_dict</span><span class="o">=</span><span class="default_value">'iupac'</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">padding_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">augment_by_revert</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">randomize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'eager'</span></em>, <em class="sig-param"><span class="n">iterate_dataset</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'protein-sequences'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/protein_sequence_dataset.html#ProteinSequenceDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.utils.data.dataset.T_co</span></code>]</p>
+<p>Protein Sequence dataset using a Language to transform sequences.</p>
+<dl class="py method">
+<dt id="pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filepaths</span></em>, <em class="sig-param"><span class="n">filetype</span><span class="o">=</span><span class="default_value">'.smi'</span></em>, <em class="sig-param"><span class="n">protein_language</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">amino_acid_dict</span><span class="o">=</span><span class="default_value">'iupac'</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">padding_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">augment_by_revert</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">randomize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'eager'</span></em>, <em class="sig-param"><span class="n">iterate_dataset</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'protein-sequences'</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/protein_sequence_dataset.html#ProteinSequenceDataset.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a Protein Sequence dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>*filepaths</strong> (<em>Files</em>) – paths to .smi, .csv/.fasta/.fasta.gz file
+with the sequences.</p></li>
+<li><p><strong>filetype</strong> (<em>str</em>) – From {.smi, .csv, .fasta, .fasta.gz}.</p></li>
+<li><p><strong>protein_language</strong> (<a class="reference internal" href="pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage" title="pytoda.proteins.protein_language.ProteinLanguage"><em>ProteinLanguage</em></a>) – a ProteinLanguage (or child)
+instance, e.g. ProteinFeatureLanguage. Defaults to None,
+creating a default instance.</p></li>
+<li><p><strong>amino_acid_dict</strong> (<em>str</em>) – Type of dictionary used for amino acid
+sequences. Defaults to ‘iupac’, alternative is ‘unirep’.</p></li>
+<li><p><strong>padding</strong> (<em>bool</em>) – pad sequences to longest in the protein language.
+Defaults to True.</p></li>
+<li><p><strong>padding_length</strong> (<em>int</em>) – manually sets number of applied paddings,
+applies only if padding is True. Defaults to None.</p></li>
+<li><p><strong>add_start_and_stop</strong> (<em>bool</em>) – add start and stop token indexes.
+Defaults to False.</p></li>
+<li><p><strong>augment_by_revert</strong> (<em>bool</em>) – perform Protein augmentation by reverting
+Sequences. Defaults to False.</p></li>
+<li><p><strong>randomize</strong> (<em>bool</em>) – perform a true randomization of Protein tokens.
+Defaults to False.</p></li>
+<li><p><strong>device</strong> (<em>torch.device</em>) – device where the tensors are stored.
+Defaults to gpu, if available.</p></li>
+<li><p><strong>iterate_dataset</strong> (<em>bool</em>) – whether to go through all items in the
+dataset to extend/build vocab, find longest sequence, and
+checks the passed padding length if applicable. Defaults to
+False.</p></li>
+<li><p><strong>backend</strong> (<em>str</em>) – memory management backend.
+Defaults to eager, prefer speed over memory consumption.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – name of the ProteinSequenceDataset.</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – additional arguments for dataset constructor.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="pytoda.datasets.set_matching_dataset.html" class="btn btn-neutral float-right" title="pytoda.datasets.set_matching_dataset module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pytoda.datasets.protein_protein_interaction_dataset.html" class="btn btn-neutral float-left" title="pytoda.datasets.protein_protein_interaction_dataset module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

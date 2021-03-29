@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.utils.utils &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.utils.utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.utils.utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Utils for the dataset module.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">...types</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Files</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">..base_dataset</span> <span class="kn">import</span> <span class="n">AnyBaseDataset</span><span class="p">,</span> <span class="n">ConcatKeyDataset</span>
+<span class="kn">from</span> <span class="nn">.factories</span> <span class="kn">import</span> <span class="n">BACKGROUND_TENSOR_FACTORY</span>
+
+
+<div class="viewcode-block" id="sizeof_fmt"><a class="viewcode-back" href="../../../../api/pytoda.datasets.utils.utils.html#pytoda.datasets.utils.utils.sizeof_fmt">[docs]</a><span class="k">def</span> <span class="nf">sizeof_fmt</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Human readable file size. Source: https://stackoverflow.com/a/1094933</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;Ki&#39;</span><span class="p">,</span> <span class="s1">&#39;Mi&#39;</span><span class="p">,</span> <span class="s1">&#39;Gi&#39;</span><span class="p">,</span> <span class="s1">&#39;Ti&#39;</span><span class="p">,</span> <span class="s1">&#39;Pi&#39;</span><span class="p">,</span> <span class="s1">&#39;Ei&#39;</span><span class="p">,</span> <span class="s1">&#39;Zi&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1024.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%3.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">/=</span> <span class="mf">1024.0</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="s1">&#39;Yi&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="concatenate_file_based_datasets"><a class="viewcode-back" href="../../../../api/pytoda.datasets.utils.utils.html#pytoda.datasets.utils.utils.concatenate_file_based_datasets">[docs]</a><span class="k">def</span> <span class="nf">concatenate_file_based_datasets</span><span class="p">(</span>
+    <span class="n">filepaths</span><span class="p">:</span> <span class="n">Files</span><span class="p">,</span> <span class="n">dataset_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConcatKeyDataset</span><span class="p">:</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Concatenate file-based datasets into a single one, with the ability to</span>
+<span class="sd">        get the source dataset of items.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepaths (Files): list of filepaths.</span>
+<span class="sd">        dataset_class (type): dataset class reading from file.</span>
+<span class="sd">            Supports KeyDataset and DatasetDelegator.</span>
+<span class="sd">            For pure torch.utils.data.Dataset the returned instance can</span>
+<span class="sd">            still be used like a `pytoda.datasets.TransparentConcatDataset`,</span>
+<span class="sd">            but methods depending on key lookup will fail.</span>
+<span class="sd">        kwargs (dict): additional args for dataset_class.__init__(filepath, \**kwargs).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        ConcatKeyDataset: the concatenated dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">ConcatKeyDataset</span><span class="p">(</span>
+        <span class="n">datasets</span><span class="o">=</span><span class="p">[</span><span class="n">dataset_class</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="n">filepaths</span><span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="indexed"><a class="viewcode-back" href="../../../../api/pytoda.datasets.utils.utils.html#pytoda.datasets.utils.utils.indexed">[docs]</a><span class="k">def</span> <span class="nf">indexed</span><span class="p">(</span><span class="n">dataset</span><span class="p">:</span> <span class="n">AnyBaseDataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AnyBaseDataset</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns mutated shallow copy of passed dataset instance, where indexing</span>
+<span class="sd">    behavior is changed to additionally returning index.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">default_getitem</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="fm">__getitem__</span>  <span class="c1"># bound method</span>
+    <span class="n">default_from_key</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_item_from_key</span>  <span class="c1"># bound method</span>
+
+    <span class="k">def</span> <span class="nf">return_item_index_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="n">return_index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">+</span> <span class="n">index</span> <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">index</span>
+        <span class="k">return</span> <span class="n">default_getitem</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="n">return_index</span>
+
+    <span class="k">def</span> <span class="nf">return_item_index_tuple_from_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;prevents `get_item_from_key` to call new indexed __getitem__&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">default_from_key</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;__getitem__&#39;</span><span class="p">:</span> <span class="n">return_item_index_tuple</span><span class="p">,</span>
+        <span class="s1">&#39;get_item_from_key&#39;</span><span class="p">:</span> <span class="n">return_item_index_tuple_from_key</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;Indexed{type(dataset).__name__}&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,),</span> <span class="n">methods</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ds</span></div>
+
+
+<div class="viewcode-block" id="keyed"><a class="viewcode-back" href="../../../../api/pytoda.datasets.utils.utils.html#pytoda.datasets.utils.utils.keyed">[docs]</a><span class="k">def</span> <span class="nf">keyed</span><span class="p">(</span><span class="n">dataset</span><span class="p">:</span> <span class="n">AnyBaseDataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AnyBaseDataset</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns mutated shallow copy of passed dataset instance, where indexing</span>
+<span class="sd">    behavior is changed to additionally returning key.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">default_getitem</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="fm">__getitem__</span>  <span class="c1"># bound method</span>
+    <span class="n">default_from_key</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_item_from_key</span>  <span class="c1"># bound method</span>
+
+    <span class="k">def</span> <span class="nf">return_item_key_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">default_getitem</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">return_item_key_tuple_from_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;prevents `get_item_from_key` to call new keyed __getitem__&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">default_from_key</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">key</span>
+
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;__getitem__&#39;</span><span class="p">:</span> <span class="n">return_item_key_tuple</span><span class="p">,</span>
+        <span class="s1">&#39;get_item_from_key&#39;</span><span class="p">:</span> <span class="n">return_item_key_tuple_from_key</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Keyed{type(dataset).__name__}&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,),</span> <span class="n">methods</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ds</span></div>
+
+
+<div class="viewcode-block" id="pad_item"><a class="viewcode-back" href="../../../../api/pytoda.datasets.utils.utils.html#pytoda.datasets.utils.utils.pad_item">[docs]</a><span class="k">def</span> <span class="nf">pad_item</span><span class="p">(</span>
+    <span class="n">item</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">,</span>
+    <span class="n">padding_modes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">padding_values</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+    <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+    <span class="p">),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Padding function for a single item of a batch.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        item (Tuple): Tuple returned by the __getitem__ function of a Dataset class.</span>
+<span class="sd">        padding_modes (List[str]): The type of padding to perform for each datum in item.</span>
+<span class="sd">            Options are &#39;constant&#39; for constant value padding, and &#39;range&#39; to fill the</span>
+<span class="sd">            tensor with a range of values.</span>
+<span class="sd">        padding_values (List): The values with which to fill the background tensor for padding.</span>
+<span class="sd">            Can be a constant value or a range depending on the datum to pad in item.</span>
+<span class="sd">        max_length (int): The maximum length to which the datum should be padded.</span>
+<span class="sd">        device (torch.device, optional): Device where the tensors are stored.</span>
+<span class="sd">            Defaults to gpu, if available.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple: Tuple of tensors padded according to the given specifications.</span>
+
+<span class="sd">    NOTE: pad_item function uses trailing dimensions as the repetitions argument</span>
+<span class="sd">          for range_tensor(), since the &#39;length&#39; of the set is covered by the</span>
+<span class="sd">          value_range. That is, if a tensor of shape (5,) is required for</span>
+<span class="sd">          padding_mode &#39;range&#39; then () is passed as shape into range_tensor</span>
+<span class="sd">          function which will repeat range(5) exactly once thus giving us a (5,) tensor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># for each Tensor in the list we determine the output dimensions</span>
+    <span class="n">max_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">datum</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="k">for</span> <span class="n">datum</span> <span class="ow">in</span> <span class="n">item</span><span class="p">]</span>
+    <span class="n">out_dimses</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">max_length</span><span class="p">,</span> <span class="o">*</span><span class="n">max_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">if</span> <span class="n">padding_modes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span>
+        <span class="k">else</span> <span class="p">(</span><span class="o">*</span><span class="n">max_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">:],)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">max_sizes</span><span class="p">))</span>
+    <span class="p">]</span>
+
+    <span class="n">out_tensors</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">BACKGROUND_TENSOR_FACTORY</span><span class="p">[</span><span class="n">mode</span><span class="p">](</span><span class="n">value</span><span class="p">,</span> <span class="n">out_dims</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">out_dims</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">out_dimses</span><span class="p">,</span> <span class="n">padding_modes</span><span class="p">,</span> <span class="n">padding_values</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">datum_index</span><span class="p">,</span> <span class="n">tensor</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="n">tensor</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">out_tensors</span><span class="p">[</span><span class="n">datum_index</span><span class="p">][:</span><span class="n">length</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">tensor</span>
+    <span class="k">return</span> <span class="n">out_tensors</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,454 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.drug_sensitivity_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.drug_sensitivity_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.drug_sensitivity_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Implementation of DrugSensitivityDataset.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="kn">from</span> <span class="nn">..smiles.smiles_language</span> <span class="kn">import</span> <span class="n">SMILESLanguage</span>
+<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">DrugSensitivityData</span><span class="p">,</span> <span class="n">GeneList</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">.gene_expression_dataset</span> <span class="kn">import</span> <span class="n">GeneExpressionDataset</span>
+<span class="kn">from</span> <span class="nn">.smiles_dataset</span> <span class="kn">import</span> <span class="n">SMILESTokenizerDataset</span>
+
+
+<div class="viewcode-block" id="DrugSensitivityDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.drug_sensitivity_dataset.html#pytoda.datasets.drug_sensitivity_dataset.DrugSensitivityDataset">[docs]</a><span class="k">class</span> <span class="nc">DrugSensitivityDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Drug sensitivity dataset implementation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DrugSensitivityDataset.__init__"><a class="viewcode-back" href="../../../api/pytoda.datasets.drug_sensitivity_dataset.html#pytoda.datasets.drug_sensitivity_dataset.DrugSensitivityDataset.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">drug_sensitivity_filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">smi_filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">gene_expression_filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">column_names</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;drug&#39;</span><span class="p">,</span> <span class="s1">&#39;cell_line&#39;</span><span class="p">,</span> <span class="s1">&#39;IC50&#39;</span><span class="p">],</span>
+        <span class="n">drug_sensitivity_dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span>
+        <span class="n">drug_sensitivity_min_max</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">drug_sensitivity_processing_parameters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">smiles_language</span><span class="p">:</span> <span class="n">SMILESLanguage</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">padding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">padding_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">augment</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">canonical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">kekulize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_bonds_explicit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_hs_explicit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">randomize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">remove_bonddir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">remove_chirality</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">selfies</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">sanitize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">vocab_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">iterate_dataset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">gene_list</span><span class="p">:</span> <span class="n">GeneList</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">gene_expression_standardize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">gene_expression_min_max</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">gene_expression_processing_parameters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">gene_expression_dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span>
+        <span class="n">gene_expression_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a drug sensitivity dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            drug_sensitivity_filepath (str): path to drug sensitivity .csv file.</span>
+<span class="sd">                Currently, the only supported format is .csv, with an index and three</span>
+<span class="sd">                header columns named as specified in the column_names argument.</span>
+<span class="sd">            smi_filepath (str): path to .smi file.</span>
+<span class="sd">            gene_expression_filepath (str): path to gene expression .csv file.</span>
+<span class="sd">                Currently, the only supported format is .csv,</span>
+<span class="sd">                with an index and header columns containing gene names.</span>
+<span class="sd">            column_names (Tuple[str]): Names of columns in data files to retrieve</span>
+<span class="sd">                labels, ligands and protein name respectively.</span>
+<span class="sd">                Defaults to [&#39;drug&#39;, &#39;cell_line&#39;, &#39;IC50&#39;].</span>
+<span class="sd">            drug_sensitivity_dtype (torch.dtype): drug sensitivity data type.</span>
+<span class="sd">                Defaults to torch.float.</span>
+<span class="sd">            drug_sensitivity_min_max (bool): min-max scale drug sensitivity</span>
+<span class="sd">                data. Defaults to True.</span>
+<span class="sd">            drug_sensitivity_processing_parameters (dict): transformation</span>
+<span class="sd">                parameters for drug sensitivity data, e.g. for min-max scaling.</span>
+<span class="sd">                Defaults to {}.</span>
+<span class="sd">            smiles_language (SMILESLanguage): a smiles language.</span>
+<span class="sd">                Defaults to None.</span>
+<span class="sd">            padding (bool): pad sequences to longest in the smiles language.</span>
+<span class="sd">                Defaults to True.</span>
+<span class="sd">            padding_length (int): manually sets number of applied paddings,</span>
+<span class="sd">                applies only if padding is True. Defaults to None.</span>
+<span class="sd">            add_start_and_stop (bool): add start and stop token indexes.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            canonical (bool): performs canonicalization of SMILES (one</span>
+<span class="sd">                original string for one molecule), if True, then other</span>
+<span class="sd">                transformations (augment etc, see below) do not apply</span>
+<span class="sd">            augment (bool): perform SMILES augmentation. Defaults to False.</span>
+<span class="sd">            kekulize (bool): kekulizes SMILES (implicit aromaticity only).</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            all_bonds_explicit (bool): Makes all bonds explicit. Defaults to</span>
+<span class="sd">                False, only applies if kekulize = True.</span>
+<span class="sd">            all_hs_explicit (bool): Makes all hydrogens explicit. Defaults to</span>
+<span class="sd">                False, only applies if kekulize = True.</span>
+<span class="sd">            randomize (bool): perform a true randomization of SMILES tokens.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            remove_bonddir (bool): Remove directional info of bonds.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            remove_chirality (bool): Remove chirality information.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            selfies (bool): Whether selfies is used instead of smiles, defaults</span>
+<span class="sd">                to False.</span>
+<span class="sd">            sanitize (bool): RDKit sanitization of the molecule.</span>
+<span class="sd">                Defaults to True.</span>
+<span class="sd">            vocab_file (str): Optional .json to load vocabulary. Tries to load</span>
+<span class="sd">                metadata if `iterate_dataset` is False. Defaults to None.</span>
+<span class="sd">            iterate_dataset (bool): whether to go through all SMILES in the</span>
+<span class="sd">                dataset to extend/build vocab, find longest sequence, and</span>
+<span class="sd">                checks the passed padding length if applicable. Defaults to</span>
+<span class="sd">                True.</span>
+<span class="sd">            gene_list (GeneList): a list of genes.</span>
+<span class="sd">            gene_expression_standardize (bool): perform gene expression</span>
+<span class="sd">                data standardization. Defaults to True.</span>
+<span class="sd">            gene_expression_min_max (bool): perform min-max scaling on gene</span>
+<span class="sd">                expression data. Defaults to False.</span>
+<span class="sd">            gene_expression_processing_parameters (dict): transformation</span>
+<span class="sd">                parameters for gene expression, e.g. for min-max scaling.</span>
+<span class="sd">                Defaults to {}.</span>
+<span class="sd">            gene_expression_dtype (torch.dtype): gene expression data type.</span>
+<span class="sd">                Defaults to torch.float.</span>
+<span class="sd">            gene_expression_kwargs (dict): additional parameters for</span>
+<span class="sd">                GeneExpressionDataset.</span>
+<span class="sd">            device (torch.device): device where the tensors are stored.</span>
+<span class="sd">                Defaults to gpu, if available.</span>
+<span class="sd">            backend (str): memory management backend.</span>
+<span class="sd">                Defaults to eager, prefer speed over memory consumption.</span>
+<span class="sd">                Note that at the moment only the gene expression and the</span>
+<span class="sd">                smiles datasets implement both backends. The drug sensitivity</span>
+<span class="sd">                data are loaded in memory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Dataset</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_filepath</span> <span class="o">=</span> <span class="n">drug_sensitivity_filepath</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smi_filepath</span> <span class="o">=</span> <span class="n">smi_filepath</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gene_expression_filepath</span> <span class="o">=</span> <span class="n">gene_expression_filepath</span>
+        <span class="c1"># device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="c1"># backend</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">backend</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">column_names</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Column names was {type(column_names)}, not Iterable.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">column_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please pass 3 column names not {len(column_names)}&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">column_names</span> <span class="o">=</span> <span class="n">column_names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drug_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">column_names</span>
+
+        <span class="c1"># SMILES</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_dataset</span> <span class="o">=</span> <span class="n">SMILESTokenizerDataset</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smi_filepath</span><span class="p">,</span>
+            <span class="n">smiles_language</span><span class="o">=</span><span class="n">smiles_language</span><span class="p">,</span>
+            <span class="n">augment</span><span class="o">=</span><span class="n">augment</span><span class="p">,</span>
+            <span class="n">canonical</span><span class="o">=</span><span class="n">canonical</span><span class="p">,</span>
+            <span class="n">kekulize</span><span class="o">=</span><span class="n">kekulize</span><span class="p">,</span>
+            <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+            <span class="n">all_hs_explicit</span><span class="o">=</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+            <span class="n">remove_bonddir</span><span class="o">=</span><span class="n">remove_bonddir</span><span class="p">,</span>
+            <span class="n">remove_chirality</span><span class="o">=</span><span class="n">remove_chirality</span><span class="p">,</span>
+            <span class="n">selfies</span><span class="o">=</span><span class="n">selfies</span><span class="p">,</span>
+            <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span><span class="p">,</span>
+            <span class="n">randomize</span><span class="o">=</span><span class="n">randomize</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+            <span class="n">padding_length</span><span class="o">=</span><span class="n">padding_length</span><span class="p">,</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">add_start_and_stop</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+            <span class="n">vocab_file</span><span class="o">=</span><span class="n">vocab_file</span><span class="p">,</span>
+            <span class="n">iterate_dataset</span><span class="o">=</span><span class="n">iterate_dataset</span><span class="p">,</span>
+            <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># gene expression</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gene_expression_dataset</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gene_expression_filepath</span><span class="p">,</span>
+            <span class="n">gene_list</span><span class="o">=</span><span class="n">gene_list</span><span class="p">,</span>
+            <span class="n">standardize</span><span class="o">=</span><span class="n">gene_expression_standardize</span><span class="p">,</span>
+            <span class="n">min_max</span><span class="o">=</span><span class="n">gene_expression_min_max</span><span class="p">,</span>
+            <span class="n">processing_parameters</span><span class="o">=</span><span class="n">gene_expression_processing_parameters</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">gene_expression_dtype</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+            <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+            <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">gene_expression_kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># drug sensitivity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_dtype</span> <span class="o">=</span> <span class="n">drug_sensitivity_dtype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_min_max</span> <span class="o">=</span> <span class="n">drug_sensitivity_min_max</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_processing_parameters</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">drug_sensitivity_processing_parameters</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_filepath</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="c1"># filter data based on the availability</span>
+        <span class="n">drug_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">drug_name</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles_dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="n">profile_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cell_name</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+            <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gene_expression_dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+            <span class="n">drug_mask</span> <span class="o">&amp;</span> <span class="n">profile_mask</span>
+        <span class="p">]</span>
+
+        <span class="c1"># to investigate missing ids per entity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">masks_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">drug_mask</span><span class="p">,</span> <span class="n">profile_mask</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">masks_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">drug_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cell_name</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span><span class="p">)</span>
+
+        <span class="c1"># NOTE: optional min-max scaling</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_min_max</span><span class="p">:</span>
+            <span class="n">minimum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_processing_parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_name</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="n">maximum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_processing_parameters</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s1">&#39;max&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_name</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_name</span><span class="p">]</span> <span class="o">-</span> <span class="n">minimum</span>
+            <span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">maximum</span> <span class="o">-</span> <span class="n">minimum</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_processing_parameters</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;processing&#39;</span><span class="p">:</span> <span class="s1">&#39;min_max&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;parameters&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="n">minimum</span><span class="p">,</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">maximum</span><span class="p">},</span>
+            <span class="p">}</span></div>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="s2">&quot;Total number of samples.&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DrugSensitivityData</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates one sample of data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            index (int): index of the sample to fetch.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            DrugSensitivityData: a tuple containing three torch.Tensors,</span>
+<span class="sd">                representing respectively: compound token indexes,</span>
+<span class="sd">                gene expression values and IC50 for the current sample.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># drug sensitivity</span>
+        <span class="n">selected_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">ic50_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">selected_sample</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_name</span><span class="p">]],</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">drug_sensitivity_dtype</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># SMILES</span>
+        <span class="n">token_indexes_tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_dataset</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span>
+            <span class="n">selected_sample</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">drug_name</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="c1"># gene_expression</span>
+        <span class="n">gene_expression_tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gene_expression_dataset</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span>
+            <span class="n">selected_sample</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cell_name</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">token_indexes_tensor</span><span class="p">,</span> <span class="n">gene_expression_tensor</span><span class="p">,</span> <span class="n">ic50_tensor</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

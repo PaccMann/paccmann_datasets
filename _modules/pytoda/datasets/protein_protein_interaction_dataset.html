@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.protein_protein_interaction_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.protein_protein_interaction_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.protein_protein_interaction_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Implementation of ProteinProteinInteractionDataset.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">iterable</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="kn">from</span> <span class="nn">..proteins.protein_language</span> <span class="kn">import</span> <span class="n">ProteinLanguage</span>
+<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Files</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">.protein_sequence_dataset</span> <span class="kn">import</span> <span class="n">ProteinSequenceDataset</span>
+
+
+<div class="viewcode-block" id="ProteinProteinInteractionDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.protein_protein_interaction_dataset.html#pytoda.datasets.protein_protein_interaction_dataset.ProteinProteinInteractionDataset">[docs]</a><span class="k">class</span> <span class="nc">ProteinProteinInteractionDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    PPI Dataset implementation. Designed for two sources of protein sequences</span>
+<span class="sd">    and on source of discrete labels.</span>
+<span class="sd">    NOTE: Only supports classification (possibly multitask) but no regression</span>
+<span class="sd">    tasks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ProteinProteinInteractionDataset.__init__"><a class="viewcode-back" href="../../../api/pytoda.datasets.protein_protein_interaction_dataset.html#pytoda.datasets.protein_protein_interaction_dataset.ProteinProteinInteractionDataset.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">sequence_filepaths</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Files</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Files</span><span class="p">]],</span>
+        <span class="n">entity_names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">labels_filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">sequence_filetypes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="s1">&#39;infer&#39;</span><span class="p">,</span>
+        <span class="n">annotations_column_names</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">protein_language</span><span class="p">:</span> <span class="n">ProteinLanguage</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">amino_acid_dict</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;iupac&#39;</span><span class="p">,</span>
+        <span class="n">paddings</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">padding_lengths</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">add_start_and_stops</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">augment_by_reverts</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">randomizes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a protein protein interactiondataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence_filepaths (Union[Files, Sequence[Files]]):</span>
+<span class="sd">                paths to .smi (also as .csv) or .fasta (.gz) file for protein</span>
+<span class="sd">                sequences. For each item in the iterable, one protein sequence</span>
+<span class="sd">                dataset is created. Sequences can be nested, i.e. each protein</span>
+<span class="sd">                sequence dataset can be created from an iterable of filepaths</span>
+<span class="sd">                of same type, see sequence_filetypes.</span>
+<span class="sd">            entity_names (Sequence[str]): List of protein sequence entities,</span>
+<span class="sd">                e.g. [&#39;Peptides&#39;, &#39;T-Cell-Receptors&#39;]. These names should be</span>
+<span class="sd">                column names of the labels_filepaths in order respective to</span>
+<span class="sd">                sequence_filepaths.</span>
+<span class="sd">            labels_filepath (str): path to .csv file with classification</span>
+<span class="sd">                labels.</span>
+<span class="sd">            sequence_filetypes (Union[str, List[str]]): the filetypes of the</span>
+<span class="sd">                sequence files. Can either be a str if all files have identical</span>
+<span class="sd">                types or an Sequence if different entities have different</span>
+<span class="sd">                types. Different types across the same entity are not</span>
+<span class="sd">                supported. Supported formats are {.smi, .csv, .fasta,</span>
+<span class="sd">                .fasta.gz}. Default is `infer`, i.e. filetypes are inferred</span>
+<span class="sd">                automatically.</span>
+<span class="sd">            annotations_column_names (Union[List[int], List[str]]): indexes</span>
+<span class="sd">                (positional or strings) for the annotations. Defaults to None,</span>
+<span class="sd">                a.k.a. all the columns, except the entity_names are annotation</span>
+<span class="sd">                labels.</span>
+<span class="sd">            protein_language (ProteinLanguage): a ProteinLanguage (or child)</span>
+<span class="sd">                instance, e.g. ProteinFeatureLanguage. Defaults to None,</span>
+<span class="sd">                creating a default instance.</span>
+<span class="sd">            amino_acid_dict (str): The type of amino acid dictionary to map</span>
+<span class="sd">                each sequence token to a unique number. Defaults to &#39;iupac&#39;, alternative</span>
+<span class="sd">                is &#39;unirep&#39;.</span>
+<span class="sd">            paddings (Union[bool, Sequence[bool]]): pad sequences to longest in</span>
+<span class="sd">                the protein language. Defaults to True.</span>
+<span class="sd">            padding_lengths (Union[int, Sequence[int]]): manually sets number</span>
+<span class="sd">                of applied paddings (only if padding = True). Defaults to None.</span>
+<span class="sd">            add_start_and_stops (Union[bool, Sequence[bool]]): add start and</span>
+<span class="sd">                stop token indexes.  Defaults to False.</span>
+<span class="sd">            augment_by_reverts (Union[bool, Sequence[bool]]): perform a</span>
+<span class="sd">                stochastic reversion of the amino acid sequence.</span>
+<span class="sd">            randomizes (Union[bool, Sequence[bool]]): perform a true</span>
+<span class="sd">                randomization of the amino acid sequences. Defaults to False.</span>
+<span class="sd">            device (torch.device): device where the tensors are stored.</span>
+<span class="sd">                Defaults to gpu, if available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Dataset</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">entity_names</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="n">sequence_filepaths</span>
+        <span class="p">),</span> <span class="s1">&#39;sequence_filepaths should be an iterable of length in entity names&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_filepath</span> <span class="o">=</span> <span class="n">labels_filepath</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entities</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span> <span class="n">entity_names</span><span class="p">))</span>
+
+        <span class="c1"># wrap single filepath per entity to treat equally as iterable (*args)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequence_filepaths</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="n">filepath</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">filepath</span>
+            <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="n">sequence_filepaths</span>
+        <span class="p">]</span>
+        <span class="c1">#  Data type of first sequence files per entity</span>
+        <span class="k">if</span> <span class="n">sequence_filetypes</span> <span class="o">==</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filetypes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence_filepaths</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sequence_filetypes</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.smi&#39;</span><span class="p">,</span> <span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.fasta&#39;</span><span class="p">,</span> <span class="s1">&#39;.fasta.gz&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filetypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">sequence_filetypes</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">sequence_filetypes</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.smi&#39;</span><span class="p">,</span> <span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.fasta&#39;</span><span class="p">,</span> <span class="s1">&#39;.fasta.gz&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sequence_filetypes</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filetypes</span> <span class="o">=</span> <span class="n">sequence_filetypes</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unsupported filetype: </span><span class="si">{sequence_filetypes}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="c1"># device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
+        <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">paddings</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding_lengths</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stops</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">augment_by_reverts</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">randomizes</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+                <span class="k">if</span> <span class="n">iterable</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
+                <span class="k">else</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="n">paddings</span><span class="p">,</span>
+                <span class="n">padding_lengths</span><span class="p">,</span>
+                <span class="n">add_start_and_stops</span><span class="p">,</span>
+                <span class="n">augment_by_reverts</span><span class="p">,</span>
+                <span class="n">randomizes</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">protein_language</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span> <span class="o">=</span> <span class="n">protein_language</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">add_start_and_stop</span>
+                <span class="o">==</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stops</span><span class="p">)</span>
+            <span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stops</span><span class="p">)</span> <span class="o">==</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stops</span>
+            <span class="p">),</span> <span class="s1">&#39;Inconsistencies found in add_start_and_stop.&#39;</span>
+
+        <span class="c1"># Create protein sequence datasets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ProteinSequenceDataset</span><span class="p">(</span>
+                <span class="o">*</span><span class="n">filepaths</span><span class="p">,</span>
+                <span class="n">filetype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filetypes</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                <span class="n">protein_language</span><span class="o">=</span><span class="n">protein_language</span><span class="p">,</span>
+                <span class="n">amino_acid_dict</span><span class="o">=</span><span class="n">amino_acid_dict</span><span class="p">,</span>
+                <span class="n">padding</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">paddings</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                <span class="n">padding_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">padding_lengths</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                <span class="n">add_start_and_stop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stops</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                <span class="n">augment_by_revert</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">augment_by_reverts</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                <span class="n">randomize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">randomizes</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">filepaths</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence_filepaths</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="c1"># Labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_filepath</span><span class="p">)</span>
+        <span class="c1"># Cast the column names to uppercase</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span><span class="o">.</span><span class="n">columns</span>
+        <span class="p">)</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span><span class="o">.</span><span class="n">columns</span>
+
+        <span class="c1"># handle labels</span>
+        <span class="k">if</span> <span class="n">annotations_column_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">column</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">annotations_column_names</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="n">annotations_column_names</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">annotations_column_names</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span> <span class="n">annotations_column_names</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s1">&#39;label_columns should be an iterable containing int or str&#39;</span>
+            <span class="p">)</span>
+        <span class="c1"># get the number of labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
+
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">))</span>
+        <span class="p">),</span> <span class="s1">&#39;At least one given entity name was not found in labels_filepath.&#39;</span>
+
+        <span class="c1"># filter data based on the availability</span>
+        <span class="n">masks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">entity</span><span class="p">,</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">):</span>
+            <span class="c1"># prune rows (in mask) with ids unavailable in respective dataset</span>
+            <span class="n">local_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">&amp;</span> <span class="n">local_mask</span>
+            <span class="n">masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_mask</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+        <span class="c1"># to investigate missing ids per entity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">masks_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">masks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">masks_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="s2">&quot;Total number of samples.&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_samples</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates one sample of data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            index (int): index of the sample to fetch.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple: a tuple containing self.entities+1 torch.Tensors</span>
+<span class="sd">            representing respectively: compound token indexes for each</span>
+<span class="sd">            protein entity and the property labels (annotations)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># sample selection</span>
+        <span class="n">selected_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="c1"># labels (annotations)</span>
+        <span class="n">labels_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">selected_sample</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">),</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># samples (Protein sequences)</span>
+        <span class="n">proteins_tensors</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">ds</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span><span class="n">selected_sample</span><span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">name</span><span class="p">])</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">([</span><span class="o">*</span><span class="n">proteins_tensors</span><span class="p">,</span> <span class="n">labels_tensor</span><span class="p">])</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

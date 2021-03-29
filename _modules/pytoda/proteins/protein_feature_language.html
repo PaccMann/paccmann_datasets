@@ -1,0 +1,308 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.proteins.protein_feature_language &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.proteins.protein_feature_language</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.proteins.protein_feature_language</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Protein language handling.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Tokenizer</span>
+<span class="kn">from</span> <span class="nn">.processing</span> <span class="kn">import</span> <span class="n">AA_FEAT</span><span class="p">,</span> <span class="n">AA_PROPERTIES_NUM</span><span class="p">,</span> <span class="n">BLOSUM62</span><span class="p">,</span> <span class="n">BLOSUM62_NORM</span>
+<span class="kn">from</span> <span class="nn">.protein_language</span> <span class="kn">import</span> <span class="n">ProteinLanguage</span>
+
+
+<div class="viewcode-block" id="IndexesToSequenceError"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_feature_language.html#pytoda.proteins.protein_feature_language.IndexesToSequenceError">[docs]</a><span class="k">class</span> <span class="nc">IndexesToSequenceError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="token_indexes_to_sequence_raise"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_feature_language.html#pytoda.proteins.protein_feature_language.token_indexes_to_sequence_raise">[docs]</a><span class="k">def</span> <span class="nf">token_indexes_to_sequence_raise</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;monkey patch to raise Error.&quot;&quot;&quot;</span>
+    <span class="k">raise</span> <span class="n">IndexesToSequenceError</span><span class="p">(</span>
+        <span class="s1">&#39;token_indexes_to_sequence not implemented for &#39;</span>
+        <span class="s1">&#39;binary_features since mapping is not unique.&#39;</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProteinFeatureLanguage"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_feature_language.html#pytoda.proteins.protein_feature_language.ProteinFeatureLanguage">[docs]</a><span class="k">class</span> <span class="nc">ProteinFeatureLanguage</span><span class="p">(</span><span class="n">ProteinLanguage</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ProteinFeatureLanguage class.</span>
+
+<span class="sd">    ProteinFeatureLanguage handles Protein data and translates from text to</span>
+<span class="sd">    feature space</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ProteinFeatureLanguage.__init__"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_feature_language.html#pytoda.proteins.protein_feature_language.ProteinFeatureLanguage.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;protein-feature-language&#39;</span><span class="p">,</span>
+        <span class="n">features</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;blosum&#39;</span><span class="p">,</span>
+        <span class="n">tokenizer</span><span class="p">:</span> <span class="n">Tokenizer</span> <span class="o">=</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize Protein feature language.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): name of the ProteinFeatureLanguage.</span>
+<span class="sd">            features (str): Feature alphabet choice. Defaults to &#39;blosum&#39;,</span>
+<span class="sd">            alternatives are &#39;binary_features&#39; and &#39;float_features&#39;.</span>
+<span class="sd">            tokenizer (Tokenizer): This needs to be a function used to tokenize</span>
+<span class="sd">                the amino acid sequences. The default is list which simply</span>
+<span class="sd">                splits the sequence character-by-character.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feat</span> <span class="o">=</span> <span class="n">features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span> <span class="o">=</span> <span class="n">add_start_and_stop</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat</span> <span class="o">==</span> <span class="s1">&#39;binary_features&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">AA_PROPERTIES_NUM</span>
+            <span class="c1"># monkey patching method</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_indexes_to_sequence</span> <span class="o">=</span> <span class="n">token_indexes_to_sequence_raise</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat</span> <span class="o">==</span> <span class="s1">&#39;float_features&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">AA_FEAT</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat</span> <span class="o">==</span> <span class="s1">&#39;blosum&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">BLOSUM62</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat</span> <span class="o">==</span> <span class="s1">&#39;blosum_norm&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">BLOSUM62_NORM</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Choose dict as &#39;binary_features&#39;, &#39;float_features&#39; or &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;blosum&#39; (given was </span><span class="si">{features}</span><span class="s2">).&quot;</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_features</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">tokenizer</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_dict</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ProteinFeatureLanguage.sequence_to_token_indexes"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_feature_language.html#pytoda.proteins.protein_feature_language.ProteinFeatureLanguage.sequence_to_token_indexes">[docs]</a>    <span class="k">def</span> <span class="nf">sequence_to_token_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform character-level amino acid sequence (AAS) into a sequence of</span>
+<span class="sd">        token indexes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence (str): an AAS representation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: list of tuples (one tuple per AA) where every tuple has</span>
+<span class="sd">                self.number_of_features entries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_token_indexes_fn</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProteinFeatureLanguage.token_indexes_to_sequence"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_feature_language.html#pytoda.proteins.protein_feature_language.ProteinFeatureLanguage.token_indexes_to_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">token_indexes_to_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_indexes</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform a list of tuples of token indexes into amino acid sequence.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            token_indexes (list): a list of tuples, one tuple per AA and each</span>
+<span class="sd">                tuple has length self.number_of_features</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: an amino acid sequence representation.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token_index</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">token_index</span> <span class="ow">in</span> <span class="n">token_indexes</span>
+                <span class="k">if</span> <span class="n">token_index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence_tokens</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,464 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.protein_sequence_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.protein_sequence_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.protein_sequence_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Implementation of ProteinSequenceDataset.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">..proteins.protein_feature_language</span> <span class="kn">import</span> <span class="n">ProteinFeatureLanguage</span>
+<span class="kn">from</span> <span class="nn">..proteins.protein_language</span> <span class="kn">import</span> <span class="n">ProteinLanguage</span>
+<span class="kn">from</span> <span class="nn">..proteins.transforms</span> <span class="kn">import</span> <span class="n">SequenceToTokenIndexes</span>
+<span class="kn">from</span> <span class="nn">..transforms</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AugmentByReversing</span><span class="p">,</span>
+    <span class="n">Compose</span><span class="p">,</span>
+    <span class="n">LeftPadding</span><span class="p">,</span>
+    <span class="n">ListToTensor</span><span class="p">,</span>
+    <span class="n">Randomize</span><span class="p">,</span>
+    <span class="n">ToTensor</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">._fasta_eager_dataset</span> <span class="kn">import</span> <span class="n">_FastaEagerDataset</span>
+<span class="kn">from</span> <span class="nn">._fasta_lazy_dataset</span> <span class="kn">import</span> <span class="n">_FastaLazyDataset</span>
+<span class="kn">from</span> <span class="nn">._smi_eager_dataset</span> <span class="kn">import</span> <span class="n">_SmiEagerDataset</span>
+<span class="kn">from</span> <span class="nn">._smi_lazy_dataset</span> <span class="kn">import</span> <span class="n">_SmiLazyDataset</span>
+<span class="kn">from</span> <span class="nn">.base_dataset</span> <span class="kn">import</span> <span class="n">DatasetDelegator</span><span class="p">,</span> <span class="n">KeyDataset</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">concatenate_file_based_datasets</span>
+
+<span class="n">SEQUENCE_DATASET_IMPLEMENTATIONS</span> <span class="o">=</span> <span class="p">{</span>  <span class="c1"># get class and acceptable keywords</span>
+    <span class="s1">&#39;.csv&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;eager&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">_SmiEagerDataset</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;index_col&#39;</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">}),</span>
+        <span class="s1">&#39;lazy&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">_SmiLazyDataset</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;chunk_size&#39;</span><span class="p">,</span> <span class="s1">&#39;index_col&#39;</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">}),</span>
+    <span class="p">},</span>  <span class="c1"># .smi like .csv</span>
+    <span class="s1">&#39;.smi&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;eager&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">_SmiEagerDataset</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;index_col&#39;</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">}),</span>
+        <span class="s1">&#39;lazy&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">_SmiLazyDataset</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;chunk_size&#39;</span><span class="p">,</span> <span class="s1">&#39;index_col&#39;</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">}),</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;.fasta&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;eager&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">_FastaEagerDataset</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;gzipped&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">}),</span>
+        <span class="s1">&#39;lazy&#39;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">_FastaLazyDataset</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                <span class="c1"># args to pyfaidx.Fasta</span>
+                <span class="s1">&#39;default_seq&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;key_function&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;as_raw&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;strict_bounds&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;read_ahead&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;mutable&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;split_char&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;duplicate_action&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filt_function&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;one_based_attributes&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;read_long_names&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sequence_always_upper&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;rebuild&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;build_index&#39;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;.fasta.gz&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;eager&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">_FastaEagerDataset</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;gzipped&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">}),</span>
+        <span class="c1"># requires Biopython installation</span>
+        <span class="s1">&#39;lazy&#39;</span><span class="p">:</span> <span class="p">(</span>
+            <span class="n">_FastaLazyDataset</span><span class="p">,</span>
+            <span class="p">{</span>
+                <span class="s1">&#39;name&#39;</span><span class="p">,</span>
+                <span class="c1"># args to pyfaidx.Fasta</span>
+                <span class="s1">&#39;default_seq&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;key_function&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;as_raw&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;strict_bounds&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;read_ahead&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;mutable&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;split_char&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;duplicate_action&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;filt_function&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;one_based_attributes&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;read_long_names&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;sequence_always_upper&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;rebuild&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;build_index&#39;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">),</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="protein_sequence_dataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.protein_sequence_dataset.html#pytoda.datasets.protein_sequence_dataset.protein_sequence_dataset">[docs]</a><span class="k">def</span> <span class="nf">protein_sequence_dataset</span><span class="p">(</span>
+    <span class="o">*</span><span class="n">filepaths</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filetype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KeyDataset</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a dataset of protein sequences.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># hardcoded factory</span>
+        <span class="n">dataset_class</span><span class="p">,</span> <span class="n">valid_keys</span> <span class="o">=</span> <span class="n">SEQUENCE_DATASET_IMPLEMENTATIONS</span><span class="p">[</span><span class="n">filetype</span><span class="p">][</span><span class="n">backend</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>  <span class="c1"># filetype checked already</span>
+            <span class="sa">f</span><span class="s1">&#39;backend </span><span class="si">{backend}</span><span class="s1"> not supported for </span><span class="si">{filetype}</span><span class="s1">.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;gzipped&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">filetype</span> <span class="o">==</span> <span class="s1">&#39;.fasta.gz&#39;</span> <span class="k">else</span> <span class="kc">False</span>
+    <span class="c1"># prune unsupported arguments</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">valid_keys</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Sequence&#39;</span>
+
+    <span class="k">return</span> <span class="n">concatenate_file_based_datasets</span><span class="p">(</span>
+        <span class="n">filepaths</span><span class="o">=</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">dataset_class</span><span class="o">=</span><span class="n">dataset_class</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProteinSequenceDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.protein_sequence_dataset.html#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset">[docs]</a><span class="k">class</span> <span class="nc">ProteinSequenceDataset</span><span class="p">(</span><span class="n">DatasetDelegator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Protein Sequence dataset using a Language to transform sequences.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ProteinSequenceDataset.__init__"><a class="viewcode-back" href="../../../api/pytoda.datasets.protein_sequence_dataset.html#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">filepaths</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">filetype</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;.smi&#39;</span><span class="p">,</span>
+        <span class="n">protein_language</span><span class="p">:</span> <span class="n">ProteinLanguage</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">amino_acid_dict</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;iupac&#39;</span><span class="p">,</span>
+        <span class="n">padding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">padding_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">augment_by_revert</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">randomize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
+        <span class="n">iterate_dataset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;protein-sequences&#39;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a Protein Sequence dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            *filepaths (Files): paths to .smi, .csv/.fasta/.fasta.gz file</span>
+<span class="sd">                with the sequences.</span>
+<span class="sd">            filetype (str): From {.smi, .csv, .fasta, .fasta.gz}.</span>
+<span class="sd">            protein_language (ProteinLanguage): a ProteinLanguage (or child)</span>
+<span class="sd">                instance, e.g. ProteinFeatureLanguage. Defaults to None,</span>
+<span class="sd">                creating a default instance.</span>
+<span class="sd">            amino_acid_dict (str): Type of dictionary used for amino acid</span>
+<span class="sd">                sequences. Defaults to &#39;iupac&#39;, alternative is &#39;unirep&#39;.</span>
+<span class="sd">            padding (bool): pad sequences to longest in the protein language.</span>
+<span class="sd">                Defaults to True.</span>
+<span class="sd">            padding_length (int): manually sets number of applied paddings,</span>
+<span class="sd">                applies only if padding is True. Defaults to None.</span>
+<span class="sd">            add_start_and_stop (bool): add start and stop token indexes.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            augment_by_revert (bool): perform Protein augmentation by reverting</span>
+<span class="sd">                Sequences. Defaults to False.</span>
+<span class="sd">            randomize (bool): perform a true randomization of Protein tokens.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            device (torch.device): device where the tensors are stored.</span>
+<span class="sd">                Defaults to gpu, if available.</span>
+<span class="sd">            iterate_dataset (bool): whether to go through all items in the</span>
+<span class="sd">                dataset to extend/build vocab, find longest sequence, and</span>
+<span class="sd">                checks the passed padding length if applicable. Defaults to</span>
+<span class="sd">                False.</span>
+<span class="sd">            backend (str): memory management backend.</span>
+<span class="sd">                Defaults to eager, prefer speed over memory consumption.</span>
+<span class="sd">            name (str): name of the ProteinSequenceDataset.</span>
+<span class="sd">            kwargs (dict): additional arguments for dataset constructor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Parse language object and data paths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span> <span class="o">=</span> <span class="n">filepaths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span> <span class="o">=</span> <span class="n">filetype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">backend</span>
+
+        <span class="k">assert</span> <span class="n">filetype</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s1">&#39;.csv&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.smi&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.fasta&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;.fasta.gz&#39;</span><span class="p">,</span>
+        <span class="p">],</span> <span class="sa">f</span><span class="s1">&#39;Unknown filetype given </span><span class="si">{filetype}</span><span class="s1">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="c1"># setup dataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_dataset</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">DatasetDelegator</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># delegate to self.dataset</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please remove duplicates from your </span><span class="si">{self.filetype}</span><span class="s1"> file.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">protein_language</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span>
+                <span class="n">amino_acid_dict</span><span class="o">=</span><span class="n">amino_acid_dict</span><span class="p">,</span> <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">add_start_and_stop</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span> <span class="o">=</span> <span class="n">protein_language</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">add_start_and_stop</span> <span class="o">==</span> <span class="n">protein_language</span><span class="o">.</span><span class="n">add_start_and_stop</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s1">&#39;add_start_and_stop was &quot;</span><span class="si">{add_start_and_stop}</span><span class="s1">&quot;, but given &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;Protein Language has </span><span class="si">{protein_language.add_start_and_stop}</span><span class="s1">.&#39;</span>
+
+        <span class="k">if</span> <span class="n">iterate_dataset</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span>
+                <span class="c1"># sets max_token_sequence_length</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+
+        <span class="c1"># Set up transformation paramater</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">padding</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span>
+            <span class="k">if</span> <span class="n">padding_length</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">padding_length</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">randomize</span> <span class="o">=</span> <span class="n">randomize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">augment_by_revert</span> <span class="o">=</span> <span class="n">augment_by_revert</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
+        <span class="c1"># Build up cascade of Protein transformations</span>
+        <span class="c1"># Below transformations are optional</span>
+        <span class="n">_transforms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">augment_by_revert</span><span class="p">:</span>
+            <span class="n">_transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">AugmentByReversing</span><span class="p">()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">language_transforms</span> <span class="o">=</span> <span class="n">Compose</span><span class="p">(</span><span class="n">_transforms</span><span class="p">)</span>
+
+        <span class="c1"># Run once over dataset to add missing tokens to smiles language</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">language_transforms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="n">transforms</span> <span class="o">=</span> <span class="n">_transforms</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">SequenceToTokenIndexes</span><span class="p">(</span><span class="n">protein_language</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">randomize</span><span class="p">:</span>
+            <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Randomize</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">padding_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span>
+            <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="n">LeftPadding</span><span class="p">(</span>
+                    <span class="n">padding_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span><span class="p">,</span>
+                    <span class="n">padding_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;PAD&gt;&#39;</span><span class="p">],</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="p">,</span> <span class="n">ProteinFeatureLanguage</span><span class="p">):</span>
+            <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ListToTensor</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="p">,</span> <span class="n">ProteinLanguage</span><span class="p">):</span>
+            <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ToTensor</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s1">&#39;Please choose either ProteinLanguage or &#39;</span> <span class="s1">&#39;ProteinFeatureLanguage&#39;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">Compose</span><span class="p">(</span><span class="n">transforms</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_setup_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Setup the dataset.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">protein_sequence_dataset</span><span class="p">(</span>
+            <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">filetype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filetype</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates one sample of data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            index (int): index of the sample to fetch.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: a torch tensor of token indexes,</span>
+<span class="sd">                for the current sample.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">index</span><span class="p">])</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

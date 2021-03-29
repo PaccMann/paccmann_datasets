@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.smiles.processing &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.smiles.processing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.smiles.processing</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;SMILES processing utilities.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">codecs</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">resources</span>
+
+<span class="kn">from</span> <span class="nn">selfies</span> <span class="kn">import</span> <span class="n">split_selfies</span> <span class="k">as</span> <span class="n">split_selfies_</span>
+<span class="kn">from</span> <span class="nn">SmilesPE.pretokenizer</span> <span class="kn">import</span> <span class="n">kmer_tokenizer</span>
+<span class="kn">from</span> <span class="nn">SmilesPE.tokenizer</span> <span class="kn">import</span> <span class="n">SPE_Tokenizer</span>
+
+<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tokenizer</span><span class="p">,</span> <span class="n">Tokens</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># tokenizer</span>
+<span class="n">SMILES_TOKENIZER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s1">&#39;(\[[^\]]+]|Br?|Cl?|N|O|S|P|F|I|b|c|n|o|s|p|\(|\)|\.|=|#|&#39;</span>
+    <span class="sa">r</span><span class="s1">&#39;-|\+|</span><span class="se">\\\\</span><span class="s1">|\/|:|~|@|\?|&gt;|\*|\$|\%[0-9]</span><span class="si">{2}</span><span class="s1">|[0-9])&#39;</span>
+<span class="p">)</span>
+
+<span class="k">with</span> <span class="n">resources</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="s1">&#39;pytoda.smiles.metadata&#39;</span><span class="p">,</span> <span class="s1">&#39;spe_chembl.txt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">filepath</span><span class="p">:</span>
+    <span class="n">SPE_TOKENIZER</span> <span class="o">=</span> <span class="n">SPE_Tokenizer</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="tokenize_smiles"><a class="viewcode-back" href="../../../api/pytoda.smiles.processing.html#pytoda.smiles.processing.tokenize_smiles">[docs]</a><span class="k">def</span> <span class="nf">tokenize_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">regexp</span><span class="o">=</span><span class="n">SMILES_TOKENIZER</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tokens</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tokenize a character-level SMILES string.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        smiles (str): a SMILES representation.</span>
+<span class="sd">        regexp (re.Pattern): optionally pass a regexp for the</span>
+<span class="sd">            tokenization. Defaults to SMILES_TOKENIZER.</span>
+<span class="sd">        args (): ignored, for backwards compatibility.</span>
+<span class="sd">        kwargs (): ignored, for backwards compatibility.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Tokens: the tokenized SMILES.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">token</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">regexp</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span> <span class="k">if</span> <span class="n">token</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="kmer_smiles_tokenizer"><a class="viewcode-back" href="../../../api/pytoda.smiles.processing.html#pytoda.smiles.processing.kmer_smiles_tokenizer">[docs]</a><span class="k">def</span> <span class="nf">kmer_smiles_tokenizer</span><span class="p">(</span>
+    <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tokens</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;K-Mer SMILES tokenization following SMILES PE (Li et al. 2020):</span>
+<span class="sd">        Li, Xinhao, and Denis Fourches. &quot;SMILES Pair Encoding: A Data-Driven</span>
+<span class="sd">        Substructure Tokenization Algorithm for Deep Learning.&quot; (2020).</span>
+
+
+<span class="sd">    Args:</span>
+<span class="sd">        smiles (str): SMILES string to be tokenized.</span>
+<span class="sd">        k (int): Positive integer denoting the tuple/k-gram lengths. Defaults</span>
+<span class="sd">            to 2 (bigrams).</span>
+<span class="sd">        stride (int, optional): Stride used for k-mer generation. Higher values</span>
+<span class="sd">            result in less tokens. Defaults to 1 (densely overlapping).</span>
+<span class="sd">        args (): Optional arguments for `kmer_tokenizer`.</span>
+<span class="sd">        kwargs (): Optional keyword arguments for `kmer_tokenizer`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tokens: Tokenized SMILES sequence (list of str).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">kmer_tokenizer</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">ngram</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="spe_smiles_tokenizer"><a class="viewcode-back" href="../../../api/pytoda.smiles.processing.html#pytoda.smiles.processing.spe_smiles_tokenizer">[docs]</a><span class="k">def</span> <span class="nf">spe_smiles_tokenizer</span><span class="p">(</span><span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tokens</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Pretrained SMILES Pair Encoding tokenizer following (Li et al. 2020).</span>
+<span class="sd">        Splits a SMILES into tokens of substructures of varying lengths,</span>
+<span class="sd">        depending on occurrence of tokens in ChEMBL dataset.</span>
+
+<span class="sd">        Li, Xinhao, and Denis Fourches. &quot;SMILES Pair Encoding: A Data-Driven</span>
+<span class="sd">        Substructure Tokenization Algorithm for Deep Learning.&quot; (2020).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        smiles (str): SMILES string to be tokenized.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tokens: SMILES tokenized into substructures (list of str).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">SPE_TOKENIZER</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tokenize_selfies"><a class="viewcode-back" href="../../../api/pytoda.smiles.processing.html#pytoda.smiles.processing.tokenize_selfies">[docs]</a><span class="k">def</span> <span class="nf">tokenize_selfies</span><span class="p">(</span><span class="n">selfies</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tokens</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Tokenize SELFIES.</span>
+
+<span class="sd">    NOTE: Code adapted from selfies package (`def selfies_to_hot`):</span>
+<span class="sd">        https://github.com/aspuru-guzik-group/selfies</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        selfies (str): a SELFIES representation (character-level).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tokens: the tokenized SELFIES.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="s2">&quot;tokenize_selfies will be deprecated in favor of `split_selfies`&quot;</span><span class="p">,</span>
+        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">selfies</span> <span class="o">=</span> <span class="n">selfies</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="s1">&#39;[.]&#39;</span><span class="p">)</span>  <span class="c1"># to allow parsing unbound atoms</span>
+        <span class="n">selfies_char_list_pre</span> <span class="o">=</span> <span class="n">selfies</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;][&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="s1">&#39;[&#39;</span> <span class="o">+</span> <span class="n">selfies_element</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span> <span class="k">for</span> <span class="n">selfies_element</span> <span class="ow">in</span> <span class="n">selfies_char_list_pre</span>
+        <span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error in tokenizing </span><span class="si">{selfies}</span><span class="s1">. Returning empty list.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="split_selfies"><a class="viewcode-back" href="../../../api/pytoda.smiles.processing.html#pytoda.smiles.processing.split_selfies">[docs]</a><span class="k">def</span> <span class="nf">split_selfies</span><span class="p">(</span><span class="n">selfies</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tokens</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Tokenize SELFIES, wrapping generator as list.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        selfies (str): a SELFIES representation (character-level).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tokens: the tokenized SELFIES.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">split_selfies_</span><span class="p">(</span><span class="n">selfies</span><span class="p">))</span></div>
+
+
+<span class="n">TOKENIZER_FUNCTIONS</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tokenizer</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;smiles&#39;</span><span class="p">:</span> <span class="n">tokenize_smiles</span><span class="p">,</span>
+    <span class="s1">&#39;kmer_smiles&#39;</span><span class="p">:</span> <span class="n">kmer_smiles_tokenizer</span><span class="p">,</span>
+    <span class="s1">&#39;spe_smiles&#39;</span><span class="p">:</span> <span class="n">spe_smiles_tokenizer</span><span class="p">,</span>
+    <span class="s1">&#39;selfies&#39;</span><span class="p">:</span> <span class="n">split_selfies</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,406 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.proteins.tests.test_protein_language &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.proteins.tests.test_protein_language</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.proteins.tests.test_protein_language</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Testing ProteinLanguage.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.proteins.processing</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">,</span>
+    <span class="n">IUPAC_VOCAB</span><span class="p">,</span>
+    <span class="n">UNIREP_VOCAB</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pytoda.proteins.protein_language</span> <span class="kn">import</span> <span class="n">ProteinLanguage</span>
+<span class="kn">from</span> <span class="nn">pytoda.tests.utils</span> <span class="kn">import</span> <span class="n">TestFileContent</span>
+
+
+<div class="viewcode-block" id="TestProteinLanguage"><a class="viewcode-back" href="../../../../api/pytoda.proteins.tests.test_protein_language.html#pytoda.proteins.tests.test_protein_language.TestProteinLanguage">[docs]</a><span class="k">class</span> <span class="nc">TestProteinLanguage</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing ProteinLanguage.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestProteinLanguage.test__update_max_token_sequence_length"><a class="viewcode-back" href="../../../../api/pytoda.proteins.tests.test_protein_language.html#pytoda.proteins.tests.test_protein_language.TestProteinLanguage.test__update_max_token_sequence_length">[docs]</a>    <span class="k">def</span> <span class="nf">test__update_max_token_sequence_length</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test _update_max_token_sequence_length.&quot;&quot;&quot;</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="s1">&#39;EGK&#39;</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">amino_acid_dict</span><span class="o">=</span><span class="s1">&#39;unirep&#39;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestProteinLanguage.test_add_file"><a class="viewcode-back" href="../../../../api/pytoda.proteins.tests.test_protein_language.html#pytoda.proteins.tests.test_protein_language.TestProteinLanguage.test_add_file">[docs]</a>    <span class="k">def</span> <span class="nf">test_add_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test add_file&quot;&quot;&quot;</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;EGK	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;S	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;FGAAV	ID2&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID4&#39;</span><span class="p">])</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">:</span>
+            <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">()</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+
+        <span class="c1"># Test parsing of .fasta file</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;&gt;sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1</span>
+<span class="s2">        MQNPLPEVMSPEHDKRTTTPMSKEANKFIRELDKKPGDLAVVSDFVKRNTGKRLPIGKRS</span>
+<span class="s2">        NLYVRICDLSGTIYMGETFILESWEELYLPEPTKMEVLGTLESCCGIPPFPEWIVMVGED</span>
+<span class="s2">        QCVYAYGDEEILLFAYSVKQLVEEGIQETGISYKYPDDISDVDEEVLQQDEEIQKIRKKT</span>
+<span class="s2">        REFVDKDAQEFQDFLNSLDASLLS</span>
+<span class="s2">        &gt;sp|Q91G88|006L_IIV6 Putative KilA-N domain-containing protein 006L OS=Invertebrate iridescent virus 6 OX=176652 GN=IIV6-006L PE=3 SV=1</span>
+<span class="s2">        MDSLNEVCYEQIKGTFYKGLFGDFPLIVDKKTGCFNATKLCVLGGKRFVDWNKTLRSKKL</span>
+<span class="s2">        IQYYETRCDIKTESLLYEIKGDNNDEITKQITGTYLPKEFILDIASWISVEFYDKCNNII</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">:</span>
+            <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span><span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="s1">&#39;.fasta&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">protein_language</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">,</span> <span class="mi">204</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestProteinLanguage.test_sequence_to_token_indexes"><a class="viewcode-back" href="../../../../api/pytoda.proteins.tests.test_protein_language.html#pytoda.proteins.tests.test_protein_language.TestProteinLanguage.test_sequence_to_token_indexes">[docs]</a>    <span class="k">def</span> <span class="nf">test_sequence_to_token_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test sequence_to_token_indexes.&quot;&quot;&quot;</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">sequence_to_token_indexes</span><span class="p">(</span><span class="n">sequence</span><span class="p">),</span>
+            <span class="p">[</span><span class="n">IUPAC_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="n">IUPAC_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="n">IUPAC_VOCAB</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]],</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">sequence_to_token_indexes</span><span class="p">(</span><span class="n">sequence</span><span class="p">),</span>
+            <span class="p">[</span>
+                <span class="n">IUPAC_VOCAB</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">],</span>
+                <span class="n">IUPAC_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+                <span class="n">IUPAC_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+                <span class="n">IUPAC_VOCAB</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">],</span>
+                <span class="n">IUPAC_VOCAB</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">],</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># UniRep</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">amino_acid_dict</span><span class="o">=</span><span class="s1">&#39;unirep&#39;</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">sequence_to_token_indexes</span><span class="p">(</span><span class="n">sequence</span><span class="p">),</span>
+            <span class="p">[</span><span class="n">UNIREP_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="n">UNIREP_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="n">UNIREP_VOCAB</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">]],</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">amino_acid_dict</span><span class="o">=</span><span class="s1">&#39;unirep&#39;</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">sequence_to_token_indexes</span><span class="p">(</span><span class="n">sequence</span><span class="p">),</span>
+            <span class="p">[</span>
+                <span class="n">UNIREP_VOCAB</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">],</span>
+                <span class="n">UNIREP_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+                <span class="n">UNIREP_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+                <span class="n">UNIREP_VOCAB</span><span class="p">[</span><span class="s1">&#39;O&#39;</span><span class="p">],</span>
+                <span class="n">UNIREP_VOCAB</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">],</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># human kinase alignment</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="s1">&#39;AC-C&#39;</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">amino_acid_dict</span><span class="o">=</span><span class="s1">&#39;human-kinase-alignment&#39;</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">sequence_to_token_indexes</span><span class="p">(</span><span class="n">sequence</span><span class="p">),</span>
+            <span class="p">[</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">amino_acid_dict</span><span class="o">=</span><span class="s1">&#39;human-kinase-alignment&#39;</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">sequence_to_token_indexes</span><span class="p">(</span><span class="n">sequence</span><span class="p">),</span>
+            <span class="p">[</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">],</span>
+            <span class="p">],</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestProteinLanguage.test_token_indexes_to_sequence"><a class="viewcode-back" href="../../../../api/pytoda.proteins.tests.test_protein_language.html#pytoda.proteins.tests.test_protein_language.TestProteinLanguage.test_token_indexes_to_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">test_token_indexes_to_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test token_indexes_to_sequence.&quot;&quot;&quot;</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">()</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">token_indexes_to_sequence</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">),</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="p">)</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">]]</span>
+            <span class="o">+</span> <span class="n">token_indexes</span>
+            <span class="o">+</span> <span class="p">[</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">]]</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">token_indexes_to_sequence</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">),</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># UniRep</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span><span class="n">amino_acid_dict</span><span class="o">=</span><span class="s1">&#39;unirep&#39;</span><span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">token_indexes_to_sequence</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">),</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="p">)</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">]]</span>
+            <span class="o">+</span> <span class="n">token_indexes</span>
+            <span class="o">+</span> <span class="p">[</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">]]</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">amino_acid_dict</span><span class="o">=</span><span class="s1">&#39;unirep&#39;</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">token_indexes_to_sequence</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">),</span> <span class="s1">&#39;CCO&#39;</span>
+        <span class="p">)</span>
+
+        <span class="c1"># human kinase alignment</span>
+        <span class="n">sequence</span> <span class="o">=</span> <span class="s1">&#39;AC-C&#39;</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span><span class="n">amino_acid_dict</span><span class="o">=</span><span class="s1">&#39;human-kinase-alignment&#39;</span><span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="p">[</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">token_indexes_to_sequence</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">),</span> <span class="n">sequence</span>
+        <span class="p">)</span>
+        <span class="n">token_indexes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">]]</span>
+            <span class="o">+</span> <span class="n">token_indexes</span>
+            <span class="o">+</span> <span class="p">[</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">]]</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">amino_acid_dict</span><span class="o">=</span><span class="s1">&#39;human-kinase-alignment&#39;</span>
+        <span class="p">)</span>
+        <span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">token_indexes_to_sequence</span><span class="p">(</span><span class="n">token_indexes</span><span class="p">),</span> <span class="n">sequence</span>
+        <span class="p">)</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,251 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.tests.test_files &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.tests.test_files</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.tests.test_files</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Testing files processing.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.files</span> <span class="kn">import</span> <span class="n">count_file_lines</span><span class="p">,</span> <span class="n">read_smi</span>
+<span class="kn">from</span> <span class="nn">pytoda.tests.utils</span> <span class="kn">import</span> <span class="n">TestFileContent</span>
+
+
+<div class="viewcode-block" id="TestFiles"><a class="viewcode-back" href="../../../api/pytoda.tests.test_files.html#pytoda.tests.test_files.TestFiles">[docs]</a><span class="k">class</span> <span class="nc">TestFiles</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing files.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestFiles.test_count_file_lines"><a class="viewcode-back" href="../../../api/pytoda.tests.test_files.html#pytoda.tests.test_files.TestFiles.test_count_file_lines">[docs]</a>    <span class="k">def</span> <span class="nf">test_count_file_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test count_file_lines.&quot;&quot;&quot;</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;one batch&#39;</span><span class="p">,</span> <span class="s1">&#39;two batch&#39;</span><span class="p">,</span> <span class="s1">&#39;penny and dime&#39;</span><span class="p">])</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">test_file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">count_file_lines</span><span class="p">(</span><span class="n">test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;one batch&#39;</span><span class="p">,</span> <span class="s1">&#39;two batch&#39;</span><span class="p">,</span> <span class="s1">&#39;penny and dime</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)]</span>
+        <span class="p">)</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">test_file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">count_file_lines</span><span class="p">(</span><span class="n">test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestFiles.test_read_smi"><a class="viewcode-back" href="../../../api/pytoda.tests.test_files.html#pytoda.tests.test_files.TestFiles.test_read_smi">[docs]</a>    <span class="k">def</span> <span class="nf">test_read_smi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test read_smi.&quot;&quot;&quot;</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;CN(C)CCNC(=O)c1cc2CSc3cc(Cl)ccc3-c2s1</span><span class="se">\t</span><span class="s1">drug_0&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;CC(C)N1C(=O)S</span><span class="se">\\</span><span class="s1">C(=C</span><span class="se">\\</span><span class="s1">c2ccc(Sc3nc4ccccc4[nH]3)o2)C1=O</span><span class="se">\t</span><span class="s1">drug_1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;C(Cn1c2ccccc2c2ccccc12)c1nc2ccccc2[nH]1</span><span class="se">\t</span><span class="s1">drug_2&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;C1CN(CCO1)c1nnc(-c2ccccc2)c(n1)-c1ccccc1</span><span class="se">\t</span><span class="s1">drug_3&#39;</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">indexes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;drug_0&#39;</span><span class="p">,</span> <span class="s1">&#39;drug_1&#39;</span><span class="p">,</span> <span class="s1">&#39;drug_2&#39;</span><span class="p">,</span> <span class="s1">&#39;drug_3&#39;</span><span class="p">]</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;CN(C)CCNC(=O)c1cc2CSc3cc(Cl)ccc3-c2s1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;CC(C)N1C(=O)S</span><span class="se">\\</span><span class="s1">C(=C</span><span class="se">\\</span><span class="s1">c2ccc(Sc3nc4ccccc4[nH]3)o2)C1=O&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;C(Cn1c2ccccc2c2ccccc12)c1nc2ccccc2[nH]1&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;C1CN(CCO1)c1nnc(-c2ccccc2)c(n1)-c1ccccc1&#39;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">test_file</span><span class="p">:</span>
+            <span class="n">smiles_df</span> <span class="o">=</span> <span class="n">read_smi</span><span class="p">(</span><span class="n">test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_df</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">indexes</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">a_smiles</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">indexes</span><span class="p">,</span> <span class="n">smiles</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="s1">&#39;SMILES&#39;</span><span class="p">],</span> <span class="n">a_smiles</span><span class="p">)</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

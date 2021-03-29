@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.smiles.tests.test_transforms &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.smiles.tests.test_transforms</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.smiles.tests.test_transforms</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Testing SMILES transforms.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.smiles.smiles_language</span> <span class="kn">import</span> <span class="n">SMILESTokenizer</span>
+<span class="kn">from</span> <span class="nn">pytoda.smiles.transforms</span> <span class="kn">import</span> <span class="n">AugmentTensor</span><span class="p">,</span> <span class="n">Kekulize</span><span class="p">,</span> <span class="n">NotKekulize</span><span class="p">,</span> <span class="n">RemoveIsomery</span>
+
+
+<div class="viewcode-block" id="TestTransforms"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_transforms.html#pytoda.smiles.tests.test_transforms.TestTransforms">[docs]</a><span class="k">class</span> <span class="nc">TestTransforms</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing transforms.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestTransforms.test_kekulize"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_transforms.html#pytoda.smiles.tests.test_transforms.TestTransforms.test_kekulize">[docs]</a>    <span class="k">def</span> <span class="nf">test_kekulize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">sanitize_opts</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">sanitize</span> <span class="ow">in</span> <span class="n">sanitize_opts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_kekulize</span><span class="p">(</span><span class="n">sanitize</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_test_kekulize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sanitize</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test Kekulize.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;c1cnoc1&#39;</span><span class="p">,</span> <span class="s1">&#39;C1=CON=C1&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">,</span> <span class="s1">&#39;[O-][N+]1=CC=CC=C1S&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">,</span> <span class="s1">&#39;C1=C(C2=CC=CC=N2)N=NS1&#39;</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">Kekulize</span><span class="p">(</span>
+                <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;c1cnoc1&#39;</span><span class="p">,</span> <span class="s1">&#39;C1=C-O-N=C-1&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">,</span> <span class="s1">&#39;[O-]-[N+]1=C-C=C-C=C-1-S&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">,</span> <span class="s1">&#39;C1=C(-C2=C-C=C-C=N-2)-N=N-S-1&#39;</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">Kekulize</span><span class="p">(</span>
+                <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;c1cnoc1&#39;</span><span class="p">,</span> <span class="s1">&#39;[CH]1=[CH][O][N]=[CH]1&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">,</span> <span class="s1">&#39;[O-][N+]1=[CH][CH]=[CH][CH]=[C]1[SH]&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">,</span> <span class="s1">&#39;[CH]1=[C]([C]2=[CH][CH]=[CH][CH]=[N]2)[N]=[N][S]1&#39;</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">Kekulize</span><span class="p">(</span>
+                <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;c1cnoc1&#39;</span><span class="p">,</span> <span class="s1">&#39;[CH]1=[CH]-[O]-[N]=[CH]-1&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">,</span> <span class="s1">&#39;[O-]-[N+]1=[CH]-[CH]=[CH]-[CH]=[C]-1-[SH]&#39;</span><span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;[CH]1=[C](-[C]2=[CH]-[CH]=[CH]-[CH]=[N]-2)-[N]=[N]-[S]-1&#39;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">Kekulize</span><span class="p">(</span>
+                <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestTransforms.test_non_kekulize"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_transforms.html#pytoda.smiles.tests.test_transforms.TestTransforms.test_non_kekulize">[docs]</a>    <span class="k">def</span> <span class="nf">test_non_kekulize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sanitize_opts</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">sanitize</span> <span class="ow">in</span> <span class="n">sanitize_opts</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_non_kekulize</span><span class="p">(</span><span class="n">sanitize</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_test_non_kekulize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sanitize</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test NotKekulize.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;c1cnoc1&#39;</span><span class="p">,</span> <span class="s1">&#39;c1cnoc1&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">,</span> <span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">,</span> <span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">NotKekulize</span><span class="p">(</span>
+                <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;c1cnoc1&#39;</span><span class="p">,</span> <span class="s1">&#39;c1:c:n:o:c:1&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">,</span> <span class="s1">&#39;[O-]-[n+]1:c:c:c:c:c:1-S&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">,</span> <span class="s1">&#39;c1:s:n:n:c:1-c1:c:c:c:c:n:1&#39;</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">NotKekulize</span><span class="p">(</span>
+                <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;c1cnoc1&#39;</span><span class="p">,</span> <span class="s1">&#39;[cH]1[cH][n][o][cH]1&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">,</span> <span class="s1">&#39;[O-][n+]1[cH][cH][cH][cH][c]1[SH]&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">,</span> <span class="s1">&#39;[cH]1[s][n][n][c]1-[c]1[cH][cH][cH][cH][n]1&#39;</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">NotKekulize</span><span class="p">(</span>
+                <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;c1cnoc1&#39;</span><span class="p">,</span> <span class="s1">&#39;[cH]1:[cH]:[n]:[o]:[cH]:1&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">,</span> <span class="s1">&#39;[O-]-[n+]1:[cH]:[cH]:[cH]:[cH]:[c]:1-[SH]&#39;</span><span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;[cH]1:[s]:[n]:[n]:[c]:1-[c]1:[cH]:[cH]:[cH]:[cH]:[n]:1&#39;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">NotKekulize</span><span class="p">(</span>
+                <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestTransforms.test_remove_isomery"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_transforms.html#pytoda.smiles.tests.test_transforms.TestTransforms.test_remove_isomery">[docs]</a>    <span class="k">def</span> <span class="nf">test_remove_isomery</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test RemoveIsomery.&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">bonddir</span><span class="p">,</span> <span class="n">chirality</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+            <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+            <span class="mi">4</span> <span class="o">*</span> <span class="p">[</span><span class="s1">&#39;c1ccc(/C=C/[C@H](C)O)cc1&#39;</span><span class="p">],</span>
+            <span class="p">[</span>
+                <span class="s1">&#39;c1ccc(/C=C/[C@H](C)O)cc1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;c1ccc(/C=C/C(C)O)cc1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;c1ccc(C=C[C@H](C)O)cc1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;c1ccc(C=CC(C)O)cc1&#39;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">):</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">RemoveIsomery</span><span class="p">(</span>
+                <span class="n">bonddir</span><span class="o">=</span><span class="n">bonddir</span><span class="p">,</span> <span class="n">chirality</span><span class="o">=</span><span class="n">chirality</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestTransforms.test_augment_tensor"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_transforms.html#pytoda.smiles.tests.test_transforms.TestTransforms.test_augment_tensor">[docs]</a>    <span class="k">def</span> <span class="nf">test_augment_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sanitize_opts</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">sanitize</span> <span class="ow">in</span> <span class="n">sanitize_opts</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">canonical</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_test_augment_tensor</span><span class="p">(</span><span class="n">sanitize</span><span class="p">,</span> <span class="n">canonical</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_test_augment_tensor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sanitize</span><span class="p">,</span> <span class="n">canonical</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test AugmentTensor.&quot;&quot;&quot;</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;NCCS&#39;</span>
+        <span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="p">(</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">canonical</span><span class="o">=</span><span class="n">canonical</span>
+        <span class="p">)</span>
+        <span class="n">smiles_language</span><span class="o">.</span><span class="n">add_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">AugmentTensor</span><span class="p">(</span><span class="n">smiles_language</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">_transform_without_encoding</span><span class="p">(</span><span class="n">smile</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Encode SMILES by skippping transforms in smiles language. This is</span>
+<span class="sd">            needed because the new SMILESTokenizer.smiles_to_token_indexes also</span>
+<span class="sd">            implements SMILES transforms. This could silently canonicalize all SMILES</span>
+<span class="sd">            if canonical=True in the smiles language object. Hence it&#39;s inappropriate</span>
+<span class="sd">            to generate the ground truth and replace by this method.&quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">transform_encoding</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">smiles_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_tokenizer</span><span class="p">(</span><span class="n">smile</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="n">token_indexes_tensor</span> <span class="o">=</span> <span class="n">_transform_without_encoding</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">augmented_smile</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;C(S)CN&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCCN&#39;</span><span class="p">,</span> <span class="s1">&#39;C(N)CS&#39;</span><span class="p">,</span> <span class="s1">&#39;C(CS)N&#39;</span><span class="p">]:</span>
+            <span class="n">ground_truth</span> <span class="o">=</span> <span class="n">_transform_without_encoding</span><span class="p">(</span><span class="n">augmented_smile</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertSequenceEqual</span><span class="p">(</span>
+                <span class="n">transform</span><span class="p">(</span><span class="n">token_indexes_tensor</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">ground_truth</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Now test calling with a tensor of several SMILES</span>
+        <span class="c1"># Include the padding of the sequence (right padding)</span>
+        <span class="n">pl</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># padding_length</span>
+        <span class="n">single_smiles_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+                <span class="n">token_indexes_tensor</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pl</span><span class="p">),</span> <span class="n">value</span><span class="o">=</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_index</span>
+            <span class="p">),</span>
+            <span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">seq_len</span> <span class="o">=</span> <span class="n">single_smiles_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># sequence_length</span>
+        <span class="n">multi_smiles_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">single_smiles_tensor</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">augmented</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">multi_smiles_tensor</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">augmented_smile</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+            <span class="p">[</span><span class="s1">&#39;C(S)CN&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCCN&#39;</span><span class="p">,</span> <span class="s1">&#39;C(N)CS&#39;</span><span class="p">,</span> <span class="s1">&#39;C(CS)N&#39;</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="n">ground_truth</span> <span class="o">=</span> <span class="n">_transform_without_encoding</span><span class="p">(</span><span class="n">augmented_smile</span><span class="p">)</span>
+            <span class="n">ground_truth</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+                <span class="n">ground_truth</span><span class="p">,</span>
+                <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">)),</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_index</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertSequenceEqual</span><span class="p">(</span><span class="n">augmented</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">ground_truth</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

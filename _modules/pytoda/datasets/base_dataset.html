@@ -1,0 +1,410 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.base_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.base_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.base_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Implementation of base classes working with datasets.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">bisect</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">ConcatDataset</span><span class="p">,</span> <span class="n">Dataset</span>
+
+<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+
+<div class="viewcode-block" id="KeyDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.KeyDataset">[docs]</a><span class="k">class</span> <span class="nc">KeyDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base Class for Datsets with both integer index and item identifier key.</span>
+
+<span class="sd">    Implicit abstract methods are:</span>
+<span class="sd">    `__len__(self)` https://github.com/pytorch/pytorch/blob/66a20c259b3b2063e59102ab23f3fb34fc819455/torch/utils/data/sampler.py#L23</span>
+<span class="sd">    `__getitem__(self, index: int)` is inherited</span>
+
+<span class="sd">    Default implementations to index using key and getting all keys are</span>
+<span class="sd">    provided but should be overloaded when possible as calls to `get_item`</span>
+<span class="sd">    and `get_key` might be expensive.</span>
+
+<span class="sd">    The keys are expected to be unique. Call `has_duplicate_keys` to make sure.</span>
+<span class="sd">    If there are duplicate keys, on lookup generally the first one found will</span>
+<span class="sd">    be used, but there are no guarantees.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ConcatKeyDataset</span><span class="p">([</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span>
+
+<div class="viewcode-block" id="KeyDataset.get_key"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.KeyDataset.get_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Hashable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get key from integer index.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="KeyDataset.get_index"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.KeyDataset.get_index">[docs]</a>    <span class="k">def</span> <span class="nf">get_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get index for first datum mapping to the given key.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="KeyDataset.get_item_from_key"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.KeyDataset.get_item_from_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_item_from_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get item via key&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">key</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="KeyDataset.keys"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.KeyDataset.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Default iterator of keys by iterating over dataset indexes.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)):</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">index</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_duplicate_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Check whether each key is unique.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">has_duplicates</span></div>
+
+
+<div class="viewcode-block" id="DatasetDelegator"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.DatasetDelegator">[docs]</a><span class="k">class</span> <span class="nc">DatasetDelegator</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for KeyDataset attribute accesses from `self.dataset`.</span>
+
+<span class="sd">    The attributes/methods to delegate are stored to allow explicit filtering</span>
+<span class="sd">    and addition to class documentation.</span>
+
+<span class="sd">    Source: https://www.fast.ai/2019/08/06/delegation/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># built-in methods need to be defined explicitly</span>
+    <span class="c1"># https://stackoverflow.com/a/57589213</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="c1"># returned dataset is not a Delegator</span>
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">ConcatKeyDataset</span><span class="p">([</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span>
+
+    <span class="c1"># explicit implementation to ensure use of top level __getitem__</span>
+    <span class="c1"># (possibly overloaded) vs using datasets.__getitem__</span>
+<div class="viewcode-block" id="DatasetDelegator.get_item_from_key"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.DatasetDelegator.get_item_from_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_item_from_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get datum mapping to the given key.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">key</span><span class="p">))</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_delegation_filter</span><span class="p">(</span><span class="n">method_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To remove unwanted attributes/methods from being delegated.&quot;</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            method_name (str): attribute/method of an instance.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: wether to delegate method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># do not delegate to all private attributes</span>
+        <span class="k">if</span> <span class="n">method_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1"># call super().__getattribute__ is needed in place of self, as</span>
+    <span class="c1"># calls to self could  lead to infinite loops, e.g. with copy</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_delegatable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">o</span>
+            <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span>
+                <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="s1">&#39;dataset&#39;</span><span class="p">)</span>
+            <span class="p">)</span>  <span class="c1"># other AttributeErrors are masked here if dataset is not set  # noqa</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegation_filter</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+        <span class="p">]</span>
+
+    <span class="c1"># delegation, i.e. in case method not defined in class or class hierarchy</span>
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="s1">&#39;_delegatable&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="s1">&#39;dataset&#39;</span><span class="p">),</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">dir</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delegatable</span></div>
+
+
+<div class="viewcode-block" id="TransparentConcatDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.TransparentConcatDataset">[docs]</a><span class="k">class</span> <span class="nc">TransparentConcatDataset</span><span class="p">(</span><span class="n">ConcatDataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extension of ConcatDataset with transparent indexing.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datasets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TransparentConcatDataset.get_index_pair"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.TransparentConcatDataset.get_index_pair">[docs]</a>    <span class="k">def</span> <span class="nf">get_index_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get dataset and sample indexes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            idx (int): index in the concatenated dataset.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple[int, int]: dataset and sample index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># related request https://github.com/pytorch/pytorch/issues/32034</span>
+        <span class="k">if</span> <span class="n">idx</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="o">-</span><span class="n">idx</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s1">&#39;absolute value of index should not exceed dataset length&#39;</span>
+                <span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">+</span> <span class="n">idx</span>
+        <span class="n">dataset_idx</span> <span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect_right</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cumulative_sizes</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dataset_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sample_idx</span> <span class="o">=</span> <span class="n">idx</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sample_idx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cumulative_sizes</span><span class="p">[</span><span class="n">dataset_idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">dataset_idx</span><span class="p">,</span> <span class="n">sample_idx</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ConcatKeyDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.ConcatKeyDataset">[docs]</a><span class="k">class</span> <span class="nc">ConcatKeyDataset</span><span class="p">(</span><span class="n">TransparentConcatDataset</span><span class="p">,</span> <span class="n">KeyDataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extension of ConcatDataset with transparent indexing supporting KeyDataset</span>
+
+<span class="sd">    The keys are expected to be unique. If there are duplicate keys, on lookup</span>
+<span class="sd">    the first one found will be used by default.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ConcatKeyDataset.__init__"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.ConcatKeyDataset.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">datasets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s1">&#39;AnyBaseDataset&#39;</span><span class="p">]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the ConcatKeyDataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            datasets (List[AnyBaseDataset]): a list of datasets.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span></div>
+        <span class="c1"># __getitem__ and __len__ implementation from ConcatDataset</span>
+
+    <span class="c1"># the following require dataset to implement get_key and get_index</span>
+<div class="viewcode-block" id="ConcatKeyDataset.get_key_pair"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.ConcatKeyDataset.get_key_pair">[docs]</a>    <span class="k">def</span> <span class="nf">get_key_pair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Get dataset index key from integer index.&quot;&quot;&quot;</span>
+        <span class="n">dataset_idx</span><span class="p">,</span> <span class="n">sample_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_index_pair</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dataset_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">[</span><span class="n">dataset_idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">sample_idx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ConcatKeyDataset.get_key"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.ConcatKeyDataset.get_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Hashable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get key from integer index.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_key_pair</span><span class="p">(</span><span class="n">index</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ConcatKeyDataset.get_index"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.ConcatKeyDataset.get_index">[docs]</a>    <span class="k">def</span> <span class="nf">get_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get index for first datum mapping to the given key.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">dataset_idx</span><span class="p">,</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sample_idx</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;key </span><span class="si">{key}</span><span class="s1"> not found in datasets.&#39;</span><span class="p">)</span>
+        <span class="c1"># return index from index_pair</span>
+        <span class="k">if</span> <span class="n">dataset_idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">sample_idx</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">sample_idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cumulative_sizes</span><span class="p">[</span><span class="n">dataset_idx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ConcatKeyDataset.get_item_from_key"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.ConcatKeyDataset.get_item_from_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_item_from_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get datum mapping to the given key.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">key</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ConcatKeyDataset.keys"><a class="viewcode-back" href="../../../api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.ConcatKeyDataset.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Default generator of keys by iterating over dataset.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">yield</span> <span class="n">key</span></div></div>
+
+    <span class="c1"># default has_duplicate_keys via keys()</span>
+
+
+<span class="n">AnyBaseDataset</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="n">KeyDataset</span><span class="p">,</span> <span class="n">DatasetDelegator</span><span class="p">,</span> <span class="n">ConcatKeyDataset</span><span class="p">]</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

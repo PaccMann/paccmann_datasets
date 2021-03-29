@@ -1,0 +1,373 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.preprocessing.crawlers module &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pytoda.preprocessing.smi module" href="pytoda.preprocessing.smi.html" />
+    <link rel="prev" title="pytoda.preprocessing package" href="pytoda.preprocessing.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pytoda.html">API of the pytoda package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pytoda.data_splitter.html">pytoda.data_splitter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.files.html">pytoda.files module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.transforms.html">pytoda.transforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pytoda.preprocessing.html">pytoda.preprocessing package</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">pytoda.preprocessing.crawlers module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.preprocessing.smi.html">pytoda.preprocessing.smi module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.preprocessing.tests.html">pytoda.preprocessing.tests package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.proteins.html">pytoda.proteins package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.smiles.html">pytoda.smiles package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.tests.html">pytoda.tests package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#summary">Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="pytoda.html">pytoda package</a> &raquo;</li>
+        
+          <li><a href="pytoda.preprocessing.html">pytoda.preprocessing package</a> &raquo;</li>
+        
+      <li>pytoda.preprocessing.crawlers module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/pytoda.preprocessing.crawlers.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pytoda.preprocessing.crawlers">
+<span id="pytoda-preprocessing-crawlers-module"></span><h1>pytoda.preprocessing.crawlers module<a class="headerlink" href="#module-pytoda.preprocessing.crawlers" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Functions:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.get_smiles_from_pubchem" title="pytoda.preprocessing.crawlers.get_smiles_from_pubchem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_smiles_from_pubchem</span></code></a></p></td>
+<td><p>Uses the PubChem database to retrieve the SMILES of a drug name (str).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.get_smiles_from_zinc" title="pytoda.preprocessing.crawlers.get_smiles_from_zinc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_smiles_from_zinc</span></code></a></p></td>
+<td><p>Uses the ZINC databases to retrieve the SMILES of a ZINC ID (int) or a drug name (str).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.is_pubchem" title="pytoda.preprocessing.crawlers.is_pubchem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_pubchem</span></code></a></p></td>
+<td><p>Whether a given SMILES in PubChem.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.query_pubchem" title="pytoda.preprocessing.crawlers.query_pubchem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">query_pubchem</span></code></a></p></td>
+<td><p>Queries pubchem for a given SMILES.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.remove_pubchem_smiles" title="pytoda.preprocessing.crawlers.remove_pubchem_smiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_pubchem_smiles</span></code></a></p></td>
+<td><p>Function for removing PubChem molecules from an iterable of smiles.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="pytoda.preprocessing.crawlers.get_smiles_from_zinc">
+<code class="sig-name descname">get_smiles_from_zinc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">drug</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/crawlers.html#get_smiles_from_zinc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.crawlers.get_smiles_from_zinc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the ZINC databases to retrieve the SMILES of a ZINC ID (int) or a drug
+name (str).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>drug</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – a string with a drug name or an int of a ZINC
+ID.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The SMILES string of the drug name or ZINC ID.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>smiles (str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pytoda.preprocessing.crawlers.get_smiles_from_pubchem">
+<code class="sig-name descname">get_smiles_from_pubchem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">drug</span></em>, <em class="sig-param"><span class="n">use_isomeric</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">kekulize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/crawlers.html#get_smiles_from_pubchem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.crawlers.get_smiles_from_pubchem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the PubChem database to retrieve the SMILES of a drug name (str).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>drug</strong> (<em>str</em>) – string with a drug name (or a PubChem ID as a string).</p></li>
+<li><p><strong>use_isomeric</strong> (<em>bool</em><em>, </em><em>optional</em>) – SMILES, not the canonical one.</p></li>
+<li><p><strong>kekulize</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether kekulization is used. PubChem uses
+kekulization per default, so setting this to ‘True’ will not
+perform any operation on the retrieved SMILES.
+NOTE: Setting it to ‘False’ will convert aromatic atoms to lower-
+case characters and <em>induces a RDKit dependency</em></p></li>
+<li><p><strong>sanitize</strong> (<em>bool</em><em>, </em><em>optional</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>smiles (str) – The SMILES string of the drug name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pytoda.preprocessing.crawlers.remove_pubchem_smiles">
+<code class="sig-name descname">remove_pubchem_smiles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/crawlers.html#remove_pubchem_smiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.crawlers.remove_pubchem_smiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for removing PubChem molecules from an iterable of smiles.
+:type smiles_list: <code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]
+:param smiles_list: many SMILES strings.
+:type smiles_list: Iterable[str]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Filtered list of SMILES, all SMILES pointing to PubChem</dt><dd><p>molecules are removed.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pytoda.preprocessing.crawlers.query_pubchem">
+<code class="sig-name descname">query_pubchem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/crawlers.html#query_pubchem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.crawlers.query_pubchem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Queries pubchem for a given SMILES.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>smiles</strong> (<em>str</em>) – A SMILES string.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>bool: Whether or not SMILES is known to PubChem.</p>
+<dl class="simple">
+<dt>int: PubChem ID of matched SMILES, -1 if SMILES was not found.</dt><dd><p>Instead, -2 means an error in the PubChem query.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[bool, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pytoda.preprocessing.crawlers.is_pubchem">
+<code class="sig-name descname">is_pubchem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/crawlers.html#is_pubchem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.crawlers.is_pubchem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether a given SMILES in PubChem.
+:type smiles: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>
+:param smiles: A SMILES string.
+:type smiles: str</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Whether or not SMILES is known to PubChem.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="pytoda.preprocessing.smi.html" class="btn btn-neutral float-right" title="pytoda.preprocessing.smi module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pytoda.preprocessing.html" class="btn btn-neutral float-left" title="pytoda.preprocessing package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,510 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.polymer_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.polymer_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.polymer_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;PolymerTokenizerDataset module.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">iterable</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="kn">from</span> <span class="nn">..smiles.polymer_language</span> <span class="kn">import</span> <span class="n">PolymerTokenizer</span>
+<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">.smiles_dataset</span> <span class="kn">import</span> <span class="n">SMILESDataset</span>
+
+
+<div class="viewcode-block" id="PolymerTokenizerDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.polymer_dataset.html#pytoda.datasets.polymer_dataset.PolymerTokenizerDataset">[docs]</a><span class="k">class</span> <span class="nc">PolymerTokenizerDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Dataset of SMILES from multiple entities encoded as token indexes.</span>
+
+<span class="sd">    Creates a tuple of SMILES datasets, one per given entity (i.e. molecule</span>
+<span class="sd">    class, e.g monomer and catalysts).</span>
+<span class="sd">    Rows in the annotation df needs to have column names identical to entities,</span>
+<span class="sd">    mapping to SMILES in the datasets.</span>
+
+<span class="sd">    Uses a PolymerTokenizer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PolymerTokenizerDataset.__init__"><a class="viewcode-back" href="../../../api/pytoda.datasets.polymer_dataset.html#pytoda.datasets.polymer_dataset.PolymerTokenizerDataset.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">smi_filepaths</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">entity_names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">annotations_filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">annotations_column_names</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">smiles_language</span><span class="p">:</span> <span class="n">PolymerTokenizer</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">canonical</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">augment</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">kekulize</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_bonds_explicit</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_hs_explicit</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">randomize</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">remove_bonddir</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">remove_chirality</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">selfies</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">sanitize</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">padding</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">padding_length</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">iterate_dataset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a Polymer dataset.</span>
+
+<span class="sd">        All SMILES dataset parameter can be controlled either separately for</span>
+<span class="sd">        each dataset (by iterable of correct length) or globally (bool/int).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smi_filepaths (Files): paths to .smi files, one per entity</span>
+<span class="sd">            entity_names (Sequence[str]): List of chemical entities.</span>
+<span class="sd">            annotations_filepath (str): Path to .csv with the IDs of the</span>
+<span class="sd">                chemical entities and their properties. Needs to have one</span>
+<span class="sd">                column per entity name.</span>
+<span class="sd">            annotations_column_names (Union[List[int], List[str]]): indexes</span>
+<span class="sd">                (positional or strings) for the annotations. Defaults to None,</span>
+<span class="sd">                a.k.a. all the columns, except the entity_names are annotation</span>
+<span class="sd">                labels.</span>
+<span class="sd">            smiles_language (PolymerTokenizer): a polymer language.</span>
+<span class="sd">                Defaults to None, in which case a new object is created.</span>
+<span class="sd">            padding (Union[Sequence[bool], bool]): pad sequences to longest in</span>
+<span class="sd">                the smiles language. Defaults to True. Controlled either for</span>
+<span class="sd">                each dataset separately (by iterable) or globally (bool).</span>
+<span class="sd">            padding_length (Union[Sequence[int], int]): manually sets number of</span>
+<span class="sd">                applied paddings, applies only if padding is True. Defaults to</span>
+<span class="sd">                None. Controlled either for each dataset separately (by</span>
+<span class="sd">                iterable) or globally (int).</span>
+<span class="sd">            canonical (Union[Sequence[bool], bool]): performs canonicalization</span>
+<span class="sd">                of SMILES (one original string for one molecule), if True, then</span>
+<span class="sd">                other transformations (augment etc, see below) do not apply.</span>
+<span class="sd">            augment (Union[Sequence[bool], bool]): perform SMILES augmentation.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            kekulize (Union[Sequence[bool], bool]): kekulizes SMILES</span>
+<span class="sd">                (implicit aromaticity only).</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            all_bonds_explicit (Union[Sequence[bool], bool]): Makes all bonds</span>
+<span class="sd">                explicit. Defaults to False, only applies if kekulize = True.</span>
+<span class="sd">            all_hs_explicit (Union[Sequence[bool], bool]): Makes all hydrogens</span>
+<span class="sd">                explicit. Defaults to False, only applies if kekulize = True.</span>
+<span class="sd">            randomize (Union[Sequence[bool], bool]): perform a true</span>
+<span class="sd">                randomization of SMILES tokens. Defaults to False.</span>
+<span class="sd">            remove_bonddir (Union[Sequence[bool], bool]): Remove directional</span>
+<span class="sd">                info of bonds. Defaults to False.</span>
+<span class="sd">            remove_chirality (Union[Sequence[bool], bool]): Remove chirality</span>
+<span class="sd">                information. Defaults to False.</span>
+<span class="sd">            selfies (Union[Sequence[bool], bool]): Whether selfies is used</span>
+<span class="sd">                instead of smiles, defaults to False.</span>
+<span class="sd">            sanitize (Union[Sequence[bool], bool]): sanitize (bool): RDKit</span>
+<span class="sd">                sanitization of the molecule. Defaults to True.</span>
+<span class="sd">            iterate_dataset (bool): whether to go through all SMILES in the</span>
+<span class="sd">                dataset to build/extend vocab, find longest sequence, and</span>
+<span class="sd">                checks the passed padding length if applicable. Defaults to</span>
+<span class="sd">                True.</span>
+<span class="sd">            device (torch.device): device where the tensors are stored.</span>
+<span class="sd">                Defaults to gpu, if available.</span>
+<span class="sd">            backend (str): memory management backend.</span>
+<span class="sd">                Defaults to eager, prefer speed over memory consumption.</span>
+<span class="sd">            kwargs (dict): additional arguments for dataset constructor.</span>
+
+<span class="sd">        NOTE: If a parameter that can be given as Union[Sequence[bool], bool]</span>
+<span class="sd">        is given as Sequence[bool] of wrong length (!= len(entity_names)), the</span>
+<span class="sd">        first list item is used for all datasets.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">backend</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entity_names</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">smi_filepaths</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Give 1 .smi file per entity&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Setup parameter</span>
+
+        <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">paddings</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding_lengths</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canonicals</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">augments</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kekulizes</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicits</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicits</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">randomizes</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_bonddirs</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">remove_chiralitys</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selfies</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span>
+                <span class="k">if</span> <span class="n">iterable</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">entity_names</span><span class="p">)</span>
+                <span class="k">else</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">entity_names</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="p">(</span>
+                <span class="n">padding</span><span class="p">,</span>
+                <span class="n">padding_length</span><span class="p">,</span>
+                <span class="n">canonical</span><span class="p">,</span>
+                <span class="n">augment</span><span class="p">,</span>
+                <span class="n">kekulize</span><span class="p">,</span>
+                <span class="n">all_bonds_explicit</span><span class="p">,</span>
+                <span class="n">all_hs_explicit</span><span class="p">,</span>
+                <span class="n">randomize</span><span class="p">,</span>
+                <span class="n">remove_bonddir</span><span class="p">,</span>
+                <span class="n">remove_chirality</span><span class="p">,</span>
+                <span class="n">selfies</span><span class="p">,</span>
+                <span class="n">sanitize</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">smiles_language</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span> <span class="o">=</span> <span class="n">PolymerTokenizer</span><span class="p">(</span>  <span class="c1"># defaults to add smiles</span>
+                <span class="n">entity_names</span><span class="o">=</span><span class="n">entity_names</span><span class="p">,</span>
+                <span class="n">padding</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">paddings</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">padding_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">padding_lengths</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">canonical</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">canonicals</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">augment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">augments</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">kekulize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kekulizes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">all_hs_explicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">randomize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">randomizes</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">remove_bonddir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_bonddirs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">remove_chirality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_chiralitys</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">selfies</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">selfies</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">sanitize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+                <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entity_names</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">set_smiles_transforms</span><span class="p">(</span>
+                    <span class="n">entity</span><span class="p">,</span>
+                    <span class="n">canonical</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">canonicals</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">augment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">augments</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">kekulize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kekulizes</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicits</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">all_hs_explicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicits</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">remove_bonddir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_bonddirs</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">remove_chirality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_chiralitys</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">selfies</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">selfies</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">sanitize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="c1"># set_encoding_transforms only after adding smiles</span>
+                <span class="c1"># while transforms are needed to add_dataset</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span> <span class="o">=</span> <span class="n">smiles_language</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">entities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">entities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">SMILESDataset</span><span class="p">(</span><span class="n">smi_filepath</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">smi_filepath</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">smi_filepaths</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">iterate_dataset</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">update_entity</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">add_dataset</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">padding</span> <span class="ow">and</span> <span class="kc">None</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding_lengths</span><span class="p">:</span>
+                <span class="c1"># take care, this will call a transform reset</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">set_max_padding</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">current_entity</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">smiles_language</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entity_names</span><span class="p">):</span>
+                <span class="c1"># smiles_transforms might have been reset</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">set_smiles_transforms</span><span class="p">(</span>
+                    <span class="n">entity</span><span class="p">,</span>
+                    <span class="n">canonical</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">canonicals</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">augment</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">augments</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">kekulize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kekulizes</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicits</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">all_hs_explicit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicits</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">remove_bonddir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_bonddirs</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">remove_chirality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_chiralitys</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">selfies</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">selfies</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">sanitize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">set_encoding_transforms</span><span class="p">(</span>
+                    <span class="n">entity</span><span class="p">,</span>
+                    <span class="n">randomize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">randomizes</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">paddings</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                    <span class="n">padding_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">padding_lengths</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                <span class="p">)</span>
+
+        <span class="c1"># Read and post-process the annotations dataframe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotations_filepath</span> <span class="o">=</span> <span class="n">annotations_filepath</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotations_filepath</span><span class="p">)</span>
+        <span class="c1"># Cast the column names to uppercase</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span><span class="o">.</span><span class="n">columns</span>
+        <span class="p">)</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span><span class="o">.</span><span class="n">columns</span>
+
+        <span class="c1"># handle annotation index</span>
+        <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">entity</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">]</span>
+        <span class="p">),</span> <span class="s1">&#39;Some of the chemical entities were not found in the label csv.&#39;</span>
+
+        <span class="c1"># handle labels</span>
+        <span class="k">if</span> <span class="n">annotations_column_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">columns</span> <span class="k">if</span> <span class="n">column</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">annotations_column_names</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="n">annotations_column_names</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">annotations_column_names</span><span class="p">]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span> <span class="n">annotations_column_names</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s1">&#39;label_columns should be an iterable containing int or str&#39;</span>
+            <span class="p">)</span>
+        <span class="c1"># get the number of labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tasks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># filter data based on the availability</span>
+        <span class="n">masks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+            <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span><span class="o">.</span><span class="n">index</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">entity</span><span class="p">,</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">):</span>
+            <span class="c1"># prune rows (in mask) with ids unavailable in respective dataset</span>
+            <span class="n">local_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span> <span class="o">&amp;</span> <span class="n">local_mask</span>
+            <span class="n">masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">local_mask</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+        <span class="c1"># to investigate missing ids per entity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">masks_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">masks</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">masks_df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span></div>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Total number of samples.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates one sample of data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            index (int): index of the sample to fetch.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple: a tuple containing self.entities+1 torch.Tensors</span>
+<span class="sd">            representing respectively: compound token indexes for each chemical</span>
+<span class="sd">            entity and the property labels (annotations)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># sample selection for all entities/datasets</span>
+        <span class="n">selected_sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotated_data_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+        <span class="c1"># labels (annotations)</span>
+        <span class="n">labels_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">selected_sample</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">),</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># samples (SMILES token indexes)</span>
+        <span class="n">smiles_tensors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span>
+                <span class="n">dataset</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span><span class="n">selected_sample</span><span class="p">[</span><span class="n">dataset</span><span class="o">.</span><span class="n">name</span><span class="p">]),</span> <span class="n">dataset</span><span class="o">.</span><span class="n">name</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">([</span><span class="o">*</span><span class="n">smiles_tensors</span><span class="p">,</span> <span class="n">labels_tensor</span><span class="p">])</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

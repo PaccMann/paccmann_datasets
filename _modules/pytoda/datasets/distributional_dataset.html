@@ -1,0 +1,355 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.distributional_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.distributional_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.distributional_dataset</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.random</span> <span class="kn">import</span> <span class="n">fork_rng</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.types</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tensor</span>
+
+
+<div class="viewcode-block" id="StochasticItems"><a class="viewcode-back" href="../../../api/pytoda.datasets.distributional_dataset.html#pytoda.datasets.distributional_dataset.StochasticItems">[docs]</a><span class="k">class</span> <span class="nc">StochasticItems</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Sample an item from a distribution on the fly on indexing.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        distribution (torch.distributions.distribution.Distribution): An instance</span>
+<span class="sd">            of the torch distribution class to sample from. For example, for</span>
+<span class="sd">            loc = torch.tensor(0.0,device=device), and scale=torch.tensor(1.0,device=device),</span>
+<span class="sd">            torch.distributions.normal.Normal(loc,scale), so that</span>
+<span class="sd">            calling .sample() would return an item from this distribution on the specified device.</span>
+<span class="sd">            NOTE: The arguments to the distribution should be tensors on the desired device.</span>
+<span class="sd">            This ensure that samples are generated on this device and helps in avoiding</span>
+<span class="sd">            an overhead in sending each sampled item to device.</span>
+<span class="sd">        shape (torch.Size): The desired shape of each item.</span>
+<span class="sd">        device (torch.device): Device to send the tensor to. If the tensor is already</span>
+<span class="sd">            on device, then the .to() method returns self (no-ops).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">distribution</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">Distribution</span><span class="p">,</span>
+        <span class="n">shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+    <span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">=</span> <span class="n">distribution</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
+        <span class="c1"># check if distribution arguments are on device</span>
+        <span class="n">devices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">distribution</span><span class="o">.</span><span class="n">arg_constraints</span><span class="p">:</span>
+            <span class="n">devices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">distribution</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">device</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
+
+        <span class="n">args_device</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">devices</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_device</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Expected all tensors to be on the same device, but found </span><span class="si">{args_device}</span><span class="s2"> instead.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">args_device</span> <span class="o">!=</span> <span class="p">{</span><span class="n">device</span><span class="o">.</span><span class="n">type</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeWarning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Expected arguments to be on </span><span class="si">{device}</span><span class="s2">, but they are on </span><span class="si">{args_device}</span><span class="s2"> instead. This will cause a data transfer overhead.&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Samples an item.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            index (Any): is ignored.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tensor: sampled from distribution with given shape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DistributionalDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.distributional_dataset.html#pytoda.datasets.distributional_dataset.DistributionalDataset">[docs]</a><span class="k">class</span> <span class="nc">DistributionalDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Generates samples from a specified distribution.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DistributionalDataset.__init__"><a class="viewcode-back" href="../../../api/pytoda.datasets.distributional_dataset.html#pytoda.datasets.distributional_dataset.DistributionalDataset.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">dataset_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">item_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">distribution_function</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">Distribution</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="p">),</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Dataset of synthetic samples from a specified distribution with given shape.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dataset_size (int): Number of items to generate (N).</span>
+<span class="sd">            item_shape (Tuple[int]): The shape of each item tensor returned on</span>
+<span class="sd">                indexing the dataset. For example for 2D items with timeseries of</span>
+<span class="sd">                3 timesteps and 5 features: (3, 5)</span>
+<span class="sd">            distribution_function (torch.distributions.distribution.Distribution):</span>
+<span class="sd">                An instance of the distribution class from which individual data</span>
+<span class="sd">                items can be sampled by calling the .sample() method.</span>
+<span class="sd">                This can either be an object that is directly initialised using a method</span>
+<span class="sd">                from torch.distributions, such as, torch.distributions.normal.Normal(loc=0.0,scale=1.0),</span>
+<span class="sd">                or from a factory using a keyword, for example,</span>
+<span class="sd">                DISTRIBUTION_FUNCTION_FACTORY[&#39;normal](loc=0.0, scale=1.0)</span>
+<span class="sd">                is a valid argument since the factory (found in utils.factories.py)</span>
+<span class="sd">                initialises the distribution class object based on a string keyword</span>
+<span class="sd">                and passes the relevant arguments to that object.</span>
+<span class="sd">            seed (Optional[int]): If passed, all items are generated once with</span>
+<span class="sd">                this seed (using a local RNG only). Defaults to None, where</span>
+<span class="sd">                individual items are generated when the DistributionalDataset is</span>
+<span class="sd">                indexed (using the global RNG).</span>
+<span class="sd">            device (torch.device): Device where the tensors are stored.</span>
+<span class="sd">                Defaults to gpu, if available.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">DistributionalDataset</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset_size</span> <span class="o">=</span> <span class="n">dataset_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item_shape</span> <span class="o">=</span> <span class="n">item_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_sampler</span> <span class="o">=</span> <span class="n">distribution_function</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">:</span>
+            <span class="c1"># Eager dataset creation</span>
+            <span class="k">with</span> <span class="n">fork_rng</span><span class="p">():</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">manual_seed_all</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">((</span><span class="n">dataset_size</span><span class="p">,</span> <span class="o">*</span><span class="n">item_shape</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># get sampled item on indexing</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span> <span class="o">=</span> <span class="n">StochasticItems</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_sampler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span>
+            <span class="p">)</span></div>
+
+        <span class="c1"># copy data to device</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Gets length of dataset.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Length of the set being sampled.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset_size</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Generates a single set sample.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            index (int): index of the sample to fetch.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: Tensor containing elements with shape T x H, i.e.</span>
+<span class="sd">                [self.dataset_depth, self.dataset_dim].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,357 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.drug_sensitivity_dataset module &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pytoda.datasets.gene_expression_dataset module" href="pytoda.datasets.gene_expression_dataset.html" />
+    <link rel="prev" title="pytoda.datasets.drug_affinity_dataset module" href="pytoda.datasets.drug_affinity_dataset.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pytoda.html">API of the pytoda package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pytoda.data_splitter.html">pytoda.data_splitter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.files.html">pytoda.files module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.transforms.html">pytoda.transforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.annotated_dataset.html">pytoda.datasets.annotated_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.base_dataset.html">pytoda.datasets.base_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.dataframe_dataset.html">pytoda.datasets.dataframe_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.distributional_dataset.html">pytoda.datasets.distributional_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.drug_affinity_dataset.html">pytoda.datasets.drug_affinity_dataset module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">pytoda.datasets.drug_sensitivity_dataset module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.gene_expression_dataset.html">pytoda.datasets.gene_expression_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.polymer_dataset.html">pytoda.datasets.polymer_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.protein_protein_interaction_dataset.html">pytoda.datasets.protein_protein_interaction_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.protein_sequence_dataset.html">pytoda.datasets.protein_sequence_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.set_matching_dataset.html">pytoda.datasets.set_matching_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.smiles_dataset.html">pytoda.datasets.smiles_dataset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.tests.html">pytoda.datasets.tests package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.utils.html">pytoda.datasets.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.preprocessing.html">pytoda.preprocessing package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.proteins.html">pytoda.proteins package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.smiles.html">pytoda.smiles package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.tests.html">pytoda.tests package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#summary">Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="pytoda.html">pytoda package</a> &raquo;</li>
+        
+          <li><a href="pytoda.datasets.html">pytoda.datasets package</a> &raquo;</li>
+        
+      <li>pytoda.datasets.drug_sensitivity_dataset module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/pytoda.datasets.drug_sensitivity_dataset.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pytoda.datasets.drug_sensitivity_dataset">
+<span id="pytoda-datasets-drug-sensitivity-dataset-module"></span><h1>pytoda.datasets.drug_sensitivity_dataset module<a class="headerlink" href="#module-pytoda.datasets.drug_sensitivity_dataset" title="Permalink to this headline">¶</a></h1>
+<p>Implementation of DrugSensitivityDataset.</p>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Classes:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.datasets.drug_sensitivity_dataset.DrugSensitivityDataset" title="pytoda.datasets.drug_sensitivity_dataset.DrugSensitivityDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DrugSensitivityDataset</span></code></a></p></td>
+<td><p>Drug sensitivity dataset implementation.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pytoda.datasets.drug_sensitivity_dataset.DrugSensitivityDataset">
+<em class="property">class </em><code class="sig-name descname">DrugSensitivityDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">drug_sensitivity_filepath</span></em>, <em class="sig-param"><span class="n">smi_filepath</span></em>, <em class="sig-param"><span class="n">gene_expression_filepath</span></em>, <em class="sig-param"><span class="n">column_names</span><span class="o">=</span><span class="default_value">['drug', 'cell_line', 'IC50']</span></em>, <em class="sig-param"><span class="n">drug_sensitivity_dtype</span><span class="o">=</span><span class="default_value">torch.float32</span></em>, <em class="sig-param"><span class="n">drug_sensitivity_min_max</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">drug_sensitivity_processing_parameters</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">smiles_language</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">padding_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">augment</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">canonical</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">kekulize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_bonds_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_hs_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">randomize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">remove_bonddir</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">remove_chirality</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">selfies</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">vocab_file</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">iterate_dataset</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">gene_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gene_expression_standardize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">gene_expression_min_max</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">gene_expression_processing_parameters</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">gene_expression_dtype</span><span class="o">=</span><span class="default_value">torch.float32</span></em>, <em class="sig-param"><span class="n">gene_expression_kwargs</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'eager'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/drug_sensitivity_dataset.html#DrugSensitivityDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.drug_sensitivity_dataset.DrugSensitivityDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.utils.data.dataset.T_co</span></code>]</p>
+<p>Drug sensitivity dataset implementation.</p>
+<dl class="py method">
+<dt id="pytoda.datasets.drug_sensitivity_dataset.DrugSensitivityDataset.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">drug_sensitivity_filepath</span></em>, <em class="sig-param"><span class="n">smi_filepath</span></em>, <em class="sig-param"><span class="n">gene_expression_filepath</span></em>, <em class="sig-param"><span class="n">column_names</span><span class="o">=</span><span class="default_value">['drug', 'cell_line', 'IC50']</span></em>, <em class="sig-param"><span class="n">drug_sensitivity_dtype</span><span class="o">=</span><span class="default_value">torch.float32</span></em>, <em class="sig-param"><span class="n">drug_sensitivity_min_max</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">drug_sensitivity_processing_parameters</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">smiles_language</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">padding_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">augment</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">canonical</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">kekulize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_bonds_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_hs_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">randomize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">remove_bonddir</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">remove_chirality</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">selfies</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">vocab_file</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">iterate_dataset</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">gene_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">gene_expression_standardize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">gene_expression_min_max</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">gene_expression_processing_parameters</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">gene_expression_dtype</span><span class="o">=</span><span class="default_value">torch.float32</span></em>, <em class="sig-param"><span class="n">gene_expression_kwargs</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'eager'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/drug_sensitivity_dataset.html#DrugSensitivityDataset.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.drug_sensitivity_dataset.DrugSensitivityDataset.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a drug sensitivity dataset.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>drug_sensitivity_filepath</strong> (<em>str</em>) – path to drug sensitivity .csv file.
+Currently, the only supported format is .csv, with an index and three
+header columns named as specified in the column_names argument.</p></li>
+<li><p><strong>smi_filepath</strong> (<em>str</em>) – path to .smi file.</p></li>
+<li><p><strong>gene_expression_filepath</strong> (<em>str</em>) – path to gene expression .csv file.
+Currently, the only supported format is .csv,
+with an index and header columns containing gene names.</p></li>
+<li><p><strong>column_names</strong> (<em>Tuple</em><em>[</em><em>str</em><em>]</em>) – Names of columns in data files to retrieve
+labels, ligands and protein name respectively.
+Defaults to [‘drug’, ‘cell_line’, ‘IC50’].</p></li>
+<li><p><strong>drug_sensitivity_dtype</strong> (<em>torch.dtype</em>) – drug sensitivity data type.
+Defaults to torch.float.</p></li>
+<li><p><strong>drug_sensitivity_min_max</strong> (<em>bool</em>) – min-max scale drug sensitivity
+data. Defaults to True.</p></li>
+<li><p><strong>drug_sensitivity_processing_parameters</strong> (<em>dict</em>) – transformation
+parameters for drug sensitivity data, e.g. for min-max scaling.
+Defaults to {}.</p></li>
+<li><p><strong>smiles_language</strong> (<a class="reference internal" href="pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage" title="pytoda.smiles.smiles_language.SMILESLanguage"><em>SMILESLanguage</em></a>) – a smiles language.
+Defaults to None.</p></li>
+<li><p><strong>padding</strong> (<em>bool</em>) – pad sequences to longest in the smiles language.
+Defaults to True.</p></li>
+<li><p><strong>padding_length</strong> (<em>int</em>) – manually sets number of applied paddings,
+applies only if padding is True. Defaults to None.</p></li>
+<li><p><strong>add_start_and_stop</strong> (<em>bool</em>) – add start and stop token indexes.
+Defaults to False.</p></li>
+<li><p><strong>canonical</strong> (<em>bool</em>) – performs canonicalization of SMILES (one
+original string for one molecule), if True, then other
+transformations (augment etc, see below) do not apply</p></li>
+<li><p><strong>augment</strong> (<em>bool</em>) – perform SMILES augmentation. Defaults to False.</p></li>
+<li><p><strong>kekulize</strong> (<em>bool</em>) – kekulizes SMILES (implicit aromaticity only).
+Defaults to False.</p></li>
+<li><p><strong>all_bonds_explicit</strong> (<em>bool</em>) – Makes all bonds explicit. Defaults to
+False, only applies if kekulize = True.</p></li>
+<li><p><strong>all_hs_explicit</strong> (<em>bool</em>) – Makes all hydrogens explicit. Defaults to
+False, only applies if kekulize = True.</p></li>
+<li><p><strong>randomize</strong> (<em>bool</em>) – perform a true randomization of SMILES tokens.
+Defaults to False.</p></li>
+<li><p><strong>remove_bonddir</strong> (<em>bool</em>) – Remove directional info of bonds.
+Defaults to False.</p></li>
+<li><p><strong>remove_chirality</strong> (<em>bool</em>) – Remove chirality information.
+Defaults to False.</p></li>
+<li><p><strong>selfies</strong> (<em>bool</em>) – Whether selfies is used instead of smiles, defaults
+to False.</p></li>
+<li><p><strong>sanitize</strong> (<em>bool</em>) – RDKit sanitization of the molecule.
+Defaults to True.</p></li>
+<li><p><strong>vocab_file</strong> (<em>str</em>) – Optional .json to load vocabulary. Tries to load
+metadata if <cite>iterate_dataset</cite> is False. Defaults to None.</p></li>
+<li><p><strong>iterate_dataset</strong> (<em>bool</em>) – whether to go through all SMILES in the
+dataset to extend/build vocab, find longest sequence, and
+checks the passed padding length if applicable. Defaults to
+True.</p></li>
+<li><p><strong>gene_list</strong> (<em>GeneList</em>) – a list of genes.</p></li>
+<li><p><strong>gene_expression_standardize</strong> (<em>bool</em>) – perform gene expression
+data standardization. Defaults to True.</p></li>
+<li><p><strong>gene_expression_min_max</strong> (<em>bool</em>) – perform min-max scaling on gene
+expression data. Defaults to False.</p></li>
+<li><p><strong>gene_expression_processing_parameters</strong> (<em>dict</em>) – transformation
+parameters for gene expression, e.g. for min-max scaling.
+Defaults to {}.</p></li>
+<li><p><strong>gene_expression_dtype</strong> (<em>torch.dtype</em>) – gene expression data type.
+Defaults to torch.float.</p></li>
+<li><p><strong>gene_expression_kwargs</strong> (<em>dict</em>) – additional parameters for
+GeneExpressionDataset.</p></li>
+<li><p><strong>device</strong> (<em>torch.device</em>) – device where the tensors are stored.
+Defaults to gpu, if available.</p></li>
+<li><p><strong>backend</strong> (<em>str</em>) – memory management backend.
+Defaults to eager, prefer speed over memory consumption.
+Note that at the moment only the gene expression and the
+smiles datasets implement both backends. The drug sensitivity
+data are loaded in memory.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="pytoda.datasets.gene_expression_dataset.html" class="btn btn-neutral float-right" title="pytoda.datasets.gene_expression_dataset module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pytoda.datasets.drug_affinity_dataset.html" class="btn btn-neutral float-left" title="pytoda.datasets.drug_affinity_dataset module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

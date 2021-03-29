@@ -1,0 +1,607 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.tests.test_gene_expression_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.tests.test_gene_expression_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.tests.test_gene_expression_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Testing GeneExpressionDataset with eager backend.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.datasets</span> <span class="kn">import</span> <span class="n">GeneExpressionDataset</span>
+<span class="kn">from</span> <span class="nn">pytoda.tests.utils</span> <span class="kn">import</span> <span class="n">TestFileContent</span>
+
+<span class="n">CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="s1">&#39;genes,A,C,B,D&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_3,9.45,4.984,7.016,8.336&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_2,7.188,0.695,10.34,6.047&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_1,9.25,6.133,5.047,5.6&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">MORE_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="s1">&#39;genes,B,C,D,E,F&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_10,4.918,0.0794,1.605,3.463,10.18&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_11,3.043,8.56,1.961,0.6226,5.027&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_12,4.76,1.124,6.06,0.3743,11.05&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;sample_13,0.626,5.164,4.277,4.414,2.7&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="TestGeneExpressionDatasetEagerBackend"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_gene_expression_dataset.html#pytoda.datasets.tests.test_gene_expression_dataset.TestGeneExpressionDatasetEagerBackend">[docs]</a><span class="k">class</span> <span class="nc">TestGeneExpressionDatasetEagerBackend</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing GeneExpressionDataset with eager backend.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestGeneExpressionDatasetEagerBackend.setUp"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_gene_expression_dataset.html#pytoda.datasets.tests.test_gene_expression_dataset.TestGeneExpressionDatasetEagerBackend.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;backend is </span><span class="si">{self.backend}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">CONTENT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_content</span> <span class="o">=</span> <span class="n">MORE_CONTENT</span></div>
+
+<div class="viewcode-block" id="TestGeneExpressionDatasetEagerBackend.test___len__"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_gene_expression_dataset.html#pytoda.datasets.tests.test_gene_expression_dataset.TestGeneExpressionDatasetEagerBackend.test___len__">[docs]</a>    <span class="k">def</span> <span class="nf">test___len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __len__.&quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">another_test_file</span><span class="p">:</span>
+                <span class="n">gene_expression_dataset</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gene_expression_dataset</span><span class="p">),</span> <span class="mi">7</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestGeneExpressionDatasetEagerBackend.test___getitem__"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_gene_expression_dataset.html#pytoda.datasets.tests.test_gene_expression_dataset.TestGeneExpressionDatasetEagerBackend.test___getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">test___getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __getitem__.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">another_test_file</span><span class="p">:</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                        <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                    <span class="p">],</span>
+                    <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">gene_expression_dataset</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">gene_list</span> <span class="o">=</span> <span class="n">gene_expression_dataset</span><span class="o">.</span><span class="n">gene_list</span>
+                <span class="n">mean</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">mean</span><span class="p">()[</span><span class="n">gene_list</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+                <span class="n">std</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="n">gene_list</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">gene_list</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()):</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span>
+                        <span class="n">gene_expression_dataset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">std</span><span class="p">,</span> <span class="mi">5</span>
+                    <span class="p">)</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span><span class="n">gene_expression_dataset</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span><span class="n">gene_expression_dataset</span><span class="o">.</span><span class="n">std</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+                <span class="n">gene_expression_dataset</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">standardize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">min_max</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">minimum</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">()[</span><span class="n">gene_list</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+                <span class="n">maximum</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">max</span><span class="p">()[</span><span class="n">gene_list</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+                <span class="n">diff</span> <span class="o">=</span> <span class="n">maximum</span> <span class="o">-</span> <span class="n">minimum</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">gene_list</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">()):</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span>
+                        <span class="n">gene_expression_dataset</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
+                        <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="n">minimum</span><span class="p">)</span> <span class="o">/</span> <span class="n">diff</span><span class="p">,</span>
+                        <span class="mi">5</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span><span class="n">gene_expression_dataset</span><span class="o">.</span><span class="n">min</span><span class="p">,</span> <span class="n">minimum</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span><span class="n">gene_expression_dataset</span><span class="o">.</span><span class="n">max</span><span class="p">,</span> <span class="n">maximum</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestGeneExpressionDatasetEagerBackend.test_processing_parameters_standardize_reindex"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_gene_expression_dataset.html#pytoda.datasets.tests.test_gene_expression_dataset.TestGeneExpressionDatasetEagerBackend.test_processing_parameters_standardize_reindex">[docs]</a>    <span class="k">def</span> <span class="nf">test_processing_parameters_standardize_reindex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">,</span> <span class="n">TestFileContent</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">other_content</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">another_test_file</span><span class="p">:</span>
+            <span class="c1"># feature not in data is filled with zeros</span>
+            <span class="n">feature_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;all_missing&#39;</span><span class="p">]</span>
+            <span class="n">standard_dataset</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                <span class="n">gene_list</span><span class="o">=</span><span class="n">feature_list</span><span class="p">,</span>
+                <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">standard_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">gene_list</span> <span class="o">=</span> <span class="n">standard_dataset</span><span class="o">.</span><span class="n">gene_list</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                <span class="p">],</span>
+                <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span>
+                <span class="n">columns</span><span class="o">=</span><span class="n">gene_list</span>
+            <span class="p">)</span>  <span class="c1"># , fill_value=0.0)</span>
+
+            <span class="c1"># scalar scaling (single max and min)</span>
+            <span class="n">flat</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="c1"># allow nan</span>
+            <span class="n">mean_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
+            <span class="n">std_float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="c1"># scalar</span>
+                <span class="p">[</span><span class="n">mean_float</span><span class="p">,</span> <span class="n">std_float</span><span class="p">],</span>
+                <span class="c1"># list length 1</span>
+                <span class="p">[[</span><span class="n">mean_float</span><span class="p">],</span> <span class="p">[</span><span class="n">std_float</span><span class="p">]],</span>
+            <span class="p">]:</span>
+                <span class="n">processing_parameters</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="n">mean</span><span class="p">,</span>
+                    <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="n">std</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">standard_ds</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">gene_list</span><span class="o">=</span><span class="n">feature_list</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">standardize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">min_max</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">processing_parameters</span><span class="o">=</span><span class="n">processing_parameters</span><span class="p">,</span>
+                    <span class="n">impute</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># collect flat values</span>
+                <span class="n">ds_1d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">item</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">standard_ds</span><span class="p">])</span>
+                <span class="c1"># allowing/ignoring nan</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">ds_1d</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">ds_1d</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">mean_array</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">std_array</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+            <span class="c1"># NOTE: numpy and pytoda use ddof of 0, whereas pandas default is 1</span>
+            <span class="k">for</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="c1"># list</span>
+                <span class="p">[</span><span class="n">mean_array</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">std_array</span><span class="o">.</span><span class="n">tolist</span><span class="p">()],</span>
+                <span class="c1"># ndarray</span>
+                <span class="p">[</span><span class="n">mean_array</span><span class="p">,</span> <span class="n">std_array</span><span class="p">],</span>
+            <span class="p">]:</span>
+                <span class="n">processing_parameters</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="n">mean</span><span class="p">,</span>
+                    <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="n">std</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">standard_ds</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">gene_list</span><span class="o">=</span><span class="n">feature_list</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">standardize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">min_max</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">processing_parameters</span><span class="o">=</span><span class="n">processing_parameters</span><span class="p">,</span>
+                    <span class="n">impute</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="c1"># collect transformed values</span>
+                <span class="n">ds_2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">item</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">standard_ds</span><span class="p">])</span>
+                <span class="c1"># contains nan</span>
+                <span class="n">ds_means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">ds_2d</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">ds_stds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanstd</span><span class="p">(</span><span class="n">ds_2d</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="c1"># debug std</span>
+                <span class="c1"># standard_ds.std</span>
+                <span class="c1"># std_array        # == df.std(ddof=0).values</span>
+                <span class="c1"># df.std().values  # == df.std(ddof=1).values</span>
+
+                <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">feature</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">standard_ds</span><span class="o">.</span><span class="n">gene_list</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">feature</span> <span class="o">==</span> <span class="s1">&#39;all_missing&#39;</span><span class="p">:</span>
+                        <span class="c1"># no features at all so transformed stat is nan</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ds_means</span><span class="p">[</span><span class="n">index</span><span class="p">]))</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ds_stds</span><span class="p">[</span><span class="n">index</span><span class="p">]))</span>
+                        <span class="c1"># original stats are also nan</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span>
+                            <span class="n">standard_ds</span><span class="o">.</span><span class="n">mean</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                        <span class="p">)</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span>
+                            <span class="n">standard_ds</span><span class="o">.</span><span class="n">std</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="k">continue</span>
+
+                    <span class="c1"># note some NaN values &#39;E&#39; still have statistics</span>
+                    <span class="c1"># TODO our reduce statistics has to cope with some NaN!</span>
+                    <span class="c1"># until then &#39;E&#39; fails</span>
+
+                    <span class="c1"># check transformed std / mean are 1 and 0 per feature</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span><span class="n">ds_means</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span><span class="n">ds_stds</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="c1"># external statisic matches internally used statistics</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span>
+                        <span class="n">standard_ds</span><span class="o">.</span><span class="n">mean</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+                    <span class="p">)</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_almost_equal</span><span class="p">(</span>
+                        <span class="n">standard_ds</span><span class="o">.</span><span class="n">std</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">feature</span><span class="p">]</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">ddof</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="p">)</span></div>
+                    <span class="c1"># order of reduced means matches order in</span>
+
+<div class="viewcode-block" id="TestGeneExpressionDatasetEagerBackend.test_processing_parameters_minmax"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_gene_expression_dataset.html#pytoda.datasets.tests.test_gene_expression_dataset.TestGeneExpressionDatasetEagerBackend.test_processing_parameters_minmax">[docs]</a>    <span class="k">def</span> <span class="nf">test_processing_parameters_minmax</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">,</span> <span class="n">TestFileContent</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">other_content</span>
+        <span class="p">)</span> <span class="k">as</span> <span class="n">another_test_file</span><span class="p">:</span>
+            <span class="n">minmax_dataset</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">standardize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">min_max</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">gene_list</span> <span class="o">=</span> <span class="n">minmax_dataset</span><span class="o">.</span><span class="n">gene_list</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                    <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                <span class="p">],</span>
+                <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)[</span><span class="n">gene_list</span><span class="p">]</span>
+
+            <span class="c1"># with min max scaling we can check for values 0 and 1</span>
+            <span class="n">maximum_array</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">minimum_array</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">values</span>
+
+            <span class="c1"># scalar scaling (single max and min)</span>
+            <span class="n">max_n</span><span class="p">,</span> <span class="n">max_p</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+            <span class="n">min_n</span><span class="p">,</span> <span class="n">min_p</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">minimum</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="c1"># scalar</span>
+                <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">maximum_array</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">minimum_array</span><span class="p">)],</span>
+                <span class="c1"># list length 1</span>
+                <span class="p">[[</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">maximum_array</span><span class="p">)],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">minimum_array</span><span class="p">)]],</span>
+            <span class="p">]:</span>
+                <span class="n">processing_parameters</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">maximum</span><span class="p">,</span>
+                    <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="n">minimum</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">minmax_ds</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">standardize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">min_max</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">processing_parameters</span><span class="o">=</span><span class="n">processing_parameters</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">minmax_ds</span><span class="p">[</span><span class="n">max_n</span><span class="p">][</span><span class="n">max_p</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">minmax_ds</span><span class="p">[</span><span class="n">min_n</span><span class="p">][</span><span class="n">min_p</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="c1"># array scaling (feature wise max and min)</span>
+            <span class="n">max_indeces</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">min_indeces</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">minimum</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="c1"># list</span>
+                <span class="p">[</span><span class="n">maximum_array</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">minimum_array</span><span class="o">.</span><span class="n">tolist</span><span class="p">()],</span>
+                <span class="c1"># ndarray</span>
+                <span class="p">[</span><span class="n">maximum_array</span><span class="p">,</span> <span class="n">minimum_array</span><span class="p">],</span>
+            <span class="p">]:</span>
+                <span class="n">processing_parameters</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;max&#39;</span><span class="p">:</span> <span class="n">maximum</span><span class="p">,</span>
+                    <span class="s1">&#39;min&#39;</span><span class="p">:</span> <span class="n">minimum</span><span class="p">,</span>
+                <span class="p">}</span>
+                <span class="n">minmax_ds</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">standardize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">min_max</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">processing_parameters</span><span class="o">=</span><span class="n">processing_parameters</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="c1"># check max_index / min_index are 1 and 0 per feature</span>
+                <span class="k">for</span> <span class="n">feature_index</span><span class="p">,</span> <span class="n">sample_index</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">max_indeces</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">minmax_ds</span><span class="p">[</span><span class="n">sample_index</span><span class="p">][</span><span class="n">feature_index</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">feature_index</span><span class="p">,</span> <span class="n">sample_index</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">min_indeces</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">minmax_ds</span><span class="p">[</span><span class="n">sample_index</span><span class="p">][</span><span class="n">feature_index</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestGeneExpressionDatasetEagerBackend.test_data_loader"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_gene_expression_dataset.html#pytoda.datasets.tests.test_gene_expression_dataset.TestGeneExpressionDatasetEagerBackend.test_data_loader">[docs]</a>    <span class="k">def</span> <span class="nf">test_data_loader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test data_loader.&quot;&quot;&quot;</span>
+        <span class="n">gene_subset_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">]</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">another_test_file</span><span class="p">:</span>
+                <span class="n">gene_expression_dataset</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">gene_list</span><span class="o">=</span><span class="n">gene_subset_list</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
+                    <span class="n">gene_expression_dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">batch_index</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data_loader</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+                        <span class="n">batch</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+                        <span class="p">(</span>
+                            <span class="mi">1</span> <span class="k">if</span> <span class="n">batch_index</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="mi">2</span><span class="p">,</span>
+                            <span class="n">gene_expression_dataset</span><span class="o">.</span><span class="n">number_of_features</span><span class="p">,</span>
+                        <span class="p">),</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">batch_index</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="k">break</span></div>
+
+    <span class="k">def</span> <span class="nf">_test_indexed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">positive_index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+        <span class="c1"># get_key (support for negative index?)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">positive_index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="c1"># get_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">positive_index</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="c1"># get_item_from_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span><span class="n">key</span><span class="p">)))</span>
+        <span class="c1"># keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertSequenceEqual</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+        <span class="c1"># duplicate keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestGeneExpressionDatasetEagerBackend.test_all_base_for_indexed_methods"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_gene_expression_dataset.html#pytoda.datasets.tests.test_gene_expression_dataset.TestGeneExpressionDatasetEagerBackend.test_all_base_for_indexed_methods">[docs]</a>    <span class="k">def</span> <span class="nf">test_all_base_for_indexed_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">other_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">another_test_file</span><span class="p">:</span>
+                <span class="n">gene_expression_dataset</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">gene_expression_ds_0</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span>
+                <span class="p">)</span>
+                <span class="n">gene_expression_ds_1</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span>
+                <span class="p">)</span>
+        <span class="n">all_keys</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">row</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_content</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">ds</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">gene_expression_dataset</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">gene_expression_ds_0</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">gene_expression_ds_0</span><span class="p">)]),</span>
+            <span class="p">(</span><span class="n">gene_expression_ds_1</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">gene_expression_ds_0</span><span class="p">)</span> <span class="p">:]),</span>
+            <span class="p">(</span><span class="n">gene_expression_ds_0</span> <span class="o">+</span> <span class="n">gene_expression_ds_1</span><span class="p">,</span> <span class="n">all_keys</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_indexed</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+
+        <span class="c1"># duplicate</span>
+        <span class="n">duplicate_ds</span> <span class="o">=</span> <span class="n">gene_expression_ds_0</span> <span class="o">+</span> <span class="n">gene_expression_ds_0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">duplicate_ds</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">)</span>
+
+        <span class="c1"># GeneExpressionDataset does not test and raise</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">:</span>
+            <span class="n">gene_expression_dataset</span> <span class="o">=</span> <span class="n">GeneExpressionDataset</span><span class="p">(</span>
+                <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">gene_expression_dataset</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="TestGeneExpressionDatasetLazyBackend"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_gene_expression_dataset.html#pytoda.datasets.tests.test_gene_expression_dataset.TestGeneExpressionDatasetLazyBackend">[docs]</a><span class="k">class</span> <span class="nc">TestGeneExpressionDatasetLazyBackend</span><span class="p">(</span>
+    <span class="n">TestGeneExpressionDatasetEagerBackend</span>
+<span class="p">):</span>  <span class="c1"># noqa</span>
+    <span class="sd">&quot;&quot;&quot;Testing GeneExpressionDataset with lazy backend.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestGeneExpressionDatasetLazyBackend.setUp"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_gene_expression_dataset.html#pytoda.datasets.tests.test_gene_expression_dataset.TestGeneExpressionDatasetLazyBackend.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;lazy&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;backend is </span><span class="si">{self.backend}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">CONTENT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">other_content</span> <span class="o">=</span> <span class="n">MORE_CONTENT</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

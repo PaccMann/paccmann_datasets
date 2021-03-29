@@ -1,0 +1,492 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.tests.test_base_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.tests.test_base_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.tests.test_base_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Testing basic ways to setup a dataset.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.datasets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ConcatKeyDataset</span><span class="p">,</span>
+    <span class="n">DatasetDelegator</span><span class="p">,</span>
+    <span class="n">KeyDataset</span><span class="p">,</span>
+    <span class="n">indexed</span><span class="p">,</span>
+    <span class="n">keyed</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pytoda.types</span> <span class="kn">import</span> <span class="n">Hashable</span>
+
+
+<div class="viewcode-block" id="Indexed"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.Indexed">[docs]</a><span class="k">class</span> <span class="nc">Indexed</span><span class="p">(</span><span class="n">KeyDataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;As DataFrameDataset but only implementing necessary methods.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">df</span> <span class="o">=</span> <span class="n">df</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+<div class="viewcode-block" id="Indexed.get_key"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.Indexed.get_key">[docs]</a>    <span class="k">def</span> <span class="nf">get_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Hashable</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get key from integer index.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Indexed.get_index"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.Indexed.get_index">[docs]</a>    <span class="k">def</span> <span class="nf">get_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Hashable</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Get index for first datum mapping to the given key.&quot;&quot;&quot;</span>
+        <span class="c1"># item will raise if not single value (deprecated in pandas)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">indexes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">==</span> <span class="n">key</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">indexes</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indexes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># key not unique, return first as ConcatKeyDataset</span>
+                <span class="k">return</span> <span class="n">indexes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="Delegating"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.Delegating">[docs]</a><span class="k">class</span> <span class="nc">Delegating</span><span class="p">(</span><span class="n">DatasetDelegator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;NOT implementing methods (and only built-ins from inheritance).&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">data</span></div>
+
+
+<div class="viewcode-block" id="TestBaseDatasets"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets">[docs]</a><span class="k">class</span> <span class="nc">TestBaseDatasets</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Testing dataset for base methods.&quot;&quot;&quot;</span>
+
+    <span class="n">length</span> <span class="o">=</span> <span class="mi">11</span>  <span class="c1"># of a single dataset</span>
+    <span class="n">dims</span> <span class="o">=</span> <span class="mi">5</span>
+
+<div class="viewcode-block" id="TestBaseDatasets.random_data"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets.random_data">[docs]</a>    <span class="k">def</span> <span class="nf">random_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">dims</span><span class="p">):</span>
+        <span class="n">an_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)]</span>
+        <span class="n">a_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">an_array</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">keys</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">keys</span><span class="p">,</span> <span class="n">a_df</span><span class="p">,</span> <span class="n">Indexed</span><span class="p">(</span><span class="n">a_df</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestBaseDatasets.setUp"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets.setUp">[docs]</a>    <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_1st_keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_ds</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_data</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
+        <span class="p">)</span>
+        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_df</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_ds</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_data</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">delegating_ds</span> <span class="o">=</span> <span class="n">Delegating</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_1st_ds</span><span class="p">)</span>
+
+        <span class="c1"># KeyDataset.__add__ i.e. ConcatKeyDataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">concat_ds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delegating_ds</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_ds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">concat_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_keys</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_keys</span></div>
+
+<div class="viewcode-block" id="TestBaseDatasets.assertListedEqual"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets.assertListedEqual">[docs]</a>    <span class="k">def</span> <span class="nf">assertListedEqual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">listable1</span><span class="p">,</span> <span class="n">listable2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Easier comparison between arrays, series and or lists.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">listable1</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">listable2</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TestBaseDatasets.test_delegation_dir"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets.test_delegation_dir">[docs]</a>    <span class="k">def</span> <span class="nf">test_delegation_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># stacking delegation</span>
+        <span class="n">ds_dir</span> <span class="o">=</span> <span class="nb">dir</span><span class="p">(</span><span class="n">Delegating</span><span class="p">(</span><span class="n">Delegating</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegating_ds</span><span class="p">)))</span>
+        <span class="c1"># delegated to Indexed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;get_key&#39;</span><span class="p">,</span> <span class="n">ds_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;get_index&#39;</span><span class="p">,</span> <span class="n">ds_dir</span><span class="p">)</span>
+        <span class="c1"># delegated to KeyDataset</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;get_item_from_key&#39;</span><span class="p">,</span> <span class="n">ds_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;keys&#39;</span><span class="p">,</span> <span class="n">ds_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;has_duplicate_keys&#39;</span><span class="p">,</span> <span class="n">ds_dir</span><span class="p">)</span>
+        <span class="c1"># futile, as built-ins delegation needed hardcoding in DatasetDelegator</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;__len__&#39;</span><span class="p">,</span> <span class="n">ds_dir</span><span class="p">)</span>  <span class="c1"># see test___len__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;__getitem__&#39;</span><span class="p">,</span> <span class="n">ds_dir</span><span class="p">)</span>  <span class="c1"># see test___getitem__</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="s1">&#39;__add__&#39;</span><span class="p">,</span> <span class="n">ds_dir</span><span class="p">)</span>  <span class="c1"># see tests on self.concat_ds</span></div>
+
+        <span class="c1"># no tests on implementation specific attributes here</span>
+
+<div class="viewcode-block" id="TestBaseDatasets.test___len__"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets.test___len__">[docs]</a>    <span class="k">def</span> <span class="nf">test___len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __len__.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_1st_ds</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_ds</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegating_ds</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concat_ds</span><span class="p">),</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestBaseDatasets.test___getitem__"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets.test___getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">test___getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __getitem__.&quot;&quot;&quot;</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_1st_ds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_ds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegating_ds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="c1"># first in datasets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concat_ds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_1st_ds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_ds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegating_ds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="c1"># last in datasets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concat_ds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div>
+
+    <span class="k">def</span> <span class="nf">_test__getitem__modified</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mutate_copy</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test __getitem__ returning tuple with item first.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span>
+                <span class="n">mutate_copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_1st_ds</span><span class="p">)[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span>
+                <span class="n">mutate_copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_ds</span><span class="p">)[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span>
+                <span class="n">mutate_copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegating_ds</span><span class="p">)[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="p">)</span>
+
+        <span class="c1"># first in datasets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="n">mutate_copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concat_ds</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="c1"># last in datasets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span>
+            <span class="n">mutate_copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concat_ds</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="TestBaseDatasets.test__getitem__mutating_utils"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets.test__getitem__mutating_utils">[docs]</a>    <span class="k">def</span> <span class="nf">test__getitem__mutating_utils</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test__getitem__modified</span><span class="p">(</span><span class="n">mutate_copy</span><span class="o">=</span><span class="n">indexed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test__getitem__modified</span><span class="p">(</span><span class="n">mutate_copy</span><span class="o">=</span><span class="n">keyed</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestBaseDatasets.test_data_loader"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets.test_data_loader">[docs]</a>    <span class="k">def</span> <span class="nf">test_data_loader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test data_loader.&quot;&quot;&quot;</span>
+
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">a_1st_dl</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_1st_ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">full_batches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">//</span> <span class="n">batch_size</span>
+
+        <span class="k">for</span> <span class="n">batch_index</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">a_1st_dl</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">batch_index</span> <span class="o">&gt;=</span> <span class="n">full_batches</span><span class="p">:</span>  <span class="c1"># if drop_last</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">batch</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">%</span> <span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">batch</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span>
+
+        <span class="c1"># concatenated</span>
+        <span class="n">concat_dl</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concat_ds</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">full_batches</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span> <span class="o">//</span> <span class="n">batch_size</span>
+
+        <span class="k">for</span> <span class="n">batch_index</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">concat_dl</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">batch_index</span> <span class="o">&gt;=</span> <span class="n">full_batches</span><span class="p">:</span>  <span class="c1"># if drop_last</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+                    <span class="n">batch</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">)</span> <span class="o">%</span> <span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">batch</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">))</span></div>
+
+    <span class="k">def</span> <span class="nf">_test_item_independent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">positive_index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+        <span class="c1"># get_key (support for negative index?)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">positive_index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="c1"># get_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">positive_index</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="c1"># keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="c1"># duplicate keys</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_test_base_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_item_independent</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="c1"># get_item_from_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+        <span class="c1"># in case of returning a tuple:</span>
+        <span class="c1"># for from_index, from_key in zip(ds[index], ds.get_item_from_key(key)):  # noqa</span>
+        <span class="c1">#     self.assertListedEqual(from_index, from_key)</span>
+
+    <span class="k">def</span> <span class="nf">_test_keyed_util</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">ds_</span> <span class="o">=</span> <span class="n">keyed</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_item_independent</span><span class="p">(</span><span class="n">ds_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+
+        <span class="c1"># modified methods</span>
+        <span class="n">item_of_i</span><span class="p">,</span> <span class="n">k_of_i</span> <span class="o">=</span> <span class="n">ds_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">item_of_k</span><span class="p">,</span> <span class="n">k_of_k</span> <span class="o">=</span> <span class="n">ds_</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="c1"># get_item_from_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="n">item_of_i</span><span class="p">,</span> <span class="n">item_of_k</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">key</span> <span class="o">==</span> <span class="n">k_of_i</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">==</span> <span class="n">k_of_k</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_test_indexed_util</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">ds_</span> <span class="o">=</span> <span class="n">indexed</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">positive_index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds_</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_item_independent</span><span class="p">(</span><span class="n">ds_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+
+        <span class="c1"># modified methods</span>
+        <span class="n">item_of_i</span><span class="p">,</span> <span class="n">i_of_i</span> <span class="o">=</span> <span class="n">ds_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">item_of_k</span><span class="p">,</span> <span class="n">i_of_k</span> <span class="o">=</span> <span class="n">ds_</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="c1"># get_item_from_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="n">item_of_i</span><span class="p">,</span> <span class="n">item_of_k</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">positive_index</span> <span class="o">==</span> <span class="n">i_of_i</span> <span class="ow">and</span> <span class="n">positive_index</span> <span class="o">==</span> <span class="n">i_of_k</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_test_stacked_indexed_keyed_util</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">ds_</span> <span class="o">=</span> <span class="n">indexed</span><span class="p">(</span><span class="n">keyed</span><span class="p">(</span><span class="n">indexed</span><span class="p">(</span><span class="n">ds</span><span class="p">)))</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">positive_index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">ds_</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_test_item_independent</span><span class="p">(</span><span class="n">ds_</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+
+        <span class="c1"># modified methods</span>
+        <span class="p">(((</span><span class="n">item_of_i</span><span class="p">,</span> <span class="n">i_of_i0</span><span class="p">),</span> <span class="n">k_of_i</span><span class="p">),</span> <span class="n">i_of_i1</span><span class="p">)</span> <span class="o">=</span> <span class="n">ds_</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="p">(((</span><span class="n">item_of_k</span><span class="p">,</span> <span class="n">i_of_k0</span><span class="p">),</span> <span class="n">k_of_k</span><span class="p">),</span> <span class="n">i_of_k1</span><span class="p">)</span> <span class="o">=</span> <span class="n">ds_</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="c1"># get_item_from_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListedEqual</span><span class="p">(</span><span class="n">item_of_i</span><span class="p">,</span> <span class="n">item_of_k</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">key</span> <span class="o">==</span> <span class="n">k_of_i</span> <span class="ow">and</span> <span class="n">key</span> <span class="o">==</span> <span class="n">k_of_k</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+            <span class="n">positive_index</span> <span class="o">==</span> <span class="n">i_of_i0</span>
+            <span class="ow">and</span> <span class="n">positive_index</span> <span class="o">==</span> <span class="n">i_of_i1</span>
+            <span class="ow">and</span> <span class="n">positive_index</span> <span class="o">==</span> <span class="n">i_of_k0</span>
+            <span class="ow">and</span> <span class="n">positive_index</span> <span class="o">==</span> <span class="n">i_of_k1</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="TestBaseDatasets.test_all_base_for_indexed_methods_and_copy"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets.test_all_base_for_indexed_methods_and_copy">[docs]</a>    <span class="k">def</span> <span class="nf">test_all_base_for_indexed_methods_and_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="p">(</span><span class="n">other_keys</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">other_ds</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ds</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_1st_ds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_keys</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_ds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_keys</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegating_ds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_keys</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concat_ds</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">concat_keys</span><span class="p">),</span>
+            <span class="c1"># test shallow copy (not trivial with delegation)</span>
+            <span class="p">(</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_1st_ds</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_keys</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_ds</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_2nd_keys</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delegating_ds</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">a_1st_keys</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">concat_ds</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">concat_keys</span><span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_indexed_util</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_keyed_util</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_stacked_indexed_keyed_util</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_base_methods</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+
+            <span class="c1"># again with self delegation and concatenation</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="n">ConcatKeyDataset</span><span class="p">([</span><span class="n">Delegating</span><span class="p">(</span><span class="n">other_ds</span><span class="p">),</span> <span class="n">Delegating</span><span class="p">(</span><span class="n">ds</span><span class="p">)])</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># dataset_index == 1</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="n">other_keys</span> <span class="o">+</span> <span class="n">keys</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_indexed_util</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_keyed_util</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_stacked_indexed_keyed_util</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_test_base_methods</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="c1"># get_index_pair</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTupleEqual</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">index</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span><span class="p">),</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_index_pair</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+            <span class="c1"># get_key_pair</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertTupleEqual</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">keys</span><span class="p">[</span><span class="n">index</span><span class="p">]),</span> <span class="n">ds</span><span class="o">.</span><span class="n">get_key_pair</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+            <span class="c1"># ConcatKeyDataset is not a DatasetDelegator</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertNotIn</span><span class="p">(</span><span class="s1">&#39;df&#39;</span><span class="p">,</span> <span class="nb">dir</span><span class="p">(</span><span class="n">ds</span><span class="p">))</span>
+
+        <span class="n">index</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">duplicate_ds</span> <span class="o">=</span> <span class="n">other_ds</span> <span class="o">+</span> <span class="n">other_ds</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">duplicate_ds</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">)</span>
+        <span class="c1"># duplicate keys lookup returns first in this case</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">duplicate_ds</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">duplicate_ds</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">index</span><span class="p">)))</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

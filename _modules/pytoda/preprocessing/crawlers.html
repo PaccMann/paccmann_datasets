@@ -1,0 +1,401 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.preprocessing.crawlers &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.preprocessing.crawlers</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.preprocessing.crawlers</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span> <span class="k">as</span> <span class="nn">urllib_request</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">filterfalse</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">urllib.error</span> <span class="kn">import</span> <span class="n">HTTPError</span>
+
+<span class="kn">import</span> <span class="nn">pubchempy</span> <span class="k">as</span> <span class="nn">pcp</span>
+<span class="kn">from</span> <span class="nn">pubchempy</span> <span class="kn">import</span> <span class="n">BadRequestError</span><span class="p">,</span> <span class="n">PubChemHTTPError</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.smiles.transforms</span> <span class="kn">import</span> <span class="n">Canonicalization</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">ZINC_DRUG_SEARCH_ROOT</span> <span class="o">=</span> <span class="s1">&#39;http://zinc.docking.org/substances/search/?q=&#39;</span>
+<span class="n">ZINC_ID_SEARCH_ROOT</span> <span class="o">=</span> <span class="s1">&#39;http://zinc.docking.org/substances/&#39;</span>
+
+<span class="n">PUBCHEM_START</span> <span class="o">=</span> <span class="s1">&#39;https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/&#39;</span>
+<span class="n">PUBCHEM_MID</span> <span class="o">=</span> <span class="s1">&#39;/property/&#39;</span>
+<span class="n">PUBCHEM_END</span> <span class="o">=</span> <span class="s1">&#39;/TXT&#39;</span>
+
+
+<div class="viewcode-block" id="get_smiles_from_zinc"><a class="viewcode-back" href="../../../api/pytoda.preprocessing.crawlers.html#pytoda.preprocessing.crawlers.get_smiles_from_zinc">[docs]</a><span class="k">def</span> <span class="nf">get_smiles_from_zinc</span><span class="p">(</span><span class="n">drug</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uses the ZINC databases to retrieve the SMILES of a ZINC ID (int) or a drug</span>
+<span class="sd">    name (str).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        drug (Union[str, int]): a string with a drug name or an int of a ZINC</span>
+<span class="sd">            ID.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        smiles (str): The SMILES string of the drug name or ZINC ID.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Please insert drug of type {{str, int}}, given was {type(drug)}&#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{drug}</span><span class="s1">).&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+
+        <span class="c1"># Parse name, then retrieve ZINC ID from it</span>
+        <span class="n">stripped_drug</span> <span class="o">=</span> <span class="n">drug</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">zinc_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">drug_url</span> <span class="o">=</span> <span class="n">urllib_request</span><span class="o">.</span><span class="n">pathname2url</span><span class="p">(</span><span class="n">stripped_drug</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ZINC_DRUG_SEARCH_ROOT</span><span class="p">,</span> <span class="n">drug_url</span><span class="p">)</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s1">&#39;href=&quot;/substances/ZINC&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">zinc_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">zinc_id</span> <span class="o">=</span> <span class="n">zinc_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">except</span> <span class="n">HTTPError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Did not find any result for drug: </span><span class="si">{drug}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">zinc_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span>
+
+    <span class="n">zinc_id_url</span> <span class="o">=</span> <span class="n">ZINC_ID_SEARCH_ROOT</span> <span class="o">+</span> <span class="n">zinc_id</span>
+    <span class="n">id_response</span> <span class="o">=</span> <span class="n">urllib_request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">zinc_id_url</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">id_line</span> <span class="ow">in</span> <span class="n">id_response</span><span class="p">:</span>
+        <span class="n">id_line</span> <span class="o">=</span> <span class="n">id_line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;id=&quot;substance-smiles-field&quot; readonly value=&#39;</span> <span class="ow">in</span> <span class="n">id_line</span><span class="p">:</span>
+            <span class="n">smiles</span> <span class="o">=</span> <span class="n">id_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">smiles</span></div>
+
+
+<div class="viewcode-block" id="get_smiles_from_pubchem"><a class="viewcode-back" href="../../../api/pytoda.preprocessing.crawlers.html#pytoda.preprocessing.crawlers.get_smiles_from_pubchem">[docs]</a><span class="k">def</span> <span class="nf">get_smiles_from_pubchem</span><span class="p">(</span>
+    <span class="n">drug</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">use_isomeric</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kekulize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uses the PubChem database to retrieve the SMILES of a drug name (str).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        drug (str): string with a drug name (or a PubChem ID as a string).</span>
+<span class="sd">        use_isomeric (bool, optional) - If available, returns the isomeric</span>
+<span class="sd">            SMILES, not the canonical one.</span>
+<span class="sd">        kekulize (bool, optional): whether kekulization is used. PubChem uses</span>
+<span class="sd">            kekulization per default, so setting this to &#39;True&#39; will not</span>
+<span class="sd">            perform any operation on the retrieved SMILES.</span>
+<span class="sd">            NOTE: Setting it to &#39;False&#39; will convert aromatic atoms to lower-</span>
+<span class="sd">            case characters and *induces a RDKit dependency*</span>
+<span class="sd">        sanitize (bool, optional) -- Sanitize SMILE</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        smiles (str) -- The SMILES string of the drug name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">kekulize</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">sanitize</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">&#39;If Kekulize is False, molecule has to be sanitize &#39;</span>
+            <span class="s1">&#39;(sanitize cannot be False).&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;Please insert drug of type str, given was {type(drug)}(</span><span class="si">{drug}</span><span class="s1">).&#39;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">kekulize</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+
+    <span class="n">options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CanonicalSMILES&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">use_isomeric</span><span class="p">:</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;IsomericSMILES&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">options</span>
+
+    <span class="c1"># Parse name</span>
+    <span class="n">stripped_drug</span> <span class="o">=</span> <span class="n">drug</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="c1"># Search ZINC for compound name</span>
+    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}{}{}{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">PUBCHEM_START</span><span class="p">,</span> <span class="n">stripped_drug</span><span class="p">,</span> <span class="n">PUBCHEM_MID</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">PUBCHEM_END</span>
+            <span class="p">)</span>
+            <span class="n">smiles</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">urllib_request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">kekulize</span><span class="p">:</span>
+                <span class="n">smiles</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">smiles</span>
+        <span class="k">except</span> <span class="n">HTTPError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">option</span> <span class="o">==</span> <span class="s1">&#39;CanonicalSMILES&#39;</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Did not find any result for drug: </span><span class="si">{drug}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">continue</span></div>
+
+
+<div class="viewcode-block" id="remove_pubchem_smiles"><a class="viewcode-back" href="../../../api/pytoda.preprocessing.crawlers.html#pytoda.preprocessing.crawlers.remove_pubchem_smiles">[docs]</a><span class="k">def</span> <span class="nf">remove_pubchem_smiles</span><span class="p">(</span><span class="n">smiles_list</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function for removing PubChem molecules from an iterable of smiles.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        smiles_list (Iterable[str]): many SMILES strings.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        List[str]:  Filtered list of SMILES, all SMILES pointing to PubChem</span>
+<span class="sd">            molecules are removed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">smiles_list</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please pass Iterable, not {type(smiles_list)}&#39;</span><span class="p">)</span>
+
+    <span class="n">canonicalizer</span> <span class="o">=</span> <span class="n">Canonicalization</span><span class="p">(</span><span class="n">sanitize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">filtered</span> <span class="o">=</span> <span class="n">filterfalse</span><span class="p">(</span><span class="n">is_pubchem</span><span class="p">,</span> <span class="n">smiles_list</span><span class="p">)</span>
+    <span class="c1"># Canonicalize molecules and filter again (sanity check)</span>
+    <span class="n">filtered_canonical</span> <span class="o">=</span> <span class="n">filterfalse</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">is_pubchem</span><span class="p">(</span><span class="n">canonicalizer</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="n">filtered</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">filtered_canonical</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="query_pubchem"><a class="viewcode-back" href="../../../api/pytoda.preprocessing.crawlers.html#pytoda.preprocessing.crawlers.query_pubchem">[docs]</a><span class="k">def</span> <span class="nf">query_pubchem</span><span class="p">(</span><span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Queries pubchem for a given SMILES.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        smiles (str): A SMILES string.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple[bool, int]:</span>
+<span class="sd">            bool: Whether or not SMILES is known to PubChem.</span>
+
+<span class="sd">            int: PubChem ID of matched SMILES, -1 if SMILES was not found.</span>
+<span class="sd">                Instead, -2 means an error in the PubChem query.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please pass str, not {type(smiles)}&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">pcp</span><span class="o">.</span><span class="n">get_compounds</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="s1">&#39;smiles&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">except</span> <span class="n">BadRequestError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Skipping SMILES. BadRequestError with: </span><span class="si">{smiles}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">HTTPError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Skipping SMILES. HTTPError with: </span><span class="si">{smiles}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TimeoutError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Skipping SMILES. TimeoutError with: </span><span class="si">{smiles}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ConnectionResetError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Skipping SMILES. ConnectionResetError with: </span><span class="si">{smiles}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">PubChemHTTPError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Skipping SMILES, server busy. with: </span><span class="si">{smiles}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">cid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">cid</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="is_pubchem"><a class="viewcode-back" href="../../../api/pytoda.preprocessing.crawlers.html#pytoda.preprocessing.crawlers.is_pubchem">[docs]</a><span class="k">def</span> <span class="nf">is_pubchem</span><span class="p">(</span><span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Whether a given SMILES in PubChem.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        smiles (str): A SMILES string.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: Whether or not SMILES is known to PubChem.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">query_pubchem</span><span class="p">(</span><span class="n">smiles</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

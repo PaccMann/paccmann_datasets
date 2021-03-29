@@ -1,0 +1,521 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.smiles.transforms module &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pytoda.smiles.metadata package" href="pytoda.smiles.metadata.html" />
+    <link rel="prev" title="pytoda.smiles.smiles_language module" href="pytoda.smiles.smiles_language.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pytoda.html">API of the pytoda package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pytoda.data_splitter.html">pytoda.data_splitter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.files.html">pytoda.files module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.transforms.html">pytoda.transforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.preprocessing.html">pytoda.preprocessing package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.proteins.html">pytoda.proteins package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pytoda.smiles.html">pytoda.smiles package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.polymer_language.html">pytoda.smiles.polymer_language module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.processing.html">pytoda.smiles.processing module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.smiles_language.html">pytoda.smiles.smiles_language module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">pytoda.smiles.transforms module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.metadata.html">pytoda.smiles.metadata package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.tests.html">pytoda.smiles.tests package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.tests.html">pytoda.tests package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#summary">Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="pytoda.html">pytoda package</a> &raquo;</li>
+        
+          <li><a href="pytoda.smiles.html">pytoda.smiles package</a> &raquo;</li>
+        
+      <li>pytoda.smiles.transforms module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/pytoda.smiles.transforms.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pytoda.smiles.transforms">
+<span id="pytoda-smiles-transforms-module"></span><h1>pytoda.smiles.transforms module<a class="headerlink" href="#module-pytoda.smiles.transforms" title="Permalink to this headline">¶</a></h1>
+<p>SMILES transforms.</p>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Classes:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.Augment" title="pytoda.smiles.transforms.Augment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Augment</span></code></a></p></td>
+<td><p>Augment a SMILES string, according to Bjerrum (2017).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.AugmentTensor" title="pytoda.smiles.transforms.AugmentTensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AugmentTensor</span></code></a></p></td>
+<td><p>Augment a SMILES (represented as a Tensor) according to Bjerrum (2017).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.Canonicalization" title="pytoda.smiles.transforms.Canonicalization"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Canonicalization</span></code></a></p></td>
+<td><p>Convert any SMILES to RDKit-canonical SMILES.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.Kekulize" title="pytoda.smiles.transforms.Kekulize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Kekulize</span></code></a></p></td>
+<td><p>Transform SMILES to Kekule version.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.NotKekulize" title="pytoda.smiles.transforms.NotKekulize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NotKekulize</span></code></a></p></td>
+<td><p>Transform SMILES without explicitly converting to Kekule version</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.RemoveIsomery" title="pytoda.smiles.transforms.RemoveIsomery"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RemoveIsomery</span></code></a></p></td>
+<td><p>Remove isomery (isotopic and chiral specifications) from SMILES</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.SMILESToMorganFingerprints" title="pytoda.smiles.transforms.SMILESToMorganFingerprints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SMILESToMorganFingerprints</span></code></a></p></td>
+<td><p>Get fingerprints starting from SMILES.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.SMILESToTokenIndexes" title="pytoda.smiles.transforms.SMILESToTokenIndexes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SMILESToTokenIndexes</span></code></a></p></td>
+<td><p>Transform SMILES to token indexes using SMILES language.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.Selfies" title="pytoda.smiles.transforms.Selfies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Selfies</span></code></a></p></td>
+<td><p>Convert a molecule from SMILES to SELFIES.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Functions:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.compose_encoding_transforms" title="pytoda.smiles.transforms.compose_encoding_transforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compose_encoding_transforms</span></code></a></p></td>
+<td><p>Setup a composition of token indexes to token indexes transformations.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.smiles.transforms.compose_smiles_transforms" title="pytoda.smiles.transforms.compose_smiles_transforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compose_smiles_transforms</span></code></a></p></td>
+<td><p>Setup a composition of SMILES to SMILES (or SELFIES) transformations.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="pytoda.smiles.transforms.compose_smiles_transforms">
+<code class="sig-name descname">compose_smiles_transforms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">canonical</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">augment</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">kekulize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_bonds_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_hs_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">remove_bonddir</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">remove_chirality</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">selfies</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#compose_smiles_transforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.compose_smiles_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup a composition of SMILES to SMILES (or SELFIES) transformations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>canonical</strong> (<em>bool</em><em>, </em><em>optional</em>) – performs canonicalization of SMILES
+(one original string for one molecule). If True, then other
+transformations (augment etc, see below) do not apply. Defaults to
+False.</p></li>
+<li><p><strong>augment</strong> (<em>bool</em><em>, </em><em>optional</em>) – perform SMILES augmentation. Defaults to
+False.</p></li>
+<li><p><strong>kekulize</strong> (<em>bool</em><em>, </em><em>optional</em>) – kekulizes SMILES (implicit aromaticity
+only). Defaults to False.</p></li>
+<li><p><strong>all_bonds_explicit</strong> (<em>bool</em><em>, </em><em>optional</em>) – makes all bonds explicit.
+Defaults to False, only applies if kekulize is True.</p></li>
+<li><p><strong>all_hs_explicit</strong> (<em>bool</em><em>, </em><em>optional</em>) – makes all hydrogens explicit.
+Defaults to False, only applies if kekulize is True.</p></li>
+<li><p><strong>remove_bonddir</strong> (<em>bool</em><em>, </em><em>optional</em>) – remove directional info of bonds.
+Defaults to False.</p></li>
+<li><p><strong>remove_chirality</strong> (<em>bool</em><em>, </em><em>optional</em>) – remove chirality information.
+Defaults to False.</p></li>
+<li><p><strong>selfies</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether selfies is used instead of
+smiles. Defaults to False.</p></li>
+<li><p><strong>sanitize</strong> (<em>bool</em><em>, </em><em>optional</em>) – RDKit sanitization of the molecule.
+Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A Callable that applies composition of SMILES transforms.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Compose" title="pytoda.transforms.Compose">Compose</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pytoda.smiles.transforms.compose_encoding_transforms">
+<code class="sig-name descname">compose_encoding_transforms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">randomize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">start_index</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">stop_index</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">padding_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">padding_index</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#compose_encoding_transforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.compose_encoding_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup a composition of token indexes to token indexes transformations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>randomize</strong> (<em>bool</em><em>, </em><em>optional</em>) – perform a true randomization of
+token indexes. Defaults to False.</p></li>
+<li><p><strong>add_start_and_stop</strong> (<em>bool</em><em>, </em><em>optional</em>) – add start and stop token
+indexes. Defaults to False.</p></li>
+<li><p><strong>start_index</strong> (<em>int</em><em>, </em><em>optional</em>) – index of start token in vocabulary.
+Default to 2.</p></li>
+<li><p><strong>stop_index</strong> (<em>int</em><em>, </em><em>optional</em>) – index of stop token in vocabulary.
+Default to 3.</p></li>
+<li><p><strong>padding</strong> (<em>bool</em><em>, </em><em>optional</em>) – pad sequences to given padding_length.
+Defaults to True.</p></li>
+<li><p><strong>padding_length</strong> (<em>int</em><em>, </em><em>optional</em>) – manually sets number of applied
+paddings, applies only if padding is True. Defaults to None, but
+must be passed in case of padding.</p></li>
+<li><p><strong>padding_index</strong> (<em>int</em><em>, </em><em>optional</em>) – index of padding token in vocabulary.
+Default to 0.</p></li>
+<li><p><strong>device</strong> (<em>torch.device</em>) – device where the tensors are stored.
+Defaults to gpu, if available.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A Callable that applies composition of transforms on</dt><dd><p>token indexes.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Compose" title="pytoda.transforms.Compose">Compose</a></p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Transformations can change the number of tokens.</p>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.smiles.transforms.SMILESToTokenIndexes">
+<em class="property">class </em><code class="sig-name descname">SMILESToTokenIndexes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles_language</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#SMILESToTokenIndexes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.SMILESToTokenIndexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Transform SMILES to token indexes using SMILES language.</p>
+<dl class="py method">
+<dt id="pytoda.smiles.transforms.SMILESToTokenIndexes.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles_language</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#SMILESToTokenIndexes.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.SMILESToTokenIndexes.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a SMILES to token indexes object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>smiles_language</strong> (<a class="reference internal" href="pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage" title="pytoda.smiles.smiles_language.SMILESLanguage"><em>SMILESLanguage</em></a>) – a SMILES language.
+NOTE: No typing used to prevent circular import.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.smiles.transforms.RemoveIsomery">
+<em class="property">class </em><code class="sig-name descname">RemoveIsomery</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bonddir</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">chirality</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#RemoveIsomery"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.RemoveIsomery" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Remove isomery (isotopic and chiral specifications) from SMILES</p>
+<dl class="py method">
+<dt id="pytoda.smiles.transforms.RemoveIsomery.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bonddir</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">chirality</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#RemoveIsomery.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.RemoveIsomery.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize isomery removal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bonddir</strong> (<em>bool</em>) – whether bond direction information should be
+removed or not (default: {True})</p></li>
+<li><p><strong>chirality</strong> (<em>bool</em>) – whether chirality information should be removed
+(default: {True}).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.smiles.transforms.Kekulize">
+<em class="property">class </em><code class="sig-name descname">Kekulize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">all_bonds_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_hs_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#Kekulize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.Kekulize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Transform SMILES to Kekule version.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.smiles.transforms.NotKekulize">
+<em class="property">class </em><code class="sig-name descname">NotKekulize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">all_bonds_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_hs_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#NotKekulize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.NotKekulize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Transform SMILES without explicitly converting to Kekule version</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.smiles.transforms.Augment">
+<em class="property">class </em><code class="sig-name descname">Augment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kekule_smiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_bonds_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_hs_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#Augment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.Augment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Augment a SMILES string, according to Bjerrum (2017).</p>
+<dl class="py method">
+<dt id="pytoda.smiles.transforms.Augment.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">kekule_smiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_bonds_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_hs_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">- 1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#Augment.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.Augment.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>NOTE:  These parameter need to be passed down to the enumerator.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.smiles.transforms.AugmentTensor">
+<em class="property">class </em><code class="sig-name descname">AugmentTensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles_language</span></em>, <em class="sig-param"><span class="n">kekule_smiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_bonds_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_hs_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#AugmentTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.AugmentTensor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Augment a SMILES (represented as a Tensor) according to Bjerrum (2017).</p>
+<dl class="py method">
+<dt id="pytoda.smiles.transforms.AugmentTensor.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles_language</span></em>, <em class="sig-param"><span class="n">kekule_smiles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_bonds_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">all_hs_explicit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#AugmentTensor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.AugmentTensor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>NOTE:  These parameter need to be passed down to the enumerator.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.transforms.AugmentTensor.update_smiles_language">
+<code class="sig-name descname">update_smiles_language</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles_language</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#AugmentTensor.update_smiles_language"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.AugmentTensor.update_smiles_language" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.smiles.transforms.Selfies">
+<em class="property">class </em><code class="sig-name descname">Selfies</code><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#Selfies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.Selfies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Convert a molecule from SMILES to SELFIES.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.smiles.transforms.Canonicalization">
+<em class="property">class </em><code class="sig-name descname">Canonicalization</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#Canonicalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.Canonicalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Convert any SMILES to RDKit-canonical SMILES.
+.. rubric:: Example</p>
+<p>An example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">smiles</span> <span class="o">=</span> <span class="s1">&#39;CN2C(=O)N(C)C(=O)C1=C2N=CN1C&#39;</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">Canonicalization</span><span class="p">()</span>
+<span class="n">c</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Result is: ‘Cn1c(=O)c2c(ncn2C)n(C)c1=O’</p>
+<dl class="py method">
+<dt id="pytoda.smiles.transforms.Canonicalization.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#Canonicalization.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.Canonicalization.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a canonicalizer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sanitize</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether molecule is sanitized. Defaults to True.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.smiles.transforms.SMILESToMorganFingerprints">
+<em class="property">class </em><code class="sig-name descname">SMILESToMorganFingerprints</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">bits</span><span class="o">=</span><span class="default_value">512</span></em>, <em class="sig-param"><span class="n">chirality</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#SMILESToMorganFingerprints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.SMILESToMorganFingerprints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Get fingerprints starting from SMILES.</p>
+<dl class="py method">
+<dt id="pytoda.smiles.transforms.SMILESToMorganFingerprints.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">radius</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">bits</span><span class="o">=</span><span class="default_value">512</span></em>, <em class="sig-param"><span class="n">chirality</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/transforms.html#SMILESToMorganFingerprints.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.transforms.SMILESToMorganFingerprints.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a SMILES to fingerprints object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>radius</strong> (<em>int</em>) – radius of the fingerprints.</p></li>
+<li><p><strong>bits</strong> (<em>int</em>) – bits used to represent the fingerprints.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="pytoda.smiles.metadata.html" class="btn btn-neutral float-right" title="pytoda.smiles.metadata package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pytoda.smiles.smiles_language.html" class="btn btn-neutral float-left" title="pytoda.smiles.smiles_language module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

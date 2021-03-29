@@ -1,0 +1,648 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.tests.test_set_matching_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.tests.test_set_matching_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.tests.test_set_matching_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Testing SetMatchingDataset.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
+<span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
+
+<span class="kn">from</span> <span class="nn">pytoda.datasets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DistributionalDataset</span><span class="p">,</span>
+    <span class="n">PairedSetMatchingDataset</span><span class="p">,</span>
+    <span class="n">PermutedSetMatchingDataset</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pytoda.datasets.utils.factories</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DISTRIBUTION_FUNCTION_FACTORY</span><span class="p">,</span>
+    <span class="n">METRIC_FUNCTION_FACTORY</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">seeds</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="mi">42</span><span class="p">]</span>
+<span class="n">distribution_seeds</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="mi">42</span><span class="p">]</span>
+
+<span class="n">min_set_length</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="n">set_padding_value</span> <span class="o">=</span> <span class="mf">6.0</span>
+<span class="n">dataset_size</span> <span class="o">=</span> <span class="mi">250</span>
+<span class="n">max_set_length</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">item_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">max_set_length</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">cost_metric</span> <span class="o">=</span> <span class="s1">&#39;p-norm&#39;</span>
+<span class="n">cost_metric_args</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;p&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">}</span>
+<span class="n">distribution_type</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span> <span class="s1">&#39;uniform&#39;</span><span class="p">]</span>
+<span class="n">distribution_args</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;loc&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;low&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;high&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}]</span>
+<span class="n">noise_std</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]</span>
+
+<span class="n">cost_metric_function</span> <span class="o">=</span> <span class="n">METRIC_FUNCTION_FACTORY</span><span class="p">[</span><span class="n">cost_metric</span><span class="p">](</span><span class="o">**</span><span class="n">cost_metric_args</span><span class="p">)</span>
+
+<span class="n">permute</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+<span class="n">DATASET_FACTORY</span> <span class="o">=</span> <span class="p">{</span><span class="kc">True</span><span class="p">:</span> <span class="n">PermutedSetMatchingDataset</span><span class="p">,</span> <span class="kc">False</span><span class="p">:</span> <span class="n">PairedSetMatchingDataset</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="TestSetMatchingDataset"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_set_matching_dataset.html#pytoda.datasets.tests.test_set_matching_dataset.TestSetMatchingDataset">[docs]</a><span class="k">class</span> <span class="nc">TestSetMatchingDataset</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Test SetMatchingDataset class.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TestSetMatchingDataset.test_permuted_set_matching_dataset"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_set_matching_dataset.html#pytoda.datasets.tests.test_set_matching_dataset.TestSetMatchingDataset.test_permuted_set_matching_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">test_permuted_set_matching_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test PermutedSetMatchingDataset class.&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">dist_type</span><span class="p">,</span> <span class="n">dist_args</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">distribution_type</span><span class="p">,</span> <span class="n">distribution_args</span><span class="p">):</span>
+
+            <span class="n">distribution_function</span> <span class="o">=</span> <span class="n">DISTRIBUTION_FUNCTION_FACTORY</span><span class="p">[</span><span class="n">dist_type</span><span class="p">](</span>
+                <span class="o">**</span><span class="n">dist_args</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">dist_seed</span> <span class="ow">in</span> <span class="n">distribution_seeds</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="n">seeds</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">noise</span> <span class="ow">in</span> <span class="n">noise_std</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">min_len</span> <span class="ow">in</span> <span class="n">min_set_length</span><span class="p">:</span>
+
+                            <span class="n">s1</span> <span class="o">=</span> <span class="n">DistributionalDataset</span><span class="p">(</span>
+                                <span class="n">dataset_size</span><span class="p">,</span>
+                                <span class="n">item_shape</span><span class="p">,</span>
+                                <span class="n">distribution_function</span><span class="p">,</span>
+                                <span class="n">seed</span><span class="o">=</span><span class="n">dist_seed</span><span class="p">,</span>
+                            <span class="p">)</span>
+                            <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">s1</span><span class="p">]</span>
+
+                            <span class="n">permuted_dataset</span> <span class="o">=</span> <span class="n">PermutedSetMatchingDataset</span><span class="p">(</span>
+                                <span class="o">*</span><span class="n">datasets</span><span class="p">,</span>
+                                <span class="n">min_len</span><span class="p">,</span>
+                                <span class="n">cost_metric_function</span><span class="p">,</span>
+                                <span class="n">set_padding_value</span><span class="o">=</span><span class="n">set_padding_value</span><span class="p">,</span>
+                                <span class="n">noise_std</span><span class="o">=</span><span class="n">noise</span><span class="p">,</span>
+                                <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                            <span class="p">)</span>
+                            <span class="c1"># Test length</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">permuted_dataset</span><span class="p">),</span> <span class="n">dataset_size</span><span class="p">)</span>
+
+                            <span class="c1"># Test __getitem__</span>
+                            <span class="n">sample1</span> <span class="o">=</span> <span class="n">permuted_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">sample2</span> <span class="o">=</span> <span class="n">permuted_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                            <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">sample1</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample1</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
+
+                            <span class="k">if</span> <span class="n">dist_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="c1"># since both distribution seed and permutation seed</span>
+                                <span class="c1"># are fixed, sampling twice with same index should return</span>
+                                <span class="c1"># identical samples.</span>
+
+                                <span class="k">for</span> <span class="n">item1</span><span class="p">,</span> <span class="n">item2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sample1</span><span class="p">,</span> <span class="n">sample2</span><span class="p">):</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">))</span>
+
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                    <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                        <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                        <span class="n">sample2</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">sample2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                    <span class="p">)</span>
+                                <span class="p">)</span>
+
+                                <span class="c1"># When noise =0, permutation of set2 should return set1</span>
+                                <span class="c1"># and vice versa</span>
+                                <span class="k">if</span> <span class="n">noise</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+
+                                <span class="k">else</span><span class="p">:</span>
+
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+
+                            <span class="k">elif</span> <span class="n">dist_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="c1"># Since only distribution seed is fixed, for fixed length</span>
+                                <span class="c1"># settings the reference set returned at index 0 must be identical.</span>
+                                <span class="c1"># NOTE: since items are padded when lengths vary,</span>
+                                <span class="c1"># a lower limit on max set length is required to test</span>
+                                <span class="c1"># that permutations are not equal when permutation seed is None.</span>
+
+                                <span class="k">if</span> <span class="n">min_len</span> <span class="o">==</span> <span class="n">max_set_length</span><span class="p">:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                                    <span class="k">if</span> <span class="n">max_set_length</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span>
+                                            <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                                            <span class="n">msg</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{sample1}</span><span class="s1">,</span><span class="si">{sample2}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                        <span class="p">)</span>
+
+                                    <span class="k">if</span> <span class="n">noise</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                            <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                                <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                                <span class="n">sample2</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">sample2</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                            <span class="p">)</span>
+                                        <span class="p">)</span>
+                                <span class="k">elif</span> <span class="n">sample1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">sample2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                                    <span class="c1"># reason for asserting false is that length</span>
+                                    <span class="c1"># cropping is a random event dependent on</span>
+                                    <span class="c1"># permutation seed which is None in this setting</span>
+
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                                        <span class="n">msg</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{sample1}</span><span class="s1">,</span><span class="si">{sample2}</span><span class="s1">&#39;</span><span class="p">,</span>
+                                    <span class="p">)</span>
+
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span>
+                                    <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                                <span class="p">)</span>
+
+                                <span class="k">if</span> <span class="n">noise</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span> <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span> <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span> <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span> <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+
+                            <span class="k">elif</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="c1"># since distribution seed is None, the sampled sets</span>
+                                <span class="c1"># must be different but the lengths and permutations</span>
+                                <span class="c1"># should be the same since the permutation seed is set.</span>
+
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                                <span class="k">if</span> <span class="n">noise</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+                                <span class="k">elif</span> <span class="n">noise</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">sample1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">(),</span> <span class="p">:],</span>
+                                            <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                        <span class="p">)</span>
+                                    <span class="p">)</span>
+
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># since both seeds are none, the sets and cropped lengths</span>
+                                <span class="c1"># must be different. Difference in permutations are only</span>
+                                <span class="c1"># checked if length&gt;3 due to item-wise padding.</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="TestSetMatchingDataset.test_paired_set_matching_dataset"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_set_matching_dataset.html#pytoda.datasets.tests.test_set_matching_dataset.TestSetMatchingDataset.test_paired_set_matching_dataset">[docs]</a>    <span class="k">def</span> <span class="nf">test_paired_set_matching_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test PairedSetMatchingDataset class.&quot;&quot;&quot;</span>
+        <span class="c1"># Similar reasoning with respect to seeds follows from above.</span>
+        <span class="c1"># Main difference is that the hungarian assignments, i.e, the targets</span>
+        <span class="c1"># returned are not tested since these assignments are not dependent on</span>
+        <span class="c1"># the permutation seed but only on the pair of sets generated.</span>
+
+        <span class="n">noise</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="k">for</span> <span class="n">dist_type</span><span class="p">,</span> <span class="n">dist_args</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">distribution_type</span><span class="p">,</span> <span class="n">distribution_args</span><span class="p">):</span>
+
+            <span class="n">distribution_function</span> <span class="o">=</span> <span class="n">DISTRIBUTION_FUNCTION_FACTORY</span><span class="p">[</span><span class="n">dist_type</span><span class="p">](</span>
+                <span class="o">**</span><span class="n">dist_args</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">dist_seed</span> <span class="ow">in</span> <span class="n">distribution_seeds</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="n">seeds</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">min_len</span> <span class="ow">in</span> <span class="n">min_set_length</span><span class="p">:</span>
+
+                        <span class="k">if</span> <span class="n">dist_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">seed_s1</span> <span class="o">=</span> <span class="n">dist_seed</span>
+                            <span class="n">seed_s2</span> <span class="o">=</span> <span class="n">dist_seed</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">seed_s1</span> <span class="o">=</span> <span class="n">seed_s2</span> <span class="o">=</span> <span class="n">dist_seed</span>
+
+                        <span class="n">s1</span> <span class="o">=</span> <span class="n">DistributionalDataset</span><span class="p">(</span>
+                            <span class="n">dataset_size</span><span class="p">,</span>
+                            <span class="n">item_shape</span><span class="p">,</span>
+                            <span class="n">distribution_function</span><span class="p">,</span>
+                            <span class="n">seed</span><span class="o">=</span><span class="n">seed_s1</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">s1</span><span class="p">]</span>
+
+                        <span class="n">s2</span> <span class="o">=</span> <span class="n">DistributionalDataset</span><span class="p">(</span>
+                            <span class="n">dataset_size</span><span class="p">,</span>
+                            <span class="n">item_shape</span><span class="p">,</span>
+                            <span class="n">distribution_function</span><span class="p">,</span>
+                            <span class="n">seed</span><span class="o">=</span><span class="n">seed_s2</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="n">datasets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+
+                        <span class="n">paired_dataset</span> <span class="o">=</span> <span class="n">PairedSetMatchingDataset</span><span class="p">(</span>
+                            <span class="o">*</span><span class="n">datasets</span><span class="p">,</span>
+                            <span class="n">min_len</span><span class="p">,</span>
+                            <span class="n">cost_metric_function</span><span class="p">,</span>
+                            <span class="n">set_padding_value</span><span class="o">=</span><span class="n">set_padding_value</span><span class="p">,</span>
+                            <span class="n">noise_std</span><span class="o">=</span><span class="n">noise</span><span class="p">,</span>
+                            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                        <span class="p">)</span>
+                        <span class="c1"># Test length</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">paired_dataset</span><span class="p">),</span> <span class="n">dataset_size</span><span class="p">)</span>
+
+                        <span class="c1"># Test __getitem__</span>
+                        <span class="n">sample1</span> <span class="o">=</span> <span class="n">paired_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">sample2</span> <span class="o">=</span> <span class="n">paired_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                        <span class="n">sample1_hungarian12</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span>
+                            <span class="n">torch</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+                        <span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+                        <span class="n">sample1_hungarian21</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span>
+                            <span class="n">torch</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+                        <span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                            <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                <span class="n">sample1</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">int</span><span class="p">(),</span>
+                                <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">sample1_hungarian12</span><span class="p">)</span><span class="o">.</span><span class="n">int</span><span class="p">(),</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                            <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span>
+                                <span class="n">sample1</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">int</span><span class="p">(),</span>
+                                <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">sample1_hungarian21</span><span class="p">)</span><span class="o">.</span><span class="n">int</span><span class="p">(),</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">assertIsInstance</span><span class="p">(</span><span class="n">sample1</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sample1</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+                        <span class="k">if</span> <span class="n">dist_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+                            <span class="k">for</span> <span class="n">item1</span><span class="p">,</span> <span class="n">item2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sample1</span><span class="p">,</span> <span class="n">sample2</span><span class="p">):</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">))</span>
+
+                        <span class="k">elif</span> <span class="n">dist_seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+                            <span class="k">if</span> <span class="n">min_len</span> <span class="o">==</span> <span class="n">max_set_length</span><span class="p">:</span>
+                                <span class="k">for</span> <span class="n">item1</span><span class="p">,</span> <span class="n">item2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sample1</span><span class="p">,</span> <span class="n">sample2</span><span class="p">):</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">))</span>
+
+                            <span class="k">elif</span> <span class="n">sample1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">sample2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                                <span class="k">for</span> <span class="n">item1</span><span class="p">,</span> <span class="n">item2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sample1</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[:</span><span class="mi">2</span><span class="p">]):</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">))</span>
+
+                        <span class="k">elif</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+                            <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+                            <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">sample1</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">item1</span><span class="p">,</span> <span class="n">item2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sample1</span><span class="p">[:</span><span class="mi">2</span><span class="p">],</span> <span class="n">sample2</span><span class="p">[:</span><span class="mi">2</span><span class="p">]):</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">item1</span><span class="p">,</span> <span class="n">item2</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TestSetMatchingDataset.test_data_loader"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_set_matching_dataset.html#pytoda.datasets.tests.test_set_matching_dataset.TestSetMatchingDataset.test_data_loader">[docs]</a>    <span class="k">def</span> <span class="nf">test_data_loader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test data_loader or SetMatchingDataset.&quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">dist_seed</span> <span class="ow">in</span> <span class="n">distribution_seeds</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">dist_type</span><span class="p">,</span> <span class="n">dist_args</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">distribution_type</span><span class="p">,</span> <span class="n">distribution_args</span><span class="p">):</span>
+                <span class="n">distribution_function</span> <span class="o">=</span> <span class="n">DISTRIBUTION_FUNCTION_FACTORY</span><span class="p">[</span><span class="n">dist_type</span><span class="p">](</span>
+                    <span class="o">**</span><span class="n">dist_args</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">noise</span> <span class="ow">in</span> <span class="n">noise_std</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="n">seeds</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">permute_</span> <span class="ow">in</span> <span class="n">permute</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">min_len</span> <span class="ow">in</span> <span class="n">min_set_length</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">dist_seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                                    <span class="n">seed_s1</span> <span class="o">=</span> <span class="n">seed_s2</span> <span class="o">=</span> <span class="n">dist_seed</span>
+
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">seed_s1</span> <span class="o">=</span> <span class="n">dist_seed</span>
+                                    <span class="n">seed_s2</span> <span class="o">=</span> <span class="n">dist_seed</span> <span class="o">+</span> <span class="mi">1</span>
+
+                                <span class="n">s1</span> <span class="o">=</span> <span class="n">DistributionalDataset</span><span class="p">(</span>
+                                    <span class="n">dataset_size</span><span class="p">,</span>
+                                    <span class="n">item_shape</span><span class="p">,</span>
+                                    <span class="n">distribution_function</span><span class="p">,</span>
+                                    <span class="n">seed</span><span class="o">=</span><span class="n">seed_s1</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">s1</span><span class="p">]</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">permute_</span><span class="p">:</span>
+                                    <span class="n">s2</span> <span class="o">=</span> <span class="n">DistributionalDataset</span><span class="p">(</span>
+                                        <span class="n">dataset_size</span><span class="p">,</span>
+                                        <span class="n">item_shape</span><span class="p">,</span>
+                                        <span class="n">distribution_function</span><span class="p">,</span>
+                                        <span class="n">seed</span><span class="o">=</span><span class="n">seed_s2</span><span class="p">,</span>
+                                    <span class="p">)</span>
+                                    <span class="n">datasets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+
+                                <span class="n">setmatch_dataset</span> <span class="o">=</span> <span class="n">DATASET_FACTORY</span><span class="p">[</span><span class="n">permute_</span><span class="p">](</span>
+                                    <span class="o">*</span><span class="n">datasets</span><span class="p">,</span>
+                                    <span class="n">min_len</span><span class="p">,</span>
+                                    <span class="n">cost_metric_function</span><span class="p">,</span>
+                                    <span class="n">set_padding_value</span><span class="o">=</span><span class="n">set_padding_value</span><span class="p">,</span>
+                                    <span class="n">noise_std</span><span class="o">=</span><span class="n">noise</span><span class="p">,</span>
+                                    <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                                <span class="p">)</span>
+
+                                <span class="n">data_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span>
+                                    <span class="n">setmatch_dataset</span><span class="p">,</span>
+                                    <span class="n">batch_size</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+                                <span class="p">)</span>
+
+                                <span class="k">for</span> <span class="n">batch_index</span><span class="p">,</span> <span class="n">batch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data_loader</span><span class="p">):</span>
+                                    <span class="p">(</span>
+                                        <span class="n">set1_batch</span><span class="p">,</span>
+                                        <span class="n">set2_batch</span><span class="p">,</span>
+                                        <span class="n">idx12_batch</span><span class="p">,</span>
+                                        <span class="n">idx21_batch</span><span class="p">,</span>
+                                        <span class="n">len_batch</span><span class="p">,</span>
+                                    <span class="p">)</span> <span class="o">=</span> <span class="n">batch</span>
+
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+                                        <span class="n">set1_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+                                        <span class="p">(</span>
+                                            <span class="mi">25</span><span class="p">,</span>
+                                            <span class="n">max_set_length</span><span class="p">,</span>
+                                            <span class="mi">4</span><span class="p">,</span>
+                                        <span class="p">),</span>
+                                    <span class="p">)</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">set1_batch</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">25</span>
+                                    <span class="p">)</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">set2_batch</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">25</span>
+                                    <span class="p">)</span>
+
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">set1_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">set2_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+                                        <span class="n">idx12_batch</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">idx21_batch</span><span class="o">.</span><span class="n">shape</span>
+                                    <span class="p">)</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">len_batch</span><span class="p">),</span> <span class="mi">25</span><span class="p">)</span>
+
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertFalse</span><span class="p">(</span>
+                                        <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">set1_batch</span><span class="p">,</span> <span class="n">set2_batch</span><span class="p">)</span>
+                                    <span class="p">)</span>
+
+                                    <span class="k">if</span> <span class="n">permute_</span> <span class="ow">and</span> <span class="n">noise_std</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+
+                                        <span class="n">ordered_set1</span> <span class="o">=</span> <span class="n">set1_batch</span><span class="p">[</span>
+                                            <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">idx21_batch</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+                                            <span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                                            <span class="o">.</span><span class="n">repeat</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">idx21_batch</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">))),</span>
+                                            <span class="n">idx21_batch</span><span class="p">,</span>
+                                        <span class="p">]</span>
+
+                                        <span class="n">ordered_set2</span> <span class="o">=</span> <span class="n">set2_batch</span><span class="p">[</span>
+                                            <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">idx12_batch</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+                                            <span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                                            <span class="o">.</span><span class="n">repeat</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">idx12_batch</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">))),</span>
+                                            <span class="n">idx12_batch</span><span class="p">,</span>
+                                        <span class="p">]</span>
+
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                            <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">set1_batch</span><span class="p">,</span> <span class="n">ordered_set2</span><span class="p">)</span>
+                                        <span class="p">)</span>
+                                        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
+                                            <span class="n">torch</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ordered_set1</span><span class="p">,</span> <span class="n">set2_batch</span><span class="p">)</span>
+                                        <span class="p">)</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,358 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.smiles.polymer_language module &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pytoda.smiles.processing module" href="pytoda.smiles.processing.html" />
+    <link rel="prev" title="pytoda.smiles package" href="pytoda.smiles.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="pytoda.html">API of the pytoda package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pytoda.data_splitter.html">pytoda.data_splitter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.files.html">pytoda.files module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.transforms.html">pytoda.transforms module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.preprocessing.html">pytoda.preprocessing package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.proteins.html">pytoda.proteins package</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="pytoda.smiles.html">pytoda.smiles package</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">pytoda.smiles.polymer_language module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#summary">Summary</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.processing.html">pytoda.smiles.processing module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.smiles_language.html">pytoda.smiles.smiles_language module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.transforms.html">pytoda.smiles.transforms module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.metadata.html">pytoda.smiles.metadata package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.tests.html">pytoda.smiles.tests package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.tests.html">pytoda.tests package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#summary">Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.html#reference">Reference</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="pytoda.html">pytoda package</a> &raquo;</li>
+        
+          <li><a href="pytoda.smiles.html">pytoda.smiles package</a> &raquo;</li>
+        
+      <li>pytoda.smiles.polymer_language module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/pytoda.smiles.polymer_language.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pytoda.smiles.polymer_language">
+<span id="pytoda-smiles-polymer-language-module"></span><h1>pytoda.smiles.polymer_language module<a class="headerlink" href="#module-pytoda.smiles.polymer_language" title="Permalink to this headline">¶</a></h1>
+<p>Polymer language handling.</p>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Classes:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.smiles.polymer_language.PolymerTokenizer" title="pytoda.smiles.polymer_language.PolymerTokenizer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PolymerTokenizer</span></code></a></p></td>
+<td><p>PolymerTokenizer class.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="reference">
+<h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pytoda.smiles.polymer_language.PolymerTokenizer">
+<em class="property">class </em><code class="sig-name descname">PolymerTokenizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">entity_names</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'polymer-language'</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/polymer_language.html#PolymerTokenizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.polymer_language.PolymerTokenizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESTokenizer" title="pytoda.smiles.smiles_language.SMILESTokenizer"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.smiles.smiles_language.SMILESTokenizer</span></code></a></p>
+<p>PolymerTokenizer class.</p>
+<p>PolymerTokenizer is an extension of SMILESTokenizer adding special start and
+stop tokens per entity.
+A polymer language is usually shared across several SMILES datasets (e.g.
+different entity sources).</p>
+<dl class="py method">
+<dt id="pytoda.smiles.polymer_language.PolymerTokenizer.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">entity_names</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'polymer-language'</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/polymer_language.html#PolymerTokenizer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.polymer_language.PolymerTokenizer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize Polymer language able to encode different entities.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>entity_names</strong> (<em>Sequence</em><em>[</em><em>str</em><em>]</em>) – A list of entity names that the
+polymer language can distinguish.</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – name of the PolymerTokenizer.</p></li>
+<li><p><strong>add_start_and_stop</strong> (<em>bool</em>) – add start and stop token indexes.
+Defaults to True.</p></li>
+<li><p><strong>kwargs</strong> (<em>dict</em>) – additional parameters passed to SMILESTokenizer.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See <cite>set_smiles_transforms</cite> and <cite>set_encoding_transforms</cite> to change
+the transforms temporarily and reset with
+<cite>reset_initial_transforms</cite>. Assignment of class attributes
+in the parameter list will trigger such a reset.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.polymer_language.PolymerTokenizer.update_entity">
+<code class="sig-name descname">update_entity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">entity</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/polymer_language.html#PolymerTokenizer.update_entity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.polymer_language.PolymerTokenizer.update_entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the current entity and the default transforms (used e.g. in
+<cite>add_dataset</cite>) of the Polymer language object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>entity</strong> (<em>str</em>) – a chemical entity (e.g. ‘Monomer’).</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.polymer_language.PolymerTokenizer.smiles_to_token_indexes">
+<code class="sig-name descname">smiles_to_token_indexes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">smiles</span></em>, <em class="sig-param"><span class="n">entity</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/polymer_language.html#PolymerTokenizer.smiles_to_token_indexes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.polymer_language.PolymerTokenizer.smiles_to_token_indexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform character-level SMILES into a sequence of token indexes.</p>
+<p>In case of add_start_stop, inserts entity specific tokens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>smiles</strong> (<em>str</em>) – a SMILES (or SELFIES) representation.</p></li>
+<li><p><strong>entity</strong> (<em>str</em>) – a chemical entity (e.g. ‘Monomer’). Defaults to
+None, where the current entity is used (initially the
+SMILESTokenizer default).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>indexes representation for the</dt><dd><p>SMILES/SELFIES provided.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Union[Indexes, Tensor]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.polymer_language.PolymerTokenizer.reset_initial_transforms">
+<code class="sig-name descname">reset_initial_transforms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/polymer_language.html#PolymerTokenizer.reset_initial_transforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.polymer_language.PolymerTokenizer.reset_initial_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset smiles and token indexes transforms as on initialization,
+including entity specific transforms.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.polymer_language.PolymerTokenizer.set_smiles_transforms">
+<code class="sig-name descname">set_smiles_transforms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">entity</span></em>, <em class="sig-param"><span class="n">canonical</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">augment</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">kekulize</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">all_bonds_explicit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">all_hs_explicit</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">remove_bonddir</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">remove_chirality</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">selfies</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/polymer_language.html#PolymerTokenizer.set_smiles_transforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.polymer_language.PolymerTokenizer.set_smiles_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to reversibly change the transforms per entity.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.smiles.polymer_language.PolymerTokenizer.set_encoding_transforms">
+<code class="sig-name descname">set_encoding_transforms</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">entity</span></em>, <em class="sig-param"><span class="n">randomize</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">padding_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/smiles/polymer_language.html#PolymerTokenizer.set_encoding_transforms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.smiles.polymer_language.PolymerTokenizer.set_encoding_transforms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to reversibly change the transforms per entity.
+Addresses entity specific start and stop tokens.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="pytoda.smiles.processing.html" class="btn btn-neutral float-right" title="pytoda.smiles.processing module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pytoda.smiles.html" class="btn btn-neutral float-left" title="pytoda.smiles package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

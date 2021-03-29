@@ -1,0 +1,409 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.datasets.smiles_dataset &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.datasets.smiles_dataset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.datasets.smiles_dataset</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Datasets for smiles and transformations of smiles.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">torch</span>
+
+<span class="kn">from</span> <span class="nn">..smiles.processing</span> <span class="kn">import</span> <span class="n">split_selfies</span>
+<span class="kn">from</span> <span class="nn">..smiles.smiles_language</span> <span class="kn">import</span> <span class="n">SMILESLanguage</span><span class="p">,</span> <span class="n">SMILESTokenizer</span>
+<span class="kn">from</span> <span class="nn">._smi_eager_dataset</span> <span class="kn">import</span> <span class="n">_SmiEagerDataset</span>
+<span class="kn">from</span> <span class="nn">._smi_lazy_dataset</span> <span class="kn">import</span> <span class="n">_SmiLazyDataset</span>
+<span class="kn">from</span> <span class="nn">.base_dataset</span> <span class="kn">import</span> <span class="n">DatasetDelegator</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">concatenate_file_based_datasets</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="n">SMILES_DATASET_IMPLEMENTATIONS</span> <span class="o">=</span> <span class="p">{</span>  <span class="c1"># get class and acceptable keywords</span>
+    <span class="s1">&#39;eager&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">_SmiEagerDataset</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;index_col&#39;</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">}),</span>
+    <span class="s1">&#39;lazy&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">_SmiLazyDataset</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;chunk_size&#39;</span><span class="p">,</span> <span class="s1">&#39;index_col&#39;</span><span class="p">,</span> <span class="s1">&#39;names&#39;</span><span class="p">}),</span>
+<span class="p">}</span>  <span class="c1"># name cannot be passed</span>
+
+
+<div class="viewcode-block" id="SMILESDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.smiles_dataset.html#pytoda.datasets.smiles_dataset.SMILESDataset">[docs]</a><span class="k">class</span> <span class="nc">SMILESDataset</span><span class="p">(</span><span class="n">DatasetDelegator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Dataset of SMILES. &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SMILESDataset.__init__"><a class="viewcode-back" href="../../../api/pytoda.datasets.smiles_dataset.html#pytoda.datasets.smiles_dataset.SMILESDataset.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">smi_filepaths</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;smiles-dataset&#39;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a SMILES dataset.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smi_filepaths (Files): paths to .smi files.</span>
+<span class="sd">            name (str): name of the SMILESDataset.</span>
+<span class="sd">            backend (str): memory management backend.</span>
+<span class="sd">                Defaults to eager, prefer speed over memory consumption.</span>
+<span class="sd">            kwargs (dict): additional arguments for dataset constructor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Parse language object and data paths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smi_filepaths</span> <span class="o">=</span> <span class="n">smi_filepaths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">backend</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="n">dataset_class</span><span class="p">,</span> <span class="n">valid_keys</span> <span class="o">=</span> <span class="n">SMILES_DATASET_IMPLEMENTATIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">valid_keys</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;SMILES&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">concatenate_file_based_datasets</span><span class="p">(</span>
+            <span class="n">filepaths</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">smi_filepaths</span><span class="p">,</span> <span class="n">dataset_class</span><span class="o">=</span><span class="n">dataset_class</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+
+        <span class="n">DatasetDelegator</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># delegate to self.dataset</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;Please remove duplicates from your .smi file.&#39;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SMILESTokenizerDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.smiles_dataset.html#pytoda.datasets.smiles_dataset.SMILESTokenizerDataset">[docs]</a><span class="k">class</span> <span class="nc">SMILESTokenizerDataset</span><span class="p">(</span><span class="n">DatasetDelegator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Dataset of token indexes from SMILES. &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SMILESTokenizerDataset.__init__"><a class="viewcode-back" href="../../../api/pytoda.datasets.smiles_dataset.html#pytoda.datasets.smiles_dataset.SMILESTokenizerDataset.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">smi_filepaths</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">smiles_language</span><span class="p">:</span> <span class="n">SMILESLanguage</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">canonical</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">augment</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">kekulize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_bonds_explicit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">all_hs_explicit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">remove_bonddir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">remove_chirality</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">selfies</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">sanitize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">randomize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">padding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">padding_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="n">vocab_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">iterate_dataset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;smiles-encoder-dataset&#39;</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a dataset providing token indexes from source SMILES.</span>
+
+<span class="sd">        The datasets transformations on smiles and encodings can be adapted,</span>
+<span class="sd">        depending on the smiles_language used (see SMILESTokenizer).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smi_filepaths (Files): paths to .smi files.</span>
+<span class="sd">            smiles_language (SMILESLanguage): a smiles language that transforms</span>
+<span class="sd">                and encodes SMILES to token indexes. Defaults to None, where</span>
+<span class="sd">                a SMILESTokenizer is instantited with the following arguments.</span>
+<span class="sd">            canonical (bool): performs canonicalization of SMILES (one</span>
+<span class="sd">                original string for one molecule), if True, then other</span>
+<span class="sd">                transformations (augment etc, see below) do not apply</span>
+<span class="sd">            augment (bool): perform SMILES augmentation. Defaults to False.</span>
+<span class="sd">            kekulize (bool): kekulizes SMILES (implicit aromaticity only).</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            all_bonds_explicit (bool): Makes all bonds explicit. Defaults to</span>
+<span class="sd">                False, only applies if kekulize = True.</span>
+<span class="sd">            all_hs_explicit (bool): Makes all hydrogens explicit. Defaults to</span>
+<span class="sd">                False, only applies if kekulize = True.</span>
+<span class="sd">            randomize (bool): perform a true randomization of SMILES tokens.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            remove_bonddir (bool): Remove directional info of bonds.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            remove_chirality (bool): Remove chirality information.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            selfies (bool): Whether selfies is used instead of smiles, defaults</span>
+<span class="sd">                to False.</span>
+<span class="sd">            sanitize (bool): RDKit sanitization of the molecule.</span>
+<span class="sd">                Defaults to True.</span>
+<span class="sd">            add_start_and_stop (bool): add start and stop token indexes.</span>
+<span class="sd">                Defaults to False.</span>
+<span class="sd">            padding (bool): pad sequences to longest in the smiles language.</span>
+<span class="sd">                Defaults to True.</span>
+<span class="sd">            padding_length (int): padding to match manually set length,</span>
+<span class="sd">                applies only if padding is True. Defaults to None.</span>
+<span class="sd">            device (torch.device): device where the tensors are stored.</span>
+<span class="sd">                Defaults to gpu, if available.</span>
+<span class="sd">            vocab_file (str): Optional .json to load vocabulary. Defaults to</span>
+<span class="sd">                None.</span>
+<span class="sd">            iterate_dataset (bool): whether to go through all SMILES in the</span>
+<span class="sd">                dataset to extend/build vocab, find longest sequence, and</span>
+<span class="sd">                checks the passed padding length if applicable. Defaults to</span>
+<span class="sd">                True.</span>
+<span class="sd">            backend (str): memory management backend.</span>
+<span class="sd">                Defaults to eager, prefer speed over memory consumption.</span>
+<span class="sd">            name (str): name of the SMILESTokenizerDataset.</span>
+<span class="sd">            kwargs (dict): additional arguments for dataset constructor.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">SMILESDataset</span><span class="p">(</span><span class="o">*</span><span class="n">smi_filepaths</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">DatasetDelegator</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># delegate to self.dataset</span>
+
+        <span class="k">if</span> <span class="n">smiles_language</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span> <span class="o">=</span> <span class="n">smiles_language</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">language_kwargs</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># SMILES default</span>
+            <span class="k">if</span> <span class="n">selfies</span><span class="p">:</span>
+                <span class="n">language_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;selfies-language&#39;</span><span class="p">,</span> <span class="n">smiles_tokenizer</span><span class="o">=</span><span class="n">split_selfies</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span> <span class="o">=</span> <span class="n">SMILESTokenizer</span><span class="p">(</span>
+                <span class="o">**</span><span class="n">language_kwargs</span><span class="p">,</span>
+                <span class="n">canonical</span><span class="o">=</span><span class="n">canonical</span><span class="p">,</span>
+                <span class="n">augment</span><span class="o">=</span><span class="n">augment</span><span class="p">,</span>
+                <span class="n">kekulize</span><span class="o">=</span><span class="n">kekulize</span><span class="p">,</span>
+                <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+                <span class="n">all_hs_explicit</span><span class="o">=</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+                <span class="n">randomize</span><span class="o">=</span><span class="n">randomize</span><span class="p">,</span>
+                <span class="n">remove_bonddir</span><span class="o">=</span><span class="n">remove_bonddir</span><span class="p">,</span>
+                <span class="n">remove_chirality</span><span class="o">=</span><span class="n">remove_chirality</span><span class="p">,</span>
+                <span class="n">selfies</span><span class="o">=</span><span class="n">selfies</span><span class="p">,</span>
+                <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span><span class="p">,</span>
+                <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">add_start_and_stop</span><span class="p">,</span>
+                <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+                <span class="n">padding_length</span><span class="o">=</span><span class="n">padding_length</span><span class="p">,</span>
+                <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">vocab_file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">load_vocabulary</span><span class="p">(</span><span class="n">vocab_file</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">iterate_dataset</span><span class="p">:</span>
+            <span class="c1"># uses the smiles transforms</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">add_dataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_length</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># max_sequence_token_length has to be set somehow</span>
+                    <span class="k">if</span> <span class="n">smiles_language</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">iterate_dataset</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">set_max_padding</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="s1">&#39;Setting a maximum padding length requires a &#39;</span>
+                        <span class="s1">&#39;smiles_language with `set_max_padding` method. See &#39;</span>
+                        <span class="s1">&#39;`SMILESTokenizer`.&#39;</span>
+                    <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># SmilesLanguage w/o padding support passed.</span>
+            <span class="k">pass</span></div>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates one sample of data.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            index (int): index of the sample to fetch.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            torch.Tensor: a torch tensor of token indexes,</span>
+<span class="sd">                for the current sample.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">smiles_to_token_indexes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">index</span><span class="p">])</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

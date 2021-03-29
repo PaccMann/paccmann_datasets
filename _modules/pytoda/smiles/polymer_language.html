@@ -1,0 +1,412 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>pytoda.smiles.polymer_language &mdash; pytoda  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pytoda
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2.4
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pytoda.html">API of the pytoda package</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pytoda</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pytoda.smiles.polymer_language</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pytoda.smiles.polymer_language</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Polymer language handling.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Sequence</span>
+
+<span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Indexes</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">Union</span>  <span class="c1"># , delegate_kwargs</span>
+<span class="kn">from</span> <span class="nn">.smiles_language</span> <span class="kn">import</span> <span class="n">SMILESTokenizer</span>
+<span class="kn">from</span> <span class="nn">.transforms</span> <span class="kn">import</span> <span class="n">compose_encoding_transforms</span><span class="p">,</span> <span class="n">compose_smiles_transforms</span>
+
+
+<span class="c1"># @delegate_kwargs</span>
+<div class="viewcode-block" id="PolymerTokenizer"><a class="viewcode-back" href="../../../api/pytoda.smiles.polymer_language.html#pytoda.smiles.polymer_language.PolymerTokenizer">[docs]</a><span class="k">class</span> <span class="nc">PolymerTokenizer</span><span class="p">(</span><span class="n">SMILESTokenizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    PolymerTokenizer class.</span>
+
+<span class="sd">    PolymerTokenizer is an extension of SMILESTokenizer adding special start and</span>
+<span class="sd">    stop tokens per entity.</span>
+<span class="sd">    A polymer language is usually shared across several SMILES datasets (e.g.</span>
+<span class="sd">    different entity sources).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="PolymerTokenizer.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.polymer_language.html#pytoda.smiles.polymer_language.PolymerTokenizer.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">entity_names</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;polymer-language&#39;</span><span class="p">,</span>
+        <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize Polymer language able to encode different entities.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            entity_names (Sequence[str]): A list of entity names that the</span>
+<span class="sd">                polymer language can distinguish.</span>
+<span class="sd">            name (str): name of the PolymerTokenizer.</span>
+<span class="sd">            add_start_and_stop (bool): add start and stop token indexes.</span>
+<span class="sd">                Defaults to True.</span>
+<span class="sd">            kwargs (dict): additional parameters passed to SMILESTokenizer.</span>
+
+<span class="sd">        NOTE:</span>
+<span class="sd">            See `set_smiles_transforms` and `set_encoding_transforms` to change</span>
+<span class="sd">            the transforms temporarily and reset with</span>
+<span class="sd">            `reset_initial_transforms`. Assignment of class attributes</span>
+<span class="sd">            in the parameter list will trigger such a reset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">add_start_and_stop</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">entities</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">capitalize</span><span class="p">(),</span> <span class="n">entity_names</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_kwargs</span><span class="p">[</span><span class="s1">&#39;entity_names&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_entity</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># rebuild basic vocab to group special tokens</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_entity_tokens</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_entity_tokens</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s1">&#39;&lt;&#39;</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="n">entity_names</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;START&#39;</span><span class="p">,</span> <span class="s1">&#39;STOP&#39;</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># required for `token_indexes_to_smiles`</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">special_indexes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="nb">enumerate</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">start_entity_tokens</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_entity_tokens</span><span class="p">,</span>
+                <span class="n">start</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">special_indexes</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup_vocab</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_vocabulary</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_initial_transforms</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_check_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">entity_</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">entity_</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unknown entity was given (</span><span class="si">{entity_}</span><span class="s1">)&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">entity_</span>
+
+<div class="viewcode-block" id="PolymerTokenizer.update_entity"><a class="viewcode-back" href="../../../api/pytoda.smiles.polymer_language.html#pytoda.smiles.polymer_language.PolymerTokenizer.update_entity">[docs]</a>    <span class="k">def</span> <span class="nf">update_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the current entity and the default transforms (used e.g. in</span>
+<span class="sd">        `add_dataset`) of the Polymer language object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            entity (str): a chemical entity (e.g. &#39;Monomer&#39;).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform_smiles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_smiles_transforms</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_entity</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform_encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_encoding_transforms</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_entity</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="PolymerTokenizer.smiles_to_token_indexes"><a class="viewcode-back" href="../../../api/pytoda.smiles.polymer_language.html#pytoda.smiles.polymer_language.PolymerTokenizer.smiles_to_token_indexes">[docs]</a>    <span class="k">def</span> <span class="nf">smiles_to_token_indexes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Indexes</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform character-level SMILES into a sequence of token indexes.</span>
+
+<span class="sd">        In case of add_start_stop, inserts entity specific tokens.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            smiles (str): a SMILES (or SELFIES) representation.</span>
+<span class="sd">            entity (str): a chemical entity (e.g. &#39;Monomer&#39;). Defaults to</span>
+<span class="sd">                None, where the current entity is used (initially the</span>
+<span class="sd">                SMILESTokenizer default).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Union[Indexes, Tensor]: indexes representation for the</span>
+<span class="sd">                SMILES/SELFIES provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># default behavior given by call to update_entity()</span>
+            <span class="n">entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_entity</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_encoding_transforms</span><span class="p">[</span><span class="n">entity</span><span class="p">](</span>
+            <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_tokenizer</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">all_smiles_transforms</span><span class="p">[</span><span class="n">entity</span><span class="p">](</span><span class="n">smiles</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="PolymerTokenizer.reset_initial_transforms"><a class="viewcode-back" href="../../../api/pytoda.smiles.polymer_language.html#pytoda.smiles.polymer_language.PolymerTokenizer.reset_initial_transforms">[docs]</a>    <span class="k">def</span> <span class="nf">reset_initial_transforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset smiles and token indexes transforms as on initialization,</span>
+<span class="sd">        including entity specific transforms.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">reset_initial_transforms</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;entities&#39;</span><span class="p">):</span>  <span class="c1"># call from base</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_entity</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_smiles_transforms</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="kc">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_smiles</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_encoding_transforms</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="kc">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform_encoding</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_smiles_transforms</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_encoding_transforms</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PolymerTokenizer.set_smiles_transforms"><a class="viewcode-back" href="../../../api/pytoda.smiles.polymer_language.html#pytoda.smiles.polymer_language.PolymerTokenizer.set_smiles_transforms">[docs]</a>    <span class="k">def</span> <span class="nf">set_smiles_transforms</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">entity</span><span class="p">,</span>
+        <span class="n">canonical</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">augment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">kekulize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">remove_bonddir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">remove_chirality</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">selfies</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sanitize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to reversibly change the transforms per entity.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_smiles_transforms</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span> <span class="o">=</span> <span class="n">compose_smiles_transforms</span><span class="p">(</span>
+            <span class="n">canonical</span><span class="o">=</span><span class="n">canonical</span> <span class="k">if</span> <span class="n">canonical</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonical</span><span class="p">,</span>
+            <span class="n">augment</span><span class="o">=</span><span class="n">augment</span> <span class="k">if</span> <span class="n">augment</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">augment</span><span class="p">,</span>
+            <span class="n">kekulize</span><span class="o">=</span><span class="n">kekulize</span> <span class="k">if</span> <span class="n">kekulize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">kekulize</span><span class="p">,</span>
+            <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="n">all_bonds_explicit</span>
+            <span class="k">if</span> <span class="n">all_bonds_explicit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span><span class="p">,</span>
+            <span class="n">all_hs_explicit</span><span class="o">=</span><span class="n">all_hs_explicit</span>
+            <span class="k">if</span> <span class="n">all_hs_explicit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_hs_explicit</span><span class="p">,</span>
+            <span class="n">remove_bonddir</span><span class="o">=</span><span class="n">remove_bonddir</span>
+            <span class="k">if</span> <span class="n">remove_bonddir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_bonddir</span><span class="p">,</span>
+            <span class="n">remove_chirality</span><span class="o">=</span><span class="n">remove_chirality</span>
+            <span class="k">if</span> <span class="n">remove_chirality</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_chirality</span><span class="p">,</span>
+            <span class="n">selfies</span><span class="o">=</span><span class="n">selfies</span> <span class="k">if</span> <span class="n">selfies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">selfies</span><span class="p">,</span>
+            <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span> <span class="k">if</span> <span class="n">sanitize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">sanitize</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="PolymerTokenizer.set_encoding_transforms"><a class="viewcode-back" href="../../../api/pytoda.smiles.polymer_language.html#pytoda.smiles.polymer_language.PolymerTokenizer.set_encoding_transforms">[docs]</a>    <span class="k">def</span> <span class="nf">set_encoding_transforms</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">entity</span><span class="p">,</span>
+        <span class="n">randomize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">padding_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to reversibly change the transforms per entity.</span>
+<span class="sd">        Addresses entity specific start and stop tokens.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_entity</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+        <span class="n">start_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;&#39;</span> <span class="o">+</span> <span class="n">entity</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_START&gt;&#39;</span><span class="p">]</span>
+        <span class="n">stop_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;&#39;</span> <span class="o">+</span> <span class="n">entity</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_STOP&gt;&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_encoding_transforms</span><span class="p">[</span><span class="n">entity</span><span class="p">]</span> <span class="o">=</span> <span class="n">compose_encoding_transforms</span><span class="p">(</span>
+            <span class="n">randomize</span><span class="o">=</span><span class="n">randomize</span> <span class="k">if</span> <span class="n">randomize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">randomize</span><span class="p">,</span>
+            <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">add_start_and_stop</span>
+            <span class="k">if</span> <span class="n">add_start_and_stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span><span class="p">,</span>
+            <span class="n">start_index</span><span class="o">=</span><span class="n">start_index</span><span class="p">,</span>
+            <span class="n">stop_index</span><span class="o">=</span><span class="n">stop_index</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="n">padding</span> <span class="k">if</span> <span class="n">padding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span>
+            <span class="n">padding_length</span><span class="o">=</span><span class="n">padding_length</span>
+            <span class="k">if</span> <span class="n">padding_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span><span class="p">,</span>
+            <span class="n">padding_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span> <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">add_start_and_stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_token_len_fn</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright IBM Corp. 2021.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
