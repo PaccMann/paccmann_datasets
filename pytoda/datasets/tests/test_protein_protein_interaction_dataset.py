@@ -293,6 +293,29 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                             data_tuple[1].tolist(), data_tuple[2].tolist()
                         )
 
+        # Test for using different padding lengths
+        padding_lengths = [8, 6]
+        with TestFileContent(content_entity_1) as a_test_file:
+            with TestFileContent(content_entity_2) as another_test_file:
+                with TestFileContent(annotated_content) as annotation_file:
+                    ppi_dataset = ProteinProteinInteractionDataset(
+                        [
+                            a_test_file.filename,
+                            another_test_file.filename,
+                        ],
+                        ['tcr', 'peptide'],
+                        annotation_file.filename,
+                        padding_lengths=padding_lengths,
+                        sequence_filetypes='.smi',
+                    )
+                    self.assertEqual(len(ppi_dataset), 2)
+
+                    # test last sample
+                    data_tuple = ppi_dataset[-1]
+                    self.assertEqual(len(data_tuple), 3)
+                    for i, p in enumerate(padding_lengths):
+                        self.assertEqual(len(data_tuple[i]), p)
+
 
 if __name__ == '__main__':
     unittest.main()
