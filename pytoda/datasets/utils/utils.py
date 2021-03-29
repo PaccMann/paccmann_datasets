@@ -10,8 +10,7 @@ from .factories import BACKGROUND_TENSOR_FACTORY
 
 def sizeof_fmt(num, suffix='B'):
     """
-    Human readable file size.
-    Source: https://stackoverflow.com/a/1094933
+    Human readable file size. Source: https://stackoverflow.com/a/1094933
     """
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
         if abs(num) < 1024.0:
@@ -23,7 +22,7 @@ def sizeof_fmt(num, suffix='B'):
 def concatenate_file_based_datasets(
     filepaths: Files, dataset_class: type, **kwargs
 ) -> ConcatKeyDataset:
-    """
+    r"""
     Concatenate file-based datasets into a single one, with the ability to
         get the source dataset of items.
 
@@ -34,11 +33,12 @@ def concatenate_file_based_datasets(
             For pure torch.utils.data.Dataset the returned instance can
             still be used like a `pytoda.datasets.TransparentConcatDataset`,
             but methods depending on key lookup will fail.
-        kwargs (dict): additional arguments for
-            dataset_class.__init__(filepath, **kwargs).
+        kwargs (dict): additional args for dataset_class.__init__(filepath, \**kwargs).
+
     Returns:
         ConcatKeyDataset: the concatenated dataset.
     """
+
     return ConcatKeyDataset(
         datasets=[dataset_class(filepath, **kwargs) for filepath in filepaths]
     )
