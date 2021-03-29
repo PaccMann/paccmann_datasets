@@ -1,4 +1,5 @@
-on: [pull_request] # Support only pull_request event.
+---
+on: [pull_request]  # Support only pull_request event.
 name: reviewdog-suggester
 jobs:
   black:
@@ -28,9 +29,9 @@ jobs:
         uses: 8398a7/action-slack@v2
         if: failure()
         with:
-            status: ${{ job.status }}
-            text: ":question: Incoming BLACK suggestions :question:"
-            author_name: ${{ github.actor }}
+          status: ${{ job.status }}
+          text: ":question: Incoming BLACK suggestions :question:"
+          author_name: ${{ github.actor }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

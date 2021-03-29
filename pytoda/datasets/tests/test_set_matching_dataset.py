@@ -1,5 +1,6 @@
 """Testing SetMatchingDataset."""
 import unittest
+from typing import List
 
 import torch
 from scipy.optimize import linear_sum_assignment
@@ -27,7 +28,7 @@ cost_metric = 'p-norm'
 cost_metric_args = {'p': 2}
 distribution_type = ['normal', 'uniform']
 distribution_args = [{'loc': 0.0, 'scale': 1.0}, {'low': 0, 'high': 1}]
-noise_std = [0.01, 0.1]  # Pytorch >1.7 errors with a noise of 0.0.
+noise_std = [0.001, 0.1] # Pytorch >1.7 errors with a noise of 0.0.
 
 cost_metric_function = METRIC_FUNCTION_FACTORY[cost_metric](**cost_metric_args)
 
@@ -40,6 +41,9 @@ class TestSetMatchingDataset(unittest.TestCase):
 
     def test_permuted_set_matching_dataset(self) -> None:
         """Test PermutedSetMatchingDataset class."""
+
+        def tolist(x: torch.Tensor) -> List:
+            return x.flatten().tolist()
 
         for dist_type, dist_args in zip(distribution_type, distribution_args):
 
@@ -94,20 +98,18 @@ class TestSetMatchingDataset(unittest.TestCase):
 
                                 # When noise =0, permutation of set2 should return set1
                                 # and vice versa
-                                if noise == 0.0:
+                                if noise < 0.01:
 
-                                    self.assertTrue(
-                                        torch.equal(
-                                            sample1[1][sample1[2].long(), :],
-                                            sample1[0],
-                                        )
-                                    )
-                                    self.assertTrue(
-                                        torch.equal(
-                                            sample1[0][sample1[3].long(), :],
-                                            sample1[1],
-                                        )
-                                    )
+                                    for a, b in zip(
+                                        tolist(sample1[1][sample1[2].long(), :]),
+                                        tolist(sample1[0]),
+                                    ):
+                                        self.assertAlmostEqual(a, b, places=2)
+                                    for a, b in zip(
+                                        tolist(sample1[0][sample1[3].long(), :]),
+                                        tolist(sample1[1]),
+                                    ):
+                                        self.assertAlmostEqual(a, b, places=2)
 
                                 else:
 
@@ -139,13 +141,13 @@ class TestSetMatchingDataset(unittest.TestCase):
                                             msg=f'{sample1},{sample2}',
                                         )
 
-                                    if noise == 0.0:
-                                        self.assertTrue(
-                                            torch.equal(
-                                                sample1[1][sample1[2].long(), :],
-                                                sample2[1][sample2[2].long(), :],
-                                            )
-                                        )
+                                    if noise < 0.01:
+                                        for a, b in zip(
+                                            tolist(sample1[1][sample1[2].long(), :]),
+                                            tolist(sample2[1][sample2[2].long(), :]),
+                                        ):
+                                            self.assertAlmostEqual(a, b, places=2)
+
                                 elif sample1[-1] != sample2[-1]:
                                     # reason for asserting false is that length
                                     # cropping is a random event dependent on
@@ -160,17 +162,18 @@ class TestSetMatchingDataset(unittest.TestCase):
                                     torch.equal(sample1[1], sample2[1]),
                                 )
 
-                                if noise == 0.0:
-                                    self.assertTrue(
-                                        torch.equal(
-                                            sample1[1][sample1[2].long(), :], sample1[0]
-                                        )
-                                    )
-                                    self.assertTrue(
-                                        torch.equal(
-                                            sample1[0][sample1[3].long(), :], sample1[1]
-                                        )
-                                    )
+                                if noise < 0.01:
+                                    for a, b in zip(
+                                        tolist(sample1[1][sample1[2].long(), :]),
+                                        tolist(sample1[0]),
+                                    ):
+                                        self.assertAlmostEqual(a, b, places=2)
+
+                                    for a, b in zip(
+                                        tolist(sample1[0][sample1[3].long(), :]),
+                                        tolist(sample1[1]),
+                                    ):
+                                        self.assertAlmostEqual(a, b, places=2)
 
                                 else:
                                     self.assertFalse(
@@ -193,21 +196,27 @@ class TestSetMatchingDataset(unittest.TestCase):
                                 self.assertFalse(torch.equal(sample1[1], sample2[1]))
 
                                 self.assertTrue(torch.equal(sample1[-1], sample2[-1]))
-                                if noise == 0.0:
-                                    self.assertTrue(torch.equal(sample1[2], sample2[2]))
-                                    self.assertTrue(
-                                        torch.equal(
-                                            sample1[1][sample1[2].long(), :],
-                                            sample1[0],
-                                        )
-                                    )
-                                    self.assertTrue(
-                                        torch.equal(
-                                            sample1[0][sample1[3].long(), :],
-                                            sample1[1],
-                                        )
-                                    )
-                                elif noise > 0.0:
+                                if noise < 0.01:
+
+                                    for a, b in zip(
+                                        tolist(sample1[2]),
+                                        tolist(sample2[2]),
+                                    ):
+                                        self.assertAlmostEqual(a, b, places=2)
+
+                                    for a, b in zip(
+                                        tolist(sample1[1][sample1[2].long(), :]),
+                                        tolist(sample1[0]),
+                                    ):
+                                        self.assertAlmostEqual(a, b, places=2)
+
+                                    for a, b in zip(
+                                        tolist(sample1[0][sample1[3].long(), :]),
+                                        tolist(sample1[1]),
+                                    ):
+                                        self.assertAlmostEqual(a, b, places=2)
+
+                                else:
                                     self.assertFalse(
                                         torch.equal(
                                             sample1[1][sample1[2].long(), :],
