@@ -24,6 +24,7 @@ jobs:
         run: |
           git clone https://github.com/PaccMann/paccmann_datasets --branch gh_pages --single-branch gh_pages
           cp -r docs/_build/html/* gh_pages/
+          touch gh_pages/.nojekyll
           cd gh_pages
           git config --local user.email "pytoda-actions@github.com"
           git config --local user.name "GitHub Action"
