@@ -4,6 +4,7 @@ from .base_dataset import ConcatKeyDataset, DatasetDelegator, KeyDataset  # noqa
 from .distributional_dataset import DistributionalDataset  # noqa
 from .drug_affinity_dataset import DrugAffinityDataset  # noqa
 from .drug_sensitivity_dataset import DrugSensitivityDataset  # noqa
+from .drug_sensitivity_dose_dataset import DrugSensitivityDoseDataset  # noqa
 from .gene_expression_dataset import GeneExpressionDataset  # noqa
 from .polymer_dataset import PolymerTokenizerDataset  # noqa
 from .protein_protein_interaction_dataset import (  # noqa
