@@ -127,6 +127,8 @@ class ProteinProteinInteractionDataset(Dataset):
             )
         )
 
+
+
         if protein_language is None:
             self.protein_language = ProteinLanguage()
 
