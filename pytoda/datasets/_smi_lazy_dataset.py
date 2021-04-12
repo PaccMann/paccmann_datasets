@@ -15,8 +15,12 @@ class _SmiLazyDataset(KeyDataset, _CacheDatasource):
     """
 
     def __init__(
-        self, smi_filepath: str, index_col: int = 1, chunk_size: int = 10000,
-        name: str = 'SMILES', names: Sequence[str] = None
+        self,
+        smi_filepath: str,
+        index_col: int = 1,
+        chunk_size: int = 10000,
+        name: str = 'SMILES',
+        names: Sequence[str] = None,
     ) -> None:
         """
         Initialize a .smi dataset.
@@ -41,8 +45,10 @@ class _SmiLazyDataset(KeyDataset, _CacheDatasource):
         index = 0
         self.ordered_keys = []
         for chunk in read_smi(
-            self.smi_filepath, index_col=self.index_col,
-            chunk_size=self.chunk_size, names=self.names
+            self.smi_filepath,
+            index_col=self.index_col,
+            chunk_size=self.chunk_size,
+            names=self.names,
         ):
             for key, row in chunk.iterrows():
                 self.cache[index] = row[self.name]

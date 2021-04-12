@@ -22,7 +22,7 @@ class PolymerTokenizer(SMILESTokenizer):
         entity_names: Sequence[str],
         name: str = 'polymer-language',
         add_start_and_stop: bool = True,
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize Polymer language able to encode different entities.
@@ -42,11 +42,7 @@ class PolymerTokenizer(SMILESTokenizer):
             in the parameter list will trigger such a reset.
         """
 
-        super().__init__(
-            name=name,
-            add_start_and_stop=add_start_and_stop,
-            **kwargs
-        )
+        super().__init__(name=name, add_start_and_stop=add_start_and_stop, **kwargs)
         self.entities = list(map(lambda x: x.capitalize(), entity_names))
         self.init_kwargs['entity_names'] = self.entities
         self.current_entity = None
@@ -61,27 +57,10 @@ class PolymerTokenizer(SMILESTokenizer):
         self.special_indexes.update(
             enumerate(
                 self.start_entity_tokens + self.stop_entity_tokens,
-                start=len(self.special_indexes)
+                start=len(self.special_indexes),
             )
         )
-        # NOTE: include augmentation characters, paranthesis and numbers for
-        #    rings
-        additional_indexes_to_token = dict(
-            enumerate(
-                list('()') + list(map(str, range(1, 10))) +
-                list('%{}'.format(index) for index in range(10, 30)),
-                start=len(self.special_indexes)
-            )
-        )
-        self.index_to_token = {
-            **self.special_indexes,
-            **additional_indexes_to_token
-        }
-        self.number_of_tokens = len(self.index_to_token)
-        self.token_to_index = {
-            token: index
-            for index, token in self.index_to_token.items()
-        }
+        self.setup_vocab()
 
         if kwargs.get('vocab_file', None):
             self.load_vocabulary(kwargs['vocab_file'])
@@ -105,9 +84,7 @@ class PolymerTokenizer(SMILESTokenizer):
 
         self.current_entity = self._check_entity(entity)
         self.transform_smiles = self.all_smiles_transforms[self.current_entity]
-        self.transform_encoding = self.all_encoding_transforms[
-            self.current_entity
-        ]
+        self.transform_encoding = self.all_encoding_transforms[self.current_entity]
 
     def smiles_to_token_indexes(
         self, smiles: str, entity: str = None
@@ -135,8 +112,8 @@ class PolymerTokenizer(SMILESTokenizer):
 
         return self.all_encoding_transforms[entity](
             [
-                self.token_to_index.get(token, self.unknown_token) for token in
-                self.smiles_tokenizer(
+                self.token_to_index.get(token, self.unknown_token)
+                for token in self.smiles_tokenizer(
                     self.all_smiles_transforms[entity](smiles)
                 )
             ]
@@ -183,13 +160,17 @@ class PolymerTokenizer(SMILESTokenizer):
             augment=augment if augment is not None else self.augment,
             kekulize=kekulize if kekulize is not None else self.kekulize,
             all_bonds_explicit=all_bonds_explicit
-            if all_bonds_explicit is not None else self.all_bonds_explicit,
+            if all_bonds_explicit is not None
+            else self.all_bonds_explicit,
             all_hs_explicit=all_hs_explicit
-            if all_hs_explicit is not None else self.all_hs_explicit,
+            if all_hs_explicit is not None
+            else self.all_hs_explicit,
             remove_bonddir=remove_bonddir
-            if remove_bonddir is not None else self.remove_bonddir,
+            if remove_bonddir is not None
+            else self.remove_bonddir,
             remove_chirality=remove_chirality
-            if remove_chirality is not None else self.remove_chirality,
+            if remove_chirality is not None
+            else self.remove_chirality,
             selfies=selfies if selfies is not None else self.selfies,
             sanitize=sanitize if sanitize is not None else self.sanitize,
         )
@@ -214,12 +195,14 @@ class PolymerTokenizer(SMILESTokenizer):
         self.all_encoding_transforms[entity] = compose_encoding_transforms(
             randomize=randomize if randomize is not None else self.randomize,
             add_start_and_stop=add_start_and_stop
-            if add_start_and_stop is not None else self.add_start_and_stop,
+            if add_start_and_stop is not None
+            else self.add_start_and_stop,
             start_index=start_index,
             stop_index=stop_index,
             padding=padding if padding is not None else self.padding,
             padding_length=padding_length
-            if padding_length is not None else self.padding_length,
+            if padding_length is not None
+            else self.padding_length,
             padding_index=self.padding_index,
             device=device if device is not None else self.device,
         )

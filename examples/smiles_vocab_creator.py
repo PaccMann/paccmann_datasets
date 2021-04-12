@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
 """Export vocabulary of SMILESLanguage from .smi files in directory."""
-import os
 import argparse
+import os
+
 from pytoda.smiles.smiles_language import SMILESLanguage
 
 # define the parser arguments
 parser = argparse.ArgumentParser()
+parser.add_argument('smi_path', type=str, help='path to a folder with .smi files')
 parser.add_argument(
-    'smi_path', type=str, help='path to a folder with .smi files'
-)
-parser.add_argument(
-    'pretrained_path', type=str,
-    help='path to a folder to store the language as text files.'
+    'pretrained_path',
+    type=str,
+    help='path to a folder to store the language as text files.',
 )
 
 
-def create_smiles_language(
-    smi_path: str, pretrained_path: str
-) -> None:
+def create_smiles_language(smi_path: str, pretrained_path: str) -> None:
     """
     Create a SMILESLanguage object and save it to disk.
 
@@ -41,6 +39,4 @@ if __name__ == '__main__':
     # parse arguments
     args = parser.parse_args()
     # run the creation and export
-    create_smiles_language(
-        args.smi_path, args.pretrained_path
-    )
+    create_smiles_language(args.smi_path, args.pretrained_path)

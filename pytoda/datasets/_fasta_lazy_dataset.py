@@ -1,8 +1,9 @@
 """Implementation of _FastaLazyDataset."""
-from pyfaidx import Fasta
 from itertools import islice
 
-from ..types import Hashable, Callable, Iterator
+from pyfaidx import Fasta
+
+from ..types import Callable, Hashable, Iterator
 from .base_dataset import KeyDataset
 
 
@@ -16,11 +17,11 @@ class _FastaLazyDataset(KeyDataset):
     """
 
     def __init__(
-        self, fasta_filepath: str,
+        self,
+        fasta_filepath: str,
         name: str = 'Sequence',
         key_function: Callable[[str], str] = lambda x: x,
-        **kwargs
-
+        **kwargs,
     ) -> None:
         """Initialize a .fasta dataset. with .fai index file.
 
@@ -39,10 +40,7 @@ class _FastaLazyDataset(KeyDataset):
         self.fasta_filepath = fasta_filepath
         self.name = name
         self.datasource = Fasta(
-            filename=fasta_filepath,
-            key_function=key_function,
-            as_raw=False,
-            **kwargs
+            filename=fasta_filepath, key_function=key_function, as_raw=False, **kwargs
         )
         KeyDataset.__init__(self)
 

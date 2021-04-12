@@ -1,11 +1,12 @@
 """Implementation of DrugSensitivityDataset."""
-import torch
 import pandas as pd
+import torch
 from torch.utils.data import Dataset
-from ..types import GeneList, DrugSensitivityData
+
 from ..smiles.smiles_language import SMILESLanguage
-from .smiles_dataset import SMILESTokenizerDataset
+from ..types import DrugSensitivityData, GeneList, Iterable, Tuple
 from .gene_expression_dataset import GeneExpressionDataset
+from .smiles_dataset import SMILESTokenizerDataset
 
 
 class DrugSensitivityDataset(Dataset):
@@ -18,6 +19,7 @@ class DrugSensitivityDataset(Dataset):
         drug_sensitivity_filepath: str,
         smi_filepath: str,
         gene_expression_filepath: str,
+        column_names: Tuple[str] = ['drug', 'cell_line', 'IC50'],
         drug_sensitivity_dtype: torch.dtype = torch.float,
         drug_sensitivity_min_max: bool = True,
         drug_sensitivity_processing_parameters: dict = {},
@@ -52,14 +54,16 @@ class DrugSensitivityDataset(Dataset):
         Initialize a drug sensitivity dataset.
 
         Args:
-            drug_sensitivity_filepath (str): path to drug sensitivity
-                .csv file. Currently, the only supported format is .csv,
-                with an index and three header columns named: "drug",
-                "cell_line", "IC50".
+            drug_sensitivity_filepath (str): path to drug sensitivity .csv file.
+                Currently, the only supported format is .csv, with an index and three
+                header columns named as specified in the column_names argument.
             smi_filepath (str): path to .smi file.
             gene_expression_filepath (str): path to gene expression .csv file.
                 Currently, the only supported format is .csv,
                 with an index and header columns containing gene names.
+            column_names (Tuple[str]): Names of columns in data files to retrieve
+                labels, ligands and protein name respectively.
+                Defaults to ['drug', 'cell_line', 'IC50'].
             drug_sensitivity_dtype (torch.dtype): drug sensitivity data type.
                 Defaults to torch.float.
             drug_sensitivity_min_max (bool): min-max scale drug sensitivity
@@ -129,6 +133,14 @@ class DrugSensitivityDataset(Dataset):
         self.device = device
         # backend
         self.backend = backend
+
+        if not isinstance(column_names, Iterable):
+            raise TypeError(f'Column names was {type(column_names)}, not Iterable.')
+        if not len(column_names) == 3:
+            raise ValueError(f'Please pass 3 column names not {len(column_names)}')
+        self.column_names = column_names
+        self.drug_name, self.cell_name, self.label_name = self.column_names
+
         # SMILES
         self.smiles_dataset = SMILESTokenizerDataset(
             self.smi_filepath,
@@ -149,7 +161,7 @@ class DrugSensitivityDataset(Dataset):
             device=self.device,
             vocab_file=vocab_file,
             iterate_dataset=iterate_dataset,
-            backend=self.backend
+            backend=self.backend,
         )
         # gene expression
         self.gene_expression_dataset = GeneExpressionDataset(
@@ -162,7 +174,7 @@ class DrugSensitivityDataset(Dataset):
             device=self.device,
             backend=self.backend,
             index_col=0,
-            **gene_expression_kwargs
+            **gene_expression_kwargs,
         )
         # drug sensitivity
         self.drug_sensitivity_dtype = drug_sensitivity_dtype
@@ -174,10 +186,10 @@ class DrugSensitivityDataset(Dataset):
             self.drug_sensitivity_filepath, index_col=0
         )
         # filter data based on the availability
-        drug_mask = self.drug_sensitivity_df['drug'].isin(
+        drug_mask = self.drug_sensitivity_df[self.drug_name].isin(
             set(self.smiles_dataset.keys())
         )
-        profile_mask = self.drug_sensitivity_df['cell_line'].isin(
+        profile_mask = self.drug_sensitivity_df[self.cell_name].isin(
             set(self.gene_expression_dataset.keys())
         )
         self.drug_sensitivity_df = self.drug_sensitivity_df.loc[
@@ -186,32 +198,24 @@ class DrugSensitivityDataset(Dataset):
 
         # to investigate missing ids per entity
         self.masks_df = pd.concat([drug_mask, profile_mask], axis=1)
-        self.masks_df.columns = ['drug', 'cell_line']
+        self.masks_df.columns = [self.drug_name, self.cell_name]
 
         self.number_of_samples = len(self.drug_sensitivity_df)
 
         # NOTE: optional min-max scaling
         if self.drug_sensitivity_min_max:
-            minimum = (
-                self.drug_sensitivity_processing_parameters.get(
-                    'min', self.drug_sensitivity_df['IC50'].min()
-                )
+            minimum = self.drug_sensitivity_processing_parameters.get(
+                'min', self.drug_sensitivity_df[self.label_name].min()
             )
-            maximum = (
-                self.drug_sensitivity_processing_parameters.get(
-                    'max', self.drug_sensitivity_df['IC50'].max()
-                )
+            maximum = self.drug_sensitivity_processing_parameters.get(
+                'max', self.drug_sensitivity_df[self.label_name].max()
             )
-            self.drug_sensitivity_df['IC50'] = (
-                (self.drug_sensitivity_df['IC50'] - minimum) /
-                (maximum - minimum)
-            )
+            self.drug_sensitivity_df[self.label_name] = (
+                self.drug_sensitivity_df[self.label_name] - minimum
+            ) / (maximum - minimum)
             self.drug_sensitivity_processing_parameters = {
                 'processing': 'min_max',
-                'parameters': {
-                    'min': minimum,
-                    'max': maximum
-                }
+                'parameters': {'min': minimum, 'max': maximum},
             }
 
     def __len__(self) -> int:
@@ -233,18 +237,16 @@ class DrugSensitivityDataset(Dataset):
         # drug sensitivity
         selected_sample = self.drug_sensitivity_df.iloc[index]
         ic50_tensor = torch.tensor(
-            [selected_sample['IC50']],
+            [selected_sample[self.label_name]],
             dtype=self.drug_sensitivity_dtype,
-            device=self.device
+            device=self.device,
         )
         # SMILES
         token_indexes_tensor = self.smiles_dataset.get_item_from_key(
-            selected_sample['drug']
+            selected_sample[self.drug_name]
         )
         # gene_expression
-        gene_expression_tensor = (
-            self.gene_expression_dataset.get_item_from_key(
-                selected_sample['cell_line']
-            )
+        gene_expression_tensor = self.gene_expression_dataset.get_item_from_key(
+            selected_sample[self.cell_name]
         )
         return token_indexes_tensor, gene_expression_tensor, ic50_tensor

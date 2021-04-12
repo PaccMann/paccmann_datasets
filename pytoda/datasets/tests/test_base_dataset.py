@@ -7,13 +7,19 @@ import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
 
-from pytoda.datasets import (ConcatKeyDataset, DatasetDelegator, KeyDataset,
-                             indexed, keyed)
+from pytoda.datasets import (
+    ConcatKeyDataset,
+    DatasetDelegator,
+    KeyDataset,
+    indexed,
+    keyed,
+)
 from pytoda.types import Hashable
 
 
 class Indexed(KeyDataset):
     """As DataFrameDataset but only implementing necessary methods."""
+
     def __init__(self, df):
         self.df = df
         super().__init__()
@@ -32,9 +38,7 @@ class Indexed(KeyDataset):
         """Get index for first datum mapping to the given key."""
         # item will raise if not single value (deprecated in pandas)
         try:
-            indexes = np.nonzero(
-                self.df.index == key
-            )[0]
+            indexes = np.nonzero(self.df.index == key)[0]
             return indexes.item()
         except ValueError:
             if len(indexes) == 0:
@@ -46,12 +50,14 @@ class Indexed(KeyDataset):
 
 class Delegating(DatasetDelegator):
     """NOT implementing methods (and only built-ins from inheritance)."""
+
     def __init__(self, data):
         self.dataset = data
 
 
 class TestBaseDatasets(unittest.TestCase):
     """Testing dataset for base methods."""
+
     length = 11  # of a single dataset
     dims = 5
 
@@ -62,12 +68,12 @@ class TestBaseDatasets(unittest.TestCase):
         return keys, a_df, Indexed(a_df)
 
     def setUp(self):
-        (
-            self.a_1st_keys, self.a_1st_df, self.a_1st_ds
-        ) = self.random_data(self.length, self.dims)
-        (
-            self.a_2nd_keys, self.a_2nd_df, self.a_2nd_ds
-        ) = self.random_data(self.length, self.dims)
+        (self.a_1st_keys, self.a_1st_df, self.a_1st_ds) = self.random_data(
+            self.length, self.dims
+        )
+        (self.a_2nd_keys, self.a_2nd_df, self.a_2nd_ds) = self.random_data(
+            self.length, self.dims
+        )
 
         self.delegating_ds = Delegating(self.a_1st_ds)
 
@@ -101,7 +107,7 @@ class TestBaseDatasets(unittest.TestCase):
         self.assertEqual(len(self.a_1st_ds), self.length)
         self.assertEqual(len(self.a_2nd_ds), self.length)
         self.assertEqual(len(self.delegating_ds), self.length)
-        self.assertEqual(len(self.concat_ds), 2*self.length)
+        self.assertEqual(len(self.concat_ds), 2 * self.length)
 
     def test___getitem__(self) -> None:
         """Test __getitem__."""
@@ -134,14 +140,12 @@ class TestBaseDatasets(unittest.TestCase):
             )
 
         # first in datasets
-        self.assertListedEqual(
-            mutate_copy(self.concat_ds)[0][0], self.a_1st_df.iloc[0]
-        )
+        self.assertListedEqual(mutate_copy(self.concat_ds)[0][0], self.a_1st_df.iloc[0])
         # last in datasets
         self.assertListedEqual(
             mutate_copy(self.concat_ds)[-1][0], self.a_2nd_df.iloc[-1]
         )
-    
+
     def test__getitem__mutating_utils(self):
         self._test__getitem__modified(mutate_copy=indexed)
         self._test__getitem__modified(mutate_copy=keyed)
@@ -150,23 +154,17 @@ class TestBaseDatasets(unittest.TestCase):
         """Test data_loader."""
 
         batch_size = 4
-        a_1st_dl = DataLoader(
-            self.a_1st_ds, batch_size=batch_size, shuffle=True
-        )
+        a_1st_dl = DataLoader(self.a_1st_ds, batch_size=batch_size, shuffle=True)
         full_batches = self.length // batch_size
 
         for batch_index, batch in enumerate(a_1st_dl):
             if batch_index >= full_batches:  # if drop_last
-                self.assertEqual(
-                    batch.shape, (self.length % batch_size, self.dims)
-                )
+                self.assertEqual(batch.shape, (self.length % batch_size, self.dims))
             else:
                 self.assertEqual(batch.shape, (batch_size, self.dims))
 
         # concatenated
-        concat_dl = DataLoader(
-            self.concat_ds, batch_size=batch_size, shuffle=True
-        )
+        concat_dl = DataLoader(self.concat_ds, batch_size=batch_size, shuffle=True)
         full_batches = (2 * self.length) // batch_size
 
         for batch_index, batch in enumerate(concat_dl):
@@ -240,14 +238,14 @@ class TestBaseDatasets(unittest.TestCase):
         self.assertListedEqual(item_of_i, item_of_k)
         self.assertTrue(key == k_of_i and key == k_of_k)
         self.assertTrue(
-            positive_index == i_of_i0 and positive_index == i_of_i1 and
-            positive_index == i_of_k0 and positive_index == i_of_k1
+            positive_index == i_of_i0
+            and positive_index == i_of_i1
+            and positive_index == i_of_k0
+            and positive_index == i_of_k1
         )
 
     def test_all_base_for_indexed_methods_and_copy(self):
-        (
-            other_keys, _, other_ds
-        ) = self.random_data(self.length, self.dims)
+        (other_keys, _, other_ds) = self.random_data(self.length, self.dims)
 
         for ds, keys in [
             (self.a_1st_ds, self.a_1st_keys),
@@ -275,15 +273,9 @@ class TestBaseDatasets(unittest.TestCase):
             self._test_stacked_indexed_keyed_util(ds, keys, index)
             self._test_base_methods(ds, keys, index)
             # get_index_pair
-            self.assertTupleEqual(
-                (1, index-self.length),
-                ds.get_index_pair(index)
-            )
+            self.assertTupleEqual((1, index - self.length), ds.get_index_pair(index))
             # get_key_pair
-            self.assertTupleEqual(
-                (1, keys[index]),
-                ds.get_key_pair(index)
-            )
+            self.assertTupleEqual((1, keys[index]), ds.get_key_pair(index))
             # ConcatKeyDataset is not a DatasetDelegator
             self.assertNotIn('df', dir(ds))
 
@@ -291,10 +283,7 @@ class TestBaseDatasets(unittest.TestCase):
         duplicate_ds = other_ds + other_ds
         self.assertTrue(duplicate_ds.has_duplicate_keys)
         # duplicate keys lookup returns first in this case
-        self.assertNotEqual(
-            index,
-            duplicate_ds.get_index(duplicate_ds.get_key(index))
-        )
+        self.assertNotEqual(index, duplicate_ds.get_index(duplicate_ds.get_key(index)))
 
 
 if __name__ == '__main__':

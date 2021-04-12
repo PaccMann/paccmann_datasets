@@ -1,6 +1,7 @@
 """Utilities for the tests."""
 import os
 import tempfile
+import warnings
 
 
 class TestFileContent:
@@ -10,14 +11,19 @@ class TestFileContent:
     Inspired by: https://stackoverflow.com/a/54053967/10032558.
     """
 
-    def __init__(self, content: str) -> None:
+    __test__ = False  # avoid PytestCollectionWarning
+
+    def __init__(self, content: str, **kwargs) -> None:
         """
         Initialize the file with a content.
 
         Args:
             content (str): content of the file.
+            **kwargs (dict): Additional keyword arguments for NamedTemporaryFile.
+                NOTE: This can e.g. be suffix='.csv' if the temporary filename should
+                adhere to a specific suffix.
         """
-        self.file = tempfile.NamedTemporaryFile(mode='w', delete=False)
+        self.file = tempfile.NamedTemporaryFile(mode='w', delete=False, **kwargs)
         with self.file as fp:
             fp.write(content)
 
@@ -37,4 +43,8 @@ class TestFileContent:
 
     def __exit__(self, type, value, traceback) -> None:
         """Exit the `with` block."""
-        os.unlink(self.filename)
+        try:
+            os.remove(self.file.name)
+        except Exception:
+            warnings.warn(f'File {self.file.name} could not be closed.')
+            self.file.close()

@@ -13,8 +13,11 @@ class _SmiEagerDataset(DataFrameDataset):
     """
 
     def __init__(
-        self, smi_filepath: str, index_col: int = 1, name: str = 'SMILES',
-        names: Sequence[str] = None
+        self,
+        smi_filepath: str,
+        index_col: int = 1,
+        name: str = 'SMILES',
+        names: Sequence[str] = None,
     ) -> None:
         """
         Initialize a .smi dataset.
@@ -31,9 +34,7 @@ class _SmiEagerDataset(DataFrameDataset):
         self.name = name
         self.names = names or [name]
         self.index_col = index_col
-        df = read_smi(
-            self.smi_filepath, index_col=self.index_col, names=self.names
-        )
+        df = read_smi(self.smi_filepath, index_col=self.index_col, names=self.names)
         DataFrameDataset.__init__(self, df)
 
     def __getitem__(self, index: int) -> str:

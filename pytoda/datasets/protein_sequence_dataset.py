@@ -1,19 +1,23 @@
 """Implementation of ProteinSequenceDataset."""
 import torch
 
-from ..proteins.protein_language import ProteinLanguage
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
+from ..proteins.protein_language import ProteinLanguage
 from ..proteins.transforms import SequenceToTokenIndexes
 from ..transforms import (
-    AugmentByReversing, Compose, LeftPadding, Randomize, ToTensor, ListToTensor
+    AugmentByReversing,
+    Compose,
+    LeftPadding,
+    ListToTensor,
+    Randomize,
+    ToTensor,
 )
-from ..types import Files
 from ._fasta_eager_dataset import _FastaEagerDataset
 from ._fasta_lazy_dataset import _FastaLazyDataset
 from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
-from .utils import concatenate_file_based_datasets
 from .base_dataset import DatasetDelegator, KeyDataset
+from .utils import concatenate_file_based_datasets
 
 SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
     '.csv': {
@@ -26,26 +30,52 @@ SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
     },
     '.fasta': {
         'eager': (_FastaEagerDataset, {'gzipped', 'name'}),
-        'lazy': (_FastaLazyDataset, {
-            'name',
-            # args to pyfaidx.Fasta
-            'default_seq', 'key_function', 'as_raw', 'strict_bounds',
-            'read_ahead', 'mutable', 'split_char', 'duplicate_action',
-            'filt_function', 'one_based_attributes', 'read_long_names',
-            'sequence_always_upper', 'rebuild', 'build_index'
-        })
+        'lazy': (
+            _FastaLazyDataset,
+            {
+                'name',
+                # args to pyfaidx.Fasta
+                'default_seq',
+                'key_function',
+                'as_raw',
+                'strict_bounds',
+                'read_ahead',
+                'mutable',
+                'split_char',
+                'duplicate_action',
+                'filt_function',
+                'one_based_attributes',
+                'read_long_names',
+                'sequence_always_upper',
+                'rebuild',
+                'build_index',
+            },
+        ),
     },
     '.fasta.gz': {
         'eager': (_FastaEagerDataset, {'gzipped', 'name'}),
         # requires Biopython installation
-        'lazy': (_FastaLazyDataset, {
-            'name',
-            # args to pyfaidx.Fasta
-            'default_seq', 'key_function', 'as_raw', 'strict_bounds',
-            'read_ahead', 'mutable', 'split_char', 'duplicate_action',
-            'filt_function', 'one_based_attributes', 'read_long_names',
-            'sequence_always_upper', 'rebuild', 'build_index'
-        })
+        'lazy': (
+            _FastaLazyDataset,
+            {
+                'name',
+                # args to pyfaidx.Fasta
+                'default_seq',
+                'key_function',
+                'as_raw',
+                'strict_bounds',
+                'read_ahead',
+                'mutable',
+                'split_char',
+                'duplicate_action',
+                'filt_function',
+                'one_based_attributes',
+                'read_long_names',
+                'sequence_always_upper',
+                'rebuild',
+                'build_index',
+            },
+        ),
     },
 }
 
@@ -56,9 +86,7 @@ def protein_sequence_dataset(
     """Return a dataset of protein sequences."""
     try:
         # hardcoded factory
-        dataset_class, valid_keys = SEQUENCE_DATASET_IMPLEMENTATIONS[
-            filetype
-        ][backend]
+        dataset_class, valid_keys = SEQUENCE_DATASET_IMPLEMENTATIONS[filetype][backend]
     except KeyError:
         raise ValueError(  # filetype checked already
             f'backend {backend} not supported for {filetype}.'
@@ -70,9 +98,7 @@ def protein_sequence_dataset(
     kwargs['name'] = 'Sequence'
 
     return concatenate_file_based_datasets(
-        filepaths=filepaths,
-        dataset_class=dataset_class,
-        **kwargs
+        filepaths=filepaths, dataset_class=dataset_class, **kwargs
     )
 
 
@@ -99,7 +125,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         backend: str = 'eager',
         iterate_dataset: bool = False,
         name: str = 'protein-sequences',
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize a Protein Sequence dataset.
@@ -140,23 +166,23 @@ class ProteinSequenceDataset(DatasetDelegator):
         self.filetype = filetype
         self.backend = backend
 
-        assert (
-            filetype in ['.csv', '.smi', '.fasta', '.fasta.gz']
-        ), f'Unknown filetype given {filetype}'
+        assert filetype in [
+            '.csv',
+            '.smi',
+            '.fasta',
+            '.fasta.gz',
+        ], f'Unknown filetype given {filetype}'
         self.name = name
 
         # setup dataset
         self._setup_dataset(**kwargs)
         DatasetDelegator.__init__(self)  # delegate to self.dataset
         if self.has_duplicate_keys:
-            raise KeyError(
-                f'Please remove duplicates from your {self.filetype} file.'
-            )
+            raise KeyError(f'Please remove duplicates from your {self.filetype} file.')
 
         if protein_language is None:
             self.protein_language = ProteinLanguage(
-                amino_acid_dict=amino_acid_dict,
-                add_start_and_stop=add_start_and_stop
+                amino_acid_dict=amino_acid_dict, add_start_and_stop=add_start_and_stop
             )
         else:
             self.protein_language = protein_language
@@ -174,7 +200,8 @@ class ProteinSequenceDataset(DatasetDelegator):
         self.padding = padding
         self.padding_length = self.padding_length = (
             self.protein_language.max_token_sequence_length
-            if padding_length is None else padding_length
+            if padding_length is None
+            else padding_length
         )
         self.randomize = randomize
         self.augment_by_revert = augment_by_revert
@@ -193,20 +220,16 @@ class ProteinSequenceDataset(DatasetDelegator):
                 self.language_transforms(self.dataset[index])
             )
         transforms = _transforms.copy()
-        transforms += [
-            SequenceToTokenIndexes(protein_language=self.protein_language)
-        ]
+        transforms += [SequenceToTokenIndexes(protein_language=self.protein_language)]
         if self.randomize:
             transforms += [Randomize()]
         if self.padding:
             if padding_length is None:
-                self.padding_length = (
-                    self.protein_language.max_token_sequence_length
-                )
+                self.padding_length = self.protein_language.max_token_sequence_length
             transforms += [
                 LeftPadding(
                     padding_length=self.padding_length,
-                    padding_index=self.protein_language.token_to_index['<PAD>']
+                    padding_index=self.protein_language.token_to_index['<PAD>'],
                 )
             ]
         if isinstance(self.protein_language, ProteinFeatureLanguage):
@@ -215,16 +238,14 @@ class ProteinSequenceDataset(DatasetDelegator):
             transforms += [ToTensor(device=self.device)]
         else:
             raise TypeError(
-                'Please choose either ProteinLanguage or '
-                'ProteinFeatureLanguage'
+                'Please choose either ProteinLanguage or ' 'ProteinFeatureLanguage'
             )
         self.transform = Compose(transforms)
 
     def _setup_dataset(self, **kwargs) -> None:
         """Setup the dataset."""
         self.dataset = protein_sequence_dataset(
-            *self.filepaths, filetype=self.filetype, backend=self.backend,
-            **kwargs
+            *self.filepaths, filetype=self.filetype, backend=self.backend, **kwargs
         )
 
     def __getitem__(self, index: int) -> torch.Tensor:

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Split in train and test a .csv."""
-import sys
-import logging
 import argparse
+import logging
+import sys
+
 from pytoda.data_splitter import csv_data_splitter
 
 # setting up logging
@@ -16,21 +17,21 @@ parser.add_argument(
     '--filepaths',
     nargs='+',
     help='list of files to use to generate the splits',
-    required=True
+    required=True,
 )
 parser.add_argument(
     '-o',
     '--output_path',
     type=str,
     help='output path where to store the splits',
-    required=True
+    required=True,
 )
 parser.add_argument(
     '-d',
     '--data_type',
     type=str,
     help='data type, used to generate the output file names',
-    required=True
+    required=True,
 )
 parser.add_argument(
     '-m',
@@ -38,53 +39,47 @@ parser.add_argument(
     type=str,
     help='strategy used to split the data',
     choices=['random', 'file'],
-    required=True
+    required=True,
 )
 parser.add_argument(
     '-s',
     '--seed',
     type=int,
-    help=('seed used by the random generator. '
-          'Defaults to 42'),
-    default=42
+    help=('seed used by the random generator. ' 'Defaults to 42'),
+    default=42,
 )
 parser.add_argument(
     '-t',
     '--test_fraction',
     type=float,
-    help=('portion of samples in testing data. '
-          'Defaults to 0.1'),
-    default=0.1
+    help=('portion of samples in testing data. ' 'Defaults to 0.1'),
+    default=0.1,
 )
 parser.add_argument(
     '-n',
     '--number_of_columns',
     type=int,
-    help=('number of columns used to generate a hash. '
-          'Defaults to 12'),
-    default=12
+    help=('number of columns used to generate a hash. ' 'Defaults to 12'),
+    default=12,
 )
 parser.add_argument(
     '-i',
     '--index_col',
     type=int,
-    help=('index column in the .csv flies. '
-          'Defaults to 0'),
-    default=0
+    help=('index column in the .csv flies. ' 'Defaults to 0'),
+    default=0,
 )
 parser.add_argument(
     '--separator',
     type=str,
-    help=('separators in the .csv files. '
-          'Defaults to ","'),
-    default=','
+    help=('separators in the .csv files. ' 'Defaults to ","'),
+    default=',',
 )
 parser.add_argument(
     '--header',
     type=int,
-    help=('header row in the .csv files. '
-          'Defaults to 0'),
-    default=0
+    help=('header row in the .csv files. ' 'Defaults to 0'),
+    default=0,
 )
 
 if __name__ == '__main__':
@@ -101,7 +96,7 @@ if __name__ == '__main__':
         number_of_columns=args.number_of_columns,
         index_col=args.index_col,
         sep=args.separator,
-        header=args.header
+        header=args.header,
     )
     logger.info(
         'Data splitted into train_filepath={} and test_filepath={}.'.format(

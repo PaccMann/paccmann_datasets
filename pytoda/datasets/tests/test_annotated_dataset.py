@@ -4,25 +4,19 @@ import unittest
 
 import numpy as np
 
-from pytoda.datasets import (AnnotatedDataset, SMILESTokenizerDataset, indexed,
-                             keyed)
+from pytoda.datasets import AnnotatedDataset, SMILESTokenizerDataset, indexed, keyed
 from pytoda.tests.utils import TestFileContent
 
 # must contain all keys in annotated
 SMILES_CONTENT = os.linesep.join(
-    [
-        'CCO	CHEMBL545',
-        'C	CHEMBL17564',
-        'CO	CHEMBL14688',
-        'NCCS	CHEMBL602',
-    ]
+    ['CCO	CHEMBL545', 'C	CHEMBL17564', 'CO	CHEMBL14688', 'NCCS	CHEMBL602']
 )
 ANNOTATED_CONTENT = os.linesep.join(
     [
         'label_0,label_1,annotation_index',
         '2.3,3.4,CHEMBL545',
         '4.5,5.6,CHEMBL17564',
-        '6.7,7.8,CHEMBL602'
+        '6.7,7.8,CHEMBL602',
     ]
 )
 
@@ -39,9 +33,7 @@ class TestAnnotatedDataset(unittest.TestCase):
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
                 smiles_dataset = SMILESTokenizerDataset(
-                    smiles_file.filename,
-                    add_start_and_stop=True,
-                    backend='eager'
+                    smiles_file.filename, add_start_and_stop=True, backend='eager'
                 )
                 annotated_dataset = AnnotatedDataset(
                     annotation_file.filename, dataset=smiles_dataset
@@ -56,34 +48,24 @@ class TestAnnotatedDataset(unittest.TestCase):
         # test first sample
         smiles_tokens, labels = annotated_dataset[0]
         self.assertEqual(
-            smiles_tokens.numpy().flatten().tolist(), [
-                pad_index, start_index, c_index, c_index, o_index,
-                stop_index
-            ]
+            smiles_tokens.numpy().flatten().tolist(),
+            [pad_index, start_index, c_index, c_index, o_index, stop_index],
         )
-        self.assertTrue(
-            np.allclose(labels.numpy().flatten().tolist(), [2.3, 3.4])
-        )
+        self.assertTrue(np.allclose(labels.numpy().flatten().tolist(), [2.3, 3.4]))
         # test last sample
         smiles_tokens, labels = annotated_dataset[2]
         self.assertEqual(
-            smiles_tokens.numpy().flatten().tolist(), [
-                start_index, n_index, c_index, c_index, s_index,
-                stop_index
-            ]
+            smiles_tokens.numpy().flatten().tolist(),
+            [start_index, n_index, c_index, c_index, s_index, stop_index],
         )
-        self.assertTrue(
-            np.allclose(labels.numpy().flatten().tolist(), [6.7, 7.8])
-        )
+        self.assertTrue(np.allclose(labels.numpy().flatten().tolist(), [6.7, 7.8]))
 
     def test___getitem___from_indexed_annotation(self) -> None:
         """Test __getitem__ with index in the annotation file."""
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
                 smiles_dataset = SMILESTokenizerDataset(
-                    smiles_file.filename,
-                    add_start_and_stop=True,
-                    backend='eager'
+                    smiles_file.filename, add_start_and_stop=True, backend='eager'
                 )
                 annotated_dataset = AnnotatedDataset(
                     annotation_file.filename, dataset=smiles_dataset
@@ -99,25 +81,17 @@ class TestAnnotatedDataset(unittest.TestCase):
         # test first sample
         smiles_tokens, labels = annotated_dataset[0]
         self.assertEqual(
-            smiles_tokens.numpy().flatten().tolist(), [
-                pad_index, start_index, c_index, c_index, o_index,
-                stop_index
-            ]
+            smiles_tokens.numpy().flatten().tolist(),
+            [pad_index, start_index, c_index, c_index, o_index, stop_index],
         )
-        self.assertTrue(
-            np.allclose(labels.numpy().flatten().tolist(), [2.3, 3.4])
-        )
+        self.assertTrue(np.allclose(labels.numpy().flatten().tolist(), [2.3, 3.4]))
         # test last sample
         smiles_tokens, labels = annotated_dataset[2]
         self.assertEqual(
-            smiles_tokens.numpy().flatten().tolist(), [
-                start_index, n_index, c_index, c_index, s_index,
-                stop_index
-            ]
+            smiles_tokens.numpy().flatten().tolist(),
+            [start_index, n_index, c_index, c_index, s_index, stop_index],
         )
-        self.assertTrue(
-            np.allclose(labels.numpy().flatten().tolist(), [6.7, 7.8])
-        )
+        self.assertTrue(np.allclose(labels.numpy().flatten().tolist(), [6.7, 7.8]))
 
     def _test_indexed(self, ds, keys, index):
         key = keys[index]
@@ -140,23 +114,21 @@ class TestAnnotatedDataset(unittest.TestCase):
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
                 smiles_dataset = SMILESTokenizerDataset(
-                    smiles_file.filename,
-                    add_start_and_stop=True,
-                    backend='eager'
+                    smiles_file.filename, add_start_and_stop=True, backend='eager'
                 )
                 annotated_dataset = AnnotatedDataset(
-                    annotation_file.filename, dataset=smiles_dataset,
-                    index_col=0, label_columns=['label_1']
+                    annotation_file.filename,
+                    dataset=smiles_dataset,
+                    index_col=0,
+                    label_columns=['label_1'],
                 )
                 duplicate_ds = AnnotatedDataset(
                     annotation_file.filename,
-                    dataset=smiles_dataset+smiles_dataset,
+                    dataset=smiles_dataset + smiles_dataset,
                 )
 
         all_keys = [
-            row.split(',')[-1]
-            for row
-            in self.annotated_content.split('\n')[1:]
+            row.split(',')[-1] for row in self.annotated_content.split(os.linesep)[1:]
         ]
 
         for ds, keys in [
@@ -205,9 +177,10 @@ class TestChangeIndexingReturn(unittest.TestCase):
         self.assertEqual(sample_index, 2)
         self.check_CHEMBL602(smiles_tokens, labels)
         # outer get_item_from_key
-        (smiles_tokens, labels), sample_index = (
-            indexed_annotated_dataset.get_item_from_key('CHEMBL602')
-        )
+        (
+            (smiles_tokens, labels),
+            sample_index,
+        ) = indexed_annotated_dataset.get_item_from_key('CHEMBL602')
         self.assertEqual(sample_index, 2)
         self.check_CHEMBL602(smiles_tokens, labels)
 
@@ -219,8 +192,8 @@ class TestChangeIndexingReturn(unittest.TestCase):
         self.assertEqual(sample_index, 3)
         self.check_CHEMBL602(smiles_tokens, labels)
         # inner get_item_from_key
-        (smiles_tokens, sample_index), labels = (
-            annotated_dataset.get_item_from_key('CHEMBL602')
+        (smiles_tokens, sample_index), labels = annotated_dataset.get_item_from_key(
+            'CHEMBL602'
         )
         self.assertEqual(sample_index, 3)
         self.check_CHEMBL602(smiles_tokens, labels)
@@ -252,8 +225,8 @@ class TestChangeIndexingReturn(unittest.TestCase):
         self.assertEqual(sample_key, 'CHEMBL602')
         self.check_CHEMBL602(smiles_tokens, labels)
         # outer get_item_from_key
-        (smiles_tokens, labels), sample_key = (
-            keyed_annotated_dataset.get_item_from_key('CHEMBL602')
+        (smiles_tokens, labels), sample_key = keyed_annotated_dataset.get_item_from_key(
+            'CHEMBL602'
         )
         self.assertEqual(sample_key, 'CHEMBL602')
         self.check_CHEMBL602(smiles_tokens, labels)
@@ -266,8 +239,8 @@ class TestChangeIndexingReturn(unittest.TestCase):
         self.assertEqual(sample_key, 'CHEMBL602')
         self.check_CHEMBL602(smiles_tokens, labels)
         # inner get_item_from_key
-        (smiles_tokens, sample_key), labels = (
-            annotated_dataset.get_item_from_key('CHEMBL602')
+        (smiles_tokens, sample_key), labels = annotated_dataset.get_item_from_key(
+            'CHEMBL602'
         )
         self.assertEqual(sample_key, 'CHEMBL602')
         self.check_CHEMBL602(smiles_tokens, labels)
@@ -276,38 +249,51 @@ class TestChangeIndexingReturn(unittest.TestCase):
         """Test __getitem__ with key in dataset."""
         with TestFileContent(self.smiles_content) as smiles_file:
             with TestFileContent(self.annotated_content) as annotation_file:
-                smiles_dataset = keyed(indexed(SMILESTokenizerDataset(
-                    smiles_file.filename,
-                )))
-                annotated_dataset = indexed(keyed(AnnotatedDataset(
-                    annotation_file.filename, dataset=smiles_dataset,
-                )))
+                smiles_dataset = keyed(
+                    indexed(
+                        SMILESTokenizerDataset(
+                            smiles_file.filename,
+                        )
+                    )
+                )
+                annotated_dataset = indexed(
+                    keyed(
+                        AnnotatedDataset(
+                            annotation_file.filename,
+                            dataset=smiles_dataset,
+                        )
+                    )
+                )
 
         (smiles_tokens, smiles_index), smiles_key = smiles_dataset[3]
         self.assertEqual(smiles_key, 'CHEMBL602')
         self.assertEqual(smiles_index, 3)
         self.check_CHEMBL602(smiles_tokens)
-        (smiles_tokens, smiles_index), smiles_key = (
-            smiles_dataset.get_item_from_key('CHEMBL602')
+        (smiles_tokens, smiles_index), smiles_key = smiles_dataset.get_item_from_key(
+            'CHEMBL602'
         )
         self.assertEqual(smiles_key, 'CHEMBL602')
         self.assertEqual(smiles_index, 3)
         self.check_CHEMBL602(smiles_tokens)
 
-        ((
-            ((smiles_tokens, smiles_index), smiles_key),  # inner
-            labels
-        ), annotation_key), annotation_index = annotated_dataset[2]
+        (
+            (
+                (((smiles_tokens, smiles_index), smiles_key), labels),  # inner
+                annotation_key,
+            ),
+            annotation_index,
+        ) = annotated_dataset[2]
         self.assertEqual(smiles_key, 'CHEMBL602')
         self.assertEqual(smiles_index, 3)
         self.assertEqual(annotation_index, 2)
         self.assertEqual(annotation_key, 'CHEMBL602')
-        ((
-            ((smiles_tokens, smiles_index), smiles_key),  # inner
-            labels
-        ), annotation_key), annotation_index = (
-            annotated_dataset.get_item_from_key('CHEMBL602')
-        )
+        (
+            (
+                (((smiles_tokens, smiles_index), smiles_key), labels),  # inner
+                annotation_key,
+            ),
+            annotation_index,
+        ) = annotated_dataset.get_item_from_key('CHEMBL602')
         self.assertEqual(smiles_key, 'CHEMBL602')
         self.assertEqual(smiles_index, 3)
         self.assertEqual(annotation_index, 2)

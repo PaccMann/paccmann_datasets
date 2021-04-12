@@ -1,7 +1,11 @@
 """Testing Crawlers."""
 import unittest
+
 from pytoda.preprocessing.crawlers import (
-    get_smiles_from_zinc, get_smiles_from_pubchem
+    get_smiles_from_pubchem,
+    get_smiles_from_zinc,
+    query_pubchem,
+    remove_pubchem_smiles,
 )
 
 
@@ -10,6 +14,9 @@ class TestCrawlers(unittest.TestCase):
 
     def test_get_smiles_from_zinc(self) -> None:
         """Test get_smiles_from_zinc"""
+
+        # # ZINC is down since quite some time, hence we skip these tests
+        # return True
 
         # Test text mode
         drug = 'Aspirin'
@@ -44,17 +51,11 @@ class TestCrawlers(unittest.TestCase):
             if not sanitize:
                 with self.assertRaises(ValueError):
                     get_smiles_from_pubchem(
-                        drug,
-                        use_isomeric=True,
-                        kekulize=False,
-                        sanitize=sanitize
+                        drug, use_isomeric=True, kekulize=False, sanitize=sanitize
                     )
 
                     get_smiles_from_pubchem(
-                        drug,
-                        use_isomeric=False,
-                        kekulize=False,
-                        sanitize=sanitize
+                        drug, use_isomeric=False, kekulize=False, sanitize=sanitize
                     )
             else:
                 ground_truth = 'O=C(/C=C/c1ccc(O)cc1)c1ccc(O)cc1O'
@@ -66,12 +67,30 @@ class TestCrawlers(unittest.TestCase):
 
                 ground_truth = 'O=C(C=Cc1ccc(O)cc1)c1ccc(O)cc1O'
                 smiles = get_smiles_from_pubchem(
-                    drug,
-                    use_isomeric=False,
-                    kekulize=False,
-                    sanitize=sanitize
+                    drug, use_isomeric=False, kekulize=False, sanitize=sanitize
                 )
                 self.assertEqual(smiles, ground_truth)
+
+    def test_query_pubchem(self) -> None:
+        """Test query_pubchem"""
+        smiles_list = [
+            'O1C=CC=NC(=O)C1=O',
+            'CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1',
+            'Clc1ccccc2ccnc12',
+        ]
+        ground_truths = [(True, 67945516), (False, -2), (False, -1)]
+        for gt, smiles in zip(ground_truths, smiles_list):
+            self.assertTupleEqual(query_pubchem(smiles), gt)
+
+    def test_remove_pubchem_smiles(self) -> None:
+        """Test remove_pubchem_smiles"""
+        smiles_list = [
+            'O1C=CC=NC(=O)C1=O',
+            'CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1',
+            'Clc1ccccc2ccnc12',
+        ]
+        ground_truth = ['CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1', 'Clc1ccccc2ccnc12']
+        self.assertListEqual(remove_pubchem_smiles(smiles_list), ground_truth)
 
 
 if __name__ == '__main__':

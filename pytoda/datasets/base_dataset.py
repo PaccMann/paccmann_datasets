@@ -3,6 +3,7 @@ import bisect
 
 import pandas as pd
 from torch.utils.data import ConcatDataset, Dataset
+
 from ..types import Any, Hashable, Iterator, List, Tuple, Union
 
 
@@ -22,6 +23,7 @@ class KeyDataset(Dataset):
     If there are duplicate keys, on lookup generally the first one found will
     be used, but there are no guarantees.
     """
+
     def __add__(self, other):
         return ConcatKeyDataset([self, other])
 
@@ -57,6 +59,7 @@ class DatasetDelegator(Dataset):
 
     Source: https://www.fast.ai/2019/08/06/delegation/
     """
+
     # built-in methods need to be defined explicitly
     # https://stackoverflow.com/a/57589213
     def __len__(self) -> int:
@@ -97,8 +100,10 @@ class DatasetDelegator(Dataset):
     @property
     def _delegatable(self):
         return [
-            o for o
-            in dir(super().__getattribute__('dataset'))  # other AttributeErrors are masked here if dataset is not set  # noqa
+            o
+            for o in dir(
+                super().__getattribute__('dataset')
+            )  # other AttributeErrors are masked here if dataset is not set  # noqa
             if self._delegation_filter(o)
         ]
 
@@ -114,6 +119,7 @@ class DatasetDelegator(Dataset):
 
 class TransparentConcatDataset(ConcatDataset):
     """Extension of ConcatDataset with transparent indexing."""
+
     def __init__(self, datasets: List[Dataset]):
         super().__init__(datasets)
 

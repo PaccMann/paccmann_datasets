@@ -1,13 +1,14 @@
 """Utilities for file handling."""
 import os
-import pandas as pd
-from itertools import takewhile, repeat
+from itertools import repeat, takewhile
 from typing import Sequence
+
+import pandas as pd
 
 
 def count_file_lines(filepath: str, buffer_size: int = 1024 * 1024) -> int:
     """
-    Cound lines in a file without persisting it in memory.
+    Count lines in a file without persisting it in memory.
 
     Args:
         filepath (str): path to the file.
@@ -34,7 +35,10 @@ def read_smi(
     filepath: str,
     chunk_size: int = None,
     index_col: int = 1,
-    names: Sequence[str] = ['SMILES']
+    names: Sequence[str] = ['SMILES'],
+    header: int = None,
+    *args,
+    **kwargs,
 ) -> pd.DataFrame:
     """
     Read a .smi (or .csv file with tab-separated values) in a pd.DataFrame.
@@ -45,17 +49,27 @@ def read_smi(
             chunking.
         index_col (int): Data column used for indexing, defaults to 1.
         names (Sequence[str]): User-assigned names given to the columns.
+        header (int): Row number to use as column names. Defaults to None.
+        args (): Optional arguments for `pd.read_csv`.
+        kwargs (): Optional keyword arguments for `pd.read_csv`.
 
     Returns:
         pd.DataFrame: a pd.DataFrame containing the data of the .smi file
             where the index is the index_col column.
     """
-
-    return pd.read_csv(
-        filepath,
-        sep='\t',
-        header=None,
-        index_col=index_col,
-        names=names,
-        chunksize=chunk_size
-    )
+    try:
+        return pd.read_csv(
+            filepath,
+            sep='\t',
+            header=header,
+            index_col=index_col,
+            names=names,
+            chunksize=chunk_size,
+            *args,
+            **kwargs,
+        )
+    except IndexError:
+        raise IndexError(
+            'Pandas does not understand the .smi file. The most common '
+            'reason is a wrong delimiter (has to be \\t)'
+        )

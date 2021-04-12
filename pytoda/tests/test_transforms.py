@@ -1,7 +1,16 @@
 """Testing transforms."""
+import random
 import unittest
-from pytoda.transforms import LeftPadding, ToTensor, ListToTensor
+
 import torch
+
+from pytoda.transforms import (
+    AugmentByReversing,
+    Compose,
+    LeftPadding,
+    ListToTensor,
+    ToTensor,
+)
 
 
 class TestTransforms(unittest.TestCase):
@@ -21,6 +30,17 @@ class TestTransforms(unittest.TestCase):
             for mol in ['C(N)CS', 'CCO']:
                 self.assertEqual(len(transform(list(mol))), padding_length)
 
+    def test_augment_by_reversing(self) -> None:
+        """Test AugmentByReversing."""
+
+        sequence = 'ABC'
+        ground_truths = ['ABC', 'ABC', 'CBA']
+        for k in range(15):
+            for p, ground_truth in zip([0.0, 0.5, 1.0], ground_truths):
+                random.seed(42)
+                transform = AugmentByReversing(p=p)
+                self.assertEqual(transform(sequence), ground_truth)
+
     def test_to_tensor(self) -> None:
         """Test ToTensor."""
 
@@ -30,12 +50,15 @@ class TestTransforms(unittest.TestCase):
         transform = ToTensor(device=device)
         tensor = transform(tokens)
         self.assertListEqual(
-            [tokens[0], tokens[1], tokens[2]],
-            [tensor[0], tensor[1], tensor[2]]
+            [tokens[0], tokens[1], tokens[2]], [tensor[0], tensor[1], tensor[2]]
         )
         self.assertTrue(torch.is_tensor(tensor))
         self.assertEqual(len(tensor), 3)
         self.assertEqual(len(tensor.shape), 1)
+
+        # Test exceptions
+        self.assertRaises(TypeError, ToTensor, device=42)
+        self.assertRaises(TypeError, ToTensor, device=device, dtype=42)
 
     def test_list_to_tensor(self) -> None:
         """Test ListToTensor."""
@@ -50,9 +73,28 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(tensor.shape[-1], 3)
         self.assertListEqual(
             [tokens[0][0], tokens[0][1], tokens[0][2]],
-            [tensor[0][0], tensor[0][1], tensor[0][2]]
+            [tensor[0][0], tensor[0][1], tensor[0][2]],
         )
         self.assertTrue(torch.is_tensor(tensor))
+
+        # Test exceptions
+        self.assertRaises(TypeError, ListToTensor, device=42)
+        self.assertRaises(TypeError, ListToTensor, device=device, dtype=42)
+
+    def test_compose(self) -> None:
+        """Test Compose."""
+
+        # Test equality
+        c1 = Compose([ToTensor()])
+        c2 = Compose([ToTensor()])
+        c3 = Compose([LeftPadding(padding_length=2, padding_index=0), ToTensor()])
+        c4 = Compose([ToTensor(dtype=torch.long)])
+        self.assertTrue(c1 == c2)
+        self.assertFalse(c1 == c3)
+        self.assertFalse(c1 == c4)
+
+        # Test repr
+        self.assertIsNotNone(repr(c1))
 
 
 if __name__ == '__main__':

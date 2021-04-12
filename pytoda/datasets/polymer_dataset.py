@@ -5,7 +5,7 @@ from numpy import iterable
 from torch.utils.data import Dataset
 
 from ..smiles.polymer_language import PolymerTokenizer
-from ..types import List, Sequence, Tuple, Union, Tensor
+from ..types import List, Sequence, Tensor, Tuple, Union
 from .smiles_dataset import SMILESDataset
 
 
@@ -45,7 +45,7 @@ class PolymerTokenizerDataset(Dataset):
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
         backend: str = 'eager',
-        **kwargs
+        **kwargs,
     ) -> None:
         """
         Initialize a Polymer dataset.
@@ -118,19 +118,38 @@ class PolymerTokenizerDataset(Dataset):
         # Setup parameter
 
         (
-            self.paddings, self.padding_lengths, self.canonicals,
-            self.augments, self.kekulizes, self.all_bonds_explicits,
-            self.all_hs_explicits, self.randomizes, self.remove_bonddirs,
-            self.remove_chiralitys, self.selfies, self.sanitize
+            self.paddings,
+            self.padding_lengths,
+            self.canonicals,
+            self.augments,
+            self.kekulizes,
+            self.all_bonds_explicits,
+            self.all_hs_explicits,
+            self.randomizes,
+            self.remove_bonddirs,
+            self.remove_chiralitys,
+            self.selfies,
+            self.sanitize,
         ) = map(
             (
-                lambda x: x if iterable(x) and len(x) == len(entity_names)
+                lambda x: x
+                if iterable(x) and len(x) == len(entity_names)
                 else [x] * len(entity_names)
-            ), (
-                padding, padding_length, canonical, augment, kekulize,
-                all_bonds_explicit, all_hs_explicit, randomize, remove_bonddir,
-                remove_chirality, selfies, sanitize
-            )
+            ),
+            (
+                padding,
+                padding_length,
+                canonical,
+                augment,
+                kekulize,
+                all_bonds_explicit,
+                all_hs_explicit,
+                randomize,
+                remove_bonddir,
+                remove_chirality,
+                selfies,
+                sanitize,
+            ),
         )
 
         if smiles_language is None:
@@ -172,11 +191,8 @@ class PolymerTokenizerDataset(Dataset):
 
         self.entities = self.smiles_language.entities
         self.datasets = [
-            SMILESDataset(
-                smi_filepath,
-                name=self.entities[index],
-                **kwargs
-            ) for index, smi_filepath in enumerate(smi_filepaths)
+            SMILESDataset(smi_filepath, name=self.entities[index], **kwargs)
+            for index, smi_filepath in enumerate(smi_filepaths)
         ]
 
         if iterate_dataset:
@@ -221,25 +237,17 @@ class PolymerTokenizerDataset(Dataset):
         columns = self.annotated_data_df.columns
 
         # handle annotation index
-        assert (
-            all([entity in columns for entity in self.entities])
+        assert all(
+            [entity in columns for entity in self.entities]
         ), 'Some of the chemical entities were not found in the label csv.'
 
         # handle labels
         if annotations_column_names is None:
-            self.labels = [
-                column for column in columns if column not in self.entities
-            ]
-        elif all(
-            [isinstance(column, int) for column in annotations_column_names]
-        ):
+            self.labels = [column for column in columns if column not in self.entities]
+        elif all([isinstance(column, int) for column in annotations_column_names]):
             self.labels = columns[annotations_column_names]
-        elif all(
-            [isinstance(column, str) for column in annotations_column_names]
-        ):
-            self.labels = list(
-                map(lambda x: x.capitalize(), annotations_column_names)
-            )
+        elif all([isinstance(column, str) for column in annotations_column_names]):
+            self.labels = list(map(lambda x: x.capitalize(), annotations_column_names))
         else:
             raise RuntimeError(
                 'label_columns should be an iterable containing int or str'
@@ -250,14 +258,11 @@ class PolymerTokenizerDataset(Dataset):
         # filter data based on the availability
         masks = []
         mask = pd.Series(
-            [True] * len(self.annotated_data_df),
-            index=self.annotated_data_df.index
+            [True] * len(self.annotated_data_df), index=self.annotated_data_df.index
         )
         for entity, dataset in zip(self.entities, self.datasets):
             # prune rows (in mask) with ids unavailable in respective dataset
-            local_mask = self.annotated_data_df[entity].isin(
-                set(dataset.keys())
-            )
+            local_mask = self.annotated_data_df[entity].isin(set(dataset.keys()))
             mask = mask & local_mask
             masks.append(local_mask)
 
@@ -291,14 +296,13 @@ class PolymerTokenizerDataset(Dataset):
         labels_tensor = torch.tensor(
             list(selected_sample[self.labels].values),
             dtype=torch.float,
-            device=self.device
+            device=self.device,
         )
         # samples (SMILES token indexes)
         smiles_tensors = tuple(
             self.smiles_language.smiles_to_token_indexes(
-                dataset.get_item_from_key(selected_sample[dataset.name]),
-                dataset.name
+                dataset.get_item_from_key(selected_sample[dataset.name]), dataset.name
             )
             for dataset in self.datasets
-        )  # yapf: disable
+        )
         return tuple([*smiles_tensors, labels_tensor])

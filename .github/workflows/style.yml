@@ -1,0 +1,67 @@
+---
+name: style
+on:
+  push:
+    branches-ignore:
+      - 'gh_pages'
+jobs:
+  super-linter:
+    name: Super Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Lint code base
+        uses: github/super-linter@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # for PR annotations
+          LINTER_RULES_PATH: /
+          VALIDATE_PYTHON_BLACK: false  # version mismatch
+          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+          PYTHON_FLAKE8_CONFIG_FILE: setup.cfg
+          PYTHON_ISORT_CONFIG_FILE: pyproject.toml
+          # NOTE: Pylint is superseded by black.
+          # E1136 errors in typing `'Union' is unsubscriptable`
+          VALIDATE_PYTHON_PYLINT: false
+          JSCPD_CONFIG_FILE: .github/workflows/jscpd.json
+
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v2
+        if: failure()
+        with:
+          status: ${{ job.status }}
+          text: ":mag: ${{ github.job }} :mag:"
+          author_name: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  black-check:
+    name: Black
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+
+      - name: Install black
+        run: pip install black==20.8b1
+
+      - name: Format
+        run: black . --check --diff --color
+
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v2
+        if: failure()
+        with:
+          status: ${{ job.status }}
+          text: ":black_circle: ${{ github.job }} :black_circle:"
+          author_name: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

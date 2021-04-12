@@ -12,7 +12,7 @@ class TestUtils(unittest.TestCase):
         sequences = ['EGK', 'A']
         ground_truth = [
             'NCCCC[C@H](NC(=O)CNC(=O)[C@@H](N)CCC(=O)O)C(=O)O',
-            'C[C@H](N)C(=O)O'
+            'C[C@H](N)C(=O)O',
         ]
 
         for seq, gt in zip(sequences, ground_truth):

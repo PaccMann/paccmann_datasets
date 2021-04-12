@@ -33,7 +33,7 @@ class ProteinProteinInteractionDataset(Dataset):
         randomizes: Union[bool, Sequence[bool]] = False,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        )
+        ),
     ) -> None:
         """
         Initialize a protein protein interactiondataset.
@@ -82,8 +82,8 @@ class ProteinProteinInteractionDataset(Dataset):
                 Defaults to gpu, if available.
         """
         Dataset.__init__(self)
-        assert (
-            len(entity_names) == len(sequence_filepaths)
+        assert len(entity_names) == len(
+            sequence_filepaths
         ), 'sequence_filepaths should be an iterable of length in entity names'
 
         self.labels_filepath = labels_filepath
@@ -91,21 +91,18 @@ class ProteinProteinInteractionDataset(Dataset):
 
         # wrap single filepath per entity to treat equally as iterable (*args)
         self.sequence_filepaths = [
-                [filepath]
-                if isinstance(filepath, str)
-                else filepath
-                for filepath in sequence_filepaths
+            [filepath] if isinstance(filepath, str) else filepath
+            for filepath in sequence_filepaths
         ]
         #  Data type of first sequence files per entity
         if sequence_filetypes == 'infer':
             self.filetypes = list(
-                map(lambda x: '.' + x[0].split('.')[-1], sequence_filepaths)
+                map(lambda x: '.' + x[0].split('.')[-1], self.sequence_filepaths)
             )
         elif sequence_filetypes in ['.smi', '.csv', '.fasta', '.fasta.gz']:
             self.filetypes = [sequence_filetypes] * len(self.entities)
         elif len(sequence_filetypes) == len(self.entities) and all(
-            x in ['.smi', '.csv', '.fasta', '.fasta.gz']
-            for x in sequence_filetypes
+            x in ['.smi', '.csv', '.fasta', '.fasta.gz'] for x in sequence_filetypes
         ):
             self.filetypes = sequence_filetypes
         else:
@@ -115,16 +112,24 @@ class ProteinProteinInteractionDataset(Dataset):
         self.device = device
 
         (
-            self.paddings, self.padding_lengths, self.add_start_and_stops,
-            self.augment_by_reverts, self.randomizes
+            self.paddings,
+            self.padding_lengths,
+            self.add_start_and_stops,
+            self.augment_by_reverts,
+            self.randomizes,
         ) = map(
             (
-                lambda x: x if iterable(x) and len(x) == len(self.entities)
+                lambda x: x
+                if iterable(x) and len(x) == len(self.entities)
                 else [x] * len(self.entities)
-            ), (
-                paddings, padding_lengths, add_start_and_stops,
-                augment_by_reverts, randomizes
-            )
+            ),
+            (
+                paddings,
+                padding_lengths,
+                add_start_and_stops,
+                augment_by_reverts,
+                randomizes,
+            ),
         )
 
 
@@ -135,12 +140,10 @@ class ProteinProteinInteractionDataset(Dataset):
         else:
             self.protein_language = protein_language
             assert (
-                (
-                    self.protein_language.add_start_and_stop == all(
-                        self.add_start_and_stops
-                    )
-                ) and all(self.add_start_and_stops
-                          ) == any(self.add_start_and_stops)
+                self.protein_language.add_start_and_stop
+                == all(self.add_start_and_stops)
+            ) and all(self.add_start_and_stops) == any(
+                self.add_start_and_stops
             ), 'Inconsistencies found in add_start_and_stop.'
 
         # Create protein sequence datasets
@@ -156,8 +159,9 @@ class ProteinProteinInteractionDataset(Dataset):
                 augment_by_revert=self.augment_by_reverts[index],
                 randomize=self.randomizes[index],
                 device=self.device,
-                name=self.entities[index]
-            ) for index, filepaths in enumerate(self.sequence_filepaths)
+                name=self.entities[index],
+            )
+            for index, filepaths in enumerate(self.sequence_filepaths)
         ]
         # Labels
         self.labels_df = pd.read_csv(self.labels_filepath)
@@ -169,19 +173,11 @@ class ProteinProteinInteractionDataset(Dataset):
 
         # handle labels
         if annotations_column_names is None:
-            self.labels = [
-                column for column in columns if column not in self.entities
-            ]
-        elif all(
-            [isinstance(column, int) for column in annotations_column_names]
-        ):
+            self.labels = [column for column in columns if column not in self.entities]
+        elif all([isinstance(column, int) for column in annotations_column_names]):
             self.labels = columns[annotations_column_names]
-        elif all(
-            [isinstance(column, str) for column in annotations_column_names]
-        ):
-            self.labels = list(
-                map(lambda x: x.capitalize(), annotations_column_names)
-            )
+        elif all([isinstance(column, str) for column in annotations_column_names]):
+            self.labels = list(map(lambda x: x.capitalize(), annotations_column_names))
         else:
             raise RuntimeError(
                 'label_columns should be an iterable containing int or str'
@@ -189,20 +185,13 @@ class ProteinProteinInteractionDataset(Dataset):
         # get the number of labels
         self.number_of_tasks = len(self.labels)
 
-        assert (
-            all(
-                list(
-                    map(lambda x: x in self.labels_df.columns, self.entities)
-                )
-            )
+        assert all(
+            list(map(lambda x: x in self.labels_df.columns, self.entities))
         ), 'At least one given entity name was not found in labels_filepath.'
 
         # filter data based on the availability
         masks = []
-        mask = pd.Series(
-            [True] * len(self.labels_df),
-            index=self.labels_df.index
-        )
+        mask = pd.Series([True] * len(self.labels_df), index=self.labels_df.index)
 
         for entity, dataset in zip(self.entities, self.datasets):
             # prune rows (in mask) with ids unavailable in respective dataset
@@ -224,16 +213,16 @@ class ProteinProteinInteractionDataset(Dataset):
 
     def __getitem__(self, index: int) -> Tuple[Tensor, ...]:
         """
-            Generates one sample of data.
+        Generates one sample of data.
 
-            Args:
-                index (int): index of the sample to fetch.
+        Args:
+            index (int): index of the sample to fetch.
 
-            Returns:
-                Tuple: a tuple containing self.entities+1 torch.Tensors
-                representing respectively: compound token indexes for each
-                protein entity and the property labels (annotations)
-            """
+        Returns:
+            Tuple: a tuple containing self.entities+1 torch.Tensors
+            representing respectively: compound token indexes for each
+            protein entity and the property labels (annotations)
+        """
 
         # sample selection
         selected_sample = self.labels_df.iloc[index]
@@ -242,11 +231,10 @@ class ProteinProteinInteractionDataset(Dataset):
         labels_tensor = torch.tensor(
             list(selected_sample[self.labels].values),
             dtype=torch.float,
-            device=self.device
+            device=self.device,
         )
         # samples (Protein sequences)
         proteins_tensors = [
-            ds.get_item_from_key(selected_sample[ds.name])
-            for ds in self.datasets
+            ds.get_item_from_key(selected_sample[ds.name]) for ds in self.datasets
         ]
         return tuple([*proteins_tensors, labels_tensor])

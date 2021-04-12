@@ -4,15 +4,7 @@ channels:
 dependencies:
   - rdkit=2019.03.1
   - python>=3.7,<3.8
-  - pip>=19.1
+  - pip>=19.1,<20.3
   - pip:
-    - numpy==1.16.1
-    - scikit-learn==0.21.3
-    - pandas==0.25.2
-    - torch==1.0.1
-    - diskcache==4.1.0
-    - dill==0.3.1.1
-    - selfies==1.0.2
-    - upfp==0.0.4
-    - SmilesPE>=0.0.3
-    - pyfaidx==0.5.8
+    - -r file:requirements.txt
+    

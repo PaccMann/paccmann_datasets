@@ -1,0 +1,37 @@
+---
+on: [pull_request]  # Support only pull_request event.
+name: reviewdog-suggester
+jobs:
+  black:
+    name: Suggest black changes
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Get python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+
+      - name: Install black
+        run: pip install black==20.8b1
+
+      - name: Format
+        run: black .
+
+      - name: Suggest changes
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: black
+
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v2
+        if: failure()
+        with:
+          status: ${{ job.status }}
+          text: ":question: Incoming BLACK suggestions :question:"
+          author_name: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
