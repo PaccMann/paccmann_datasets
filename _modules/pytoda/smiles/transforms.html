@@ -219,7 +219,7 @@
     <span class="c1"># Build up composition from optional SMILES to SMILES transformations</span>
     <span class="n">smiles_transforms</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">canonical</span><span class="p">:</span>
-        <span class="n">smiles_transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Canonicalization</span><span class="p">()]</span>
+        <span class="n">smiles_transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Canonicalization</span><span class="p">(</span><span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span><span class="p">)]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">remove_bonddir</span> <span class="ow">or</span> <span class="n">remove_chirality</span><span class="p">:</span>
             <span class="n">smiles_transforms</span> <span class="o">+=</span> <span class="p">[</span>
