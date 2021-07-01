@@ -34,20 +34,31 @@ class TestCrawlers(unittest.TestCase):
         """Test get_smiles_from_zinc"""
 
         for sanitize in [True, False]:
+
             # Test text mode
-            drug = 'isoliquiritigenin'
             ground_truth = 'C1=CC(=CC=C1/C=C/C(=O)C2=C(C=C(C=C2)O)O)O'
-            smiles = get_smiles_from_pubchem(
-                drug, use_isomeric=True, kekulize=True, sanitize=sanitize
-            )
+            for query, drug in zip(['name', 'cid'], ['isoliquiritigenin', 638278]):
+                smiles = get_smiles_from_pubchem(
+                    drug,
+                    use_isomeric=True,
+                    kekulize=True,
+                    sanitize=sanitize,
+                    query_type=query,
+                )
             self.assertEqual(smiles, ground_truth)
 
             ground_truth = 'C1=CC(=CC=C1C=CC(=O)C2=C(C=C(C=C2)O)O)O'
-            smiles = get_smiles_from_pubchem(
-                drug, use_isomeric=False, kekulize=True, sanitize=sanitize
-            )
+            for query, drug in zip(['name', 'cid'], ['isoliquiritigenin', 638278]):
+                smiles = get_smiles_from_pubchem(
+                    drug,
+                    use_isomeric=False,
+                    kekulize=True,
+                    sanitize=sanitize,
+                    query_type=query,
+                )
             self.assertEqual(smiles, ground_truth)
 
+            drug = 'isoliquiritigenin'
             if not sanitize:
                 with self.assertRaises(ValueError):
                     get_smiles_from_pubchem(
