@@ -80,7 +80,8 @@ def get_smiles_from_pubchem(
     sanitize: bool = True,
 ) -> str:
     """
-    Uses the PubChem database to retrieve the SMILES of a drug name (str).
+    Uses the PubChem database to retrieve the SMILES of a drug name given as string
+    (default) or a PubChem ID.
 
     Args:
         drug (str): string with a drug name (or a PubChem ID as a string).
@@ -94,9 +95,9 @@ def get_smiles_from_pubchem(
             perform any operation on the retrieved SMILES.
             NOTE: Setting it to 'False' will convert aromatic atoms to lower-
             case characters and *induces a RDKit dependency*
-        sanitize (bool, optional) -- Sanitize SMILE
+        sanitize (bool, optional): Sanitize SMILE
     Returns:
-        smiles (str) -- The SMILES string of the drug name.
+        smiles (str): The SMILES string of the drug name.
     """
 
     if not kekulize and not sanitize:
