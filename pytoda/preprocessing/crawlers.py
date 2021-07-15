@@ -15,9 +15,9 @@ logger = logging.getLogger(__name__)
 ZINC_DRUG_SEARCH_ROOT = 'http://zinc.docking.org/substances/search/?q='
 ZINC_ID_SEARCH_ROOT = 'http://zinc.docking.org/substances/'
 
-PUBCHEM_START = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/'
-PUBCHEM_MID = '/property/'
-PUBCHEM_END = '/TXT'
+PUBCHEM_START = 'https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound'
+PUBCHEM_MID = 'property'
+PUBCHEM_END = 'TXT'
 
 
 def get_smiles_from_zinc(drug: Union[str, int]) -> str:
@@ -73,13 +73,21 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
 
 
 def get_smiles_from_pubchem(
-    drug: str, use_isomeric: bool = True, kekulize: bool = False, sanitize: bool = True
+    drug: Union[str, int],
+    query_type: str = 'name',
+    use_isomeric: bool = True,
+    kekulize: bool = False,
+    sanitize: bool = True,
 ) -> str:
     """
-    Uses the PubChem database to retrieve the SMILES of a drug name (str).
+    Uses the PubChem database to retrieve the SMILES of a drug name given as string
+    (default) or a PubChem ID.
 
     Args:
         drug (str): string with a drug name (or a PubChem ID as a string).
+        query_type (str): Either 'name' or 'cid'.
+            Identifies whether the argument provided as drug is a name (e.g 'Tacrine') or
+            a PubChem ID (1935). Defaults to name.
         use_isomeric (bool, optional) - If available, returns the isomeric
             SMILES, not the canonical one.
         kekulize (bool, optional): whether kekulization is used. PubChem uses
@@ -87,9 +95,9 @@ def get_smiles_from_pubchem(
             perform any operation on the retrieved SMILES.
             NOTE: Setting it to 'False' will convert aromatic atoms to lower-
             case characters and *induces a RDKit dependency*
-        sanitize (bool, optional) -- Sanitize SMILE
+        sanitize (bool, optional): Sanitize SMILE
     Returns:
-        smiles (str) -- The SMILES string of the drug name.
+        smiles (str): The SMILES string of the drug name.
     """
 
     if not kekulize and not sanitize:
@@ -98,9 +106,9 @@ def get_smiles_from_pubchem(
             '(sanitize cannot be False).'
         )
 
-    if type(drug) != str:
+    if type(drug) != str and type(drug) != int:
         raise TypeError(
-            f'Please insert drug of type str, given was {type(drug)}({drug}).'
+            f'Please insert drug of type str or int, given was {type(drug)}({drug}).'
         )
     if not kekulize:
         from rdkit import Chem
@@ -110,13 +118,14 @@ def get_smiles_from_pubchem(
         options = ['IsomericSMILES'] + options
 
     # Parse name
-    stripped_drug = drug.strip()
+    if isinstance(drug, str):
+        drug = drug.strip()
 
     # Search ZINC for compound name
     for option in options:
         try:
-            path = '{}{}{}{}{}'.format(
-                PUBCHEM_START, stripped_drug, PUBCHEM_MID, option, PUBCHEM_END
+            path = '{}/{}/{}/{}/{}/{}'.format(
+                PUBCHEM_START, query_type, drug, PUBCHEM_MID, option, PUBCHEM_END
             )
             smiles = (
                 urllib_request.urlopen(path).read().decode('UTF-8').replace('\n', '')
