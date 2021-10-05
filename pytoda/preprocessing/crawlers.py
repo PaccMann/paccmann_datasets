@@ -41,7 +41,7 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
     if type(drug) == str:
 
         # Parse name, then retrieve ZINC ID from it
-        stripped_drug = drug.strip()
+        stripped_drug = drug.strip().replace(' ', '%20')
         zinc_ids = []
         try:
             drug_url = urllib_request.pathname2url(stripped_drug)
@@ -110,13 +110,13 @@ def get_smiles_from_pubchem(
         options = ['IsomericSMILES'] + options
 
     # Parse name
-    stripped_drug = drug.strip()
+    drug = drug.strip().replace(' ', '%20')
 
     # Search ZINC for compound name
     for option in options:
         try:
             path = '{}{}{}{}{}'.format(
-                PUBCHEM_START, stripped_drug, PUBCHEM_MID, option, PUBCHEM_END
+                PUBCHEM_START, drug, PUBCHEM_MID, option, PUBCHEM_END
             )
             smiles = (
                 urllib_request.urlopen(path).read().decode('UTF-8').replace('\n', '')
