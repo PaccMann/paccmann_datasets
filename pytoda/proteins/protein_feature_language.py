@@ -37,7 +37,7 @@ class ProteinFeatureLanguage(ProteinLanguage):
         Args:
             name (str): name of the ProteinFeatureLanguage.
             features (str): Feature alphabet choice. Defaults to 'blosum',
-            alternatives are 'binary_features' and 'float_features'.
+                alternatives are 'binary_features', 'float_features' and 'blosum_norm'.
             tokenizer (Tokenizer): This needs to be a function used to tokenize
                 the amino acid sequences. The default is list which simply
                 splits the sequence character-by-character.
@@ -58,8 +58,8 @@ class ProteinFeatureLanguage(ProteinLanguage):
             self.token_to_index = BLOSUM62_NORM
         else:
             raise ValueError(
-                "Choose dict as 'binary_features', 'float_features' or "
-                f"'blosum' (given was {features})."
+                "Choose dict as 'binary_features', 'float_features', 'blosum' or "
+                f"'blosum_norm' (given was {features})."
             )
 
         self.number_of_features = len(self.token_to_index['<START>'])

@@ -19,9 +19,17 @@ class TestProcessing(unittest.TestCase):
         self.assertEqual(AA_PROPERTIES_NUM.keys(), AA_FEAT.keys())
         self.assertEqual(BLOSUM62_NORM.keys(), BLOSUM62.keys())
         self.assertEqual(AA_PROPERTIES_NUM.keys(), BLOSUM62.keys())
-        iupac = [x for x in IUPAC_CODES.values()] + ['<PAD>', '<START>', '<STOP>']
+        iupac = [x for x in IUPAC_CODES.values()] + [
+            '<PAD>',
+            '<START>',
+            '<STOP>',
+            '<UNK>',
+            '-',
+        ]
         self.assertEqual(iupac, list(BLOSUM62.keys()))
         self.assertTrue('-' in HUMAN_KINASE_ALIGNMENT_VOCAB)
+        self.assertTrue('-' in BLOSUM62_NORM)
+        self.assertTrue('-' in AA_PROPERTIES_NUM)
 
     def test__length_equal(self) -> None:
         for i in range(len(list(AA_PROPERTIES_NUM.values()))):

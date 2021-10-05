@@ -231,6 +231,12 @@ class TestProcessing(unittest.TestCase):
                 tokenize_selfies(selfies), list(sf.split_selfies(selfies))
             )
 
+    def test_package_tokenizer(self) -> None:
+        """Test package tokenizer."""
+        from pytoda.smiles import vocab
+
+        self.assertEqual(len(vocab), 575)
+
 
 if __name__ == '__main__':
     unittest.main()
