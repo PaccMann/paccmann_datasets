@@ -17,14 +17,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # for PR annotations
           LINTER_RULES_PATH: /
-          VALIDATE_PYTHON_BLACK: false  # version mismatch
-          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
-          PYTHON_FLAKE8_CONFIG_FILE: setup.cfg
-          PYTHON_ISORT_CONFIG_FILE: pyproject.toml
           # NOTE: Pylint is superseded by black.
           # E1136 errors in typing `'Union' is unsubscriptable`
           VALIDATE_PYTHON_PYLINT: false
+          VALIDATE_PYTHON_BLACK: false  # version mismatch
+          VALIDATE_PYTHON_MYPY: false  # no mypy support currenttly
+          PYTHON_BLACK_CONFIG_FILE: pyproject.toml
+          PYTHON_FLAKE8_CONFIG_FILE: setup.cfg
+          PYTHON_ISORT_CONFIG_FILE: pyproject.toml
           JSCPD_CONFIG_FILE: .github/workflows/jscpd.json
+          FILTER_REGEX_EXCLUDE: .*docs/.*
 
       - name: Send Slack notification
         uses: 8398a7/action-slack@v2

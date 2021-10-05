@@ -517,7 +517,7 @@ class SMILESLanguage(object):
         self.failed_transform_smiles = []
 
         for index, smiles in enumerate(dataset):
-            if rdkit.Chem.MolFromSmiles(smiles) is None:
+            if rdkit.Chem.MolFromSmiles(smiles, sanitize=False) is None:
                 self.invalid_molecules.append((index, smiles))
             else:
                 try:

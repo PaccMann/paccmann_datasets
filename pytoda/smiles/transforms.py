@@ -60,7 +60,7 @@ def compose_smiles_transforms(
     # Build up composition from optional SMILES to SMILES transformations
     smiles_transforms = []
     if canonical:
-        smiles_transforms += [Canonicalization()]
+        smiles_transforms += [Canonicalization(sanitize=sanitize)]
     else:
         if remove_bonddir or remove_chirality:
             smiles_transforms += [
