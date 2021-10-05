@@ -1,7 +1,8 @@
 import json
-import os
-from importlib_recources import files, as_file
 from typing import Dict
+
+from importlib_resources import as_file, files
+
 from .smiles_language import SELFIESLanguage, SMILESLanguage, SMILESTokenizer  # noqa
 
 with as_file(

@@ -3,8 +3,8 @@ import codecs
 import logging
 import re
 import warnings
-from importlib_resources import files, as_file
 
+from importlib_resources import as_file, files
 from selfies import split_selfies as split_selfies_
 from SmilesPE.pretokenizer import kmer_tokenizer
 from SmilesPE.tokenizer import SPE_Tokenizer
