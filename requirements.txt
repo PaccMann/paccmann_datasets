@@ -9,3 +9,4 @@ upfp>=0.0.5
 SmilesPE>=0.0.3
 pyfaidx>=0.5.0
 PubChemPy>=1.0.4
+importlib_resources>=5.2.2

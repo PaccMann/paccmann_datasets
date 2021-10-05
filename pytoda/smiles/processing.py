@@ -3,7 +3,7 @@ import codecs
 import logging
 import re
 import warnings
-from importlib import resources
+from importlib_resources import files, as_file
 
 from selfies import split_selfies as split_selfies_
 from SmilesPE.pretokenizer import kmer_tokenizer
@@ -19,8 +19,8 @@ SMILES_TOKENIZER = re.compile(
     r'-|\+|\\\\|\/|:|~|@|\?|>|\*|\$|\%[0-9]{2}|[0-9])'
 )
 
-with resources.path('pytoda.smiles.metadata', 'spe_chembl.txt') as filepath:
-    SPE_TOKENIZER = SPE_Tokenizer(codecs.open(filepath))
+with as_file(files('pytoda.smiles.metadata').joinpath('spe_chembl.txt')) as filepath:
+    SPE_TOKENIZER = SPE_Tokenizer(codecs.open(str(filepath)))
 
 
 def tokenize_smiles(smiles: str, regexp=SMILES_TOKENIZER, *args, **kwargs) -> Tokens:
