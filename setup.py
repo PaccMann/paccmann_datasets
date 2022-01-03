@@ -52,6 +52,8 @@ setup(
         'SmilesPE>=0.0.3',
         'pyfaidx',
         'pubchempy',
+        'importlib_resources',
+        'Unidecode',
     ],
     classifiers=[
         'Intended Audience :: Developers',
