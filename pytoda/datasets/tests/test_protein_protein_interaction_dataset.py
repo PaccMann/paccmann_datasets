@@ -5,6 +5,7 @@ import unittest
 import numpy as np
 
 from pytoda.datasets import ProteinProteinInteractionDataset
+from pytoda.proteins import ProteinFeatureLanguage, ProteinLanguage
 from pytoda.tests.utils import TestFileContent
 
 
@@ -13,7 +14,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
 
     def test___len__(self) -> None:
 
-        content_entity_1 = os.linesep.join(['CCO	ID1', 'KCPR	ID3', 'NCCS	ID2'])
+        content_entity_1 = os.linesep.join(['CCE	ID1', 'KCPR	ID3', 'NCCS	ID2'])
         content_entity_2 = os.linesep.join(
             ['EGK	ID3', 'S	ID1', 'FGAAV	ID2', 'NCCS	ID4']
         )
@@ -68,7 +69,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
     def test___getitem__(self) -> None:
         """Test __getitem__."""
 
-        content_entity_1 = os.linesep.join(['CCO	ID1', 'KCPR	ID3', 'NCCS	ID2'])
+        content_entity_1 = os.linesep.join(['CCE	ID1', 'KCPR	ID3', 'NCCS	ID2'])
         content_entity_2 = os.linesep.join(
             ['EGK	ID3', 'S	ID1', 'FGAAV	ID2', 'NCCS	ID4']
         )
@@ -95,7 +96,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                     # test first sample
                     tcr, peptide, label = ppi_dataset[0]
 
-                    tok_to_idx = ppi_dataset.protein_language.token_to_index
+                    tok_to_idx = ppi_dataset.protein_languages[0].token_to_index
 
                     self.assertEqual(
                         tcr.numpy().flatten().tolist(),
@@ -134,7 +135,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                     # test first sample
                     tcr, peptide, label = ppi_dataset[0]
 
-                    tok_to_idx = ppi_dataset.protein_language.token_to_index
+                    tok_to_idx = ppi_dataset.protein_languages[0].token_to_index
 
                     self.assertEqual(
                         tcr.numpy().flatten().tolist(),
@@ -168,7 +169,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                 '6.7,7.8,ID1,ID2',
             ]
         )
-        content_entity_1 = os.linesep.join(['CCO	ID1', 'KCPR	ID3', 'NCCS	ID2'])
+        content_entity_1 = os.linesep.join(['CCE	ID1', 'KCPR	ID3', 'NCCS	ID2'])
         content_entity_2 = os.linesep.join(
             ['EGK	ID3', 'S	ID1', 'FGAAV	ID2', 'NCCS	ID4']
         )
@@ -187,7 +188,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                     # test first sample
                     tcr, peptide, label = ppi_dataset[-1]
 
-                    tok_to_idx = ppi_dataset.protein_language.token_to_index
+                    tok_to_idx = ppi_dataset.protein_languages[0].token_to_index
                     self.assertTrue(
                         np.allclose(label.numpy().flatten().tolist(), [6.7, 7.8])
                     )
@@ -227,7 +228,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                     # test first sample
                     tcr, peptide, label = ppi_dataset[-1]
 
-                    tok_to_idx = ppi_dataset.protein_language.token_to_index
+                    tok_to_idx = ppi_dataset.protein_languages[0].token_to_index
                     self.assertTrue(
                         np.allclose(label.numpy().flatten().tolist(), [6.7])
                     )
@@ -248,7 +249,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                     # test first sample
                     tcr, peptide, label = ppi_dataset[-1]
 
-                    tok_to_idx = ppi_dataset.protein_language.token_to_index
+                    tok_to_idx = ppi_dataset.protein_languages[0].token_to_index
                     self.assertTrue(
                         np.allclose(label.numpy().flatten().tolist(), [7.8])
                     )
@@ -273,14 +274,16 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
             with TestFileContent(content_entity_2) as another_test_file:
                 with TestFileContent(content_entity_2) as third_test_file:
                     with TestFileContent(annotated_content) as annotation_file:
+
+                        # Test passing no protein language
                         ppi_dataset = ProteinProteinInteractionDataset(
                             [
                                 a_test_file.filename,
                                 another_test_file.filename,
                                 third_test_file.filename,
                             ],
-                            ['tcr', 'peptide', 'peptide'],
-                            annotation_file.filename,
+                            entity_names=['tcr', 'peptide', 'peptide'],
+                            labels_filepath=annotation_file.filename,
                             sequence_filetypes='.smi',
                             annotations_column_names=[1],
                         )
@@ -292,6 +295,160 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                         self.assertListEqual(
                             data_tuple[1].tolist(), data_tuple[2].tolist()
                         )
+
+                        # Test passing single protein language
+                        for dic in ['iupac', 'unirep', 'human-kinase-alignment']:
+                            for s in [False, True]:
+                                lang = ProteinLanguage(
+                                    amino_acid_dict=dic, add_start_and_stop=s
+                                )
+                                ppi_dataset = ProteinProteinInteractionDataset(
+                                    [
+                                        a_test_file.filename,
+                                        another_test_file.filename,
+                                        third_test_file.filename,
+                                    ],
+                                    entity_names=['tcr', 'peptide', 'peptide'],
+                                    protein_languages=lang,
+                                    labels_filepath=annotation_file.filename,
+                                    sequence_filetypes='.smi',
+                                    annotations_column_names=[1],
+                                    add_start_and_stops=s,
+                                )
+                                self.assertEqual(len(ppi_dataset), 2)
+
+                                # test last sample
+                                data_tuple = ppi_dataset[-1]
+                                self.assertEqual(len(data_tuple), 4)
+                                self.assertListEqual(
+                                    data_tuple[1].tolist(), data_tuple[2].tolist()
+                                )
+                                # Tensor should be 1D
+                                self.assertEqual(1, len(data_tuple[0].shape))
+
+                        # Test passing single protein_feature_language
+                        for dic in ['blosum', 'binary_features', 'float_features']:
+                            for s in [False, True]:
+                                lang = ProteinFeatureLanguage(
+                                    features=dic, add_start_and_stop=s
+                                )
+
+                                ppi_dataset = ProteinProteinInteractionDataset(
+                                    [
+                                        a_test_file.filename,
+                                        another_test_file.filename,
+                                        third_test_file.filename,
+                                    ],
+                                    entity_names=['tcr', 'peptide', 'peptide'],
+                                    protein_languages=lang,
+                                    labels_filepath=annotation_file.filename,
+                                    sequence_filetypes='.smi',
+                                    annotations_column_names=[1],
+                                    add_start_and_stops=s,
+                                )
+                                self.assertEqual(len(ppi_dataset), 2)
+
+                                # test last sample
+                                data_tuple = ppi_dataset[-1]
+                                self.assertEqual(len(data_tuple), 4)
+                                self.assertListEqual(
+                                    data_tuple[1].tolist(), data_tuple[2].tolist()
+                                )
+                                # Tensor should be 2D
+                                self.assertEqual(2, len(data_tuple[0].shape))
+
+                        # Test passing mixture of protein and protein_feature languages
+                        for dic1 in ['iupac', 'unirep', 'human-kinase-alignment']:
+                            for dic2 in ['blosum', 'float_features']:
+
+                                lang1 = ProteinLanguage(amino_acid_dict=dic1)
+                                lang2 = ProteinFeatureLanguage(features=dic2)
+
+                                ppi_dataset = ProteinProteinInteractionDataset(
+                                    [
+                                        a_test_file.filename,
+                                        another_test_file.filename,
+                                        third_test_file.filename,
+                                    ],
+                                    entity_names=['tcr', 'peptide', 'peptide'],
+                                    protein_languages=[lang1, lang2, lang2],
+                                    labels_filepath=annotation_file.filename,
+                                    sequence_filetypes='.smi',
+                                    annotations_column_names=[1],
+                                    add_start_and_stops=True,
+                                )
+                                self.assertEqual(len(ppi_dataset), 2)
+
+                                # test last sample
+                                data_tuple = ppi_dataset[-1]
+                                self.assertEqual(len(data_tuple), 4)
+                                self.assertListEqual(
+                                    data_tuple[1].tolist(), data_tuple[2].tolist()
+                                )
+                                # Tensor dimensions
+                                for i, g in zip(range(len(data_tuple) - 1), (1, 2, 2)):
+                                    self.assertEqual(g, len(data_tuple[i].shape))
+
+                                # Testing alternative ordering
+                                ppi_dataset = ProteinProteinInteractionDataset(
+                                    [
+                                        a_test_file.filename,
+                                        another_test_file.filename,
+                                        third_test_file.filename,
+                                    ],
+                                    entity_names=['tcr', 'peptide', 'peptide'],
+                                    protein_languages=[lang2, lang1, lang2],
+                                    labels_filepath=annotation_file.filename,
+                                    sequence_filetypes='.smi',
+                                    annotations_column_names=[1],
+                                    add_start_and_stops=True,
+                                )
+                                self.assertEqual(len(ppi_dataset), 2)
+
+                                # test last sample
+                                data_tuple = ppi_dataset[-2]
+                                self.assertEqual(len(data_tuple), 4)
+                                # Test whether decoding with PL and PFL gives the same
+                                feat1 = data_tuple[1].long().tolist()
+                                if dic2 == 'blosum':
+                                    feat0 = [
+                                        tuple(x) for x in data_tuple[0].long().tolist()
+                                    ]
+
+                                    feat2 = [
+                                        tuple(x) for x in data_tuple[2].long().tolist()
+                                    ]
+                                elif dic2 == 'float_features':
+                                    feat0 = [
+                                        tuple([round(xx, 2) for xx in x])
+                                        for x in data_tuple[0].double().tolist()
+                                    ]
+                                    feat2 = [
+                                        tuple([round(xx, 2) for xx in x])
+                                        for x in data_tuple[2].double().tolist()
+                                    ]
+
+                                self.assertEqual(
+                                    'CCE',
+                                    ppi_dataset.protein_languages[
+                                        0
+                                    ].token_indexes_to_sequence(feat0),
+                                )
+                                self.assertEqual(
+                                    'FGAAV',
+                                    ppi_dataset.protein_languages[
+                                        1
+                                    ].token_indexes_to_sequence(feat1),
+                                )
+                                self.assertEqual(
+                                    'FGAAV',
+                                    ppi_dataset.protein_languages[
+                                        2
+                                    ].token_indexes_to_sequence(feat2),
+                                )
+                                # Tensor dimensions
+                                for i, g in zip(range(len(data_tuple) - 1), (2, 1, 2)):
+                                    self.assertEqual(g, len(data_tuple[i].shape))
 
         # Test for using different padding lengths
         padding_lengths = [8, 6]
