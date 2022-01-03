@@ -129,6 +129,18 @@ class TestProteinFeatureLanguage(unittest.TestCase):
                 AA_FEAT['<STOP>'],
             ],
         )
+        # Test sequence with unknown token
+        new_seq = 'CcX'
+        self.assertListEqual(
+            protein_language.sequence_to_token_indexes(new_seq),
+            [
+                AA_FEAT['<START>'],
+                AA_FEAT['C'],
+                AA_FEAT['<UNK>'],
+                AA_FEAT['X'],
+                AA_FEAT['<STOP>'],
+            ],
+        )
 
     def test_token_indexes_to_sequence(self) -> None:
         """Test token_indexes_to_sequence."""

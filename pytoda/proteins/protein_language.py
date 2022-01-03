@@ -1,4 +1,6 @@
 """Protein language handling."""
+import logging
+from typing import Iterator
 
 import dill
 from upfp import parse_fasta
@@ -6,6 +8,8 @@ from upfp import parse_fasta
 from ..files import read_smi
 from ..types import Indexes, Tokenizer, Tokens
 from .processing import HUMAN_KINASE_ALIGNMENT_VOCAB, IUPAC_VOCAB, UNIREP_VOCAB
+
+logger = logging.getLogger(__name__)
 
 
 class ProteinLanguage(object):
@@ -197,6 +201,24 @@ class ProteinLanguage(object):
         tokens = self.tokenizer(sequence)
         self._update_max_token_sequence_length(tokens)
 
+    def sequence_to_token_indexes_generator(self, sequence: str) -> Iterator[int]:
+        """
+        Transform tokens into indexes using a generator
+
+        Args:
+            sequence (str): an AAS representations
+
+        Yields:
+            Generator[int]: The generator of token indexes.
+        """
+        for token in self.tokenizer(sequence):
+            if token not in self.token_to_index:
+                logger.error(
+                    'Replacing unknown token %s with %r', token, self.unknown_token
+                )
+                token = self.unknown_token
+            yield self.token_to_index[token]
+
     def sequence_to_token_indexes(self, sequence: str) -> Indexes:
         """
         Transform character-level amino acid sequence (AAS) into a sequence of
@@ -209,10 +231,7 @@ class ProteinLanguage(object):
             Indexes: indexes representation for the AAS provided.
         """
         return self._finalize_token_indexes_fn(
-            [
-                self.token_to_index.get(token, self.unknown_token)
-                for token in self.tokenizer(sequence)
-            ]
+            list(self.sequence_to_token_indexes_generator(sequence))
         )
 
     def token_indexes_to_sequence(self, token_indexes: Indexes) -> str:

@@ -67,25 +67,6 @@ class ProteinFeatureLanguage(ProteinLanguage):
 
         self.setup_dict()
 
-    def sequence_to_token_indexes(self, sequence: str) -> list:
-        """
-        Transform character-level amino acid sequence (AAS) into a sequence of
-        token indexes.
-
-        Args:
-            sequence (str): an AAS representation.
-
-        Returns:
-            list: list of tuples (one tuple per AA) where every tuple has
-                self.number_of_features entries.
-        """
-        return self._finalize_token_indexes_fn(
-            [
-                self.token_to_index.get(token, self.unknown_token)
-                for token in self.tokenizer(sequence)
-            ]
-        )
-
     def token_indexes_to_sequence(self, token_indexes: list) -> str:
         """
         Transform a list of tuples of token indexes into amino acid sequence.
