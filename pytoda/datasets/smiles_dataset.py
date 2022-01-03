@@ -143,6 +143,33 @@ class SMILESTokenizerDataset(DatasetDelegator):
 
         if smiles_language is not None:
             self.smiles_language = smiles_language
+            params = (
+                "canonical, augment, kekulize, all_bonds_explicit, selfies, sanitize, "
+                "all_hs_explicit, remove_bonddir, remove_chirality, randomize, "
+                "add_start_and_stop, padding, padding_length, device"
+            )
+            logger.error(
+                'Since you provided a smiles_language, the following parameters to this'
+                f' class will be ignored: {params}.\nHere are the problems:'
+            )
+            mismatch = False
+            for p in params.split(','):
+                if eval(p.strip()) != eval(f'smiles_language.{p.strip()}'):
+                    logger.error(
+                        f'Provided arg {p.strip()}:{eval(p.strip())} does not match the '
+                        f'smiles_language value: {eval(f"smiles_language.{p.strip()}")}'
+                        ' NOTE: smiles_language value takes preference!!'
+                    )
+                    mismatch = True
+            if not mismatch:
+                logger.error('Looking great, no problems found!')
+            else:
+                logger.error(
+                    'To get rid of this, adapt the smiles_language *offline*, feed it'
+                    'ready for intended usage, and adapt the constructor args to be '
+                    'identical with their equivalents in the language object'
+                )
+
         else:
             language_kwargs = {}  # SMILES default
             if selfies:
