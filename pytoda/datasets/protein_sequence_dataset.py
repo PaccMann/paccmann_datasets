@@ -141,8 +141,8 @@ class ProteinSequenceDataset(DatasetDelegator):
             protein_language (ProteinLanguage): a ProteinLanguage (or child)
                 instance, e.g. ProteinFeatureLanguage. Defaults to None,
                 creating a default instance.
-            amino_acid_dict (str): Type of dictionary used for amino acid
-                sequences. Defaults to 'iupac', alternative is 'unirep'.
+            amino_acid_dict (str): Type of dictionary used for amino acid sequences.
+                Defaults to 'iupac', alternative is 'unirep' or 'human-kinase-alignment'
             padding (bool): pad sequences to longest in the protein language.
                 Defaults to True.
             padding_length (int): manually sets number of applied paddings,

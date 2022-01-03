@@ -24,8 +24,7 @@ class ProteinProteinInteractionDataset(Dataset):
         labels_filepath: str,
         sequence_filetypes: Union[str, List[str]] = 'infer',
         annotations_column_names: Union[List[int], List[str]] = None,
-        protein_language: ProteinLanguage = None,
-        amino_acid_dict: str = 'iupac',
+        protein_languages: Union[ProteinLanguage, List[ProteinLanguage]] = None,
         paddings: Union[bool, Sequence[bool]] = True,
         padding_lengths: Union[int, Sequence[int]] = None,
         add_start_and_stops: Union[bool, Sequence[bool]] = False,
@@ -62,12 +61,12 @@ class ProteinProteinInteractionDataset(Dataset):
                 (positional or strings) for the annotations. Defaults to None,
                 a.k.a. all the columns, except the entity_names are annotation
                 labels.
-            protein_language (ProteinLanguage): a ProteinLanguage (or child)
-                instance, e.g. ProteinFeatureLanguage. Defaults to None,
-                creating a default instance.
-            amino_acid_dict (str): The type of amino acid dictionary to map
-                each sequence token to a unique number. Defaults to 'iupac', alternative
-                is 'unirep'.
+            protein_languages (Union[ProteinLanguage, List[ProteinLanguage]):
+                one or multiple ProteinLanguages. If multiple are provided, exactly one
+                should be given for each entity. If only one is provided, the same
+                language will be used for all entities. You can also pass child instances
+                like ProteinFeatureLanguage. Defaults to None, i.e., creating a single
+                protein language with iupac dictionary for all entities.
             paddings (Union[bool, Sequence[bool]]): pad sequences to longest in
                 the protein language. Defaults to True.
             padding_lengths (Union[int, Sequence[int]]): manually sets number
@@ -132,25 +131,39 @@ class ProteinProteinInteractionDataset(Dataset):
             ),
         )
 
-        if protein_language is None:
-            self.protein_language = ProteinLanguage()
-
+        if protein_languages is None:
+            # Objects will be constructed in `ProteinSequenceDataset`
+            self.protein_languages = [None for _ in self.entities]
+            self.pl_methods = ['iupac' for _ in self.entities]
         else:
-            self.protein_language = protein_language
-            assert (
-                self.protein_language.add_start_and_stop
-                == all(self.add_start_and_stops)
-            ) and all(self.add_start_and_stops) == any(
-                self.add_start_and_stops
-            ), 'Inconsistencies found in add_start_and_stop.'
+            if isinstance(protein_languages, Sequence):
+                # Multiple languages were passed
+                self.protein_languages = protein_languages
+                self.pl_methods = [p.method for p in protein_languages]
 
-        # Create protein sequence datasets
+            elif isinstance(protein_languages, ProteinLanguage):
+                # Single language was passed
+                self.protein_languages = [protein_languages for _ in self.entities]
+                self.pl_methods = [protein_languages.method for _ in self.entities]
+
+            else:
+                raise TypeError(
+                    f'Received unknown type for protein_language: {type(protein_languages)}'
+                )
+            # Check whether input arguments are consistent
+            for i, (lang, start) in enumerate(
+                zip(self.protein_languages, self.add_start_and_stops)
+            ):
+                assert (
+                    lang.add_start_and_stop == start
+                ), f'add_start_and_stop differs for language {i}: {start} vs. {lang.add_start_and_stop}'
+
+        # Create protein sequence datasets.
         self.datasets = [
             ProteinSequenceDataset(
                 *filepaths,
                 filetype=self.filetypes[index],
-                protein_language=protein_language,
-                amino_acid_dict=amino_acid_dict,
+                protein_language=self.protein_languages[index],
                 padding=self.paddings[index],
                 padding_length=self.padding_lengths[index],
                 add_start_and_stop=self.add_start_and_stops[index],
@@ -161,6 +174,9 @@ class ProteinProteinInteractionDataset(Dataset):
             )
             for index, filepaths in enumerate(self.sequence_filepaths)
         ]
+        # Retrieve the possibly updated protein languages
+        self.protein_languages = [data.protein_language for data in self.datasets]
+
         # Labels
         self.labels_df = pd.read_csv(self.labels_filepath)
         # Cast the column names to uppercase
