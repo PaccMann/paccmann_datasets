@@ -171,40 +171,45 @@ class TestProcessing(unittest.TestCase):
 
         # sf.split_selfies returns generator
         symbols_benzene = list(sf.split_selfies(encoded_selfies))
+        # before selfies 2.0.0 the last token is [Branch1_2]
         self.assertListEqual(
             symbols_benzene,
-            ['[C]', '[=C]', '[C]', '[=C]', '[C]', '[=C]', '[Ring1]', '[Branch1_2]'],
+            ['[C]', '[=C]', '[C]', '[=C]', '[C]', '[=C]', '[Ring1]', '[=Branch1]'],
         )
+
         for smiles, ground_truth in [
             (
                 'c1cnoc1',
-                ['[C]', '[C]', '[=N]', '[O]', '[C]', '[Expl=Ring1]', '[Branch1_1]'],
+                # before selfies 2.0.0 the 2 last token are [Expl=Ring1] and [Branch1_1]
+                ['[C]', '[C]', '[=N]', '[O]', '[C]', '[=Ring1]', '[Branch1]'],
             ),
             (
                 '[O-][n+]1ccccc1S',
+                # before selfies 2.0.0 it is: [O-expl], [N+expl] and [=Branch1_2]
                 [
-                    '[O-expl]',
-                    '[N+expl]',
+                    '[O-1]',
+                    '[N+1]',
                     '[=C]',
                     '[C]',
                     '[=C]',
                     '[C]',
                     '[=C]',
                     '[Ring1]',
-                    '[Branch1_2]',
+                    '[=Branch1]',
                     '[S]',
                 ],
             ),
             (
                 'c1snnc1-c1ccccn1',
+                # before selfies 2.0.0 it is: [Expl=Ring1], [Branch1_1] and [Branch1_2]
                 [
                     '[C]',
                     '[S]',
                     '[N]',
                     '[=N]',
                     '[C]',
-                    '[Expl=Ring1]',
-                    '[Branch1_1]',
+                    '[=Ring1]',
+                    '[Branch1]',
                     '[C]',
                     '[=C]',
                     '[C]',
@@ -212,7 +217,7 @@ class TestProcessing(unittest.TestCase):
                     '[C]',
                     '[=N]',
                     '[Ring1]',
-                    '[Branch1_2]',
+                    '[=Branch1]',
                 ],
             ),
         ]:
