@@ -151,12 +151,12 @@ class ProteinProteinInteractionDataset(Dataset):
                     f'Received unknown type for protein_language: {type(protein_languages)}'
                 )
             # Check whether input arguments are consistent
-            for i, (l, s) in enumerate(
+            for i, (lang, start) in enumerate(
                 zip(self.protein_languages, self.add_start_and_stops)
             ):
                 assert (
-                    l.add_start_and_stop == s
-                ), f'add_start_and_stop differs for language {i}: {s} vs. {l.add_start_and_stop}'
+                    lang.add_start_and_stop == start
+                ), f'add_start_and_stop differs for language {i}: {start} vs. {lang.add_start_and_stop}'
 
         # Create protein sequence datasets.
         self.datasets = [
@@ -175,7 +175,7 @@ class ProteinProteinInteractionDataset(Dataset):
             for index, filepaths in enumerate(self.sequence_filepaths)
         ]
         # Retrieve the possibly updated protein languages
-        self.protein_languages = [d.protein_language for d in self.datasets]
+        self.protein_languages = [data.protein_language for data in self.datasets]
 
         # Labels
         self.labels_df = pd.read_csv(self.labels_filepath)
