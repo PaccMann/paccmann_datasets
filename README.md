@@ -1,8 +1,8 @@
 # pytoda
 [![build](https://github.com/PaccMann/paccmann_datasets/workflows/build/badge.svg)](https://github.com/PaccMann/paccmann_datasets/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code quality](https://www.code-inspector.com/project/22043/score/svg)](https://frontend.code-inspector.com/)
-[![Code grade](https://www.code-inspector.com/project/22043/status/svg)](https://frontend.code-inspector.com/)
+[![Code quality](https://api.codiga.io/project/22043/score/svg)](https://codiga.io/)
+[![Code grade](https://api.codiga.io/project/22043/status/svg)](https://codiga.io/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ## Overview
