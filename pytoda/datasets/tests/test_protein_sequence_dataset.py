@@ -11,6 +11,7 @@ from pytoda.tests.utils import TestFileContent
 
 SMI_CONTENT = os.linesep.join(['EGK	ID3', 'S	ID1', 'FGAAV	ID2', 'NCCS	ID4'])
 MORE_SMI_CONTENT = os.linesep.join(['KGE	ID5', 'K	ID6', 'SCCN	ID7', 'K	ID8'])
+BROKEN_SMI_CONTENT = os.linesep.join(['KGE	ID5', 'K	ID6', 'SCfCN	ID7'])
 
 
 FASTA_CONTENT_UNIPROT = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
@@ -41,6 +42,7 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
         print(f'backend is {self.backend}')
         self.smi_content = SMI_CONTENT
         self.smi_other_content = MORE_SMI_CONTENT
+        self.smi_broken_content = BROKEN_SMI_CONTENT
         # would fail with FASTA_CONTENT_GENERIC
         self.fasta_content = FASTA_CONTENT_UNIPROT
 
@@ -240,6 +242,29 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
             self.assertEqual(sum(a_tokenized_sequence[:-123]), 0)
             time.sleep(1)
 
+        # Test case with unknown token in dataset
+        for iterate in [False, True]:
+            with TestFileContent(self.smi_broken_content) as a_test_file:
+                protein_sequence_dataset = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    add_start_and_stop=False,
+                    padding=False,
+                    backend=self.backend,
+                    iterate_dataset=iterate,
+                )
+                self.assertListEqual(
+                    protein_sequence_dataset[2].tolist(),
+                    [
+                        protein_sequence_dataset.protein_language.token_to_index['S'],
+                        protein_sequence_dataset.protein_language.token_to_index['C'],
+                        protein_sequence_dataset.protein_language.token_to_index[
+                            '<UNK>'
+                        ],
+                        protein_sequence_dataset.protein_language.token_to_index['C'],
+                        protein_sequence_dataset.protein_language.token_to_index['N'],
+                    ],
+                )
+
     def test_data_loader(self) -> None:
         """Test data_loader."""
         with TestFileContent(self.smi_content) as a_test_file:
@@ -345,6 +370,7 @@ class TestProteinSequenceDatasetLazyBackend(
         print(f'backend is {self.backend}')
         self.smi_content = SMI_CONTENT
         self.smi_other_content = MORE_SMI_CONTENT
+        self.smi_broken_content = BROKEN_SMI_CONTENT
         self.fasta_content = FASTA_CONTENT_GENERIC
 
     def test___len__fasta(self) -> None:

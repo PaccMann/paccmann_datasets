@@ -1,4 +1,6 @@
 """Implementation of ProteinSequenceDataset."""
+import logging
+
 import torch
 
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
@@ -18,6 +20,8 @@ from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
 from .base_dataset import DatasetDelegator, KeyDataset
 from .utils import concatenate_file_based_datasets
+
+logger = logging.getLogger(__name__)
 
 SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
     '.csv': {
@@ -192,9 +196,13 @@ class ProteinSequenceDataset(DatasetDelegator):
             f'Protein Language has {protein_language.add_start_and_stop}.'
 
         if iterate_dataset:
+            tokens = set(self.protein_language.token_to_index.keys())
             for sequence in self.dataset:
                 # sets max_token_sequence_length
                 self.protein_language.add_sequence(sequence)
+                seq_tokens = set(list(sequence))
+                if seq_tokens - tokens != set():
+                    logger.error(f'Found unknown token(s): {list(seq_tokens-tokens)}')
 
         # Set up transformation paramater
         self.padding = padding
