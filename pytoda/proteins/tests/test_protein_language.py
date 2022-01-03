@@ -138,6 +138,20 @@ class TestProteinLanguage(unittest.TestCase):
             ],
         )
 
+        # Test encoding an unknown character
+        new_seq = 'Aq-C'
+        self.assertListEqual(
+            protein_language.sequence_to_token_indexes(new_seq),
+            [
+                HUMAN_KINASE_ALIGNMENT_VOCAB['<START>'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['A'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['<UNK>'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['-'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['C'],
+                HUMAN_KINASE_ALIGNMENT_VOCAB['<STOP>'],
+            ],
+        )
+
     def test_token_indexes_to_sequence(self) -> None:
         """Test token_indexes_to_sequence."""
         sequence = 'CCO'
