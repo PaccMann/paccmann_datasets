@@ -1,11 +1,9 @@
 """Testing Crawlers."""
 import unittest
 
-from pytoda.preprocessing.crawlers import (
+from pytoda.preprocessing.crawlers import (  # query_pubchem,; remove_pubchem_smiles,
     get_smiles_from_pubchem,
     get_smiles_from_zinc,
-    # query_pubchem,
-    # remove_pubchem_smiles,
 )
 
 
