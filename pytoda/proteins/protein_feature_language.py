@@ -85,3 +85,8 @@ class ProteinFeatureLanguage(ProteinLanguage):
                 if token_index in self.sequence_tokens
             ]
         )
+
+    @property
+    def method(self) -> str:
+        """A string denoting the language encoding method"""
+        return self.feat

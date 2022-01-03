@@ -251,3 +251,8 @@ class ProteinLanguage(object):
                 if token_index in self.sequence_tokens
             ]
         )
+
+    @property
+    def method(self) -> str:
+        """A string denoting the language method"""
+        return self.dict
