@@ -7,6 +7,7 @@ from urllib.error import HTTPError
 
 import pubchempy as pcp
 from pubchempy import BadRequestError, PubChemHTTPError
+from unidecode import unidecode
 
 from pytoda.smiles.transforms import Canonicalization
 
@@ -41,7 +42,7 @@ def get_smiles_from_zinc(drug: Union[str, int]) -> str:
     if type(drug) == str:
 
         # Parse name, then retrieve ZINC ID from it
-        stripped_drug = drug.strip().replace(' ', '%20')
+        stripped_drug = unidecode(drug).strip().replace(' ', '%20')
         zinc_ids = []
         try:
             drug_url = urllib_request.pathname2url(stripped_drug)
@@ -119,7 +120,7 @@ def get_smiles_from_pubchem(
 
     # Parse name
     if isinstance(drug, str):
-        drug = drug.strip().replace(' ', '%20')
+        drug = unidecode(drug).strip().replace(' ', '%20')
 
     # Search ZINC for compound name
     for option in options:
