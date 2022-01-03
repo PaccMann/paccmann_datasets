@@ -202,7 +202,9 @@ class ProteinSequenceDataset(DatasetDelegator):
                 self.protein_language.add_sequence(sequence)
                 seq_tokens = set(list(sequence))
                 if seq_tokens - tokens != set():
-                    logger.error(f'Found unknown token(s): {list(seq_tokens-tokens)}')
+                    logger.error(
+                        'Found unknown token(s): %s', list(seq_tokens - tokens)
+                    )
 
         # Set up transformation paramater
         self.padding = padding

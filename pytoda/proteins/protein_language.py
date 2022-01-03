@@ -214,7 +214,7 @@ class ProteinLanguage(object):
         for token in self.tokenizer(sequence):
             if token not in self.token_to_index:
                 logger.error(
-                    f'Replacing unknown token {token} with {self.unknown_token}'
+                    'Replacing unknown token %s with %r', token, self.unknown_token
                 )
                 token = self.unknown_token
             yield self.token_to_index[token]
@@ -231,7 +231,7 @@ class ProteinLanguage(object):
             Indexes: indexes representation for the AAS provided.
         """
         return self._finalize_token_indexes_fn(
-            [token for token in self.sequence_to_token_indexes_generator(sequence)]
+            list(self.sequence_to_token_indexes_generator(sequence))
         )
 
     def token_indexes_to_sequence(self, token_indexes: Indexes) -> str:
