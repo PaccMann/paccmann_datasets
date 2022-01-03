@@ -1,5 +1,5 @@
-numpy>=1.18.0
-scikit-learn>=0.21.0
+numpy>=1.20.0
+scikit-learn>=0.23.0
 pandas>=1.0.0
 torch<1.9>=1.4.0
 diskcache>=5.0.3
@@ -7,7 +7,7 @@ dill>=0.3.0
 selfies>=2.0.0
 upfp>=0.0.5
 SmilesPE>=0.0.3
-pyfaidx>=0.5.0
+pyfaidx>=0.6.0
 PubChemPy>=1.0.4
 importlib_resources>=5.2.2
 Unidecode>=1.1.2
