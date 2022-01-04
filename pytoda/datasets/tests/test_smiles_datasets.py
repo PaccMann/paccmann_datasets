@@ -358,6 +358,33 @@ class TestSMILESTokenizerDatasetEager(unittest.TestCase):
                 [pad_index] * padding_len + [c_index, c_index, o_index],
             )
 
+        # Test case where the language is adapted
+        smiles_language = SMILESTokenizer.from_pretrained(
+            pretrained_path, padding=False
+        )
+
+        with TestFileContent(self.content) as a_test_file:
+            with TestFileContent(self.other_content) as another_test_file:
+
+                smiles_dataset = SMILESTokenizerDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    smiles_language=smiles_language,
+                    iterate_dataset=False,
+                )
+
+                config_file = os.path.join(pretrained_path, TOKENIZER_CONFIG_FILE)
+                with open(config_file, encoding="utf-8") as fp:
+                    max_length = json.load(fp)['max_token_sequence_length']
+            c_index = smiles_dataset.smiles_language.token_to_index['C']
+            o_index = smiles_dataset.smiles_language.token_to_index['O']
+
+            sample = 0
+            self.assertListEqual(
+                smiles_dataset[sample].numpy().flatten().tolist(),
+                [c_index, c_index, o_index],
+            )
+
     def test_kwargs_read_smi(self):
         with TestFileContent(
             os.linesep.join(
