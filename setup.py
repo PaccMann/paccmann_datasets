@@ -33,11 +33,8 @@ setup(
     description='pytoda: PaccMann PyTorch Dataset Classes.',
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/markdown',
-    author='Matteo Manica, Jannis Born, Ali Oskooei, Joris Cadow',
-    author_email=(
-        'drugilsberg@gmail.com, jab@zurich.ibm.com, '
-        'ali.oskooei@gmail.com, joriscadow@gmail.com'
-    ),
+    author='Matteo Manica, Jannis Born, Joris Cadow',
+    author_email='drugilsberg@gmail.com, jannis.born@gmx.de, joriscadow@gmail.com',
     url='https://github.com/PaccMann/paccmann_datasets',
     license='MIT',
     install_requires=[

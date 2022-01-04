@@ -1,4 +1,5 @@
 # pytoda
+[![PyPI version](https://badge.fury.io/py/pytoda.svg)](https://badge.fury.io/py/pytoda)
 [![build](https://github.com/PaccMann/paccmann_datasets/workflows/build/badge.svg)](https://github.com/PaccMann/paccmann_datasets/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code quality](https://api.codiga.io/project/22043/score/svg)](https://codiga.io/)
@@ -19,6 +20,7 @@ A python package that eases handling biochemical data for deep learning applicat
 ```sh
 pip install pytoda
 ```
+
 ## Documentation
 
 Please find the full documentation [here](https://paccmann.github.io/paccmann_datasets/).
@@ -43,7 +45,8 @@ Install in editable mode:
 pip install -r dev_requirements.txt
 pip install --user --no-use-pep517 -e .
 ```
-#### Note on `rdkit` vs `rdkit-pypi`
+
+### Note on `rdkit` vs `rdkit-pypi`
 NOTE: The conda env ships with the [*official*](https://github.com/rdkit/rdkit) `rdkit` implementation.
 But the `pip` installation overwrites the rdkit package with the community-contributed [PyPI package](https://pypi.org/project/rdkit-pypi/#history) called `rdkit-pypi`. This is intentional because `pytoda` is distributed via PyPI too and most users will thus depend on `rdkit-pypi`. Keep in mind that `rdkit-pypi` might contain bugs or be outdated w.r.t. `rdkit`. If developers experience issues with `rdkit-pypi`, they can temporarily uninstall `rdkit-pypi` and will then fall back on using the proper `rdkit` package.
 
