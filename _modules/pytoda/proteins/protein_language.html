@@ -158,6 +158,8 @@
             
   <h1>Source code for pytoda.proteins.protein_language</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Protein language handling.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterator</span>
 
 <span class="kn">import</span> <span class="nn">dill</span>
 <span class="kn">from</span> <span class="nn">upfp</span> <span class="kn">import</span> <span class="n">parse_fasta</span>
@@ -165,6 +167,8 @@
 <span class="kn">from</span> <span class="nn">..files</span> <span class="kn">import</span> <span class="n">read_smi</span>
 <span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Indexes</span><span class="p">,</span> <span class="n">Tokenizer</span><span class="p">,</span> <span class="n">Tokens</span>
 <span class="kn">from</span> <span class="nn">.processing</span> <span class="kn">import</span> <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">,</span> <span class="n">IUPAC_VOCAB</span><span class="p">,</span> <span class="n">UNIREP_VOCAB</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ProteinLanguage"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage">[docs]</a><span class="k">class</span> <span class="nc">ProteinLanguage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -356,6 +360,24 @@
         <span class="n">tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_max_token_sequence_length</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="ProteinLanguage.sequence_to_token_indexes_generator"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.sequence_to_token_indexes_generator">[docs]</a>    <span class="k">def</span> <span class="nf">sequence_to_token_indexes_generator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Transform tokens into indexes using a generator</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence (str): an AAS representations</span>
+
+<span class="sd">        Yields:</span>
+<span class="sd">            Generator[int]: The generator of token indexes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">sequence</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s1">&#39;Replacing unknown token </span><span class="si">%s</span><span class="s1"> with </span><span class="si">%r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span>
+                <span class="p">)</span>
+                <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="n">token</span><span class="p">]</span></div>
+
 <div class="viewcode-block" id="ProteinLanguage.sequence_to_token_indexes"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.sequence_to_token_indexes">[docs]</a>    <span class="k">def</span> <span class="nf">sequence_to_token_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Indexes</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Transform character-level amino acid sequence (AAS) into a sequence of</span>
@@ -368,10 +390,7 @@
 <span class="sd">            Indexes: indexes representation for the AAS provided.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_token_indexes_fn</span><span class="p">(</span>
-            <span class="p">[</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
-            <span class="p">]</span>
+            <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence_to_token_indexes_generator</span><span class="p">(</span><span class="n">sequence</span><span class="p">))</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProteinLanguage.token_indexes_to_sequence"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.token_indexes_to_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">token_indexes_to_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_indexes</span><span class="p">:</span> <span class="n">Indexes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -390,7 +409,12 @@
                 <span class="k">for</span> <span class="n">token_index</span> <span class="ow">in</span> <span class="n">token_indexes</span>
                 <span class="k">if</span> <span class="n">token_index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence_tokens</span>
             <span class="p">]</span>
-        <span class="p">)</span></div></div>
+        <span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">method</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;A string denoting the language method&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span></div>
 </pre></div>
 
            </div>

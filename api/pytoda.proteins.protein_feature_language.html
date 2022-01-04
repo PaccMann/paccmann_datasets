@@ -265,34 +265,12 @@ feature space</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – name of the ProteinFeatureLanguage.</p></li>
-<li><p><strong>features</strong> (<em>str</em>) – Feature alphabet choice. Defaults to ‘blosum’,</p></li>
-<li><p><strong>are 'binary_features' and 'float_features'.</strong> (<em>alternatives</em>) – </p></li>
+<li><p><strong>features</strong> (<em>str</em>) – Feature alphabet choice. Defaults to ‘blosum’,
+alternatives are ‘binary_features’, ‘float_features’ and ‘blosum_norm’.</p></li>
 <li><p><strong>tokenizer</strong> (<em>Tokenizer</em>) – This needs to be a function used to tokenize
 the amino acid sequences. The default is list which simply
 splits the sequence character-by-character.</p></li>
 </ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="pytoda.proteins.protein_feature_language.ProteinFeatureLanguage.sequence_to_token_indexes">
-<code class="sig-name descname">sequence_to_token_indexes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequence</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/protein_feature_language.html#ProteinFeatureLanguage.sequence_to_token_indexes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.protein_feature_language.ProteinFeatureLanguage.sequence_to_token_indexes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transform character-level amino acid sequence (AAS) into a sequence of
-token indexes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>sequence</strong> (<em>str</em>) – an AAS representation.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><dl class="simple">
-<dt>list of tuples (one tuple per AA) where every tuple has</dt><dd><p>self.number_of_features entries.</p>
-</dd>
-</dl>
-</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
 </dd></dl>
@@ -311,6 +289,17 @@ tuple has length self.number_of_features</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.proteins.protein_feature_language.ProteinFeatureLanguage.method">
+<em class="property">property </em><code class="sig-name descname">method</code><a class="headerlink" href="#pytoda.proteins.protein_feature_language.ProteinFeatureLanguage.method" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string denoting the language encoding method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
 </dd>
 </dl>
 </dd></dl>

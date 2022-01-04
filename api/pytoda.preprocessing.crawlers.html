@@ -198,7 +198,7 @@
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.get_smiles_from_pubchem" title="pytoda.preprocessing.crawlers.get_smiles_from_pubchem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_smiles_from_pubchem</span></code></a></p></td>
-<td><p>Uses the PubChem database to retrieve the SMILES of a drug name (str).</p></td>
+<td><p>Uses the PubChem database to retrieve the SMILES of a drug name given as string (default) or a PubChem ID.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.get_smiles_from_zinc" title="pytoda.preprocessing.crawlers.get_smiles_from_zinc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_smiles_from_zinc</span></code></a></p></td>
 <td><p>Uses the ZINC databases to retrieve the SMILES of a ZINC ID (int) or a drug name (str).</p></td>
@@ -238,26 +238,30 @@ ID.</p>
 
 <dl class="py function">
 <dt id="pytoda.preprocessing.crawlers.get_smiles_from_pubchem">
-<code class="sig-name descname">get_smiles_from_pubchem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">drug</span></em>, <em class="sig-param"><span class="n">use_isomeric</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">kekulize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/crawlers.html#get_smiles_from_pubchem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.crawlers.get_smiles_from_pubchem" title="Permalink to this definition">¶</a></dt>
-<dd><p>Uses the PubChem database to retrieve the SMILES of a drug name (str).</p>
+<code class="sig-name descname">get_smiles_from_pubchem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">drug</span></em>, <em class="sig-param"><span class="n">query_type</span><span class="o">=</span><span class="default_value">'name'</span></em>, <em class="sig-param"><span class="n">use_isomeric</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">kekulize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/crawlers.html#get_smiles_from_pubchem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.crawlers.get_smiles_from_pubchem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the PubChem database to retrieve the SMILES of a drug name given as string
+(default) or a PubChem ID.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>drug</strong> (<em>str</em>) – string with a drug name (or a PubChem ID as a string).</p></li>
+<li><p><strong>query_type</strong> (<em>str</em>) – Either ‘name’ or ‘cid’.
+Identifies whether the argument provided as drug is a name (e.g ‘Tacrine’) or
+a PubChem ID (1935). Defaults to name.</p></li>
 <li><p><strong>use_isomeric</strong> (<em>bool</em><em>, </em><em>optional</em>) – SMILES, not the canonical one.</p></li>
 <li><p><strong>kekulize</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether kekulization is used. PubChem uses
 kekulization per default, so setting this to ‘True’ will not
 perform any operation on the retrieved SMILES.
 NOTE: Setting it to ‘False’ will convert aromatic atoms to lower-
 case characters and <em>induces a RDKit dependency</em></p></li>
-<li><p><strong>sanitize</strong> (<em>bool</em><em>, </em><em>optional</em>) – </p></li>
+<li><p><strong>sanitize</strong> (<em>bool</em><em>, </em><em>optional</em>) – Sanitize SMILE</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The SMILES string of the drug name.</p>
 </dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>smiles (str) – The SMILES string of the drug name.</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>smiles (str)</p>
 </dd>
 </dl>
 </dd></dl>

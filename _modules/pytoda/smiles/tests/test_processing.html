@@ -330,40 +330,45 @@
 
         <span class="c1"># sf.split_selfies returns generator</span>
         <span class="n">symbols_benzene</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sf</span><span class="o">.</span><span class="n">split_selfies</span><span class="p">(</span><span class="n">encoded_selfies</span><span class="p">))</span>
+        <span class="c1"># before selfies 2.0.0 the last token is [Branch1_2]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
             <span class="n">symbols_benzene</span><span class="p">,</span>
-            <span class="p">[</span><span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[=C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[=C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[=C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[Ring1]&#39;</span><span class="p">,</span> <span class="s1">&#39;[Branch1_2]&#39;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[=C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[=C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[=C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[Ring1]&#39;</span><span class="p">,</span> <span class="s1">&#39;[=Branch1]&#39;</span><span class="p">],</span>
         <span class="p">)</span>
+
         <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="p">[</span>
             <span class="p">(</span>
                 <span class="s1">&#39;c1cnoc1&#39;</span><span class="p">,</span>
-                <span class="p">[</span><span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[=N]&#39;</span><span class="p">,</span> <span class="s1">&#39;[O]&#39;</span><span class="p">,</span> <span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[Expl=Ring1]&#39;</span><span class="p">,</span> <span class="s1">&#39;[Branch1_1]&#39;</span><span class="p">],</span>
+                <span class="c1"># before selfies 2.0.0 the 2 last token are [Expl=Ring1] and [Branch1_1]</span>
+                <span class="p">[</span><span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[=N]&#39;</span><span class="p">,</span> <span class="s1">&#39;[O]&#39;</span><span class="p">,</span> <span class="s1">&#39;[C]&#39;</span><span class="p">,</span> <span class="s1">&#39;[=Ring1]&#39;</span><span class="p">,</span> <span class="s1">&#39;[Branch1]&#39;</span><span class="p">],</span>
             <span class="p">),</span>
             <span class="p">(</span>
                 <span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">,</span>
+                <span class="c1"># before selfies 2.0.0 it is: [O-expl], [N+expl] and [=Branch1_2]</span>
                 <span class="p">[</span>
-                    <span class="s1">&#39;[O-expl]&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;[N+expl]&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;[O-1]&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;[N+1]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[=C]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[C]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[=C]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[C]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[=C]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[Ring1]&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;[Branch1_2]&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;[=Branch1]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[S]&#39;</span><span class="p">,</span>
                 <span class="p">],</span>
             <span class="p">),</span>
             <span class="p">(</span>
                 <span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">,</span>
+                <span class="c1"># before selfies 2.0.0 it is: [Expl=Ring1], [Branch1_1] and [Branch1_2]</span>
                 <span class="p">[</span>
                     <span class="s1">&#39;[C]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[S]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[N]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[=N]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[C]&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;[Expl=Ring1]&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;[Branch1_1]&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;[=Ring1]&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;[Branch1]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[C]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[=C]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[C]&#39;</span><span class="p">,</span>
@@ -371,7 +376,7 @@
                     <span class="s1">&#39;[C]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[=N]&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;[Ring1]&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;[Branch1_2]&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;[=Branch1]&#39;</span><span class="p">,</span>
                 <span class="p">],</span>
             <span class="p">),</span>
         <span class="p">]:</span>
@@ -388,7 +393,13 @@
             <span class="n">selfies</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
                 <span class="n">tokenize_selfies</span><span class="p">(</span><span class="n">selfies</span><span class="p">),</span> <span class="nb">list</span><span class="p">(</span><span class="n">sf</span><span class="o">.</span><span class="n">split_selfies</span><span class="p">(</span><span class="n">selfies</span><span class="p">))</span>
-            <span class="p">)</span></div></div>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestProcessing.test_package_tokenizer"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_processing.html#pytoda.smiles.tests.test_processing.TestProcessing.test_package_tokenizer">[docs]</a>    <span class="k">def</span> <span class="nf">test_package_tokenizer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test package tokenizer.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pytoda.smiles</span> <span class="kn">import</span> <span class="n">vocab</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">),</span> <span class="mi">575</span><span class="p">)</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>

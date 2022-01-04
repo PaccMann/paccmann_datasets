@@ -7,7 +7,7 @@ pytoda.datasets.tests.test_protein_sequence_dataset module
 .. currentmodule:: pytoda.datasets.tests.test_protein_sequence_dataset
 
 .. automodule:: pytoda.datasets.tests.test_protein_sequence_dataset
-    :members: FASTA_CONTENT_GENERIC, FASTA_CONTENT_UNIPROT, MORE_SMI_CONTENT, SMI_CONTENT, TestProteinSequenceDatasetEagerBackend, TestProteinSequenceDatasetLazyBackend, all_keys
+    :members: BROKEN_SMI_CONTENT, FASTA_CONTENT_GENERIC, FASTA_CONTENT_UNIPROT, MORE_SMI_CONTENT, SMI_CONTENT, TestProteinSequenceDatasetEagerBackend, TestProteinSequenceDatasetLazyBackend, all_keys
     :undoc-members:
     :show-inheritance:
     :member-order: bysource

@@ -162,8 +162,8 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">resources</span>
 
+<span class="kn">from</span> <span class="nn">importlib_resources</span> <span class="kn">import</span> <span class="n">as_file</span><span class="p">,</span> <span class="n">files</span>
 <span class="kn">from</span> <span class="nn">selfies</span> <span class="kn">import</span> <span class="n">split_selfies</span> <span class="k">as</span> <span class="n">split_selfies_</span>
 <span class="kn">from</span> <span class="nn">SmilesPE.pretokenizer</span> <span class="kn">import</span> <span class="n">kmer_tokenizer</span>
 <span class="kn">from</span> <span class="nn">SmilesPE.tokenizer</span> <span class="kn">import</span> <span class="n">SPE_Tokenizer</span>
@@ -178,8 +178,8 @@
     <span class="sa">r</span><span class="s1">&#39;-|\+|</span><span class="se">\\\\</span><span class="s1">|\/|:|~|@|\?|&gt;|\*|\$|\%[0-9]</span><span class="si">{2}</span><span class="s1">|[0-9])&#39;</span>
 <span class="p">)</span>
 
-<span class="k">with</span> <span class="n">resources</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="s1">&#39;pytoda.smiles.metadata&#39;</span><span class="p">,</span> <span class="s1">&#39;spe_chembl.txt&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">filepath</span><span class="p">:</span>
-    <span class="n">SPE_TOKENIZER</span> <span class="o">=</span> <span class="n">SPE_Tokenizer</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+<span class="k">with</span> <span class="n">as_file</span><span class="p">(</span><span class="n">files</span><span class="p">(</span><span class="s1">&#39;pytoda.smiles.metadata&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="s1">&#39;spe_chembl.txt&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">filepath</span><span class="p">:</span>
+    <span class="n">SPE_TOKENIZER</span> <span class="o">=</span> <span class="n">SPE_Tokenizer</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">)))</span>
 
 
 <div class="viewcode-block" id="tokenize_smiles"><a class="viewcode-back" href="../../../api/pytoda.smiles.processing.html#pytoda.smiles.processing.tokenize_smiles">[docs]</a><span class="k">def</span> <span class="nf">tokenize_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">regexp</span><span class="o">=</span><span class="n">SMILES_TOKENIZER</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tokens</span><span class="p">:</span>

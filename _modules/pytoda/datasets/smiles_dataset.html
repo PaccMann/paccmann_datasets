@@ -302,6 +302,33 @@
 
         <span class="k">if</span> <span class="n">smiles_language</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">smiles_language</span> <span class="o">=</span> <span class="n">smiles_language</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;canonical, augment, kekulize, all_bonds_explicit, selfies, sanitize, &quot;</span>
+                <span class="s2">&quot;all_hs_explicit, remove_bonddir, remove_chirality, randomize, &quot;</span>
+                <span class="s2">&quot;add_start_and_stop, padding, padding_length, device&quot;</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s1">&#39;Since you provided a smiles_language, the following parameters to this&#39;</span>
+                <span class="sa">f</span><span class="s1">&#39; class will be ignored: </span><span class="si">{params}</span><span class="s1">.</span><span class="se">\n</span><span class="s1">Here are the problems:&#39;</span>
+            <span class="p">)</span>
+            <span class="n">mismatch</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">eval</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">eval</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;smiles_language.{p.strip()}&#39;</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;Provided arg {p.strip()}:{eval(p.strip())} does not match the &#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;smiles_language value: {eval(f&quot;smiles_language.{p.strip()}&quot;)}&#39;</span>
+                        <span class="s1">&#39; NOTE: smiles_language value takes preference!!&#39;</span>
+                    <span class="p">)</span>
+                    <span class="n">mismatch</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">mismatch</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Looking great, no problems found!&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s1">&#39;To get rid of this, adapt the smiles_language *offline*, feed it&#39;</span>
+                    <span class="s1">&#39;ready for intended usage, and adapt the constructor args to be &#39;</span>
+                    <span class="s1">&#39;identical with their equivalents in the language object&#39;</span>
+                <span class="p">)</span>
+
         <span class="k">else</span><span class="p">:</span>
             <span class="n">language_kwargs</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># SMILES default</span>
             <span class="k">if</span> <span class="n">selfies</span><span class="p">:</span>

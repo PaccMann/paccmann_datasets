@@ -333,6 +333,23 @@ not apply to fasta files.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt id="pytoda.proteins.protein_language.ProteinLanguage.sequence_to_token_indexes_generator">
+<code class="sig-name descname">sequence_to_token_indexes_generator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequence</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/protein_language.html#ProteinLanguage.sequence_to_token_indexes_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.protein_language.ProteinLanguage.sequence_to_token_indexes_generator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform tokens into indexes using a generator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sequence</strong> (<em>str</em>) – an AAS representations</p>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>Generator[int]</em> – The generator of token indexes.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="pytoda.proteins.protein_language.ProteinLanguage.sequence_to_token_indexes">
 <code class="sig-name descname">sequence_to_token_indexes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequence</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/protein_language.html#ProteinLanguage.sequence_to_token_indexes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.protein_language.ProteinLanguage.sequence_to_token_indexes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform character-level amino acid sequence (AAS) into a sequence of
@@ -363,6 +380,17 @@ token indexes.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.proteins.protein_language.ProteinLanguage.method">
+<em class="property">property </em><code class="sig-name descname">method</code><a class="headerlink" href="#pytoda.proteins.protein_language.ProteinLanguage.method" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string denoting the language method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
 </dd>
 </dl>
 </dd></dl>

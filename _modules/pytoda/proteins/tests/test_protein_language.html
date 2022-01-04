@@ -295,6 +295,20 @@
                 <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
                 <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">],</span>
             <span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Test encoding an unknown character</span>
+        <span class="n">new_seq</span> <span class="o">=</span> <span class="s1">&#39;Aq-C&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+            <span class="n">protein_language</span><span class="o">.</span><span class="n">sequence_to_token_indexes</span><span class="p">(</span><span class="n">new_seq</span><span class="p">),</span>
+            <span class="p">[</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;&lt;UNK&gt;&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;-&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
+                <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">],</span>
+            <span class="p">],</span>
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="TestProteinLanguage.test_token_indexes_to_sequence"><a class="viewcode-back" href="../../../../api/pytoda.proteins.tests.test_protein_language.html#pytoda.proteins.tests.test_protein_language.TestProteinLanguage.test_token_indexes_to_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">test_token_indexes_to_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

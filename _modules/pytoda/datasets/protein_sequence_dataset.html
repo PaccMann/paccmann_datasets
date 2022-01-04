@@ -158,6 +158,8 @@
             
   <h1>Source code for pytoda.datasets.protein_sequence_dataset</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Implementation of ProteinSequenceDataset.&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
 <span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="kn">from</span> <span class="nn">..proteins.protein_feature_language</span> <span class="kn">import</span> <span class="n">ProteinFeatureLanguage</span>
@@ -177,6 +179,8 @@
 <span class="kn">from</span> <span class="nn">._smi_lazy_dataset</span> <span class="kn">import</span> <span class="n">_SmiLazyDataset</span>
 <span class="kn">from</span> <span class="nn">.base_dataset</span> <span class="kn">import</span> <span class="n">DatasetDelegator</span><span class="p">,</span> <span class="n">KeyDataset</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">concatenate_file_based_datasets</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">SEQUENCE_DATASET_IMPLEMENTATIONS</span> <span class="o">=</span> <span class="p">{</span>  <span class="c1"># get class and acceptable keywords</span>
     <span class="s1">&#39;.csv&#39;</span><span class="p">:</span> <span class="p">{</span>
@@ -296,8 +300,8 @@
 <span class="sd">            protein_language (ProteinLanguage): a ProteinLanguage (or child)</span>
 <span class="sd">                instance, e.g. ProteinFeatureLanguage. Defaults to None,</span>
 <span class="sd">                creating a default instance.</span>
-<span class="sd">            amino_acid_dict (str): Type of dictionary used for amino acid</span>
-<span class="sd">                sequences. Defaults to &#39;iupac&#39;, alternative is &#39;unirep&#39;.</span>
+<span class="sd">            amino_acid_dict (str): Type of dictionary used for amino acid sequences.</span>
+<span class="sd">                Defaults to &#39;iupac&#39;, alternative is &#39;unirep&#39; or &#39;human-kinase-alignment&#39;</span>
 <span class="sd">            padding (bool): pad sequences to longest in the protein language.</span>
 <span class="sd">                Defaults to True.</span>
 <span class="sd">            padding_length (int): manually sets number of applied paddings,</span>
@@ -351,9 +355,15 @@
             <span class="sa">f</span><span class="s1">&#39;Protein Language has </span><span class="si">{protein_language.add_start_and_stop}</span><span class="s1">.&#39;</span>
 
         <span class="k">if</span> <span class="n">iterate_dataset</span><span class="p">:</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">:</span>
                 <span class="c1"># sets max_token_sequence_length</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+                <span class="n">seq_tokens</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">sequence</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">seq_tokens</span> <span class="o">-</span> <span class="n">tokens</span> <span class="o">!=</span> <span class="nb">set</span><span class="p">():</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                        <span class="s1">&#39;Found unknown token(s): </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">seq_tokens</span> <span class="o">-</span> <span class="n">tokens</span><span class="p">)</span>
+                    <span class="p">)</span>
 
         <span class="c1"># Set up transformation paramater</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">padding</span>

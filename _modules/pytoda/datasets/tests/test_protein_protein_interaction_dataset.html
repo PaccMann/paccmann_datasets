@@ -164,6 +164,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">pytoda.datasets</span> <span class="kn">import</span> <span class="n">ProteinProteinInteractionDataset</span>
+<span class="kn">from</span> <span class="nn">pytoda.proteins</span> <span class="kn">import</span> <span class="n">ProteinFeatureLanguage</span><span class="p">,</span> <span class="n">ProteinLanguage</span>
 <span class="kn">from</span> <span class="nn">pytoda.tests.utils</span> <span class="kn">import</span> <span class="n">TestFileContent</span>
 
 
@@ -172,7 +173,7 @@
 
 <div class="viewcode-block" id="TestProteinProteinInteractionDataset.test___len__"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_protein_protein_interaction_dataset.html#pytoda.datasets.tests.test_protein_protein_interaction_dataset.TestProteinProteinInteractionDataset.test___len__">[docs]</a>    <span class="k">def</span> <span class="nf">test___len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
-        <span class="n">content_entity_1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;CCO	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;KCPR	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID2&#39;</span><span class="p">])</span>
+        <span class="n">content_entity_1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;CCE	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;KCPR	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID2&#39;</span><span class="p">])</span>
         <span class="n">content_entity_2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="p">[</span><span class="s1">&#39;EGK	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;S	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;FGAAV	ID2&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID4&#39;</span><span class="p">]</span>
         <span class="p">)</span>
@@ -227,7 +228,7 @@
 <div class="viewcode-block" id="TestProteinProteinInteractionDataset.test___getitem__"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_protein_protein_interaction_dataset.html#pytoda.datasets.tests.test_protein_protein_interaction_dataset.TestProteinProteinInteractionDataset.test___getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">test___getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Test __getitem__.&quot;&quot;&quot;</span>
 
-        <span class="n">content_entity_1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;CCO	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;KCPR	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID2&#39;</span><span class="p">])</span>
+        <span class="n">content_entity_1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;CCE	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;KCPR	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID2&#39;</span><span class="p">])</span>
         <span class="n">content_entity_2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="p">[</span><span class="s1">&#39;EGK	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;S	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;FGAAV	ID2&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID4&#39;</span><span class="p">]</span>
         <span class="p">)</span>
@@ -254,7 +255,7 @@
                     <span class="c1"># test first sample</span>
                     <span class="n">tcr</span><span class="p">,</span> <span class="n">peptide</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-                    <span class="n">tok_to_idx</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span>
+                    <span class="n">tok_to_idx</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_languages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">token_to_index</span>
 
                     <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
                         <span class="n">tcr</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
@@ -293,7 +294,7 @@
                     <span class="c1"># test first sample</span>
                     <span class="n">tcr</span><span class="p">,</span> <span class="n">peptide</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-                    <span class="n">tok_to_idx</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span>
+                    <span class="n">tok_to_idx</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_languages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">token_to_index</span>
 
                     <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
                         <span class="n">tcr</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
@@ -327,7 +328,7 @@
                 <span class="s1">&#39;6.7,7.8,ID1,ID2&#39;</span><span class="p">,</span>
             <span class="p">]</span>
         <span class="p">)</span>
-        <span class="n">content_entity_1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;CCO	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;KCPR	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID2&#39;</span><span class="p">])</span>
+        <span class="n">content_entity_1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;CCE	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;KCPR	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID2&#39;</span><span class="p">])</span>
         <span class="n">content_entity_2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="p">[</span><span class="s1">&#39;EGK	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;S	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;FGAAV	ID2&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID4&#39;</span><span class="p">]</span>
         <span class="p">)</span>
@@ -346,7 +347,7 @@
                     <span class="c1"># test first sample</span>
                     <span class="n">tcr</span><span class="p">,</span> <span class="n">peptide</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-                    <span class="n">tok_to_idx</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span>
+                    <span class="n">tok_to_idx</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_languages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">token_to_index</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
                         <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="p">[</span><span class="mf">6.7</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">])</span>
                     <span class="p">)</span>
@@ -386,7 +387,7 @@
                     <span class="c1"># test first sample</span>
                     <span class="n">tcr</span><span class="p">,</span> <span class="n">peptide</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-                    <span class="n">tok_to_idx</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span>
+                    <span class="n">tok_to_idx</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_languages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">token_to_index</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
                         <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="p">[</span><span class="mf">6.7</span><span class="p">])</span>
                     <span class="p">)</span>
@@ -407,7 +408,7 @@
                     <span class="c1"># test first sample</span>
                     <span class="n">tcr</span><span class="p">,</span> <span class="n">peptide</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-                    <span class="n">tok_to_idx</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span>
+                    <span class="n">tok_to_idx</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_languages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">token_to_index</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span>
                         <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="p">[</span><span class="mf">7.8</span><span class="p">])</span>
                     <span class="p">)</span>
@@ -432,14 +433,16 @@
             <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">content_entity_2</span><span class="p">)</span> <span class="k">as</span> <span class="n">another_test_file</span><span class="p">:</span>
                 <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">content_entity_2</span><span class="p">)</span> <span class="k">as</span> <span class="n">third_test_file</span><span class="p">:</span>
                     <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="n">annotated_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">annotation_file</span><span class="p">:</span>
+
+                        <span class="c1"># Test passing no protein language</span>
                         <span class="n">ppi_dataset</span> <span class="o">=</span> <span class="n">ProteinProteinInteractionDataset</span><span class="p">(</span>
                             <span class="p">[</span>
                                 <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
                                 <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
                                 <span class="n">third_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
                             <span class="p">],</span>
-                            <span class="p">[</span><span class="s1">&#39;tcr&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">],</span>
-                            <span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                            <span class="n">entity_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tcr&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">],</span>
+                            <span class="n">labels_filepath</span><span class="o">=</span><span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
                             <span class="n">sequence_filetypes</span><span class="o">=</span><span class="s1">&#39;.smi&#39;</span><span class="p">,</span>
                             <span class="n">annotations_column_names</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                         <span class="p">)</span>
@@ -451,6 +454,160 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
                             <span class="n">data_tuple</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">data_tuple</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
                         <span class="p">)</span>
+
+                        <span class="c1"># Test passing single protein language</span>
+                        <span class="k">for</span> <span class="n">dic</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;iupac&#39;</span><span class="p">,</span> <span class="s1">&#39;unirep&#39;</span><span class="p">,</span> <span class="s1">&#39;human-kinase-alignment&#39;</span><span class="p">]:</span>
+                            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]:</span>
+                                <span class="n">lang</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span>
+                                    <span class="n">amino_acid_dict</span><span class="o">=</span><span class="n">dic</span><span class="p">,</span> <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">s</span>
+                                <span class="p">)</span>
+                                <span class="n">ppi_dataset</span> <span class="o">=</span> <span class="n">ProteinProteinInteractionDataset</span><span class="p">(</span>
+                                    <span class="p">[</span>
+                                        <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                        <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                        <span class="n">third_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                    <span class="p">],</span>
+                                    <span class="n">entity_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tcr&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">],</span>
+                                    <span class="n">protein_languages</span><span class="o">=</span><span class="n">lang</span><span class="p">,</span>
+                                    <span class="n">labels_filepath</span><span class="o">=</span><span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                    <span class="n">sequence_filetypes</span><span class="o">=</span><span class="s1">&#39;.smi&#39;</span><span class="p">,</span>
+                                    <span class="n">annotations_column_names</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                    <span class="n">add_start_and_stops</span><span class="o">=</span><span class="n">s</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ppi_dataset</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+
+                                <span class="c1"># test last sample</span>
+                                <span class="n">data_tuple</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_tuple</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                                    <span class="n">data_tuple</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">data_tuple</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                                <span class="p">)</span>
+                                <span class="c1"># Tensor should be 1D</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+
+                        <span class="c1"># Test passing single protein_feature_language</span>
+                        <span class="k">for</span> <span class="n">dic</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;blosum&#39;</span><span class="p">,</span> <span class="s1">&#39;binary_features&#39;</span><span class="p">,</span> <span class="s1">&#39;float_features&#39;</span><span class="p">]:</span>
+                            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">]:</span>
+                                <span class="n">lang</span> <span class="o">=</span> <span class="n">ProteinFeatureLanguage</span><span class="p">(</span>
+                                    <span class="n">features</span><span class="o">=</span><span class="n">dic</span><span class="p">,</span> <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">s</span>
+                                <span class="p">)</span>
+
+                                <span class="n">ppi_dataset</span> <span class="o">=</span> <span class="n">ProteinProteinInteractionDataset</span><span class="p">(</span>
+                                    <span class="p">[</span>
+                                        <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                        <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                        <span class="n">third_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                    <span class="p">],</span>
+                                    <span class="n">entity_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tcr&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">],</span>
+                                    <span class="n">protein_languages</span><span class="o">=</span><span class="n">lang</span><span class="p">,</span>
+                                    <span class="n">labels_filepath</span><span class="o">=</span><span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                    <span class="n">sequence_filetypes</span><span class="o">=</span><span class="s1">&#39;.smi&#39;</span><span class="p">,</span>
+                                    <span class="n">annotations_column_names</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                    <span class="n">add_start_and_stops</span><span class="o">=</span><span class="n">s</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ppi_dataset</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+
+                                <span class="c1"># test last sample</span>
+                                <span class="n">data_tuple</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_tuple</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                                    <span class="n">data_tuple</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">data_tuple</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                                <span class="p">)</span>
+                                <span class="c1"># Tensor should be 2D</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+
+                        <span class="c1"># Test passing mixture of protein and protein_feature languages</span>
+                        <span class="k">for</span> <span class="n">dic1</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;iupac&#39;</span><span class="p">,</span> <span class="s1">&#39;unirep&#39;</span><span class="p">,</span> <span class="s1">&#39;human-kinase-alignment&#39;</span><span class="p">]:</span>
+                            <span class="k">for</span> <span class="n">dic2</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;blosum&#39;</span><span class="p">,</span> <span class="s1">&#39;float_features&#39;</span><span class="p">]:</span>
+
+                                <span class="n">lang1</span> <span class="o">=</span> <span class="n">ProteinLanguage</span><span class="p">(</span><span class="n">amino_acid_dict</span><span class="o">=</span><span class="n">dic1</span><span class="p">)</span>
+                                <span class="n">lang2</span> <span class="o">=</span> <span class="n">ProteinFeatureLanguage</span><span class="p">(</span><span class="n">features</span><span class="o">=</span><span class="n">dic2</span><span class="p">)</span>
+
+                                <span class="n">ppi_dataset</span> <span class="o">=</span> <span class="n">ProteinProteinInteractionDataset</span><span class="p">(</span>
+                                    <span class="p">[</span>
+                                        <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                        <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                        <span class="n">third_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                    <span class="p">],</span>
+                                    <span class="n">entity_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tcr&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">],</span>
+                                    <span class="n">protein_languages</span><span class="o">=</span><span class="p">[</span><span class="n">lang1</span><span class="p">,</span> <span class="n">lang2</span><span class="p">,</span> <span class="n">lang2</span><span class="p">],</span>
+                                    <span class="n">labels_filepath</span><span class="o">=</span><span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                    <span class="n">sequence_filetypes</span><span class="o">=</span><span class="s1">&#39;.smi&#39;</span><span class="p">,</span>
+                                    <span class="n">annotations_column_names</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                    <span class="n">add_start_and_stops</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ppi_dataset</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+
+                                <span class="c1"># test last sample</span>
+                                <span class="n">data_tuple</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_tuple</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                                    <span class="n">data_tuple</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">data_tuple</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                                <span class="p">)</span>
+                                <span class="c1"># Tensor dimensions</span>
+                                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_tuple</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)):</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_tuple</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+
+                                <span class="c1"># Testing alternative ordering</span>
+                                <span class="n">ppi_dataset</span> <span class="o">=</span> <span class="n">ProteinProteinInteractionDataset</span><span class="p">(</span>
+                                    <span class="p">[</span>
+                                        <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                        <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                        <span class="n">third_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                    <span class="p">],</span>
+                                    <span class="n">entity_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tcr&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">,</span> <span class="s1">&#39;peptide&#39;</span><span class="p">],</span>
+                                    <span class="n">protein_languages</span><span class="o">=</span><span class="p">[</span><span class="n">lang2</span><span class="p">,</span> <span class="n">lang1</span><span class="p">,</span> <span class="n">lang2</span><span class="p">],</span>
+                                    <span class="n">labels_filepath</span><span class="o">=</span><span class="n">annotation_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                                    <span class="n">sequence_filetypes</span><span class="o">=</span><span class="s1">&#39;.smi&#39;</span><span class="p">,</span>
+                                    <span class="n">annotations_column_names</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                    <span class="n">add_start_and_stops</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                <span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ppi_dataset</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+
+                                <span class="c1"># test last sample</span>
+                                <span class="n">data_tuple</span> <span class="o">=</span> <span class="n">ppi_dataset</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_tuple</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+                                <span class="c1"># Test whether decoding with PL and PFL gives the same</span>
+                                <span class="n">feat1</span> <span class="o">=</span> <span class="n">data_tuple</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                                <span class="k">if</span> <span class="n">dic2</span> <span class="o">==</span> <span class="s1">&#39;blosum&#39;</span><span class="p">:</span>
+                                    <span class="n">feat0</span> <span class="o">=</span> <span class="p">[</span>
+                                        <span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                                    <span class="p">]</span>
+
+                                    <span class="n">feat2</span> <span class="o">=</span> <span class="p">[</span>
+                                        <span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_tuple</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">long</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                                    <span class="p">]</span>
+                                <span class="k">elif</span> <span class="n">dic2</span> <span class="o">==</span> <span class="s1">&#39;float_features&#39;</span><span class="p">:</span>
+                                    <span class="n">feat0</span> <span class="o">=</span> <span class="p">[</span>
+                                        <span class="nb">tuple</span><span class="p">([</span><span class="nb">round</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">])</span>
+                                        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                                    <span class="p">]</span>
+                                    <span class="n">feat2</span> <span class="o">=</span> <span class="p">[</span>
+                                        <span class="nb">tuple</span><span class="p">([</span><span class="nb">round</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">])</span>
+                                        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_tuple</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">double</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+                                    <span class="p">]</span>
+
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+                                    <span class="s1">&#39;CCE&#39;</span><span class="p">,</span>
+                                    <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_languages</span><span class="p">[</span>
+                                        <span class="mi">0</span>
+                                    <span class="p">]</span><span class="o">.</span><span class="n">token_indexes_to_sequence</span><span class="p">(</span><span class="n">feat0</span><span class="p">),</span>
+                                <span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+                                    <span class="s1">&#39;FGAAV&#39;</span><span class="p">,</span>
+                                    <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_languages</span><span class="p">[</span>
+                                        <span class="mi">1</span>
+                                    <span class="p">]</span><span class="o">.</span><span class="n">token_indexes_to_sequence</span><span class="p">(</span><span class="n">feat1</span><span class="p">),</span>
+                                <span class="p">)</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+                                    <span class="s1">&#39;FGAAV&#39;</span><span class="p">,</span>
+                                    <span class="n">ppi_dataset</span><span class="o">.</span><span class="n">protein_languages</span><span class="p">[</span>
+                                        <span class="mi">2</span>
+                                    <span class="p">]</span><span class="o">.</span><span class="n">token_indexes_to_sequence</span><span class="p">(</span><span class="n">feat2</span><span class="p">),</span>
+                                <span class="p">)</span>
+                                <span class="c1"># Tensor dimensions</span>
+                                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_tuple</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)):</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_tuple</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
 
         <span class="c1"># Test for using different padding lengths</span>
         <span class="n">padding_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">]</span>
