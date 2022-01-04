@@ -54,6 +54,7 @@ setup(
         'pubchempy',
         'importlib_resources',
         'Unidecode',
+        'rdkit-pypi>=2021.9.3',
     ],
     classifiers=[
         'Intended Audience :: Developers',

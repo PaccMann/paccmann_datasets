@@ -4,21 +4,28 @@
 [![Code quality](https://api.codiga.io/project/22043/score/svg)](https://codiga.io/)
 [![Code grade](https://api.codiga.io/project/22043/status/svg)](https://codiga.io/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Downloads](https://pepy.tech/badge/pytoda)](https://pepy.tech/project/pytoda)
+[![Downloads](https://pepy.tech/badge/pytoda/month)](https://pepy.tech/project/pytoda)
 
 ## Overview
 
 pytoda - PaccMann P*yTo*rch *Da*taset Classes
 
 A python package that eases handling biochemical data for deep learning applications with pytorch.
-Please find the full documentation [here](https://paccmann.github.io/paccmann_datasets/).
-
-## Requirements
-
-- `conda>=3.7`
 
 ## Installation
 
-Create a conda environment:
+`pytoda` ships via [PyPI](https://pypi.org/project/pytoda):
+```sh
+pip install pytoda
+```
+## Documentation
+
+Please find the full documentation [here](https://paccmann.github.io/paccmann_datasets/).
+
+## Development
+
+For development setup, we recommend to work in a dedicated conda environment:
 
 ```sh
 conda env create -f conda.yml
@@ -30,20 +37,16 @@ Activate the environment:
 conda activate pytoda
 ```
 
-Install:
-
-```sh
-pip install .
-```
-
-### development
-
-Create the `conda` environment as before, then install in editable mode for development:
+Install in editable mode:
 
 ```sh
 pip install -r dev_requirements.txt
 pip install --user --no-use-pep517 -e .
 ```
+#### Note on `rdkit` vs `rdkit-pypi`
+NOTE: The conda env ships with the [*official*](https://github.com/rdkit/rdkit) `rdkit` implementation.
+But the `pip` installation overwrites the rdkit package with the community-contributed [PyPI package](https://pypi.org/project/rdkit-pypi/#history) called `rdkit-pypi`. This is intentional because `pytoda` is distributed via PyPI too and most users will thus depend on `rdkit-pypi`. Keep in mind that `rdkit-pypi` might contain bugs or be outdated w.r.t. `rdkit`. If developers experience issues with `rdkit-pypi`, they can temporarily uninstall `rdkit-pypi` and will then fall back on using the proper `rdkit` package.
+
 
 ## Examples
 
