@@ -52,7 +52,7 @@ jobs:
           python-version: "3.7"
 
       - name: Install black
-        run: pip install black==20.8b1
+        run: pip install black==22.3.0
 
       - name: Format
         run: black . --check --diff --color
