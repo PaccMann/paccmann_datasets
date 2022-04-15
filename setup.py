@@ -41,7 +41,7 @@ setup(
         'numpy',
         'scikit-learn',
         'pandas',
-        'torch>=1.0.0',
+        'torch>=1.4.0',
         'diskcache',
         'dill>=0.3.3',
         'selfies>=2.0.0',
