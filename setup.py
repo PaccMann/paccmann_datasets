@@ -43,7 +43,7 @@ setup(
         'pandas',
         'torch>=1.0.0',
         'diskcache',
-        'dill',
+        'dill>=0.3.3',
         'selfies>=2.0.0',
         'upfp',
         'SmilesPE>=0.0.3',
