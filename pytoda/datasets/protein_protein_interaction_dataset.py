@@ -30,6 +30,7 @@ class ProteinProteinInteractionDataset(Dataset):
         add_start_and_stops: Union[bool, Sequence[bool]] = False,
         augment_by_reverts: Union[bool, Sequence[bool]] = False,
         randomizes: Union[bool, Sequence[bool]] = False,
+        iterate_datasets: Union[bool, Sequence[bool]] = False,
         device: torch.device = (
             torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         ),
@@ -77,6 +78,10 @@ class ProteinProteinInteractionDataset(Dataset):
                 stochastic reversion of the amino acid sequence.
             randomizes (Union[bool, Sequence[bool]]): perform a true
                 randomization of the amino acid sequences. Defaults to False.
+            iterate_datasets (Union[bool, Sequence[bool]]): whether to go through all
+                items in the datasets to detect unknown characters, find longest
+                sequence and checks passed padding length if applicable.
+                Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
         """
@@ -116,6 +121,7 @@ class ProteinProteinInteractionDataset(Dataset):
             self.add_start_and_stops,
             self.augment_by_reverts,
             self.randomizes,
+            self.iterate_datasets,
         ) = map(
             (
                 lambda x: x
@@ -128,6 +134,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 add_start_and_stops,
                 augment_by_reverts,
                 randomizes,
+                iterate_datasets,
             ),
         )
 
@@ -171,6 +178,7 @@ class ProteinProteinInteractionDataset(Dataset):
                 randomize=self.randomizes[index],
                 device=self.device,
                 name=self.entities[index],
+                iterate_dataset=self.iterate_datasets[index],
             )
             for index, filepaths in enumerate(self.sequence_filepaths)
         ]

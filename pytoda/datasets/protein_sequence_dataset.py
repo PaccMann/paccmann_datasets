@@ -204,6 +204,14 @@ class ProteinSequenceDataset(DatasetDelegator):
                     logger.error(
                         'Found unknown token(s): %s', list(seq_tokens - tokens)
                     )
+        elif (
+            not iterate_dataset
+            and protein_language
+            and protein_language.max_token_sequence_length < 3
+        ):
+            raise ValueError(
+                'If provided ProteinLanguage is empty, set iterate_dataset to True'
+            )
 
         # Set up transformation paramater
         self.padding = padding
