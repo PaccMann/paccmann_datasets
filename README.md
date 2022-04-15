@@ -1,4 +1,4 @@
-# pytoda
+# PyToDa
 
 [![PyPI version](https://badge.fury.io/py/pytoda.svg)](https://badge.fury.io/py/pytoda)
 [![build](https://github.com/PaccMann/paccmann_datasets/workflows/build/badge.svg)](https://github.com/PaccMann/paccmann_datasets/actions)
