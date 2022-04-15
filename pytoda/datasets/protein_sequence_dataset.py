@@ -155,10 +155,9 @@ class ProteinSequenceDataset(DatasetDelegator):
                 Defaults to False.
             device (torch.device): device where the tensors are stored.
                 Defaults to gpu, if available.
-            iterate_dataset (bool): whether to go through all items in the
-                dataset to extend/build vocab, find longest sequence, and
-                checks the passed padding length if applicable. Defaults to
-                False.
+            iterate_dataset (bool): whether to go through all items in the dataset
+                to detect unknown characters, find longest sequence and checks
+                passed padding length if applicable. Defaults to False.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             name (str): name of the ProteinSequenceDataset.
@@ -195,7 +194,7 @@ class ProteinSequenceDataset(DatasetDelegator):
             ), f'add_start_and_stop was "{add_start_and_stop}", but given '
             f'Protein Language has {protein_language.add_start_and_stop}.'
 
-        if iterate_dataset:
+        if iterate_dataset or not protein_language:
             tokens = set(self.protein_language.token_to_index.keys())
             for sequence in self.dataset:
                 # sets max_token_sequence_length
@@ -208,34 +207,32 @@ class ProteinSequenceDataset(DatasetDelegator):
 
         # Set up transformation paramater
         self.padding = padding
-        self.padding_length = self.padding_length = (
+        self.padding_length = (
             self.protein_language.max_token_sequence_length
             if padding_length is None
             else padding_length
         )
+        if self.padding_length < self.protein_language.max_token_sequence_length:
+            logger.warning(
+                f'WARNING: Passed padding length was {padding_length} but '
+                'protein language has padding length: '
+                f'{self.protein_language.max_token_sequence_length}. '
+                'Some sequences might get truncated.'
+            )
         self.randomize = randomize
         self.augment_by_revert = augment_by_revert
         self.device = device
 
         # Build up cascade of Protein transformations
-        # Below transformations are optional
-        _transforms = []
+        transforms = []
         if self.augment_by_revert:
-            _transforms += [AugmentByReversing()]
-        self.language_transforms = Compose(_transforms)
+            transforms += [AugmentByReversing()]
+        self.language_transforms = Compose(transforms.copy())
 
-        # Run once over dataset to add missing tokens to smiles language
-        for index in range(len(self.dataset)):
-            self.protein_language.add_sequence(
-                self.language_transforms(self.dataset[index])
-            )
-        transforms = _transforms.copy()
         transforms += [SequenceToTokenIndexes(protein_language=self.protein_language)]
         if self.randomize:
             transforms += [Randomize()]
         if self.padding:
-            if padding_length is None:
-                self.padding_length = self.protein_language.max_token_sequence_length
             transforms += [
                 LeftPadding(
                     padding_length=self.padding_length,
