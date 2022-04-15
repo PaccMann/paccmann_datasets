@@ -178,7 +178,7 @@ class SMILESToTokenIndexes(Transform):
 
 
 class RemoveIsomery(Transform):
-    """ Remove isomery (isotopic and chiral specifications) from SMILES """
+    """Remove isomery (isotopic and chiral specifications) from SMILES"""
 
     def __init__(self, bonddir=True, chirality=True, sanitize=True) -> None:
         """
@@ -313,7 +313,7 @@ class Kekulize(Transform):
 
 
 class NotKekulize(Transform):
-    """ Transform SMILES without explicitly converting to Kekule version """
+    """Transform SMILES without explicitly converting to Kekule version"""
 
     def __init__(self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True):
         self.all_bonds_explicit = all_bonds_explicit
@@ -357,7 +357,7 @@ class Augment(Transform):
         sanitize: bool = True,
         seed: int = -1,
     ) -> None:
-        """ NOTE:  These parameter need to be passed down to the enumerator."""
+        """NOTE:  These parameter need to be passed down to the enumerator."""
 
         self.kekule_smiles = kekule_smiles
         self.all_bonds_explicit = all_bonds_explicit
@@ -534,7 +534,7 @@ class AugmentTensor(Transform):
 
 
 class Selfies(Transform):
-    """ Convert a molecule from SMILES to SELFIES. """
+    """Convert a molecule from SMILES to SELFIES."""
 
     def __call__(self, smiles: str) -> str:
         return selfies_encoder(smiles)

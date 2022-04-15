@@ -20,7 +20,7 @@ SMILES_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
 
 
 class SMILESDataset(DatasetDelegator):
-    """ Dataset of SMILES. """
+    """Dataset of SMILES."""
 
     def __init__(
         self,
@@ -58,7 +58,7 @@ class SMILESDataset(DatasetDelegator):
 
 
 class SMILESTokenizerDataset(DatasetDelegator):
-    """ Dataset of token indexes from SMILES. """
+    """Dataset of token indexes from SMILES."""
 
     def __init__(
         self,

@@ -1,5 +1,6 @@
 """Type definitions."""
 import inspect
+from collections import OrderedDict  # noqa
 from typing import (  # noqa
     Any,
     Callable,
@@ -10,7 +11,6 @@ from typing import (  # noqa
     List,
     Mapping,
     Optional,
-    OrderedDict,
     Sequence,
     Tuple,
     Union,

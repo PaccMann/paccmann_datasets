@@ -314,6 +314,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                                     sequence_filetypes='.smi',
                                     annotations_column_names=[1],
                                     add_start_and_stops=s,
+                                    iterate_datasets=True,
                                 )
                                 self.assertEqual(len(ppi_dataset), 2)
 
@@ -345,6 +346,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                                     sequence_filetypes='.smi',
                                     annotations_column_names=[1],
                                     add_start_and_stops=s,
+                                    iterate_datasets=True,
                                 )
                                 self.assertEqual(len(ppi_dataset), 2)
 
@@ -376,6 +378,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                                     sequence_filetypes='.smi',
                                     annotations_column_names=[1],
                                     add_start_and_stops=True,
+                                    iterate_datasets=True,
                                 )
                                 self.assertEqual(len(ppi_dataset), 2)
 
@@ -402,6 +405,7 @@ class TestProteinProteinInteractionDataset(unittest.TestCase):
                                     sequence_filetypes='.smi',
                                     annotations_column_names=[1],
                                     add_start_and_stops=True,
+                                    iterate_datasets=True,
                                 )
                                 self.assertEqual(len(ppi_dataset), 2)
 

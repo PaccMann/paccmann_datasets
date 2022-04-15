@@ -235,7 +235,7 @@ def reduce_csv_statistics(
     std = np.sqrt(
         np.nansum(
             [
-                (dataset_std ** 2 + dataset_mean ** 2) * number_of_samples
+                (dataset_std**2 + dataset_mean**2) * number_of_samples
                 for dataset_std, dataset_mean, number_of_samples in zip(
                     stds, means, sample_numbers
                 )
@@ -243,6 +243,6 @@ def reduce_csv_statistics(
             axis=0,
         )
         / total_number_of_samples
-        - mean ** 2
+        - mean**2
     )
     return (features, maximum, minimum, mean, std)

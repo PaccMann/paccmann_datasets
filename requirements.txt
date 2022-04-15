@@ -1,9 +1,9 @@
-numpy>=1.20.0
+numpy>=1.19.0
 scikit-learn>=0.23.0
 pandas>=1.0.0
-torch<1.9>=1.4.0
+torch>=1.4.0,<1.9
 diskcache>=5.0.3
-dill>=0.3.0
+dill>=0.3.3
 selfies>=2.0.0
 upfp>=0.0.5
 SmilesPE>=0.0.3
