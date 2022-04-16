@@ -107,8 +107,17 @@ class ProteinLanguage(object):
         Returns:
             ProteinLanguage: the loaded Protein language object.
         """
-        with open(filepath, 'rb') as f:
-            protein_language = dill.load(f)
+        try:
+            with open(filepath, 'rb') as f:
+                protein_language = dill.load(f)
+        except TypeError:
+            # Necessary to load python3.7 pickled objects with >=3.8
+            # For details see: https://github.com/uqfoundation/dill/pull/406
+            storage = dill._dill._reverse_typemap['CodeType']
+            dill._dill._reverse_typemap['CodeType'] = dill._dill._create_code
+            with open(filepath, 'rb') as f:
+                protein_language = dill.load(f)
+            dill._dill._reverse_typemap['CodeType'] = storage
         return protein_language
 
     @staticmethod
