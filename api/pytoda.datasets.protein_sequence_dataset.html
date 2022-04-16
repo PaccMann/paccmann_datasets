@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                1.0.0
+                1.0.2
               </div>
             
           
@@ -273,10 +273,9 @@ Sequences. Defaults to False.</p></li>
 Defaults to False.</p></li>
 <li><p><strong>device</strong> (<em>torch.device</em>) – device where the tensors are stored.
 Defaults to gpu, if available.</p></li>
-<li><p><strong>iterate_dataset</strong> (<em>bool</em>) – whether to go through all items in the
-dataset to extend/build vocab, find longest sequence, and
-checks the passed padding length if applicable. Defaults to
-False.</p></li>
+<li><p><strong>iterate_dataset</strong> (<em>bool</em>) – whether to go through all items in the dataset
+to detect unknown characters, find longest sequence and checks
+passed padding length if applicable. Defaults to False.</p></li>
 <li><p><strong>backend</strong> (<em>str</em>) – memory management backend.
 Defaults to eager, prefer speed over memory consumption.</p></li>
 <li><p><strong>name</strong> (<em>str</em>) – name of the ProteinSequenceDataset.</p></li>

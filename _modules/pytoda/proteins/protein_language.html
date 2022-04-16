@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.0.0
+                1.0.2
               </div>
             
           
@@ -266,8 +266,17 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            ProteinLanguage: the loaded Protein language object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">protein_language</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">protein_language</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="c1"># Necessary to load python3.7 pickled objects with &gt;=3.8</span>
+            <span class="c1"># For details see: https://github.com/uqfoundation/dill/pull/406</span>
+            <span class="n">storage</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_reverse_typemap</span><span class="p">[</span><span class="s1">&#39;CodeType&#39;</span><span class="p">]</span>
+            <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_reverse_typemap</span><span class="p">[</span><span class="s1">&#39;CodeType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_create_code</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">protein_language</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_reverse_typemap</span><span class="p">[</span><span class="s1">&#39;CodeType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">storage</span>
         <span class="k">return</span> <span class="n">protein_language</span></div>
 
 <div class="viewcode-block" id="ProteinLanguage.dump"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.dump">[docs]</a>    <span class="nd">@staticmethod</span>

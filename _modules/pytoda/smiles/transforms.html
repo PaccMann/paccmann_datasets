@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.0.0
+                1.0.2
               </div>
             
           
@@ -337,7 +337,7 @@
 
 
 <div class="viewcode-block" id="RemoveIsomery"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.RemoveIsomery">[docs]</a><span class="k">class</span> <span class="nc">RemoveIsomery</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Remove isomery (isotopic and chiral specifications) from SMILES &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Remove isomery (isotopic and chiral specifications) from SMILES&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="RemoveIsomery.__init__"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.RemoveIsomery.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bonddir</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">chirality</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -472,7 +472,7 @@
 
 
 <div class="viewcode-block" id="NotKekulize"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.NotKekulize">[docs]</a><span class="k">class</span> <span class="nc">NotKekulize</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Transform SMILES without explicitly converting to Kekule version &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Transform SMILES without explicitly converting to Kekule version&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_bonds_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">all_hs_explicit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span> <span class="o">=</span> <span class="n">all_bonds_explicit</span>
@@ -516,7 +516,7 @@
         <span class="n">sanitize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot; NOTE:  These parameter need to be passed down to the enumerator.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;NOTE:  These parameter need to be passed down to the enumerator.&quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">kekule_smiles</span> <span class="o">=</span> <span class="n">kekule_smiles</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_bonds_explicit</span> <span class="o">=</span> <span class="n">all_bonds_explicit</span>
@@ -693,7 +693,7 @@
 
 
 <div class="viewcode-block" id="Selfies"><a class="viewcode-back" href="../../../api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.Selfies">[docs]</a><span class="k">class</span> <span class="nc">Selfies</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Convert a molecule from SMILES to SELFIES. &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Convert a molecule from SMILES to SELFIES.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">selfies_encoder</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span></div>
