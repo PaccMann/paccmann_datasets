@@ -105,7 +105,6 @@ def compose_encoding_transforms(
     padding: bool = False,
     padding_length: int = None,
     padding_index: int = 0,
-    device: torch.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
 ) -> Compose:
     """Setup a composition of token indexes to token indexes transformations.
 
@@ -125,8 +124,6 @@ def compose_encoding_transforms(
             must be passed in case of padding.
         padding_index (int, optional): index of padding token in vocabulary.
             Default to 0.
-        device (torch.device): device where the tensors are stored.
-            Defaults to gpu, if available.
 
     Returns:
         Compose: A Callable that applies composition of transforms on
@@ -147,7 +144,7 @@ def compose_encoding_transforms(
             LeftPadding(padding_length=padding_length, padding_index=padding_index)
         ]
 
-    encoding_transforms += [ToTensor(device=device)]
+    encoding_transforms += [ToTensor()]
     return Compose(encoding_transforms)
 
 

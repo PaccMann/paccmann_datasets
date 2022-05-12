@@ -20,9 +20,6 @@ class AnnotatedDataset(DataFrameDataset):
         annotation_index: Union[int, str] = -1,
         label_columns: Union[List[int], List[str]] = None,
         dtype: torch.dtype = torch.float,
-        device: torch.device = torch.device(
-            'cuda' if torch.cuda.is_available() else 'cpu'
-        ),
         **kwargs,
     ) -> None:
         """
@@ -46,11 +43,8 @@ class AnnotatedDataset(DataFrameDataset):
                 annotation labels.
             dtype (torch.dtype): torch data type for labels. Defaults to
                 torch.float.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
             kwargs (dict): additional parameter for pd.read_csv.
         """
-        self.device = device
         self.annotations_filepath = annotations_filepath
         self.datasource = dataset
         self.dtype = dtype
@@ -124,6 +118,6 @@ class AnnotatedDataset(DataFrameDataset):
         sample = self.datasource.get_item_from_key(lables_series.name)
         # label
         labels_tensor = torch.tensor(
-            list(lables_series.values), dtype=self.dtype, device=self.device
+            list(lables_series.values), dtype=self.dtype
         )
         return sample, labels_tensor

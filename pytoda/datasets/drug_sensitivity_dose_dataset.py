@@ -29,9 +29,6 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
         gene_expression_processing_parameters: dict = {},
         gene_expression_dtype: torch.dtype = torch.float,
         gene_expression_kwargs: dict = {},
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
         backend: str = 'eager',
         **kwargs,
     ) -> None:
@@ -70,8 +67,6 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
             gene_expression_processing_parameters (dict): transformation
                 parameters for gene expression, e.g. for min-max scaling.
                 Defaults to {}.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
                 Note that at the moment only the gene expression and the
@@ -93,7 +88,6 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
             gene_expression_standardize=gene_expression_standardize,
             gene_expression_min_max=gene_expression_min_max,
             gene_expression_processing_parameters=gene_expression_processing_parameters,
-            device=device,
             backend=backend,
             **kwargs,
         )
@@ -121,7 +115,6 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
         dose = torch.tensor(
             [self.dose_transform(self.drug_sensitivity_df.iloc[index][self.dose_name])],
             dtype=self.drug_sensitivity_dtype,
-            device=self.device,
         )
 
         return token_indexes, gene_expression, dose, viability

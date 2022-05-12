@@ -22,9 +22,6 @@ class GeneExpressionDataset(DatasetDelegator):
         processing_parameters: dict = {},
         impute: Optional[float] = 0.0,
         dtype: torch.dtype = torch.float,
-        device: torch.device = torch.device(
-            'cuda' if torch.cuda.is_available() else 'cpu'
-        ),
         backend: str = 'eager',
         chunk_size: int = 10000,
         **kwargs,
@@ -48,8 +45,6 @@ class GeneExpressionDataset(DatasetDelegator):
             impute (Optional[float]): NaN imputation with value if
                 given. Defaults to 0.0.
             dtype (torch.dtype): data type. Defaults to torch.float.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             chunk_size (int): size of the chunks in case of lazy reading, is
@@ -71,7 +66,6 @@ class GeneExpressionDataset(DatasetDelegator):
             processing_parameters=processing_parameters,
             impute=impute,
             dtype=dtype,
-            device=device,
             chunk_size=chunk_size,
             **kwargs,
         )

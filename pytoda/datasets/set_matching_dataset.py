@@ -86,9 +86,6 @@ class SetMatchingDataset(Dataset):
         set_padding_value: float = 0.0,
         seed: Optional[int] = None,
         shuffle: Optional[bool] = True,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
     ):
         """Base Class for set matching datasets, that allows returning subsets of
             varying length controlled by the passed min set length.
@@ -107,8 +104,7 @@ class SetMatchingDataset(Dataset):
                 indexed (using the global RNG).
             shuffle (Optional[bool]): Whether the sets should be shuffled again before subsampling.
                 Adds another layer of randomness. Defaults to True.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
+
 
         NOTE:
             1) Requires child classes to set the `dataset` attribute.
@@ -122,8 +118,6 @@ class SetMatchingDataset(Dataset):
         self.seed = seed
 
         self.get_cost_matrix = cost_metric_function
-
-        self.device = device
 
         self.min_set_length = min_set_length
 
@@ -229,7 +223,6 @@ class SetMatchingDataset(Dataset):
                         range(self.max_set_length),
                     ],
                     max_length=self.max_set_length,
-                    device=self.device,
                 ),
                 length,
             )
@@ -248,9 +241,6 @@ class PairedSetMatchingDataset(SetMatchingDataset):
         seed: Optional[int] = None,
         shuffle: Optional[bool] = True,
         noise_std: float = 0.0,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
     ):
         """Pairs of sets and their hungarian assignments, where the set to match
         is provided by a second dataset.
@@ -276,8 +266,6 @@ class PairedSetMatchingDataset(SetMatchingDataset):
             noise_std (float, optional): Standard deviation to use in generating
                 noise from a normal distribution with mean 0. Deafults to 0.0.
                 Dummy variable for this class for consistency purposes.
-            device (torch.device): Device where the tensors are stored.
-                Defaults to gpu, if available.
         """
         # Setup dataset
         self.dataset = dataset
@@ -289,7 +277,6 @@ class PairedSetMatchingDataset(SetMatchingDataset):
             set_padding_value,
             seed,
             shuffle,
-            device,
         )
         self.dummy_permutation = torch.arange(self.max_set_length)
 
@@ -327,9 +314,6 @@ class PermutedSetMatchingDataset(SetMatchingDataset):
         seed: Optional[int] = None,
         noise_std: float = 0.0,
         shuffle: Optional[bool] = True,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
     ):
         """Pairs of sets and their hungarian assignments, where the set to match
         is a permutation of the given sets.
@@ -352,13 +336,11 @@ class PermutedSetMatchingDataset(SetMatchingDataset):
                 a normal distribution with mean 0. Deafults to 0.0.
             shuffle (Optional[bool]): Whether the sets should be shuffled again before subsampling.
                 Adds another layer of randomness. Defaults to True.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
         """
         # Setup dataset
         self.dataset = dataset
-        loc_device = torch.tensor(0.0, device=device)
-        noise_std = torch.tensor(noise_std, device=device)
+        loc_device = torch.tensor(0.0)
+        noise_std = torch.tensor(noise_std)
         self.noise = torch.distributions.normal.Normal(loc=loc_device, scale=noise_std)
         super().__init__(
             # is user choice
@@ -367,7 +349,6 @@ class PermutedSetMatchingDataset(SetMatchingDataset):
             set_padding_value,
             seed,
             shuffle,
-            device,
         )
 
     @property

@@ -77,9 +77,6 @@ class SMILESTokenizerDataset(DatasetDelegator):
         add_start_and_stop: bool = False,
         padding: bool = True,
         padding_length: int = None,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
         vocab_file: str = None,
         iterate_dataset: bool = True,
         backend: str = 'eager',
@@ -123,8 +120,6 @@ class SMILESTokenizerDataset(DatasetDelegator):
                 Defaults to True.
             padding_length (int): padding to match manually set length,
                 applies only if padding is True. Defaults to None.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
             vocab_file (str): Optional .json to load vocabulary. Defaults to
                 None.
             iterate_dataset (bool): whether to go through all SMILES in the
@@ -146,7 +141,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
             params = (
                 "canonical, augment, kekulize, all_bonds_explicit, selfies, sanitize, "
                 "all_hs_explicit, remove_bonddir, remove_chirality, randomize, "
-                "add_start_and_stop, padding, padding_length, device"
+                "add_start_and_stop, padding, padding_length"
             )
             logger.error(
                 'Since you provided a smiles_language, the following parameters to this'
@@ -191,7 +186,6 @@ class SMILESTokenizerDataset(DatasetDelegator):
                 add_start_and_stop=add_start_and_stop,
                 padding=padding,
                 padding_length=padding_length,
-                device=device,
             )
 
         if vocab_file:

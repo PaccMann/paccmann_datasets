@@ -74,9 +74,6 @@ class DistributionalDataset(Dataset):
         item_shape: Tuple[int],
         distribution_function: torch.distributions.distribution.Distribution,
         seed: Optional[int] = None,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
     ) -> None:
         """Dataset of synthetic samples from a specified distribution with given shape.
 
@@ -99,8 +96,6 @@ class DistributionalDataset(Dataset):
                 this seed (using a local RNG only). Defaults to None, where
                 individual items are generated when the DistributionalDataset is
                 indexed (using the global RNG).
-            device (torch.device): Device where the tensors are stored.
-                Defaults to gpu, if available.
         """
 
         super(DistributionalDataset, self).__init__()
@@ -108,7 +103,6 @@ class DistributionalDataset(Dataset):
         self.dataset_size = dataset_size
         self.item_shape = item_shape
         self.seed = seed
-        self.device = device
 
         self.data_sampler = distribution_function
 
@@ -120,13 +114,12 @@ class DistributionalDataset(Dataset):
                 torch.cuda.manual_seed_all(seed)
 
                 self.datasource = self.data_sampler.sample((dataset_size, *item_shape))
-
-            self.datasource = self.datasource.to(device)
+            
 
         else:
             # get sampled item on indexing
             self.datasource = StochasticItems(
-                self.data_sampler, self.item_shape, self.device
+                self.data_sampler, self.item_shape, torch.device('cpu'),
             )
 
         # copy data to device

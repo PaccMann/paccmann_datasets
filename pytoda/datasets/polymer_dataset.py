@@ -41,9 +41,6 @@ class PolymerTokenizerDataset(Dataset):
         padding: Union[Sequence[bool], bool] = True,
         padding_length: Union[Sequence[int], int] = None,
         iterate_dataset: bool = True,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
         backend: str = 'eager',
         **kwargs,
     ) -> None:
@@ -98,8 +95,6 @@ class PolymerTokenizerDataset(Dataset):
                 dataset to build/extend vocab, find longest sequence, and
                 checks the passed padding length if applicable. Defaults to
                 True.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             kwargs (dict): additional arguments for dataset constructor.
@@ -109,7 +104,6 @@ class PolymerTokenizerDataset(Dataset):
         first list item is used for all datasets.
         """
 
-        self.device = device
         self.backend = backend
 
         if len(entity_names) != len(smi_filepaths):
@@ -167,7 +161,6 @@ class PolymerTokenizerDataset(Dataset):
                 remove_chirality=self.remove_chiralitys[0],
                 selfies=self.selfies[0],
                 sanitize=self.sanitize[0],
-                device=device,
                 add_start_and_stop=True,
             )
             for index, entity in enumerate(entity_names):
@@ -296,7 +289,6 @@ class PolymerTokenizerDataset(Dataset):
         labels_tensor = torch.tensor(
             list(selected_sample[self.labels].values),
             dtype=torch.float,
-            device=self.device,
         )
         # samples (SMILES token indexes)
         smiles_tensors = tuple(

@@ -45,9 +45,6 @@ class DrugSensitivityDataset(Dataset):
         gene_expression_processing_parameters: dict = {},
         gene_expression_dtype: torch.dtype = torch.float,
         gene_expression_kwargs: dict = {},
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
         backend: str = 'eager',
     ) -> None:
         """
@@ -117,8 +114,6 @@ class DrugSensitivityDataset(Dataset):
                 Defaults to torch.float.
             gene_expression_kwargs (dict): additional parameters for
                 GeneExpressionDataset.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
                 Note that at the moment only the gene expression and the
@@ -129,8 +124,6 @@ class DrugSensitivityDataset(Dataset):
         self.drug_sensitivity_filepath = drug_sensitivity_filepath
         self.smi_filepath = smi_filepath
         self.gene_expression_filepath = gene_expression_filepath
-        # device
-        self.device = device
         # backend
         self.backend = backend
 
@@ -158,7 +151,6 @@ class DrugSensitivityDataset(Dataset):
             padding=padding,
             padding_length=padding_length,
             add_start_and_stop=add_start_and_stop,
-            device=self.device,
             vocab_file=vocab_file,
             iterate_dataset=iterate_dataset,
             backend=self.backend,
@@ -171,7 +163,6 @@ class DrugSensitivityDataset(Dataset):
             min_max=gene_expression_min_max,
             processing_parameters=gene_expression_processing_parameters,
             dtype=gene_expression_dtype,
-            device=self.device,
             backend=self.backend,
             index_col=0,
             **gene_expression_kwargs,
@@ -239,7 +230,6 @@ class DrugSensitivityDataset(Dataset):
         ic50_tensor = torch.tensor(
             [selected_sample[self.label_name]],
             dtype=self.drug_sensitivity_dtype,
-            device=self.device,
         )
         # SMILES
         token_indexes_tensor = self.smiles_dataset.get_item_from_key(

@@ -118,9 +118,7 @@ class ToTensor(Transform):
 
     def __init__(
         self,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
+        device: torch.device = torch.device('cpu'),
         dtype: torch.dtype = torch.short,
     ) -> None:
         """
@@ -128,7 +126,7 @@ class ToTensor(Transform):
 
         Args:
             device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
+                Defaults to cpu
             dtype (torch.dtype): data type. Defaults to torch.short.
         """
         if not isinstance(device, torch.device):
@@ -163,9 +161,7 @@ class ListToTensor(Transform):
 
     def __init__(
         self,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
+        device: torch.device = torch.device('cpu'),
         dtype: torch.dtype = torch.float,
     ) -> None:
         """
@@ -173,7 +169,7 @@ class ListToTensor(Transform):
 
         Args:
             device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
+                Defaults to cpu
             dtype (torch.dtype): data type. Defaults to torch.float.
         """
         if not isinstance(dtype, torch.dtype):
