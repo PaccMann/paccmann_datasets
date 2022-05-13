@@ -7,8 +7,6 @@ from typing import Any
 import numpy as np
 import torch
 
-from pytoda.warnings import device_warning
-
 from .types import Indexes, TransformList
 
 logger = logging.getLogger('pytoda_transforms')
