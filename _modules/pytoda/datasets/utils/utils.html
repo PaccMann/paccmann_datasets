@@ -160,8 +160,6 @@
 <span></span><span class="sd">&quot;&quot;&quot;Utils for the dataset module.&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
-
 <span class="kn">from</span> <span class="nn">...types</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Files</span><span class="p">,</span> <span class="n">Hashable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 <span class="kn">from</span> <span class="nn">..base_dataset</span> <span class="kn">import</span> <span class="n">AnyBaseDataset</span><span class="p">,</span> <span class="n">ConcatKeyDataset</span>
 <span class="kn">from</span> <span class="nn">.factories</span> <span class="kn">import</span> <span class="n">BACKGROUND_TENSOR_FACTORY</span>
@@ -259,9 +257,6 @@
     <span class="n">padding_modes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">padding_values</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
     <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
-    <span class="p">),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Padding function for a single item of a batch.</span>
 
@@ -273,8 +268,6 @@
 <span class="sd">        padding_values (List): The values with which to fill the background tensor for padding.</span>
 <span class="sd">            Can be a constant value or a range depending on the datum to pad in item.</span>
 <span class="sd">        max_length (int): The maximum length to which the datum should be padded.</span>
-<span class="sd">        device (torch.device, optional): Device where the tensors are stored.</span>
-<span class="sd">            Defaults to gpu, if available.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Tuple: Tuple of tensors padded according to the given specifications.</span>
@@ -295,7 +288,7 @@
     <span class="p">]</span>
 
     <span class="n">out_tensors</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">BACKGROUND_TENSOR_FACTORY</span><span class="p">[</span><span class="n">mode</span><span class="p">](</span><span class="n">value</span><span class="p">,</span> <span class="n">out_dims</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">BACKGROUND_TENSOR_FACTORY</span><span class="p">[</span><span class="n">mode</span><span class="p">](</span><span class="n">value</span><span class="p">,</span> <span class="n">out_dims</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">out_dims</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">out_dimses</span><span class="p">,</span> <span class="n">padding_modes</span><span class="p">,</span> <span class="n">padding_values</span><span class="p">)</span>
     <span class="p">]</span>
 

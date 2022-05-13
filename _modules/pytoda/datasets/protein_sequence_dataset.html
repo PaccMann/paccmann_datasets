@@ -162,6 +162,8 @@
 
 <span class="kn">import</span> <span class="nn">torch</span>
 
+<span class="kn">from</span> <span class="nn">pytoda.warnings</span> <span class="kn">import</span> <span class="n">device_warning</span>
+
 <span class="kn">from</span> <span class="nn">..proteins.protein_feature_language</span> <span class="kn">import</span> <span class="n">ProteinFeatureLanguage</span>
 <span class="kn">from</span> <span class="nn">..proteins.protein_language</span> <span class="kn">import</span> <span class="n">ProteinLanguage</span>
 <span class="kn">from</span> <span class="nn">..proteins.transforms</span> <span class="kn">import</span> <span class="n">SequenceToTokenIndexes</span>
@@ -282,12 +284,10 @@
         <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">augment_by_revert</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">randomize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
-        <span class="p">),</span>
         <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
         <span class="n">iterate_dataset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;protein-sequences&#39;</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -312,17 +312,17 @@
 <span class="sd">                Sequences. Defaults to False.</span>
 <span class="sd">            randomize (bool): perform a true randomization of Protein tokens.</span>
 <span class="sd">                Defaults to False.</span>
-<span class="sd">            device (torch.device): device where the tensors are stored.</span>
-<span class="sd">                Defaults to gpu, if available.</span>
 <span class="sd">            iterate_dataset (bool): whether to go through all items in the dataset</span>
 <span class="sd">                to detect unknown characters, find longest sequence and checks</span>
 <span class="sd">                passed padding length if applicable. Defaults to False.</span>
 <span class="sd">            backend (str): memory management backend.</span>
 <span class="sd">                Defaults to eager, prefer speed over memory consumption.</span>
 <span class="sd">            name (str): name of the ProteinSequenceDataset.</span>
+<span class="sd">            device (torch.device): DEPRECATED</span>
 <span class="sd">            kwargs (dict): additional arguments for dataset constructor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="c1"># Parse language object and data paths</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span> <span class="o">=</span> <span class="n">filepaths</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filetype</span> <span class="o">=</span> <span class="n">filetype</span>
@@ -388,7 +388,6 @@
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">randomize</span> <span class="o">=</span> <span class="n">randomize</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">augment_by_revert</span> <span class="o">=</span> <span class="n">augment_by_revert</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
 
         <span class="c1"># Build up cascade of Protein transformations</span>
         <span class="n">transforms</span> <span class="o">=</span> <span class="p">[]</span>
@@ -407,9 +406,9 @@
                 <span class="p">)</span>
             <span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="p">,</span> <span class="n">ProteinFeatureLanguage</span><span class="p">):</span>
-            <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ListToTensor</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)]</span>
+            <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ListToTensor</span><span class="p">()]</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="p">,</span> <span class="n">ProteinLanguage</span><span class="p">):</span>
-            <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ToTensor</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)]</span>
+            <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ToTensor</span><span class="p">()]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
                 <span class="s1">&#39;Please choose either ProteinLanguage or &#39;</span> <span class="s1">&#39;ProteinFeatureLanguage&#39;</span>

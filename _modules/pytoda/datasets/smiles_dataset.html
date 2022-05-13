@@ -162,6 +162,8 @@
 
 <span class="kn">import</span> <span class="nn">torch</span>
 
+<span class="kn">from</span> <span class="nn">pytoda.warnings</span> <span class="kn">import</span> <span class="n">device_warning</span>
+
 <span class="kn">from</span> <span class="nn">..smiles.processing</span> <span class="kn">import</span> <span class="n">split_selfies</span>
 <span class="kn">from</span> <span class="nn">..smiles.smiles_language</span> <span class="kn">import</span> <span class="n">SMILESLanguage</span><span class="p">,</span> <span class="n">SMILESTokenizer</span>
 <span class="kn">from</span> <span class="nn">._smi_eager_dataset</span> <span class="kn">import</span> <span class="n">_SmiEagerDataset</span>
@@ -186,6 +188,7 @@
         <span class="o">*</span><span class="n">smi_filepaths</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;smiles-dataset&#39;</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -196,8 +199,10 @@
 <span class="sd">            name (str): name of the SMILESDataset.</span>
 <span class="sd">            backend (str): memory management backend.</span>
 <span class="sd">                Defaults to eager, prefer speed over memory consumption.</span>
+<span class="sd">            device (torch.device): DEPRECATED</span>
 <span class="sd">            kwargs (dict): additional arguments for dataset constructor.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="c1"># Parse language object and data paths</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">smi_filepaths</span> <span class="o">=</span> <span class="n">smi_filepaths</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">backend</span>
@@ -236,12 +241,10 @@
         <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">padding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">padding_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
-        <span class="p">),</span>
         <span class="n">vocab_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">iterate_dataset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;smiles-encoder-dataset&#39;</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -282,8 +285,6 @@
 <span class="sd">                Defaults to True.</span>
 <span class="sd">            padding_length (int): padding to match manually set length,</span>
 <span class="sd">                applies only if padding is True. Defaults to None.</span>
-<span class="sd">            device (torch.device): device where the tensors are stored.</span>
-<span class="sd">                Defaults to gpu, if available.</span>
 <span class="sd">            vocab_file (str): Optional .json to load vocabulary. Defaults to</span>
 <span class="sd">                None.</span>
 <span class="sd">            iterate_dataset (bool): whether to go through all SMILES in the</span>
@@ -293,9 +294,11 @@
 <span class="sd">            backend (str): memory management backend.</span>
 <span class="sd">                Defaults to eager, prefer speed over memory consumption.</span>
 <span class="sd">            name (str): name of the SMILESTokenizerDataset.</span>
+<span class="sd">            device (torch.device): DEPRECATED</span>
 <span class="sd">            kwargs (dict): additional arguments for dataset constructor.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">SMILESDataset</span><span class="p">(</span><span class="o">*</span><span class="n">smi_filepaths</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">DatasetDelegator</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># delegate to self.dataset</span>
@@ -305,7 +308,7 @@
             <span class="n">params</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="s2">&quot;canonical, augment, kekulize, all_bonds_explicit, selfies, sanitize, &quot;</span>
                 <span class="s2">&quot;all_hs_explicit, remove_bonddir, remove_chirality, randomize, &quot;</span>
-                <span class="s2">&quot;add_start_and_stop, padding, padding_length, device&quot;</span>
+                <span class="s2">&quot;add_start_and_stop, padding, padding_length&quot;</span>
             <span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
                 <span class="s1">&#39;Since you provided a smiles_language, the following parameters to this&#39;</span>
@@ -350,7 +353,6 @@
                 <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">add_start_and_stop</span><span class="p">,</span>
                 <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
                 <span class="n">padding_length</span><span class="o">=</span><span class="n">padding_length</span><span class="p">,</span>
-                <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">vocab_file</span><span class="p">:</span>

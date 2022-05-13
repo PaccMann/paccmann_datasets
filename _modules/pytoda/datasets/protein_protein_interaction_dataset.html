@@ -163,6 +163,8 @@
 <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">iterable</span>
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
 
+<span class="kn">from</span> <span class="nn">pytoda.warnings</span> <span class="kn">import</span> <span class="n">device_warning</span>
+
 <span class="kn">from</span> <span class="nn">..proteins.protein_language</span> <span class="kn">import</span> <span class="n">ProteinLanguage</span>
 <span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Files</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">.protein_sequence_dataset</span> <span class="kn">import</span> <span class="n">ProteinSequenceDataset</span>
@@ -190,9 +192,7 @@
         <span class="n">augment_by_reverts</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">randomizes</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">iterate_datasets</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
-        <span class="p">),</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a protein protein interactiondataset.</span>
@@ -241,10 +241,11 @@
 <span class="sd">                items in the datasets to detect unknown characters, find longest</span>
 <span class="sd">                sequence and checks passed padding length if applicable.</span>
 <span class="sd">                Defaults to False.</span>
-<span class="sd">            device (torch.device): device where the tensors are stored.</span>
-<span class="sd">                Defaults to gpu, if available.</span>
+<span class="sd">            device (torch.device): DEPRECATED</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Dataset</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">entity_names</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
             <span class="n">sequence_filepaths</span>
         <span class="p">),</span> <span class="s1">&#39;sequence_filepaths should be an iterable of length in entity names&#39;</span>
@@ -270,9 +271,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">filetypes</span> <span class="o">=</span> <span class="n">sequence_filetypes</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unsupported filetype: </span><span class="si">{sequence_filetypes}</span><span class="s1">&#39;</span><span class="p">)</span>
-
-        <span class="c1"># device</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
 
         <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">paddings</span><span class="p">,</span>
@@ -335,7 +333,6 @@
                 <span class="n">add_start_and_stop</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stops</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
                 <span class="n">augment_by_revert</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">augment_by_reverts</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
                 <span class="n">randomize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">randomizes</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
-                <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
                 <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">entities</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
                 <span class="n">iterate_dataset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">iterate_datasets</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
             <span class="p">)</span>
@@ -412,7 +409,6 @@
         <span class="n">labels_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
             <span class="nb">list</span><span class="p">(</span><span class="n">selected_sample</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">),</span>
             <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span>
-            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="c1"># samples (Protein sequences)</span>
         <span class="n">proteins_tensors</span> <span class="o">=</span> <span class="p">[</span>

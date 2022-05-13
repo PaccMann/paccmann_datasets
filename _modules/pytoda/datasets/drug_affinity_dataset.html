@@ -164,6 +164,8 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
 
+<span class="kn">from</span> <span class="nn">pytoda.warnings</span> <span class="kn">import</span> <span class="n">device_warning</span>
+
 <span class="kn">from</span> <span class="nn">..proteins.protein_language</span> <span class="kn">import</span> <span class="n">ProteinLanguage</span>
 <span class="kn">from</span> <span class="nn">..smiles.smiles_language</span> <span class="kn">import</span> <span class="n">SMILESLanguage</span>
 <span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">DrugAffinityData</span>
@@ -205,11 +207,9 @@
         <span class="n">protein_add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">protein_augment_by_revert</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">protein_randomize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
-        <span class="p">),</span>
         <span class="n">iterate_dataset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize a drug affinity dataset.</span>
@@ -271,8 +271,6 @@
 <span class="sd">                sequence. Defaults to False.</span>
 <span class="sd">            protein_randomize (bool): perform a randomization of the protein</span>
 <span class="sd">                sequence tokens. Defaults to False.</span>
-<span class="sd">            device (torch.device): device where the tensors are stored.</span>
-<span class="sd">                Defaults to gpu, if available.</span>
 <span class="sd">            protein_vocab_file (str): Optional .json to load vocabulary. Tries</span>
 <span class="sd">                to load metadata if `iterate_dataset` is False.</span>
 <span class="sd">                Defaults to None.</span>
@@ -285,15 +283,15 @@
 <span class="sd">                Note that at the moment only the smiles dataset implement both</span>
 <span class="sd">                backends. The drug affinity data and the protein dataset are</span>
 <span class="sd">                loaded in memory.</span>
+<span class="sd">            device (torch.device): DEPRECATED</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Dataset</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_filepath</span> <span class="o">=</span> <span class="n">drug_affinity_filepath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">smi_filepath</span> <span class="o">=</span> <span class="n">smi_filepath</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">protein_filepath</span> <span class="o">=</span> <span class="n">protein_filepath</span>
-        <span class="c1"># device</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
         <span class="c1"># backend</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">backend</span>
+        <span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">column_names</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Column names was {type(column_names)}, not Iterable.&#39;</span><span class="p">)</span>
@@ -319,7 +317,6 @@
             <span class="n">padding_length</span><span class="o">=</span><span class="n">smiles_padding_length</span><span class="p">,</span>
             <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">smiles_add_start_and_stop</span><span class="p">,</span>
             <span class="n">randomize</span><span class="o">=</span><span class="n">smiles_randomize</span><span class="p">,</span>
-            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
             <span class="n">vocab_file</span><span class="o">=</span><span class="n">smiles_vocab_file</span><span class="p">,</span>
             <span class="n">iterate_dataset</span><span class="o">=</span><span class="n">iterate_dataset</span><span class="p">,</span>
             <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
@@ -334,7 +331,6 @@
             <span class="n">add_start_and_stop</span><span class="o">=</span><span class="n">protein_add_start_and_stop</span><span class="p">,</span>
             <span class="n">augment_by_revert</span><span class="o">=</span><span class="n">protein_augment_by_revert</span><span class="p">,</span>
             <span class="n">randomize</span><span class="o">=</span><span class="n">protein_randomize</span><span class="p">,</span>
-            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
             <span class="n">iterate_dataset</span><span class="o">=</span><span class="n">iterate_dataset</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="c1"># drug affinity</span>
@@ -375,7 +371,6 @@
         <span class="n">affinity_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
             <span class="p">[</span><span class="n">selected_sample</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label_name</span><span class="p">]],</span>
             <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">drug_affinity_dtype</span><span class="p">,</span>
-            <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="c1"># SMILES</span>
         <span class="n">token_indexes_tensor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles_dataset</span><span class="o">.</span><span class="n">get_item_from_key</span><span class="p">(</span>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>pytoda.smiles package &mdash; pytoda  documentation</title>
+  <title>pytoda.warnings module &mdash; pytoda  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="pytoda.smiles.polymer_language module" href="pytoda.smiles.polymer_language.html" />
-    <link rel="prev" title="pytoda.proteins.tests.test_utils module" href="pytoda.proteins.tests.test_utils.html" /> 
+    <link rel="next" title="pytoda.datasets package" href="pytoda.datasets.html" />
+    <link rel="prev" title="pytoda.types module" href="pytoda.types.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -97,21 +97,15 @@
 <li class="toctree-l2"><a class="reference internal" href="pytoda.files.html">pytoda.files module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.transforms.html">pytoda.transforms module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pytoda.warnings.html">pytoda.warnings module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pytoda.preprocessing.html">pytoda.preprocessing package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pytoda.proteins.html">pytoda.proteins package</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">pytoda.smiles package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.polymer_language.html">pytoda.smiles.polymer_language module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.processing.html">pytoda.smiles.processing module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.smiles_language.html">pytoda.smiles.smiles_language module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.transforms.html">pytoda.smiles.transforms module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.metadata.html">pytoda.smiles.metadata package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="pytoda.smiles.tests.html">pytoda.smiles.tests package</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pytoda.warnings module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#summary">Summary</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#reference">Reference</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.preprocessing.html">pytoda.preprocessing package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.proteins.html">pytoda.proteins package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.smiles.html">pytoda.smiles package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.tests.html">pytoda.tests package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.html#summary">Summary</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.html#reference">Reference</a></li>
@@ -167,13 +161,13 @@
         
           <li><a href="pytoda.html">pytoda package</a> &raquo;</li>
         
-      <li>pytoda.smiles package</li>
+      <li>pytoda.warnings module</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/api/pytoda.smiles.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/pytoda.warnings.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -186,43 +180,46 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-pytoda.smiles">
-<span id="pytoda-smiles-package"></span><h1>pytoda.smiles package<a class="headerlink" href="#module-pytoda.smiles" title="Permalink to this headline">¶</a></h1>
-<p>Submodules:</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="pytoda.smiles.polymer_language.html">pytoda.smiles.polymer_language module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pytoda.smiles.processing.html">pytoda.smiles.processing module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pytoda.smiles.smiles_language.html">pytoda.smiles.smiles_language module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pytoda.smiles.transforms.html">pytoda.smiles.transforms module</a></li>
-</ul>
-</div>
-<p>Subpackages:</p>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="pytoda.smiles.metadata.html">pytoda.smiles.metadata package</a></li>
-<li class="toctree-l1"><a class="reference internal" href="pytoda.smiles.tests.html">pytoda.smiles.tests package</a></li>
-</ul>
-</div>
+  <div class="section" id="module-pytoda.warnings">
+<span id="pytoda-warnings-module"></span><h1>pytoda.warnings module<a class="headerlink" href="#module-pytoda.warnings" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="summary">
 <h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Functions:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.warnings.device_warning" title="pytoda.warnings.device_warning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">device_warning</span></code></a></p></td>
+<td><p><dl class="field-list simple">
+<dt class="field-odd">type device</dt>
+<dd class="field-odd"><p><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></p>
+</dd>
+</dl>
+</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
-<p>If you use <cite>pytoda</cite> in your projects, please cite the following:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>@article{born2021paccmannrl,
-    title = {PaccMann$^{RL}$: De novo generation of hit-like anticancer molecules from transcriptomic data via reinforcement learning},
-    journal = {iScience},
-    volume = {24},
-    number = {4},
-    year = {2021},
-    issn = {2589-0042},
-    doi = {https://doi.org/10.1016/j.isci.2021.102269},
-    url = {https://www.cell.com/iscience/fulltext/S2589-0042(21)00237-6},
-    author = {Jannis Born and Matteo Manica and Ali Oskooei and Joris Cadow and Greta Markert and Mar{\&#39;\i}a Rodr{\&#39;\i}guez Mart{\&#39;\i}nez}}
-}
-</pre></div>
-</div>
+<dl class="py function">
+<dt id="pytoda.warnings.device_warning">
+<code class="sig-name descname">device_warning</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span></em>, <em class="sig-param"><span class="n">throw_exception</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/warnings.html#device_warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.warnings.device_warning" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device</strong> (<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>) – A device object provided by the user.</p></li>
+<li><p><strong>throw_exception</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Whether an exception is thrown. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Raises if throw_exception is True.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </div>
 
@@ -232,8 +229,8 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="pytoda.smiles.polymer_language.html" class="btn btn-neutral float-right" title="pytoda.smiles.polymer_language module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="pytoda.proteins.tests.test_utils.html" class="btn btn-neutral float-left" title="pytoda.proteins.tests.test_utils module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pytoda.datasets.html" class="btn btn-neutral float-right" title="pytoda.datasets package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="pytoda.types.html" class="btn btn-neutral float-left" title="pytoda.types module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

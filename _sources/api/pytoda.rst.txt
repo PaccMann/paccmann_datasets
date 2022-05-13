@@ -19,6 +19,7 @@ pytoda package
        pytoda.files
        pytoda.transforms
        pytoda.types
+       pytoda.warnings
 
     Subpackages:
 

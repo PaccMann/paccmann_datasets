@@ -160,6 +160,8 @@
 <span></span><span class="sd">&quot;&quot;&quot;GeneExpressionDataset module.&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">torch</span>
 
+<span class="kn">from</span> <span class="nn">pytoda.warnings</span> <span class="kn">import</span> <span class="n">device_warning</span>
+
 <span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">GeneList</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">._table_dataset</span> <span class="kn">import</span> <span class="n">_TableEagerDataset</span><span class="p">,</span> <span class="n">_TableLazyDataset</span>
 <span class="kn">from</span> <span class="nn">.base_dataset</span> <span class="kn">import</span> <span class="n">DatasetDelegator</span>
@@ -181,11 +183,9 @@
         <span class="n">processing_parameters</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span>
         <span class="n">impute</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
         <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float</span><span class="p">,</span>
-        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span>
-            <span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span>
-        <span class="p">),</span>
         <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -207,14 +207,14 @@
 <span class="sd">            impute (Optional[float]): NaN imputation with value if</span>
 <span class="sd">                given. Defaults to 0.0.</span>
 <span class="sd">            dtype (torch.dtype): data type. Defaults to torch.float.</span>
-<span class="sd">            device (torch.device): device where the tensors are stored.</span>
-<span class="sd">                Defaults to gpu, if available.</span>
 <span class="sd">            backend (str): memory management backend.</span>
 <span class="sd">                Defaults to eager, prefer speed over memory consumption.</span>
 <span class="sd">            chunk_size (int): size of the chunks in case of lazy reading, is</span>
 <span class="sd">                ignored with &#39;eager&#39; backend. Defaults to 10000.</span>
+<span class="sd">            device (torch.device): DEPRECATED</span>
 <span class="sd">            kwargs (dict): additional parameters for pd.read_csv.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">backend</span> <span class="ow">in</span> <span class="n">TABLE_DATASET_IMPLEMENTATIONS</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                 <span class="s1">&#39;backend=</span><span class="si">{}</span><span class="s1"> not supported! &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
@@ -230,7 +230,6 @@
             <span class="n">processing_parameters</span><span class="o">=</span><span class="n">processing_parameters</span><span class="p">,</span>
             <span class="n">impute</span><span class="o">=</span><span class="n">impute</span><span class="p">,</span>
             <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
-            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
             <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
