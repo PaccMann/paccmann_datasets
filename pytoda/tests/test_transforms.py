@@ -53,12 +53,6 @@ class TestTransforms(unittest.TestCase):
         self.assertTrue(torch.is_tensor(tensor))
         self.assertEqual(len(tensor), 3)
         self.assertEqual(len(tensor.shape), 1)
-
-        # Test exceptions
-        self.assertRaises(
-            TypeError,
-            ToTensor,
-        )
         self.assertRaises(TypeError, ToTensor, dtype=42)
 
     def test_list_to_tensor(self) -> None:
@@ -75,12 +69,6 @@ class TestTransforms(unittest.TestCase):
             [tensor[0][0], tensor[0][1], tensor[0][2]],
         )
         self.assertTrue(torch.is_tensor(tensor))
-
-        # Test exceptions
-        self.assertRaises(
-            TypeError,
-            ListToTensor,
-        )
         self.assertRaises(TypeError, ListToTensor, dtype=42)
 
     def test_compose(self) -> None:
