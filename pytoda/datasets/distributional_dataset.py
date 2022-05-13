@@ -114,12 +114,13 @@ class DistributionalDataset(Dataset):
                 torch.cuda.manual_seed_all(seed)
 
                 self.datasource = self.data_sampler.sample((dataset_size, *item_shape))
-            
 
         else:
             # get sampled item on indexing
             self.datasource = StochasticItems(
-                self.data_sampler, self.item_shape, torch.device('cpu'),
+                self.data_sampler,
+                self.item_shape,
+                torch.device('cpu'),
             )
 
         # copy data to device

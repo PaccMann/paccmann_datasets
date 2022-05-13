@@ -107,7 +107,6 @@ class ProteinProteinInteractionDataset(Dataset):
         else:
             raise ValueError(f'Unsupported filetype: {sequence_filetypes}')
 
-
         (
             self.paddings,
             self.padding_lengths,

@@ -117,7 +117,5 @@ class AnnotatedDataset(DataFrameDataset):
         # sample
         sample = self.datasource.get_item_from_key(lables_series.name)
         # label
-        labels_tensor = torch.tensor(
-            list(lables_series.values), dtype=self.dtype
-        )
+        labels_tensor = torch.tensor(list(lables_series.values), dtype=self.dtype)
         return sample, labels_tensor
