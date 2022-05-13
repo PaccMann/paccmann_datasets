@@ -44,10 +44,8 @@ class TestTransforms(unittest.TestCase):
     def test_to_tensor(self) -> None:
         """Test ToTensor."""
 
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
         tokens = [2, 3, 4]
-        transform = ToTensor(device=device)
+        transform = ToTensor()
         tensor = transform(tokens)
         self.assertListEqual(
             [tokens[0], tokens[1], tokens[2]], [tensor[0], tensor[1], tensor[2]]
@@ -57,16 +55,17 @@ class TestTransforms(unittest.TestCase):
         self.assertEqual(len(tensor.shape), 1)
 
         # Test exceptions
-        self.assertRaises(TypeError, ToTensor, device=42)
-        self.assertRaises(TypeError, ToTensor, device=device, dtype=42)
+        self.assertRaises(
+            TypeError,
+            ToTensor,
+        )
+        self.assertRaises(TypeError, ToTensor, dtype=42)
 
     def test_list_to_tensor(self) -> None:
         """Test ListToTensor."""
 
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
         tokens = [(2, 3, 4), (2, 3, 4)]
-        transform = ListToTensor(device=device)
+        transform = ListToTensor()
         tensor = transform(tokens)
         self.assertEqual(len(tensor), 2)
         self.assertEqual(len(tensor.shape), 2)
@@ -78,8 +77,11 @@ class TestTransforms(unittest.TestCase):
         self.assertTrue(torch.is_tensor(tensor))
 
         # Test exceptions
-        self.assertRaises(TypeError, ListToTensor, device=42)
-        self.assertRaises(TypeError, ListToTensor, device=device, dtype=42)
+        self.assertRaises(
+            TypeError,
+            ListToTensor,
+        )
+        self.assertRaises(TypeError, ListToTensor, dtype=42)
 
     def test_compose(self) -> None:
         """Test Compose."""
