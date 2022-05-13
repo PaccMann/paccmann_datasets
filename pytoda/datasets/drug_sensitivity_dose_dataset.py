@@ -7,7 +7,7 @@ import torch
 from ..smiles.smiles_language import SMILESTokenizer
 from ..types import DrugSensitivityDoseData, GeneList, Tuple
 from .drug_sensitivity_dataset import DrugSensitivityDataset
-
+from pytoda.warnings import device_warning
 
 class DrugSensitivityDoseDataset(DrugSensitivityDataset):
     """
@@ -30,6 +30,7 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
         gene_expression_dtype: torch.dtype = torch.float,
         gene_expression_kwargs: dict = {},
         backend: str = 'eager',
+        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -72,6 +73,7 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
                 Note that at the moment only the gene expression and the
                 smiles datasets implement both backends. The drug sensitivity
                 data are loaded in memory.
+            device (torch.device): DEPRECATED
             **kwargs: Additional keyword arguments for parent class
                 (DrugSensitivityDataset).
         """
@@ -94,6 +96,7 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
 
         self.dose_name = column_names[2]
         self.dose_transform = dose_transform
+        device_warning(device)
 
     def __getitem__(self, index: int) -> DrugSensitivityDoseData:
         """

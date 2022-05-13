@@ -14,7 +14,7 @@ import pytoda
 
 from ..transforms import Compose, LeftPadding, Randomize, StartStop, ToTensor, Transform
 from ..types import Indexes, Tensor, Union
-
+from pytoda.warnings import device_warning
 logger = logging.getLogger('pytoda_SMILES_transforms')
 
 
@@ -28,6 +28,7 @@ def compose_smiles_transforms(
     remove_chirality: bool = False,
     selfies: bool = False,
     sanitize: bool = True,
+    device: torch.device = None,
 ) -> Compose:
     """Setup a composition of SMILES to SMILES (or SELFIES) transformations.
 
@@ -52,11 +53,13 @@ def compose_smiles_transforms(
             smiles. Defaults to False.
         sanitize (bool, optional): RDKit sanitization of the molecule.
             Defaults to True.
+        device (torch.device): DEPRECATED
 
     Returns:
         Compose: A Callable that applies composition of SMILES transforms.
     """
 
+    device_warning(device)
     # Build up composition from optional SMILES to SMILES transformations
     smiles_transforms = []
     if canonical:

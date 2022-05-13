@@ -20,7 +20,7 @@ from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
 from .base_dataset import DatasetDelegator, KeyDataset
 from .utils import concatenate_file_based_datasets
-
+from pytoda.warnings import device_warning
 logger = logging.getLogger(__name__)
 
 SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
@@ -126,6 +126,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         backend: str = 'eager',
         iterate_dataset: bool = False,
         name: str = 'protein-sequences',
+        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -156,9 +157,11 @@ class ProteinSequenceDataset(DatasetDelegator):
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             name (str): name of the ProteinSequenceDataset.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional arguments for dataset constructor.
         """
 
+        device_warning(device)
         # Parse language object and data paths
         self.filepaths = filepaths
         self.filetype = filetype

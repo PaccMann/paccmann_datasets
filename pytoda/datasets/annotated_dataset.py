@@ -5,7 +5,7 @@ import torch
 from ..types import AnnotatedData, Hashable, List, Union
 from .base_dataset import AnyBaseDataset
 from .dataframe_dataset import DataFrameDataset
-
+from pytoda.warnings import device_warning
 
 class AnnotatedDataset(DataFrameDataset):
     """
@@ -20,6 +20,7 @@ class AnnotatedDataset(DataFrameDataset):
         annotation_index: Union[int, str] = -1,
         label_columns: Union[List[int], List[str]] = None,
         dtype: torch.dtype = torch.float,
+        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -43,11 +44,13 @@ class AnnotatedDataset(DataFrameDataset):
                 annotation labels.
             dtype (torch.dtype): torch data type for labels. Defaults to
                 torch.float.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional parameter for pd.read_csv.
         """
         self.annotations_filepath = annotations_filepath
         self.datasource = dataset
         self.dtype = dtype
+        device_warning(device)
 
         # processing of the dataframe for dataset setup
         df = pd.read_csv(self.annotations_filepath, **kwargs)

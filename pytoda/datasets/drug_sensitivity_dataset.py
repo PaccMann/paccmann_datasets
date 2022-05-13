@@ -7,7 +7,7 @@ from ..smiles.smiles_language import SMILESLanguage
 from ..types import DrugSensitivityData, GeneList, Iterable, Tuple
 from .gene_expression_dataset import GeneExpressionDataset
 from .smiles_dataset import SMILESTokenizerDataset
-
+from pytoda.warnings import device_warning
 
 class DrugSensitivityDataset(Dataset):
     """
@@ -46,6 +46,7 @@ class DrugSensitivityDataset(Dataset):
         gene_expression_dtype: torch.dtype = torch.float,
         gene_expression_kwargs: dict = {},
         backend: str = 'eager',
+        device: torch.device = None,
     ) -> None:
         """
         Initialize a drug sensitivity dataset.
@@ -119,6 +120,7 @@ class DrugSensitivityDataset(Dataset):
                 Note that at the moment only the gene expression and the
                 smiles datasets implement both backends. The drug sensitivity
                 data are loaded in memory.
+            device (torch.device): DEPRECATED
         """
         Dataset.__init__(self)
         self.drug_sensitivity_filepath = drug_sensitivity_filepath
@@ -133,6 +135,7 @@ class DrugSensitivityDataset(Dataset):
             raise ValueError(f'Please pass 3 column names not {len(column_names)}')
         self.column_names = column_names
         self.drug_name, self.cell_name, self.label_name = self.column_names
+        device_warning(device)
 
         # SMILES
         self.smiles_dataset = SMILESTokenizerDataset(

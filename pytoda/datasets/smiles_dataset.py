@@ -9,7 +9,7 @@ from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
 from .base_dataset import DatasetDelegator
 from .utils import concatenate_file_based_datasets
-
+from pytoda.warnings import device_warning
 logger = logging.getLogger(__name__)
 
 
@@ -27,6 +27,7 @@ class SMILESDataset(DatasetDelegator):
         *smi_filepaths: str,
         backend: str = 'eager',
         name: str = 'smiles-dataset',
+        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -37,8 +38,10 @@ class SMILESDataset(DatasetDelegator):
             name (str): name of the SMILESDataset.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional arguments for dataset constructor.
         """
+        device_warning(device)
         # Parse language object and data paths
         self.smi_filepaths = smi_filepaths
         self.backend = backend
@@ -80,6 +83,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
         vocab_file: str = None,
         iterate_dataset: bool = True,
         backend: str = 'eager',
+        device: torch.device = None,
         name: str = 'smiles-encoder-dataset',
         **kwargs,
     ) -> None:
@@ -129,9 +133,11 @@ class SMILESTokenizerDataset(DatasetDelegator):
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             name (str): name of the SMILESTokenizerDataset.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional arguments for dataset constructor.
 
         """
+        device_warning(device)
         self.name = name
         self.dataset = SMILESDataset(*smi_filepaths, backend=backend, **kwargs)
         DatasetDelegator.__init__(self)  # delegate to self.dataset

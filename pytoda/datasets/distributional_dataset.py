@@ -5,7 +5,7 @@ from torch.random import fork_rng
 from torch.utils.data import Dataset
 
 from pytoda.types import Any, Tensor
-
+from pytoda.warnings import device_warning
 
 class StochasticItems:
     """Sample an item from a distribution on the fly on indexing.
@@ -17,16 +17,19 @@ class StochasticItems:
             torch.distributions.normal.Normal(loc,scale), so that
             calling .sample() would return an item from this distribution.
         shape (torch.Size): The desired shape of each item.
+        device (torch.device): DEPRECATED
     """
 
     def __init__(
         self,
         distribution: torch.distributions.distribution.Distribution,
         shape: Union[torch.Size, Tuple[int]],
+        device: torch.device = None,
     ):
 
         self.distribution = distribution
         self.shape = shape
+        device_warning(device)
 
     def __getitem__(self, index: Any) -> Tensor:
         """Samples an item.
@@ -50,6 +53,7 @@ class DistributionalDataset(Dataset):
         item_shape: Tuple[int],
         distribution_function: torch.distributions.distribution.Distribution,
         seed: Optional[int] = None,
+        device: torch.device = None,
     ) -> None:
         """Dataset of synthetic samples from a specified distribution with given shape.
 
@@ -72,6 +76,7 @@ class DistributionalDataset(Dataset):
                 this seed (using a local RNG only). Defaults to None, where
                 individual items are generated when the DistributionalDataset is
                 indexed (using the global RNG).
+            device (torch.device): DEPRECATED
         """
 
         super(DistributionalDataset, self).__init__()
@@ -79,7 +84,7 @@ class DistributionalDataset(Dataset):
         self.dataset_size = dataset_size
         self.item_shape = item_shape
         self.seed = seed
-
+        device_warning(device)
         self.data_sampler = distribution_function
 
         if self.seed:

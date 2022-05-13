@@ -11,7 +11,7 @@ from ._csv_lazy_dataset import _CsvLazyDataset
 from ._csv_statistics import reduce_csv_statistics
 from .base_dataset import DatasetDelegator
 from .utils import concatenate_file_based_datasets
-
+from pytoda.warnings import device_warning
 
 # https://github.com/scikit-learn/scikit-learn/blob/0fb307bf39bbdacd6ed713c00724f8f871d60370/sklearn/preprocessing/_data.py#L63
 def _handle_zeros_in_scale(scale, copy=True):
@@ -63,6 +63,7 @@ class _TableDataset(DatasetDelegator):
         impute: Optional[float] = None,
         dtype: torch.dtype = torch.float,
         chunk_size: int = 10000,
+        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -84,8 +85,9 @@ class _TableDataset(DatasetDelegator):
             dtype (torch.dtype): data type. Defaults to torch.float.
             chunk_size (int): size of the chunks in case of lazy reading, is
                 ignored with 'eager' backend. Defaults to 10000.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional parameters for pd.read_csv.
-        """
+        """        
         self.filepaths = filepaths
         self.initial_feature_list = feature_list
         self.standardize = standardize
@@ -101,6 +103,7 @@ class _TableDataset(DatasetDelegator):
         self.min = None
         self.mean = None
         self.std = None
+        device_warning(device)
 
         # the dataset(s) will be initialized individually,
         # the collected statistics will later be updated and finally applied

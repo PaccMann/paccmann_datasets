@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 from ..proteins.protein_language import ProteinLanguage
 from ..types import Files, List, Sequence, Tensor, Tuple, Union
 from .protein_sequence_dataset import ProteinSequenceDataset
-
+from pytoda.warnings import device_warning
 
 class ProteinProteinInteractionDataset(Dataset):
     """
@@ -31,6 +31,7 @@ class ProteinProteinInteractionDataset(Dataset):
         augment_by_reverts: Union[bool, Sequence[bool]] = False,
         randomizes: Union[bool, Sequence[bool]] = False,
         iterate_datasets: Union[bool, Sequence[bool]] = False,
+        device: torch.device = None,
     ) -> None:
         """
         Initialize a protein protein interactiondataset.
@@ -79,8 +80,11 @@ class ProteinProteinInteractionDataset(Dataset):
                 items in the datasets to detect unknown characters, find longest
                 sequence and checks passed padding length if applicable.
                 Defaults to False.
+            device (torch.device): DEPRECATED
+
         """
         Dataset.__init__(self)
+        device_warning(device)
         assert len(entity_names) == len(
             sequence_filepaths
         ), 'sequence_filepaths should be an iterable of length in entity names'

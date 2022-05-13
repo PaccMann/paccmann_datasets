@@ -42,7 +42,7 @@ from ..types import (
     Union,
     Any,
 )
-from ..warnings import device_warning
+from pytoda.warnings import device_warning
 from .processing import TOKENIZER_FUNCTIONS, tokenize_smiles
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
@@ -805,6 +805,7 @@ class SMILESTokenizer(SMILESLanguage):
             `reset_initial_transforms`. Assignment of class attributes
             in the parameter list will trigger such a reset.
         """
+        device_warning(device)
         super().__init__(
             name=name,
             smiles_tokenizer=smiles_tokenizer,

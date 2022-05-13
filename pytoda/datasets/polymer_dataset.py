@@ -7,7 +7,7 @@ from torch.utils.data import Dataset
 from ..smiles.polymer_language import PolymerTokenizer
 from ..types import List, Sequence, Tensor, Tuple, Union
 from .smiles_dataset import SMILESDataset
-
+from pytoda.warnings import device_warning
 
 class PolymerTokenizerDataset(Dataset):
     """
@@ -42,6 +42,7 @@ class PolymerTokenizerDataset(Dataset):
         padding_length: Union[Sequence[int], int] = None,
         iterate_dataset: bool = True,
         backend: str = 'eager',
+        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -97,13 +98,14 @@ class PolymerTokenizerDataset(Dataset):
                 True.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional arguments for dataset constructor.
 
         NOTE: If a parameter that can be given as Union[Sequence[bool], bool]
         is given as Sequence[bool] of wrong length (!= len(entity_names)), the
         first list item is used for all datasets.
         """
-
+        device_warning(device)
         self.backend = backend
 
         if len(entity_names) != len(smi_filepaths):

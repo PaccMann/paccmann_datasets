@@ -10,7 +10,7 @@ from ..smiles.smiles_language import SMILESLanguage
 from ..types import DrugAffinityData
 from .protein_sequence_dataset import ProteinSequenceDataset
 from .smiles_dataset import SMILESTokenizerDataset
-
+from pytoda.warnings import device_warning
 
 class DrugAffinityDataset(Dataset):
     """
@@ -48,6 +48,7 @@ class DrugAffinityDataset(Dataset):
         protein_randomize: bool = False,
         iterate_dataset: bool = True,
         backend: str = 'eager',
+        device: torch.device = None,
     ) -> None:
         """
         Initialize a drug affinity dataset.
@@ -121,6 +122,7 @@ class DrugAffinityDataset(Dataset):
                 Note that at the moment only the smiles dataset implement both
                 backends. The drug affinity data and the protein dataset are
                 loaded in memory.
+            device (torch.device): DEPRECATED
         """
         Dataset.__init__(self)
         self.drug_affinity_filepath = drug_affinity_filepath
@@ -128,6 +130,7 @@ class DrugAffinityDataset(Dataset):
         self.protein_filepath = protein_filepath
         # backend
         self.backend = backend
+        device_warning(device)
 
         if not isinstance(column_names, Iterable):
             raise TypeError(f'Column names was {type(column_names)}, not Iterable.')

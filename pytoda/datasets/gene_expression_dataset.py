@@ -4,7 +4,7 @@ import torch
 from ..types import GeneList, Optional
 from ._table_dataset import _TableEagerDataset, _TableLazyDataset
 from .base_dataset import DatasetDelegator
-
+from pytoda.warnings import device_warning
 TABLE_DATASET_IMPLEMENTATIONS = {'eager': _TableEagerDataset, 'lazy': _TableLazyDataset}
 
 
@@ -24,6 +24,7 @@ class GeneExpressionDataset(DatasetDelegator):
         dtype: torch.dtype = torch.float,
         backend: str = 'eager',
         chunk_size: int = 10000,
+        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -49,8 +50,10 @@ class GeneExpressionDataset(DatasetDelegator):
                 Defaults to eager, prefer speed over memory consumption.
             chunk_size (int): size of the chunks in case of lazy reading, is
                 ignored with 'eager' backend. Defaults to 10000.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional parameters for pd.read_csv.
         """
+        device_warning(device)
         if not (backend in TABLE_DATASET_IMPLEMENTATIONS):
             raise RuntimeError(
                 'backend={} not supported! '.format(backend)
