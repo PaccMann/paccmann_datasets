@@ -1,8 +1,6 @@
 """Utils for the dataset module."""
 from copy import copy
 
-import torch
-
 from ...types import Any, Files, Hashable, List, Tuple
 from ..base_dataset import AnyBaseDataset, ConcatKeyDataset
 from .factories import BACKGROUND_TENSOR_FACTORY
@@ -100,9 +98,6 @@ def pad_item(
     padding_modes: List[str],
     padding_values: List,
     max_length: int,
-    device: torch.device = (
-        torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    ),
 ) -> Tuple:
     """Padding function for a single item of a batch.
 
@@ -114,8 +109,6 @@ def pad_item(
         padding_values (List): The values with which to fill the background tensor for padding.
             Can be a constant value or a range depending on the datum to pad in item.
         max_length (int): The maximum length to which the datum should be padded.
-        device (torch.device, optional): Device where the tensors are stored.
-            Defaults to gpu, if available.
 
     Returns:
         Tuple: Tuple of tensors padded according to the given specifications.
@@ -136,7 +129,7 @@ def pad_item(
     ]
 
     out_tensors = [
-        BACKGROUND_TENSOR_FACTORY[mode](value, out_dims, device=device)
+        BACKGROUND_TENSOR_FACTORY[mode](value, out_dims)
         for out_dims, mode, value in zip(out_dimses, padding_modes, padding_values)
     ]
 

@@ -4,6 +4,8 @@ import torch
 from numpy import iterable
 from torch.utils.data import Dataset
 
+from pytoda.warnings import device_warning
+
 from ..proteins.protein_language import ProteinLanguage
 from ..types import Files, List, Sequence, Tensor, Tuple, Union
 from .protein_sequence_dataset import ProteinSequenceDataset
@@ -31,9 +33,7 @@ class ProteinProteinInteractionDataset(Dataset):
         augment_by_reverts: Union[bool, Sequence[bool]] = False,
         randomizes: Union[bool, Sequence[bool]] = False,
         iterate_datasets: Union[bool, Sequence[bool]] = False,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
+        device: torch.device = None,
     ) -> None:
         """
         Initialize a protein protein interactiondataset.
@@ -82,10 +82,11 @@ class ProteinProteinInteractionDataset(Dataset):
                 items in the datasets to detect unknown characters, find longest
                 sequence and checks passed padding length if applicable.
                 Defaults to False.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
+            device (torch.device): DEPRECATED
+
         """
         Dataset.__init__(self)
+        device_warning(device)
         assert len(entity_names) == len(
             sequence_filepaths
         ), 'sequence_filepaths should be an iterable of length in entity names'
@@ -111,9 +112,6 @@ class ProteinProteinInteractionDataset(Dataset):
             self.filetypes = sequence_filetypes
         else:
             raise ValueError(f'Unsupported filetype: {sequence_filetypes}')
-
-        # device
-        self.device = device
 
         (
             self.paddings,
@@ -176,7 +174,6 @@ class ProteinProteinInteractionDataset(Dataset):
                 add_start_and_stop=self.add_start_and_stops[index],
                 augment_by_revert=self.augment_by_reverts[index],
                 randomize=self.randomizes[index],
-                device=self.device,
                 name=self.entities[index],
                 iterate_dataset=self.iterate_datasets[index],
             )
@@ -253,7 +250,6 @@ class ProteinProteinInteractionDataset(Dataset):
         labels_tensor = torch.tensor(
             list(selected_sample[self.labels].values),
             dtype=torch.float,
-            device=self.device,
         )
         # samples (Protein sequences)
         proteins_tensors = [

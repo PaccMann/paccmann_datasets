@@ -5,6 +5,8 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
+from pytoda.warnings import device_warning
+
 from ..proteins.protein_language import ProteinLanguage
 from ..smiles.smiles_language import SMILESLanguage
 from ..types import DrugAffinityData
@@ -46,11 +48,9 @@ class DrugAffinityDataset(Dataset):
         protein_add_start_and_stop: bool = False,
         protein_augment_by_revert: bool = False,
         protein_randomize: bool = False,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
         iterate_dataset: bool = True,
         backend: str = 'eager',
+        device: torch.device = None,
     ) -> None:
         """
         Initialize a drug affinity dataset.
@@ -112,8 +112,6 @@ class DrugAffinityDataset(Dataset):
                 sequence. Defaults to False.
             protein_randomize (bool): perform a randomization of the protein
                 sequence tokens. Defaults to False.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
             protein_vocab_file (str): Optional .json to load vocabulary. Tries
                 to load metadata if `iterate_dataset` is False.
                 Defaults to None.
@@ -126,15 +124,15 @@ class DrugAffinityDataset(Dataset):
                 Note that at the moment only the smiles dataset implement both
                 backends. The drug affinity data and the protein dataset are
                 loaded in memory.
+            device (torch.device): DEPRECATED
         """
         Dataset.__init__(self)
         self.drug_affinity_filepath = drug_affinity_filepath
         self.smi_filepath = smi_filepath
         self.protein_filepath = protein_filepath
-        # device
-        self.device = device
         # backend
         self.backend = backend
+        device_warning(device)
 
         if not isinstance(column_names, Iterable):
             raise TypeError(f'Column names was {type(column_names)}, not Iterable.')
@@ -160,7 +158,6 @@ class DrugAffinityDataset(Dataset):
             padding_length=smiles_padding_length,
             add_start_and_stop=smiles_add_start_and_stop,
             randomize=smiles_randomize,
-            device=self.device,
             vocab_file=smiles_vocab_file,
             iterate_dataset=iterate_dataset,
             backend=self.backend,
@@ -175,7 +172,6 @@ class DrugAffinityDataset(Dataset):
             add_start_and_stop=protein_add_start_and_stop,
             augment_by_revert=protein_augment_by_revert,
             randomize=protein_randomize,
-            device=self.device,
             iterate_dataset=iterate_dataset,
         )
         # drug affinity
@@ -216,7 +212,6 @@ class DrugAffinityDataset(Dataset):
         affinity_tensor = torch.tensor(
             [selected_sample[self.label_name]],
             dtype=self.drug_affinity_dtype,
-            device=self.device,
         )
         # SMILES
         token_indexes_tensor = self.smiles_dataset.get_item_from_key(

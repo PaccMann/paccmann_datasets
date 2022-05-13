@@ -5,6 +5,8 @@ from functools import partial
 import numpy as np
 import torch
 
+from pytoda.warnings import device_warning
+
 from ..types import CsvSourceData, FeatureList, Files, Optional, Tensor
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
@@ -62,10 +64,8 @@ class _TableDataset(DatasetDelegator):
         processing_parameters: dict = {},
         impute: Optional[float] = None,
         dtype: torch.dtype = torch.float,
-        device: torch.device = torch.device(
-            'cuda' if torch.cuda.is_available() else 'cpu'
-        ),
         chunk_size: int = 10000,
+        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -85,10 +85,9 @@ class _TableDataset(DatasetDelegator):
             impute (Optional[float]): NaN imputation with value if
                 given. Defaults to None.
             dtype (torch.dtype): data type. Defaults to torch.float.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
             chunk_size (int): size of the chunks in case of lazy reading, is
                 ignored with 'eager' backend. Defaults to 10000.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional parameters for pd.read_csv.
         """
         self.filepaths = filepaths
@@ -97,7 +96,6 @@ class _TableDataset(DatasetDelegator):
         self.min_max = min_max
         self.processing_parameters = processing_parameters
         self.dtype = dtype
-        self.device = device
         self.chunk_size = chunk_size
         self.kwargs = copy.deepcopy(kwargs)
         if self.standardize and self.min_max:
@@ -107,6 +105,7 @@ class _TableDataset(DatasetDelegator):
         self.min = None
         self.mean = None
         self.std = None
+        device_warning(device)
 
         # the dataset(s) will be initialized individually,
         # the collected statistics will later be updated and finally applied
@@ -176,7 +175,7 @@ class _TableDataset(DatasetDelegator):
             torch.tensor: a torch tensor of table values
                 for the current sample.
         """
-        return torch.tensor(self.dataset[index], dtype=self.dtype, device=self.device)
+        return torch.tensor(self.dataset[index], dtype=self.dtype)
 
 
 class _TableLazyDataset(_TableDataset):

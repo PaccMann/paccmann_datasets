@@ -11,6 +11,7 @@ from rdkit.Chem import AllChem
 from selfies import encoder as selfies_encoder
 
 import pytoda
+from pytoda.warnings import device_warning
 
 from ..transforms import Compose, LeftPadding, Randomize, StartStop, ToTensor, Transform
 from ..types import Indexes, Tensor, Union
@@ -28,6 +29,7 @@ def compose_smiles_transforms(
     remove_chirality: bool = False,
     selfies: bool = False,
     sanitize: bool = True,
+    device: torch.device = None,
 ) -> Compose:
     """Setup a composition of SMILES to SMILES (or SELFIES) transformations.
 
@@ -52,11 +54,13 @@ def compose_smiles_transforms(
             smiles. Defaults to False.
         sanitize (bool, optional): RDKit sanitization of the molecule.
             Defaults to True.
+        device (torch.device): DEPRECATED
 
     Returns:
         Compose: A Callable that applies composition of SMILES transforms.
     """
 
+    device_warning(device)
     # Build up composition from optional SMILES to SMILES transformations
     smiles_transforms = []
     if canonical:
@@ -105,7 +109,6 @@ def compose_encoding_transforms(
     padding: bool = False,
     padding_length: int = None,
     padding_index: int = 0,
-    device: torch.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
 ) -> Compose:
     """Setup a composition of token indexes to token indexes transformations.
 
@@ -125,8 +128,6 @@ def compose_encoding_transforms(
             must be passed in case of padding.
         padding_index (int, optional): index of padding token in vocabulary.
             Default to 0.
-        device (torch.device): device where the tensors are stored.
-            Defaults to gpu, if available.
 
     Returns:
         Compose: A Callable that applies composition of transforms on
@@ -147,7 +148,7 @@ def compose_encoding_transforms(
             LeftPadding(padding_length=padding_length, padding_index=padding_index)
         ]
 
-    encoding_transforms += [ToTensor(device=device)]
+    encoding_transforms += [ToTensor()]
     return Compose(encoding_transforms)
 
 

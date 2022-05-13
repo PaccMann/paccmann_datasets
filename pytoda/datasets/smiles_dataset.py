@@ -3,6 +3,8 @@ import logging
 
 import torch
 
+from pytoda.warnings import device_warning
+
 from ..smiles.processing import split_selfies
 from ..smiles.smiles_language import SMILESLanguage, SMILESTokenizer
 from ._smi_eager_dataset import _SmiEagerDataset
@@ -27,6 +29,7 @@ class SMILESDataset(DatasetDelegator):
         *smi_filepaths: str,
         backend: str = 'eager',
         name: str = 'smiles-dataset',
+        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -37,8 +40,10 @@ class SMILESDataset(DatasetDelegator):
             name (str): name of the SMILESDataset.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional arguments for dataset constructor.
         """
+        device_warning(device)
         # Parse language object and data paths
         self.smi_filepaths = smi_filepaths
         self.backend = backend
@@ -77,12 +82,10 @@ class SMILESTokenizerDataset(DatasetDelegator):
         add_start_and_stop: bool = False,
         padding: bool = True,
         padding_length: int = None,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
         vocab_file: str = None,
         iterate_dataset: bool = True,
         backend: str = 'eager',
+        device: torch.device = None,
         name: str = 'smiles-encoder-dataset',
         **kwargs,
     ) -> None:
@@ -123,8 +126,6 @@ class SMILESTokenizerDataset(DatasetDelegator):
                 Defaults to True.
             padding_length (int): padding to match manually set length,
                 applies only if padding is True. Defaults to None.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
             vocab_file (str): Optional .json to load vocabulary. Defaults to
                 None.
             iterate_dataset (bool): whether to go through all SMILES in the
@@ -134,9 +135,11 @@ class SMILESTokenizerDataset(DatasetDelegator):
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             name (str): name of the SMILESTokenizerDataset.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional arguments for dataset constructor.
 
         """
+        device_warning(device)
         self.name = name
         self.dataset = SMILESDataset(*smi_filepaths, backend=backend, **kwargs)
         DatasetDelegator.__init__(self)  # delegate to self.dataset
@@ -146,7 +149,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
             params = (
                 "canonical, augment, kekulize, all_bonds_explicit, selfies, sanitize, "
                 "all_hs_explicit, remove_bonddir, remove_chirality, randomize, "
-                "add_start_and_stop, padding, padding_length, device"
+                "add_start_and_stop, padding, padding_length"
             )
             logger.error(
                 'Since you provided a smiles_language, the following parameters to this'
@@ -191,7 +194,6 @@ class SMILESTokenizerDataset(DatasetDelegator):
                 add_start_and_stop=add_start_and_stop,
                 padding=padding,
                 padding_length=padding_length,
-                device=device,
             )
 
         if vocab_file:

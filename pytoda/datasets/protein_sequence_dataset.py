@@ -3,6 +3,8 @@ import logging
 
 import torch
 
+from pytoda.warnings import device_warning
+
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from ..proteins.protein_language import ProteinLanguage
 from ..proteins.transforms import SequenceToTokenIndexes
@@ -123,12 +125,10 @@ class ProteinSequenceDataset(DatasetDelegator):
         add_start_and_stop: bool = False,
         augment_by_revert: bool = False,
         randomize: bool = False,
-        device: torch.device = (
-            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        ),
         backend: str = 'eager',
         iterate_dataset: bool = False,
         name: str = 'protein-sequences',
+        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -153,17 +153,17 @@ class ProteinSequenceDataset(DatasetDelegator):
                 Sequences. Defaults to False.
             randomize (bool): perform a true randomization of Protein tokens.
                 Defaults to False.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
             iterate_dataset (bool): whether to go through all items in the dataset
                 to detect unknown characters, find longest sequence and checks
                 passed padding length if applicable. Defaults to False.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             name (str): name of the ProteinSequenceDataset.
+            device (torch.device): DEPRECATED
             kwargs (dict): additional arguments for dataset constructor.
         """
 
+        device_warning(device)
         # Parse language object and data paths
         self.filepaths = filepaths
         self.filetype = filetype
@@ -229,7 +229,6 @@ class ProteinSequenceDataset(DatasetDelegator):
             )
         self.randomize = randomize
         self.augment_by_revert = augment_by_revert
-        self.device = device
 
         # Build up cascade of Protein transformations
         transforms = []
@@ -248,9 +247,9 @@ class ProteinSequenceDataset(DatasetDelegator):
                 )
             ]
         if isinstance(self.protein_language, ProteinFeatureLanguage):
-            transforms += [ListToTensor(device=self.device)]
+            transforms += [ListToTensor()]
         elif isinstance(self.protein_language, ProteinLanguage):
-            transforms += [ToTensor(device=self.device)]
+            transforms += [ToTensor()]
         else:
             raise TypeError(
                 'Please choose either ProteinLanguage or ' 'ProteinFeatureLanguage'
