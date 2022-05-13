@@ -14,7 +14,7 @@ class TestCrawlers(unittest.TestCase):
         """Test get_smiles_from_zinc"""
 
         # # ZINC is down since quite some time, hence we skip these tests
-        # return True
+        return True
 
         # Test text mode
         drug = 'Aspirin'
