@@ -20,37 +20,16 @@ class StochasticItems:
             This ensure that samples are generated on this device and helps in avoiding
             an overhead in sending each sampled item to device.
         shape (torch.Size): The desired shape of each item.
-        device (torch.device): Device to send the tensor to. If the tensor is already
-            on device, then the .to() method returns self (no-ops).
     """
 
     def __init__(
         self,
         distribution: torch.distributions.distribution.Distribution,
         shape: Union[torch.Size, Tuple[int]],
-        device: torch.device,
     ):
 
         self.distribution = distribution
         self.shape = shape
-        self.device = device
-
-        # check if distribution arguments are on device
-        devices = []
-        for key in distribution.arg_constraints:
-            devices.append(getattr(distribution, key).device.type)
-
-        args_device = set(devices)
-
-        if len(args_device) > 1:
-            raise RuntimeError(
-                f"Expected all tensors to be on the same device, but found {args_device} instead."
-            )
-
-        elif args_device != {device.type}:
-            raise RuntimeWarning(
-                f"Expected arguments to be on {device}, but they are on {args_device} instead. This will cause a data transfer overhead."
-            )
 
     def __getitem__(self, index: Any) -> Tensor:
         """Samples an item.
@@ -62,7 +41,7 @@ class StochasticItems:
             Tensor: sampled from distribution with given shape.
         """
 
-        return self.distribution.sample(self.shape).to(self.device)
+        return self.distribution.sample(self.shape)
 
 
 class DistributionalDataset(Dataset):
