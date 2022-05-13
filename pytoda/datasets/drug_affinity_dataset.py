@@ -5,12 +5,14 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
+from pytoda.warnings import device_warning
+
 from ..proteins.protein_language import ProteinLanguage
 from ..smiles.smiles_language import SMILESLanguage
 from ..types import DrugAffinityData
 from .protein_sequence_dataset import ProteinSequenceDataset
 from .smiles_dataset import SMILESTokenizerDataset
-from pytoda.warnings import device_warning
+
 
 class DrugAffinityDataset(Dataset):
     """

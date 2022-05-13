@@ -3,6 +3,8 @@ import logging
 
 import torch
 
+from pytoda.warnings import device_warning
+
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from ..proteins.protein_language import ProteinLanguage
 from ..proteins.transforms import SequenceToTokenIndexes
@@ -20,7 +22,7 @@ from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
 from .base_dataset import DatasetDelegator, KeyDataset
 from .utils import concatenate_file_based_datasets
-from pytoda.warnings import device_warning
+
 logger = logging.getLogger(__name__)
 
 SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords

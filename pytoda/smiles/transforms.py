@@ -11,10 +11,11 @@ from rdkit.Chem import AllChem
 from selfies import encoder as selfies_encoder
 
 import pytoda
+from pytoda.warnings import device_warning
 
 from ..transforms import Compose, LeftPadding, Randomize, StartStop, ToTensor, Transform
 from ..types import Indexes, Tensor, Union
-from pytoda.warnings import device_warning
+
 logger = logging.getLogger('pytoda_SMILES_transforms')
 
 

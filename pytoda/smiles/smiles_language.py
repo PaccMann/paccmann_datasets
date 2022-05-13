@@ -28,9 +28,12 @@ import torch
 from selfies import decoder as selfies_decoder
 from selfies import encoder as selfies_encoder
 
+from pytoda.warnings import device_warning
+
 from ..files import read_smi
 from ..transforms import Compose
 from ..types import (
+    Any,
     Files,
     Indexes,
     Iterable,
@@ -40,9 +43,7 @@ from ..types import (
     Tokens,
     Tuple,
     Union,
-    Any,
 )
-from pytoda.warnings import device_warning
 from .processing import TOKENIZER_FUNCTIONS, tokenize_smiles
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 

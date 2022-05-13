@@ -4,10 +4,12 @@ import torch
 from numpy import iterable
 from torch.utils.data import Dataset
 
+from pytoda.warnings import device_warning
+
 from ..smiles.polymer_language import PolymerTokenizer
 from ..types import List, Sequence, Tensor, Tuple, Union
 from .smiles_dataset import SMILESDataset
-from pytoda.warnings import device_warning
+
 
 class PolymerTokenizerDataset(Dataset):
     """

@@ -8,6 +8,7 @@ from pytoda.datasets.utils.utils import pad_item
 from pytoda.types import Optional, Tensor, Tuple
 from pytoda.warnings import device_warning
 
+
 def hungarian_assignment(
     set_reference: torch.Tensor,
     set_matching: torch.Tensor,

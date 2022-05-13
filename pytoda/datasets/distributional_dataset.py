@@ -7,6 +7,7 @@ from torch.utils.data import Dataset
 from pytoda.types import Any, Tensor
 from pytoda.warnings import device_warning
 
+
 class StochasticItems:
     """Sample an item from a distribution on the fly on indexing.
 

@@ -4,10 +4,12 @@ import torch
 from numpy import iterable
 from torch.utils.data import Dataset
 
+from pytoda.warnings import device_warning
+
 from ..proteins.protein_language import ProteinLanguage
 from ..types import Files, List, Sequence, Tensor, Tuple, Union
 from .protein_sequence_dataset import ProteinSequenceDataset
-from pytoda.warnings import device_warning
+
 
 class ProteinProteinInteractionDataset(Dataset):
     """

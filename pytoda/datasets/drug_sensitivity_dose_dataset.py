@@ -4,10 +4,12 @@ from typing import Callable
 import numpy as np
 import torch
 
+from pytoda.warnings import device_warning
+
 from ..smiles.smiles_language import SMILESTokenizer
 from ..types import DrugSensitivityDoseData, GeneList, Tuple
 from .drug_sensitivity_dataset import DrugSensitivityDataset
-from pytoda.warnings import device_warning
+
 
 class DrugSensitivityDoseDataset(DrugSensitivityDataset):
     """

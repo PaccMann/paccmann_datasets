@@ -3,13 +3,15 @@ import logging
 
 import torch
 
+from pytoda.warnings import device_warning
+
 from ..smiles.processing import split_selfies
 from ..smiles.smiles_language import SMILESLanguage, SMILESTokenizer
 from ._smi_eager_dataset import _SmiEagerDataset
 from ._smi_lazy_dataset import _SmiLazyDataset
 from .base_dataset import DatasetDelegator
 from .utils import concatenate_file_based_datasets
-from pytoda.warnings import device_warning
+
 logger = logging.getLogger(__name__)
 
 

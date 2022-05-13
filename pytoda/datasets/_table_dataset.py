@@ -5,13 +5,15 @@ from functools import partial
 import numpy as np
 import torch
 
+from pytoda.warnings import device_warning
+
 from ..types import CsvSourceData, FeatureList, Files, Optional, Tensor
 from ._csv_eager_dataset import _CsvEagerDataset
 from ._csv_lazy_dataset import _CsvLazyDataset
 from ._csv_statistics import reduce_csv_statistics
 from .base_dataset import DatasetDelegator
 from .utils import concatenate_file_based_datasets
-from pytoda.warnings import device_warning
+
 
 # https://github.com/scikit-learn/scikit-learn/blob/0fb307bf39bbdacd6ed713c00724f8f871d60370/sklearn/preprocessing/_data.py#L63
 def _handle_zeros_in_scale(scale, copy=True):
@@ -87,7 +89,7 @@ class _TableDataset(DatasetDelegator):
                 ignored with 'eager' backend. Defaults to 10000.
             device (torch.device): DEPRECATED
             kwargs (dict): additional parameters for pd.read_csv.
-        """        
+        """
         self.filepaths = filepaths
         self.initial_feature_list = feature_list
         self.standardize = standardize

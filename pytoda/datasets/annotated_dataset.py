@@ -2,10 +2,12 @@
 import pandas as pd
 import torch
 
+from pytoda.warnings import device_warning
+
 from ..types import AnnotatedData, Hashable, List, Union
 from .base_dataset import AnyBaseDataset
 from .dataframe_dataset import DataFrameDataset
-from pytoda.warnings import device_warning
+
 
 class AnnotatedDataset(DataFrameDataset):
     """

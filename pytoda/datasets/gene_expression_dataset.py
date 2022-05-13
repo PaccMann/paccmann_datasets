@@ -1,10 +1,12 @@
 """GeneExpressionDataset module."""
 import torch
 
+from pytoda.warnings import device_warning
+
 from ..types import GeneList, Optional
 from ._table_dataset import _TableEagerDataset, _TableLazyDataset
 from .base_dataset import DatasetDelegator
-from pytoda.warnings import device_warning
+
 TABLE_DATASET_IMPLEMENTATIONS = {'eager': _TableEagerDataset, 'lazy': _TableLazyDataset}
 
 

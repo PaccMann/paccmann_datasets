@@ -3,11 +3,13 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
+from pytoda.warnings import device_warning
+
 from ..smiles.smiles_language import SMILESLanguage
 from ..types import DrugSensitivityData, GeneList, Iterable, Tuple
 from .gene_expression_dataset import GeneExpressionDataset
 from .smiles_dataset import SMILESTokenizerDataset
-from pytoda.warnings import device_warning
+
 
 class DrugSensitivityDataset(Dataset):
     """

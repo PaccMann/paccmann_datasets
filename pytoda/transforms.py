@@ -7,8 +7,10 @@ from typing import Any
 import numpy as np
 import torch
 
-from .types import Indexes, TransformList
 from pytoda.warnings import device_warning
+
+from .types import Indexes, TransformList
+
 logger = logging.getLogger('pytoda_transforms')
 
 
@@ -116,8 +118,7 @@ class LeftPadding(Transform):
 class ToTensor(Transform):
     """Transform token indexes to torch tensor."""
 
-    def __init__(self, 
-        dtype: torch.dtype = torch.short) -> None:
+    def __init__(self, dtype: torch.dtype = torch.short) -> None:
         """
         Initialize a token indexes to tensor object.
 
