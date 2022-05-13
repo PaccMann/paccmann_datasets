@@ -40,7 +40,9 @@ from ..types import (
     Tokens,
     Tuple,
     Union,
+    Any,
 )
+from ..warnings import device_warning
 from .processing import TOKENIZER_FUNCTIONS, tokenize_smiles
 from .transforms import compose_encoding_transforms, compose_smiles_transforms
 
@@ -752,9 +754,7 @@ class SMILESTokenizer(SMILESLanguage):
         add_start_and_stop: bool = False,
         padding: bool = False,
         padding_length: int = None,
-        device: torch.device = torch.device(
-            'cuda' if torch.cuda.is_available() else 'cpu'
-        ),
+        device: Any = None,
     ) -> None:
         """
         Initialize SMILES language.
@@ -797,8 +797,7 @@ class SMILESTokenizer(SMILESLanguage):
                 applies only if padding is True. See `set_max_padding` to set
                 it to longest token sequence the smiles language encountered.
                 Defaults to None.
-            device (torch.device): device where the tensors are stored.
-                Defaults to gpu, if available.
+            device (Any): Deprecated argument that will be removed in the future.
 
         NOTE:
             See `set_smiles_transforms` and `set_encoding_transforms` to change
@@ -828,7 +827,9 @@ class SMILESTokenizer(SMILESLanguage):
         self.add_start_and_stop = add_start_and_stop
         self.padding = padding
         self.padding_length = padding_length
-        self.device = device
+
+        if device:
+            logger.warning(device_warning(device))
 
         self._init_attributes = [  # additions to init_kwargs for pretrained
             'canonical',
@@ -853,7 +854,6 @@ class SMILESTokenizer(SMILESLanguage):
 
         self._attributes_to_trigger_reset = [
             *self._init_attributes,
-            'device',
             'start_index',
             'stop_index',
         ]  # could be updated in inheritance
@@ -938,7 +938,6 @@ class SMILESTokenizer(SMILESLanguage):
             self.padding,
             self.padding_length,
             self.padding_index,
-            self.device,
         )
         self._set_token_len_fn(self.add_start_and_stop)
 
@@ -981,7 +980,6 @@ class SMILESTokenizer(SMILESLanguage):
         add_start_and_stop=None,
         padding=None,
         padding_length=None,
-        device=None,
     ):
         """Helper function to reversibly change steps of the transforms."""
         self.transform_encoding = compose_encoding_transforms(
@@ -996,7 +994,6 @@ class SMILESTokenizer(SMILESLanguage):
             if padding_length is not None
             else self.padding_length,
             padding_index=self.padding_index,
-            device=device if device is not None else self.device,
         )
         if add_start_and_stop is not None:
             self._set_token_len_fn(add_start_and_stop)

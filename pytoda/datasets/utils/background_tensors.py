@@ -4,16 +4,13 @@ import torch
 from pytoda.types import Any, Tensor, Tuple
 
 
-def range_tensor(
-    value_range: Any, repetitions: Tuple[int], device: torch.device
-) -> Tensor:
+def range_tensor(value_range: Any, repetitions: Tuple[int]) -> Tensor:
     """Returns a background tensor filled with a given range of values.
 
     Args:
         value_range (Any): Range of values to insert into each row of the
             background tensor.
         repetitions (Tuple[int]): The number of repetitions of value_range along each axis.
-        device (torch.device): Device where the tensors are stored.
 
     Returns:
         Tensor: Tensor containing repetitions of the given range of values along specified axes.
@@ -25,18 +22,17 @@ def range_tensor(
               value_range is filled 'row-wise'. Simply transpose the output for
               a 'column-wise' fill.
     """
-    return torch.from_numpy(np.tile(value_range, repetitions)).to(device)
+    return torch.from_numpy(np.tile(value_range, repetitions))
 
 
-def constant_value_tensor(value: float, shape: Tuple, device: torch.device) -> Tensor:
+def constant_value_tensor(value: float, shape: Tuple) -> Tensor:
     """Returns a background tensor filled with a constant value.
 
     Args:
         value (float): Value to fill the background tensor with.
         shape (Tuple): Shape of the background tensor.
-        device (torch.device): Device where the tensors are stored.
 
     Returns:
         Tensor: Tensor of given shape filled with the given constant value.
     """
-    return torch.full(shape, value, device=device)
+    return torch.full(shape, value)

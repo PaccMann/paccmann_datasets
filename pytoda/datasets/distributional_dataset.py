@@ -13,12 +13,9 @@ class StochasticItems:
     Args:
         distribution (torch.distributions.distribution.Distribution): An instance
             of the torch distribution class to sample from. For example, for
-            loc = torch.tensor(0.0,device=device), and scale=torch.tensor(1.0,device=device),
+            loc = torch.tensor(0.0), and scale=torch.tensor(1.0),
             torch.distributions.normal.Normal(loc,scale), so that
-            calling .sample() would return an item from this distribution on the specified device.
-            NOTE: The arguments to the distribution should be tensors on the desired device.
-            This ensure that samples are generated on this device and helps in avoiding
-            an overhead in sending each sampled item to device.
+            calling .sample() would return an item from this distribution.
         shape (torch.Size): The desired shape of each item.
     """
 
@@ -96,13 +93,7 @@ class DistributionalDataset(Dataset):
 
         else:
             # get sampled item on indexing
-            self.datasource = StochasticItems(
-                self.data_sampler,
-                self.item_shape,
-                torch.device('cpu'),
-            )
-
-        # copy data to device
+            self.datasource = StochasticItems(self.data_sampler, self.item_shape)
 
     def __len__(self) -> int:
         """Gets length of dataset.
