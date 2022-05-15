@@ -170,8 +170,8 @@ class ProteinAugmentActiveSiteGuidedNoise(Transform):
         ) -> None:
         """
         Args:
-            mutate_prob_in_active_site:float - probability for mutating a residue inside the active site
-            mutate_prob_outside_active_site - probability for mutating a residue outside the active site
+            mutate_prob_in_active_site:float - probability for mutating a residue INSIDE the active site
+            mutate_prob_outside_active_site - probability for mutating a residue OUTSIDE the active site
         """
         
         if not isinstance(mutate_prob_in_active_site, float):
