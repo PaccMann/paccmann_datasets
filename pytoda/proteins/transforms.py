@@ -38,7 +38,7 @@ class LoadActiveSiteAlignmentInfo(Transform):
     residues outside the active site are lower case and residues inside the active site are upper case    
     """
 
-    def __init__(self, active_site_alignment_info_smi) -> None:
+    def __init__(self, active_site_alignment_info_smi:str) -> None:
         """
         An op to replace the active site sequence with an aligned sequence.
                 
@@ -48,7 +48,8 @@ class LoadActiveSiteAlignmentInfo(Transform):
             second column (1) is expected to be named "aligned_protein_seq" - example content: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysfqthdrlcFVMEYANGGElfFhlsrervfsedrarfygaeivsaldylhseknVVyrdlklENlMldkdghikiTDfgLckegikdgatmktfcgtpeylapevledndygravdwwglgvvmyemmcgrlpfynqdheklfelilmeeirfprtlgpeaksllsgllkkdpkqrlgggsedakeimqhrff            
                 lower case residues are outside the active site, upper case residues are inside the active site
         """        
-        assert isinstance(smi_paths, list)
+        import ipdb;ipdb.set_trace()
+        assert isinstance(smi_paths, str)
         self.active_site_alignment_info_smi = active_site_alignment_info_smi       
         self.active_sites_alignment_info_tbl = _SmiEagerDataset(
             self.active_site_alignment_info_smi,
@@ -64,6 +65,7 @@ class LoadActiveSiteAlignmentInfo(Transform):
 
         in the output: lower case residues are outside the active site, upper case residues are inside the active site
         """
+        import ipdb;ipdb.set_trace()
         aligned_seq = self.active_sites_alignment_info_tbl[sequence]        
         return aligned_seq
 
@@ -144,6 +146,7 @@ class ProteinAugmentFlipActiveSiteSubstrs(Transform):
         Returns:
             str: an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
         """        
+        import ipdb;ipdb.set_trace()
         verify_aligned_info(sequence)        
         aligned_seq, non_active_sites, active_sites, all_seqs = extract_active_sites_info(sequence)
         
@@ -192,6 +195,7 @@ class ProteinAugmentActiveSiteGuidedNoise(Transform):
         Returns:
             str: an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
         """
+        import ipdb;ipdb.set_trace()
         verify_aligned_info(sequence)        
         aligned_seq, non_active_sites, active_sites, all_seqs = extract_active_sites_info(sequence)
 
