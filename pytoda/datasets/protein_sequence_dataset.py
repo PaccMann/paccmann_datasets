@@ -4,7 +4,7 @@ import logging
 import torch
 
 from pytoda.warnings import device_warning
-
+from typing import List
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from ..proteins.protein_language import ProteinLanguage
 from ..proteins.transforms import SequenceToTokenIndexes
@@ -15,6 +15,13 @@ from ..transforms import (
     ListToTensor,
     Randomize,
     ToTensor,
+)
+from .transforms import (
+    LoadActiveSiteAlignmentInfo,
+    ProteinAugmentFlipActiveSiteSubstrs,
+    ProteinAugmentActiveSiteGuidedNoise,
+    KeepOnlyUpperCase,
+    ToUpperCase,
 )
 from ._fasta_eager_dataset import _FastaEagerDataset
 from ._fasta_lazy_dataset import _FastaLazyDataset
@@ -125,6 +132,10 @@ class ProteinSequenceDataset(DatasetDelegator):
         add_start_and_stop: bool = False,
         augment_by_revert: bool = False,
         randomize: bool = False,
+        load_active_site_alignment_info: Optional[List[str]] = None,
+        protein_augment_flip_active_site_substrs: Optional[float] = None,
+        protein_augment_active_site_guided_noise: Optional[List[float]] = None,
+        keep_only_uppercase:bool = False,        
         backend: str = 'eager',
         iterate_dataset: bool = False,
         name: str = 'protein-sequences',
@@ -153,6 +164,11 @@ class ProteinSequenceDataset(DatasetDelegator):
                 Sequences. Defaults to False.
             randomize (bool): perform a true randomization of Protein tokens.
                 Defaults to False.
+            load_active_site_alignment_info (Optional[str]): load active site alignment info (for example - converts and active site like LGKGTFGKVAKELLTLFVMEYVNGGEFIVENMTDL into fdylklLGKGTFGKVilvrekasgkyyAmKilkkeviiakdeva...)
+            protein_augment_flip_active_site_substrs Optional[float]: randomly flips with the given probability each consecutive active site substring
+            protein_augment_active_site_guided_noise Optional[List[float]]: injects (optionally different) noise into residues inside and outside the active site.
+                expects the list to contain two float values - [MUTATION_PROBABILITY_INSIDE_ACTIVE_SITE, MUTATION_PROBABILITY_OUTSIDE_ACTIVE_SITE]
+            keep_only_uppercase (bool): default=False, keep only uppercase letters and discard all the rest
             iterate_dataset (bool): whether to go through all items in the dataset
                 to detect unknown characters, find longest sequence and checks
                 passed padding length if applicable. Defaults to False.
@@ -228,12 +244,43 @@ class ProteinSequenceDataset(DatasetDelegator):
                 'Some sequences might get truncated.'
             )
         self.randomize = randomize
-        self.augment_by_revert = augment_by_revert
+        self.augment_by_revert = augment_by_revert        
 
         # Build up cascade of Protein transformations
         transforms = []
         if self.augment_by_revert:
             transforms += [AugmentByReversing()]
+
+
+        ##### related to active site guided augmentation
+        self.load_active_site_alignment_info = load_active_site_alignment_info
+        self.protein_augment_flip_active_site_substrs = protein_augment_flip_active_site_substrs
+        self.protein_augment_active_site_guided_noise = protein_augment_active_site_guided_noise
+        self.keep_only_uppercase = keep_only_uppercase
+
+        if self.load_active_site_alignment_info is not None:
+            assert isinstance(self.load_active_site_alignment_info, str)
+            transforms += [LoadActiveSiteAlignmentInfo(self.load_active_site_alignment_info)]
+
+        if self.protein_augment_flip_active_site_substrs is not None:
+            assert self.load_active_site_alignment_info is not None
+            assert isinstance(self.protein_augment_flip_active_site_substrs, float)
+            transforms += [ProteinAugmentFlipActiveSiteSubstrs(p=self.protein_augment_flip_active_site_substrs)]
+
+        if self.protein_augment_active_site_guided_noise is not None:
+            assert self.load_active_site_alignment_info is not None
+            assert isinstance(self.protein_augment_active_site_guided_noise, list)
+            assert 2 == len(protein_augment_active_site_guided_noise)
+            transforms += [ProteinAugmentActiveSiteGuidedNoise(*self.protein_augment_active_site_guided_noise)]
+
+        if self.keep_only_uppercase:
+            transforms += [KeepOnlyUpperCase()]
+            
+        if self.load_active_site_alignment_info is not None:
+            transforms += [ToUpperCase()]
+
+        ##########
+
         self.language_transforms = Compose(transforms.copy())
 
         transforms += [SequenceToTokenIndexes(protein_language=self.protein_language)]
