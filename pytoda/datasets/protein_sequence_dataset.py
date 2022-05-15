@@ -4,7 +4,7 @@ import logging
 import torch
 
 from pytoda.warnings import device_warning
-from typing import List
+from typing import List, Optional
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from ..proteins.protein_language import ProteinLanguage
 from ..proteins.transforms import SequenceToTokenIndexes
@@ -16,7 +16,7 @@ from ..transforms import (
     Randomize,
     ToTensor,
 )
-from .transforms import (
+from ..proteins.transforms import (
     LoadActiveSiteAlignmentInfo,
     ProteinAugmentFlipActiveSiteSubstrs,
     ProteinAugmentActiveSiteGuidedNoise,
@@ -130,12 +130,12 @@ class ProteinSequenceDataset(DatasetDelegator):
         padding: bool = True,
         padding_length: int = None,
         add_start_and_stop: bool = False,
-        augment_by_revert: bool = False,
-        randomize: bool = False,
+        augment_by_revert: bool = False,        
         load_active_site_alignment_info: Optional[List[str]] = None,
         protein_augment_flip_active_site_substrs: Optional[float] = None,
         protein_augment_active_site_guided_noise: Optional[List[float]] = None,
-        keep_only_uppercase:bool = False,        
+        protein_keep_only_uppercase:bool = False,        
+        randomize: bool = False,
         backend: str = 'eager',
         iterate_dataset: bool = False,
         name: str = 'protein-sequences',
@@ -168,7 +168,7 @@ class ProteinSequenceDataset(DatasetDelegator):
             protein_augment_flip_active_site_substrs Optional[float]: randomly flips with the given probability each consecutive active site substring
             protein_augment_active_site_guided_noise Optional[List[float]]: injects (optionally different) noise into residues inside and outside the active site.
                 expects the list to contain two float values - [MUTATION_PROBABILITY_INSIDE_ACTIVE_SITE, MUTATION_PROBABILITY_OUTSIDE_ACTIVE_SITE]
-            keep_only_uppercase (bool): default=False, keep only uppercase letters and discard all the rest
+            protein_keep_only_uppercase (bool): default=False, keep only uppercase letters and discard all the rest
             iterate_dataset (bool): whether to go through all items in the dataset
                 to detect unknown characters, find longest sequence and checks
                 passed padding length if applicable. Defaults to False.
@@ -251,12 +251,16 @@ class ProteinSequenceDataset(DatasetDelegator):
         if self.augment_by_revert:
             transforms += [AugmentByReversing()]
 
+        TODO:
+        1. Handle the dictionary in all of the protein transforms
+        2. Add another transform that extracts the seuqence from the dictionary before this line: self.language_transforms = Compose(transforms.copy())
+
 
         ##### related to active site guided augmentation
         self.load_active_site_alignment_info = load_active_site_alignment_info
         self.protein_augment_flip_active_site_substrs = protein_augment_flip_active_site_substrs
         self.protein_augment_active_site_guided_noise = protein_augment_active_site_guided_noise
-        self.keep_only_uppercase = keep_only_uppercase
+        self.protein_keep_only_uppercase = protein_keep_only_uppercase
 
         if self.load_active_site_alignment_info is not None:
             assert isinstance(self.load_active_site_alignment_info, str)
@@ -273,9 +277,10 @@ class ProteinSequenceDataset(DatasetDelegator):
             assert 2 == len(protein_augment_active_site_guided_noise)
             transforms += [ProteinAugmentActiveSiteGuidedNoise(*self.protein_augment_active_site_guided_noise)]
 
-        if self.keep_only_uppercase:
+        if self.protein_keep_only_uppercase:
             transforms += [KeepOnlyUpperCase()]
             
+        #TODO: this can be theoretically done always
         if self.load_active_site_alignment_info is not None:
             transforms += [ToUpperCase()]
 
@@ -319,5 +324,12 @@ class ProteinSequenceDataset(DatasetDelegator):
         Returns:
             torch.Tensor: a torch tensor of token indexes,
                 for the current sample.
-        """
-        return self.transform(self.dataset[index])
+        """      
+        import ipdb;ipdb.set_trace()  
+        #since multiple identical active sites have different full sequence, passing protein id as well
+
+        assert 1==len(self.dataset.datasets)
+        extracted = self.dataset.datasets[0].df.iloc[245]
+        assert extracted.Sequence == self.dataset[index]        
+
+        return self.transform(dict(sequence=extracted.Sequence, protein_id=extracted.Name))

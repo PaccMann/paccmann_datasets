@@ -1,5 +1,5 @@
 """Implementation of DrugAffinityDataset."""
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, List, Optional
 
 import pandas as pd
 import torch
@@ -46,7 +46,11 @@ class DrugAffinityDataset(Dataset):
         protein_padding: bool = True,
         protein_padding_length: int = None,
         protein_add_start_and_stop: bool = False,
-        protein_augment_by_revert: bool = False,
+        protein_augment_by_revert: bool = False,        
+        load_active_site_alignment_info: Optional[List[str]] = None,
+        protein_augment_flip_active_site_substrs: Optional[float] = None,
+        protein_augment_active_site_guided_noise: Optional[List[float]] = None,
+        protein_keep_only_uppercase:bool = False,        
         protein_randomize: bool = False,
         iterate_dataset: bool = True,
         backend: str = 'eager',
@@ -171,6 +175,10 @@ class DrugAffinityDataset(Dataset):
             padding_length=protein_padding_length,
             add_start_and_stop=protein_add_start_and_stop,
             augment_by_revert=protein_augment_by_revert,
+            load_active_site_alignment_info=load_active_site_alignment_info,
+            protein_augment_flip_active_site_substrs=protein_augment_flip_active_site_substrs,
+            protein_augment_active_site_guided_noise=protein_augment_active_site_guided_noise,
+            protein_keep_only_uppercase=protein_keep_only_uppercase,
             randomize=protein_randomize,
             iterate_dataset=iterate_dataset,
         )

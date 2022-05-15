@@ -4,7 +4,7 @@ from ..types import Indexes
 from .protein_language import ProteinLanguage
 import numpy as np
 import torch
-from ._smi_eager_dataset import _SmiEagerDataset
+from ..datasets._smi_eager_dataset import _SmiEagerDataset
 
 class SequenceToTokenIndexes(Transform):
     """Transform Sequence to token indexes using Sequence language."""
@@ -48,15 +48,27 @@ class LoadActiveSiteAlignmentInfo(Transform):
             second column (1) is expected to be named "aligned_protein_seq" - example content: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysfqthdrlcFVMEYANGGElfFhlsrervfsedrarfygaeivsaldylhseknVVyrdlklENlMldkdghikiTDfgLckegikdgatmktfcgtpeylapevledndygravdwwglgvvmyemmcgrlpfynqdheklfelilmeeirfprtlgpeaksllsgllkkdpkqrlgggsedakeimqhrff            
                 lower case residues are outside the active site, upper case residues are inside the active site
         """        
-        import ipdb;ipdb.set_trace()
-        assert isinstance(smi_paths, str)
+        assert isinstance(active_site_alignment_info_smi, str)
         self.active_site_alignment_info_smi = active_site_alignment_info_smi       
+        
+
+        #### some protein_ids have more than one defined active site, which is why I'm doing the following:
+        
         self.active_sites_alignment_info_tbl = _SmiEagerDataset(
             self.active_site_alignment_info_smi,
             index_col=1, 
             name='aligned_protein_seq',
             names = ['aligned_protein_seq', 'active_site_seq', 'protein_id'],
         )
+
+        # self.active_sites_alignment_info_tbl_to_name = _SmiEagerDataset(
+        #     self.active_site_alignment_info_smi,
+        #     index_col=1, 
+        #     name='protein_id',
+        #     names = ['aligned_protein_seq', 'active_site_seq', 'protein_id'],
+        # )
+
+
 
     def __call__(self, sequence: str) -> str:
         """
@@ -65,8 +77,10 @@ class LoadActiveSiteAlignmentInfo(Transform):
 
         in the output: lower case residues are outside the active site, upper case residues are inside the active site
         """
-        import ipdb;ipdb.set_trace()
-        aligned_seq = self.active_sites_alignment_info_tbl[sequence]        
+        aligned_seq = self.active_sites_alignment_info_tbl.get_item_from_key(sequence)
+        if not isinstance(aligned_seq, str):
+            print(f'found more than one match for "{sequence}" active site. Using first. ')
+            aligned_seq = aligned_seq[0]
         return aligned_seq
 
 def extract_active_sites_info(aligned_seq:str):
@@ -113,7 +127,7 @@ def extract_active_sites_info(aligned_seq:str):
     return aligned_seq, non_active_sites, active_sites, all_seqs
 
 def verify_aligned_info(sequence:str):
-    assert isinstance(sequence, str)
+    isinstance(sequence, str)    
     found_lower_case = False
     found_upper_case = False
     for c in sequence:
@@ -122,7 +136,7 @@ def verify_aligned_info(sequence:str):
         elif c>='a' and c<='z':
             found_lower_case = True
     if not (found_lower_case and found_upper_case):
-        raise Exception('Expected aligned residues sequence! Did you forget to use LoadActiveSiteAlignmentInfo?')
+        raise Exception('Expected aligned residues sequence! Did you forget to use LoadActiveSiteAlignmentInfo?')    
 
 class ProteinAugmentFlipActiveSiteSubstrs(Transform):
     """Augment a kinase active-site sequence by randomly flipping each individual contiguous """
@@ -146,7 +160,7 @@ class ProteinAugmentFlipActiveSiteSubstrs(Transform):
         Returns:
             str: an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
         """        
-        import ipdb;ipdb.set_trace()
+        #import ipdb;ipdb.set_trace()
         verify_aligned_info(sequence)        
         aligned_seq, non_active_sites, active_sites, all_seqs = extract_active_sites_info(sequence)
         
@@ -195,7 +209,7 @@ class ProteinAugmentActiveSiteGuidedNoise(Transform):
         Returns:
             str: an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
         """
-        import ipdb;ipdb.set_trace()
+        #import ipdb;ipdb.set_trace()
         verify_aligned_info(sequence)        
         aligned_seq, non_active_sites, active_sites, all_seqs = extract_active_sites_info(sequence)
 
@@ -206,13 +220,11 @@ class ProteinAugmentActiveSiteGuidedNoise(Transform):
             for c in curr_sub_seq:
                 if curr_sub_seq[0]<='Z': #it's uppercase, so it's inside an active site
                     if np.random.rand()<self.mutate_prob_in_active_site:
-                        #print('mutate inside active site')
                         ans += G_AMINO_ACIDS[np.random.randint(amino_acids_num)]
                     else:
                         ans += c
                 else:
                     if np.random.rand()<self.mutate_prob_outside_active_site:
-                        #print('mutate outside active site')
                         ans += G_AMINO_ACIDS[np.random.randint(amino_acids_num)].lower()
                     else:
                         ans += c
@@ -259,6 +271,6 @@ class ToUpperCase(Transform):
 
         Returns:
             str: 
-        """
-        ans = ans.upper()      
+        """        
+        ans = sequence.upper()      
         return ans
