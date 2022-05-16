@@ -5,6 +5,7 @@ from .protein_language import ProteinLanguage
 import numpy as np
 import torch
 from ..datasets._smi_eager_dataset import _SmiEagerDataset
+from typing import Dict
 
 class SequenceToTokenIndexes(Transform):
     """Transform Sequence to token indexes using Sequence language."""
@@ -32,6 +33,14 @@ class SequenceToTokenIndexes(Transform):
 
 
 #### active site alignment info and related augmentation
+
+class ExtractFromDict(Transform):
+    def __init__(self, key) -> None:
+        self.key = key
+    def __call__(self, sample_dict: Dict) -> str:
+        assert self.key in sample_dict
+        ans = sample_dict[self.key]
+        return ans
 
 class LoadActiveSiteAlignmentInfo(Transform):
     """Loads active site alignment info.
@@ -61,26 +70,32 @@ class LoadActiveSiteAlignmentInfo(Transform):
             names = ['aligned_protein_seq', 'active_site_seq', 'protein_id'],
         )
 
-        # self.active_sites_alignment_info_tbl_to_name = _SmiEagerDataset(
-        #     self.active_site_alignment_info_smi,
-        #     index_col=1, 
-        #     name='protein_id',
-        #     names = ['aligned_protein_seq', 'active_site_seq', 'protein_id'],
-        # )
+        #TODO: currently it captures ~twice the memory that is really needed...
+        self.active_sites_alignment_info_tbl_to_name = _SmiEagerDataset(
+            self.active_site_alignment_info_smi,
+            index_col=2, 
+            name='aligned_protein_seq',
+            names = ['aligned_protein_seq', 'active_site_seq', 'protein_id'],
+        )
 
-
-
-    def __call__(self, sequence: str) -> str:
+    def __call__(self, sample_dict: Dict) -> str:
         """
         Example expected input: LGKGTFGKVAKELLTLFVMEYANGGEFVVENMTDL
         Example expected output: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysfqthdrlcFVMEYANGGElfFhlsrervfsedrarfygaeivsaldylhseknVVyrdlklENlMldkdghikiTDfgLckegikdgatmktfcgtpeylapevledndygravdwwglgvvmyemmcgrlpfynqdheklfelilmeeirfprtlgpeaksllsgllkkdpkqrlgggsedakeimqhrff
 
         in the output: lower case residues are outside the active site, upper case residues are inside the active site
-        """
-        aligned_seq = self.active_sites_alignment_info_tbl.get_item_from_key(sequence)
-        if not isinstance(aligned_seq, str):
-            print(f'found more than one match for "{sequence}" active site. Using first. ')
-            aligned_seq = aligned_seq[0]
+        """        
+        seq = sample_dict['sequence']
+        aligned_seq = self.active_sites_alignment_info_tbl.get_item_from_key(seq)
+        if not isinstance(aligned_seq, str):            
+            #import ipdb;ipdb.set_trace()
+            protein_id = sample_dict['protein_id']
+            extracted = self.active_sites_alignment_info_tbl_to_name.get_item_from_key(protein_id)            
+            if not isinstance(extracted, str):
+                print(f'warning! found multiple active site entries for {protein_id}, using first')
+                extracted = extracted[0]
+            aligned_seq = extracted
+            #aligned_seq = aligned_seq[0]
         return aligned_seq
 
 def extract_active_sites_info(aligned_seq:str):

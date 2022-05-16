@@ -247,15 +247,8 @@ class ProteinSequenceDataset(DatasetDelegator):
         self.augment_by_revert = augment_by_revert        
 
         # Build up cascade of Protein transformations
-        transforms = []
-        if self.augment_by_revert:
-            transforms += [AugmentByReversing()]
-
-        TODO:
-        1. Handle the dictionary in all of the protein transforms
-        2. Add another transform that extracts the seuqence from the dictionary before this line: self.language_transforms = Compose(transforms.copy())
-
-
+        transforms = []        
+        
         ##### related to active site guided augmentation
         self.load_active_site_alignment_info = load_active_site_alignment_info
         self.protein_augment_flip_active_site_substrs = protein_augment_flip_active_site_substrs
@@ -284,7 +277,11 @@ class ProteinSequenceDataset(DatasetDelegator):
         if self.load_active_site_alignment_info is not None:
             transforms += [ToUpperCase()]
 
+        #note - it's important to keep "augment_by_revert" after this section and not before it.
         ##########
+
+        if self.augment_by_revert:
+            transforms += [AugmentByReversing()]
 
         self.language_transforms = Compose(transforms.copy())
 
@@ -325,11 +322,12 @@ class ProteinSequenceDataset(DatasetDelegator):
             torch.Tensor: a torch tensor of token indexes,
                 for the current sample.
         """      
-        import ipdb;ipdb.set_trace()  
+        #import ipdb;ipdb.set_trace()  
         #since multiple identical active sites have different full sequence, passing protein id as well
 
         assert 1==len(self.dataset.datasets)
-        extracted = self.dataset.datasets[0].df.iloc[245]
+        extracted = self.dataset.datasets[0].df.iloc[index]
         assert extracted.Sequence == self.dataset[index]        
 
-        return self.transform(dict(sequence=extracted.Sequence, protein_id=extracted.Name))
+        sample_dict = dict(sequence=extracted.Sequence, protein_id=extracted.name)
+        return self.transform(sample_dict)
