@@ -20,6 +20,7 @@ from ..proteins.transforms import (
     LoadActiveSiteAlignmentInfo,
     ProteinAugmentFlipActiveSiteSubstrs,
     ProteinAugmentActiveSiteGuidedNoise,
+    ProteinAugmentSwitchBetweenActiveSiteSubstrs,
     KeepOnlyUpperCase,
     ToUpperCase,
     ExtractFromDict,
@@ -135,6 +136,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         load_active_site_alignment_info: Optional[List[str]] = None,
         protein_augment_flip_active_site_substrs: Optional[float] = None,
         protein_augment_active_site_guided_noise: Optional[List[float]] = None,
+        protein_augment_switch_between_active_site_substrs: Optional[float] = None,
         protein_keep_only_uppercase:bool = False,        
         randomize: bool = False,
         backend: str = 'eager',
@@ -169,6 +171,7 @@ class ProteinSequenceDataset(DatasetDelegator):
             protein_augment_flip_active_site_substrs Optional[float]: randomly flips with the given probability each consecutive active site substring
             protein_augment_active_site_guided_noise Optional[List[float]]: injects (optionally different) noise into residues inside and outside the active site.
                 expects the list to contain two float values - [MUTATION_PROBABILITY_INSIDE_ACTIVE_SITE, MUTATION_PROBABILITY_OUTSIDE_ACTIVE_SITE]
+            protein_augment_switch_between_active_site_substrs Optional[float]: randomly switches places between neighbour active site substrings
             protein_keep_only_uppercase (bool): default=False, keep only uppercase letters and discard all the rest
             iterate_dataset (bool): whether to go through all items in the dataset
                 to detect unknown characters, find longest sequence and checks
@@ -254,6 +257,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         self.load_active_site_alignment_info = load_active_site_alignment_info
         self.protein_augment_flip_active_site_substrs = protein_augment_flip_active_site_substrs
         self.protein_augment_active_site_guided_noise = protein_augment_active_site_guided_noise
+        self.protein_augment_switch_between_active_site_substrs = protein_augment_switch_between_active_site_substrs
         self.protein_keep_only_uppercase = protein_keep_only_uppercase
 
         if self.load_active_site_alignment_info is not None:
@@ -273,6 +277,11 @@ class ProteinSequenceDataset(DatasetDelegator):
             assert 2 == len(protein_augment_active_site_guided_noise)
             transforms += [ProteinAugmentActiveSiteGuidedNoise(*self.protein_augment_active_site_guided_noise)]
 
+        if self.protein_augment_switch_between_active_site_substrs is not None:
+            assert self.load_active_site_alignment_info is not None
+            assert isinstance(self.protein_augment_switch_between_active_site_substrs, float)
+            transforms += [ProteinAugmentSwitchBetweenActiveSiteSubstrs(self.protein_augment_switch_between_active_site_substrs)]
+            
         if self.protein_keep_only_uppercase:
             transforms += [KeepOnlyUpperCase()]
             

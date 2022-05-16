@@ -246,6 +246,49 @@ class ProteinAugmentActiveSiteGuidedNoise(Transform):
 
         return ans
 
+class ProteinAugmentSwitchBetweenActiveSiteSubstrs(Transform):
+    """Augment a kinase active-site sequence by randomly flipping each individual contiguous """
+    def __init__(self,  p: float = 0.2) -> None:
+        """
+        Args:
+            p (float): Probability that any substr switches places with its "neighbour"
+
+        """
+        if not isinstance(p, float):
+            raise TypeError(f'Please pass float, not {type(p)}.')
+        self.p = np.clip(p, 0.0, 1.0)               
+
+    def __call__(self, sequence: str) -> str:
+        """
+        Apply the transform.
+
+        Args:
+            sequence (str): an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
+
+        Returns:
+            str: an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
+        """                
+        verify_aligned_info(sequence)        
+        aligned_seq, non_active_sites, active_sites, all_seqs = extract_active_sites_info(sequence)
+        
+        order = list(range(len(active_sites)))
+
+        for pos in range(len(order)-1):
+            if np.random.rand()<self.p:
+                #switch
+                order[pos], order[pos+1] = order[pos+1], order[pos]
+
+        curr_active_site_substr_idx = -1
+        ans = ''
+        for substr in all_seqs:
+            if substr[0]<='Z':
+                curr_active_site_substr_idx+= 1
+                ans += active_sites[order[curr_active_site_substr_idx]]
+            else:
+                ans += substr
+        
+        return ans
+
 class KeepOnlyUpperCase(Transform):
     """Keeps only upper-case letters and discards the rest"""
 
