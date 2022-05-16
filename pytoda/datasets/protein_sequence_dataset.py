@@ -22,6 +22,7 @@ from ..proteins.transforms import (
     ProteinAugmentActiveSiteGuidedNoise,
     KeepOnlyUpperCase,
     ToUpperCase,
+    ExtractFromDict,
 )
 from ._fasta_eager_dataset import _FastaEagerDataset
 from ._fasta_lazy_dataset import _FastaLazyDataset
@@ -258,6 +259,8 @@ class ProteinSequenceDataset(DatasetDelegator):
         if self.load_active_site_alignment_info is not None:
             assert isinstance(self.load_active_site_alignment_info, str)
             transforms += [LoadActiveSiteAlignmentInfo(self.load_active_site_alignment_info)]
+        else:
+            transforms += [ExtractFromDict(key='sequence')]
 
         if self.protein_augment_flip_active_site_substrs is not None:
             assert self.load_active_site_alignment_info is not None
