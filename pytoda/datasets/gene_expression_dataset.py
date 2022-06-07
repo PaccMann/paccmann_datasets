@@ -1,8 +1,6 @@
 """GeneExpressionDataset module."""
 import torch
 
-from pytoda.warnings import device_warning
-
 from ..types import GeneList, Optional
 from ._table_dataset import _TableEagerDataset, _TableLazyDataset
 from .base_dataset import DatasetDelegator
@@ -24,9 +22,11 @@ class GeneExpressionDataset(DatasetDelegator):
         processing_parameters: dict = {},
         impute: Optional[float] = 0.0,
         dtype: torch.dtype = torch.float,
+        device: torch.device = torch.device(
+            'cuda' if torch.cuda.is_available() else 'cpu'
+        ),
         backend: str = 'eager',
         chunk_size: int = 10000,
-        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -48,14 +48,14 @@ class GeneExpressionDataset(DatasetDelegator):
             impute (Optional[float]): NaN imputation with value if
                 given. Defaults to 0.0.
             dtype (torch.dtype): data type. Defaults to torch.float.
+            device (torch.device): device where the tensors are stored.
+                Defaults to gpu, if available.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
             chunk_size (int): size of the chunks in case of lazy reading, is
                 ignored with 'eager' backend. Defaults to 10000.
-            device (torch.device): DEPRECATED
             kwargs (dict): additional parameters for pd.read_csv.
         """
-        device_warning(device)
         if not (backend in TABLE_DATASET_IMPLEMENTATIONS):
             raise RuntimeError(
                 'backend={} not supported! '.format(backend)
@@ -71,6 +71,7 @@ class GeneExpressionDataset(DatasetDelegator):
             processing_parameters=processing_parameters,
             impute=impute,
             dtype=dtype,
+            device=device,
             chunk_size=chunk_size,
             **kwargs,
         )
