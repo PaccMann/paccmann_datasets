@@ -341,6 +341,7 @@
         <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">padding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">padding_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper function to reversibly change the transforms per entity.</span>
@@ -362,6 +363,7 @@
             <span class="k">if</span> <span class="n">padding_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span><span class="p">,</span>
             <span class="n">padding_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span> <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">add_start_and_stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_token_len_fn</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="p">)</span></div></div>

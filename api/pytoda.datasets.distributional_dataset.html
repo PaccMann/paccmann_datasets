@@ -97,7 +97,6 @@
 <li class="toctree-l2"><a class="reference internal" href="pytoda.files.html">pytoda.files module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.transforms.html">pytoda.transforms module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pytoda.warnings.html">pytoda.warnings module</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.annotated_dataset.html">pytoda.datasets.annotated_dataset module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.base_dataset.html">pytoda.datasets.base_dataset module</a></li>
@@ -223,7 +222,7 @@
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="pytoda.datasets.distributional_dataset.StochasticItems">
-<em class="property">class </em><code class="sig-name descname">StochasticItems</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">distribution</span></em>, <em class="sig-param"><span class="n">shape</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/distributional_dataset.html#StochasticItems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.distributional_dataset.StochasticItems" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">StochasticItems</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">distribution</span></em>, <em class="sig-param"><span class="n">shape</span></em>, <em class="sig-param"><span class="n">device</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/distributional_dataset.html#StochasticItems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.distributional_dataset.StochasticItems" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Sample an item from a distribution on the fly on indexing.</p>
 <dl class="field-list simple">
@@ -231,11 +230,15 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>distribution</strong> (<em>torch.distributions.distribution.Distribution</em>) – An instance
 of the torch distribution class to sample from. For example, for
-loc = torch.tensor(0.0), and scale=torch.tensor(1.0),
+loc = torch.tensor(0.0,device=device), and scale=torch.tensor(1.0,device=device),
 torch.distributions.normal.Normal(loc,scale), so that
-calling .sample() would return an item from this distribution.</p></li>
+calling .sample() would return an item from this distribution on the specified device.
+NOTE: The arguments to the distribution should be tensors on the desired device.
+This ensure that samples are generated on this device and helps in avoiding
+an overhead in sending each sampled item to device.</p></li>
 <li><p><strong>shape</strong> (<em>torch.Size</em>) – The desired shape of each item.</p></li>
-<li><p><strong>device</strong> (<em>torch.device</em>) – DEPRECATED</p></li>
+<li><p><strong>device</strong> (<em>torch.device</em>) – Device to send the tensor to. If the tensor is already
+on device, then the .to() method returns self (no-ops).</p></li>
 </ul>
 </dd>
 </dl>
@@ -243,12 +246,12 @@ calling .sample() would return an item from this distribution.</p></li>
 
 <dl class="py class">
 <dt id="pytoda.datasets.distributional_dataset.DistributionalDataset">
-<em class="property">class </em><code class="sig-name descname">DistributionalDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset_size</span></em>, <em class="sig-param"><span class="n">item_shape</span></em>, <em class="sig-param"><span class="n">distribution_function</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/distributional_dataset.html#DistributionalDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.distributional_dataset.DistributionalDataset" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">DistributionalDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset_size</span></em>, <em class="sig-param"><span class="n">item_shape</span></em>, <em class="sig-param"><span class="n">distribution_function</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/distributional_dataset.html#DistributionalDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.distributional_dataset.DistributionalDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.utils.data.dataset.T_co</span></code>]</p>
 <p>Generates samples from a specified distribution.</p>
 <dl class="py method">
 <dt id="pytoda.datasets.distributional_dataset.DistributionalDataset.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset_size</span></em>, <em class="sig-param"><span class="n">item_shape</span></em>, <em class="sig-param"><span class="n">distribution_function</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/distributional_dataset.html#DistributionalDataset.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.distributional_dataset.DistributionalDataset.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dataset_size</span></em>, <em class="sig-param"><span class="n">item_shape</span></em>, <em class="sig-param"><span class="n">distribution_function</span></em>, <em class="sig-param"><span class="n">seed</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/distributional_dataset.html#DistributionalDataset.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.distributional_dataset.DistributionalDataset.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dataset of synthetic samples from a specified distribution with given shape.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -270,7 +273,8 @@ and passes the relevant arguments to that object.</p></li>
 this seed (using a local RNG only). Defaults to None, where
 individual items are generated when the DistributionalDataset is
 indexed (using the global RNG).</p></li>
-<li><p><strong>device</strong> (<em>torch.device</em>) – DEPRECATED</p></li>
+<li><p><strong>device</strong> (<em>torch.device</em>) – Device where the tensors are stored.
+Defaults to gpu, if available.</p></li>
 </ul>
 </dd>
 </dl>

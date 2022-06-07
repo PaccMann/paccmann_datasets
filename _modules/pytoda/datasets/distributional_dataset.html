@@ -164,7 +164,6 @@
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">Dataset</span>
 
 <span class="kn">from</span> <span class="nn">pytoda.types</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tensor</span>
-<span class="kn">from</span> <span class="nn">pytoda.warnings</span> <span class="kn">import</span> <span class="n">device_warning</span>
 
 
 <div class="viewcode-block" id="StochasticItems"><a class="viewcode-back" href="../../../api/pytoda.datasets.distributional_dataset.html#pytoda.datasets.distributional_dataset.StochasticItems">[docs]</a><span class="k">class</span> <span class="nc">StochasticItems</span><span class="p">:</span>
@@ -173,23 +172,44 @@
 <span class="sd">    Args:</span>
 <span class="sd">        distribution (torch.distributions.distribution.Distribution): An instance</span>
 <span class="sd">            of the torch distribution class to sample from. For example, for</span>
-<span class="sd">            loc = torch.tensor(0.0), and scale=torch.tensor(1.0),</span>
+<span class="sd">            loc = torch.tensor(0.0,device=device), and scale=torch.tensor(1.0,device=device),</span>
 <span class="sd">            torch.distributions.normal.Normal(loc,scale), so that</span>
-<span class="sd">            calling .sample() would return an item from this distribution.</span>
+<span class="sd">            calling .sample() would return an item from this distribution on the specified device.</span>
+<span class="sd">            NOTE: The arguments to the distribution should be tensors on the desired device.</span>
+<span class="sd">            This ensure that samples are generated on this device and helps in avoiding</span>
+<span class="sd">            an overhead in sending each sampled item to device.</span>
 <span class="sd">        shape (torch.Size): The desired shape of each item.</span>
-<span class="sd">        device (torch.device): DEPRECATED</span>
+<span class="sd">        device (torch.device): Device to send the tensor to. If the tensor is already</span>
+<span class="sd">            on device, then the .to() method returns self (no-ops).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">distribution</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">Distribution</span><span class="p">,</span>
         <span class="n">shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Size</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
-        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
     <span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">=</span> <span class="n">distribution</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span>
-        <span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
+        <span class="c1"># check if distribution arguments are on device</span>
+        <span class="n">devices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">distribution</span><span class="o">.</span><span class="n">arg_constraints</span><span class="p">:</span>
+            <span class="n">devices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">distribution</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">device</span><span class="o">.</span><span class="n">type</span><span class="p">)</span>
+
+        <span class="n">args_device</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">devices</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args_device</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Expected all tensors to be on the same device, but found </span><span class="si">{args_device}</span><span class="s2"> instead.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">args_device</span> <span class="o">!=</span> <span class="p">{</span><span class="n">device</span><span class="o">.</span><span class="n">type</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeWarning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Expected arguments to be on </span><span class="si">{device}</span><span class="s2">, but they are on </span><span class="si">{args_device}</span><span class="s2"> instead. This will cause a data transfer overhead.&quot;</span>
+            <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Samples an item.</span>
@@ -201,7 +221,7 @@
 <span class="sd">            Tensor: sampled from distribution with given shape.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="DistributionalDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.distributional_dataset.html#pytoda.datasets.distributional_dataset.DistributionalDataset">[docs]</a><span class="k">class</span> <span class="nc">DistributionalDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
@@ -213,7 +233,9 @@
         <span class="n">item_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
         <span class="n">distribution_function</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">distribution</span><span class="o">.</span><span class="n">Distribution</span><span class="p">,</span>
         <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+        <span class="p">),</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Dataset of synthetic samples from a specified distribution with given shape.</span>
 
@@ -236,7 +258,8 @@
 <span class="sd">                this seed (using a local RNG only). Defaults to None, where</span>
 <span class="sd">                individual items are generated when the DistributionalDataset is</span>
 <span class="sd">                indexed (using the global RNG).</span>
-<span class="sd">            device (torch.device): DEPRECATED</span>
+<span class="sd">            device (torch.device): Device where the tensors are stored.</span>
+<span class="sd">                Defaults to gpu, if available.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="nb">super</span><span class="p">(</span><span class="n">DistributionalDataset</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
@@ -244,7 +267,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset_size</span> <span class="o">=</span> <span class="n">dataset_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">item_shape</span> <span class="o">=</span> <span class="n">item_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span>
-        <span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">data_sampler</span> <span class="o">=</span> <span class="n">distribution_function</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">:</span>
@@ -256,9 +280,15 @@
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">((</span><span class="n">dataset_size</span><span class="p">,</span> <span class="o">*</span><span class="n">item_shape</span><span class="p">))</span>
 
+            <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># get sampled item on indexing</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span> <span class="o">=</span> <span class="n">StochasticItems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_sampler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_shape</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">datasource</span> <span class="o">=</span> <span class="n">StochasticItems</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data_sampler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span>
+            <span class="p">)</span></div>
+
+        <span class="c1"># copy data to device</span>
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Gets length of dataset.</span>

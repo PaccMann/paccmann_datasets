@@ -187,12 +187,9 @@
 <span class="kn">from</span> <span class="nn">selfies</span> <span class="kn">import</span> <span class="n">decoder</span> <span class="k">as</span> <span class="n">selfies_decoder</span>
 <span class="kn">from</span> <span class="nn">selfies</span> <span class="kn">import</span> <span class="n">encoder</span> <span class="k">as</span> <span class="n">selfies_encoder</span>
 
-<span class="kn">from</span> <span class="nn">pytoda.warnings</span> <span class="kn">import</span> <span class="n">device_warning</span>
-
 <span class="kn">from</span> <span class="nn">..files</span> <span class="kn">import</span> <span class="n">read_smi</span>
 <span class="kn">from</span> <span class="nn">..transforms</span> <span class="kn">import</span> <span class="n">Compose</span>
 <span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Any</span><span class="p">,</span>
     <span class="n">Files</span><span class="p">,</span>
     <span class="n">Indexes</span><span class="p">,</span>
     <span class="n">Iterable</span><span class="p">,</span>
@@ -914,7 +911,9 @@
         <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">padding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">padding_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">device</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span>
+            <span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span>
+        <span class="p">),</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize SMILES language.</span>
@@ -957,7 +956,8 @@
 <span class="sd">                applies only if padding is True. See `set_max_padding` to set</span>
 <span class="sd">                it to longest token sequence the smiles language encountered.</span>
 <span class="sd">                Defaults to None.</span>
-<span class="sd">            device (Any): Deprecated argument that will be removed in the future.</span>
+<span class="sd">            device (torch.device): device where the tensors are stored.</span>
+<span class="sd">                Defaults to gpu, if available.</span>
 
 <span class="sd">        NOTE:</span>
 <span class="sd">            See `set_smiles_transforms` and `set_encoding_transforms` to change</span>
@@ -965,7 +965,6 @@
 <span class="sd">            `reset_initial_transforms`. Assignment of class attributes</span>
 <span class="sd">            in the parameter list will trigger such a reset.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
             <span class="n">smiles_tokenizer</span><span class="o">=</span><span class="n">smiles_tokenizer</span><span class="p">,</span>
@@ -988,9 +987,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span> <span class="o">=</span> <span class="n">add_start_and_stop</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">padding</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span> <span class="o">=</span> <span class="n">padding_length</span>
-
-        <span class="k">if</span> <span class="n">device</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_attributes</span> <span class="o">=</span> <span class="p">[</span>  <span class="c1"># additions to init_kwargs for pretrained</span>
             <span class="s1">&#39;canonical&#39;</span><span class="p">,</span>
@@ -1015,6 +1012,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_attributes_to_trigger_reset</span> <span class="o">=</span> <span class="p">[</span>
             <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_init_attributes</span><span class="p">,</span>
+            <span class="s1">&#39;device&#39;</span><span class="p">,</span>
             <span class="s1">&#39;start_index&#39;</span><span class="p">,</span>
             <span class="s1">&#39;stop_index&#39;</span><span class="p">,</span>
         <span class="p">]</span>  <span class="c1"># could be updated in inheritance</span>
@@ -1099,6 +1097,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_token_len_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span><span class="p">)</span></div>
 
@@ -1141,6 +1140,7 @@
         <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">padding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">padding_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Helper function to reversibly change steps of the transforms.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transform_encoding</span> <span class="o">=</span> <span class="n">compose_encoding_transforms</span><span class="p">(</span>
@@ -1155,6 +1155,7 @@
             <span class="k">if</span> <span class="n">padding_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">padding_length</span><span class="p">,</span>
             <span class="n">padding_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span> <span class="k">if</span> <span class="n">device</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">add_start_and_stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_token_len_fn</span><span class="p">(</span><span class="n">add_start_and_stop</span><span class="p">)</span></div></div>
