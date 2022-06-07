@@ -5,7 +5,6 @@ from torch.random import fork_rng
 from torch.utils.data import Dataset
 
 from pytoda.types import Any, Tensor
-from pytoda.warnings import device_warning
 
 
 class StochasticItems:
@@ -14,23 +13,44 @@ class StochasticItems:
     Args:
         distribution (torch.distributions.distribution.Distribution): An instance
             of the torch distribution class to sample from. For example, for
-            loc = torch.tensor(0.0), and scale=torch.tensor(1.0),
+            loc = torch.tensor(0.0,device=device), and scale=torch.tensor(1.0,device=device),
             torch.distributions.normal.Normal(loc,scale), so that
-            calling .sample() would return an item from this distribution.
+            calling .sample() would return an item from this distribution on the specified device.
+            NOTE: The arguments to the distribution should be tensors on the desired device.
+            This ensure that samples are generated on this device and helps in avoiding
+            an overhead in sending each sampled item to device.
         shape (torch.Size): The desired shape of each item.
-        device (torch.device): DEPRECATED
+        device (torch.device): Device to send the tensor to. If the tensor is already
+            on device, then the .to() method returns self (no-ops).
     """
 
     def __init__(
         self,
         distribution: torch.distributions.distribution.Distribution,
         shape: Union[torch.Size, Tuple[int]],
-        device: torch.device = None,
+        device: torch.device,
     ):
 
         self.distribution = distribution
         self.shape = shape
-        device_warning(device)
+        self.device = device
+
+        # check if distribution arguments are on device
+        devices = []
+        for key in distribution.arg_constraints:
+            devices.append(getattr(distribution, key).device.type)
+
+        args_device = set(devices)
+
+        if len(args_device) > 1:
+            raise RuntimeError(
+                f"Expected all tensors to be on the same device, but found {args_device} instead."
+            )
+
+        elif args_device != {device.type}:
+            raise RuntimeWarning(
+                f"Expected arguments to be on {device}, but they are on {args_device} instead. This will cause a data transfer overhead."
+            )
 
     def __getitem__(self, index: Any) -> Tensor:
         """Samples an item.
@@ -42,7 +62,7 @@ class StochasticItems:
             Tensor: sampled from distribution with given shape.
         """
 
-        return self.distribution.sample(self.shape)
+        return self.distribution.sample(self.shape).to(self.device)
 
 
 class DistributionalDataset(Dataset):
@@ -54,7 +74,9 @@ class DistributionalDataset(Dataset):
         item_shape: Tuple[int],
         distribution_function: torch.distributions.distribution.Distribution,
         seed: Optional[int] = None,
-        device: torch.device = None,
+        device: torch.device = (
+            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        ),
     ) -> None:
         """Dataset of synthetic samples from a specified distribution with given shape.
 
@@ -77,7 +99,8 @@ class DistributionalDataset(Dataset):
                 this seed (using a local RNG only). Defaults to None, where
                 individual items are generated when the DistributionalDataset is
                 indexed (using the global RNG).
-            device (torch.device): DEPRECATED
+            device (torch.device): Device where the tensors are stored.
+                Defaults to gpu, if available.
         """
 
         super(DistributionalDataset, self).__init__()
@@ -85,7 +108,8 @@ class DistributionalDataset(Dataset):
         self.dataset_size = dataset_size
         self.item_shape = item_shape
         self.seed = seed
-        device_warning(device)
+        self.device = device
+
         self.data_sampler = distribution_function
 
         if self.seed:
@@ -97,9 +121,15 @@ class DistributionalDataset(Dataset):
 
                 self.datasource = self.data_sampler.sample((dataset_size, *item_shape))
 
+            self.datasource = self.datasource.to(device)
+
         else:
             # get sampled item on indexing
-            self.datasource = StochasticItems(self.data_sampler, self.item_shape)
+            self.datasource = StochasticItems(
+                self.data_sampler, self.item_shape, self.device
+            )
+
+        # copy data to device
 
     def __len__(self) -> int:
         """Gets length of dataset.
