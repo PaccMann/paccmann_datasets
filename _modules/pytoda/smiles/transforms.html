@@ -170,6 +170,7 @@
 <span class="kn">from</span> <span class="nn">selfies</span> <span class="kn">import</span> <span class="n">encoder</span> <span class="k">as</span> <span class="n">selfies_encoder</span>
 
 <span class="kn">import</span> <span class="nn">pytoda</span>
+<span class="kn">from</span> <span class="nn">pytoda.warnings</span> <span class="kn">import</span> <span class="n">device_warning</span>
 
 <span class="kn">from</span> <span class="nn">..transforms</span> <span class="kn">import</span> <span class="n">Compose</span><span class="p">,</span> <span class="n">LeftPadding</span><span class="p">,</span> <span class="n">Randomize</span><span class="p">,</span> <span class="n">StartStop</span><span class="p">,</span> <span class="n">ToTensor</span><span class="p">,</span> <span class="n">Transform</span>
 <span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Indexes</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">Union</span>
@@ -187,6 +188,7 @@
     <span class="n">remove_chirality</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">selfies</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">sanitize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Compose</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Setup a composition of SMILES to SMILES (or SELFIES) transformations.</span>
 
@@ -211,11 +213,13 @@
 <span class="sd">            smiles. Defaults to False.</span>
 <span class="sd">        sanitize (bool, optional): RDKit sanitization of the molecule.</span>
 <span class="sd">            Defaults to True.</span>
+<span class="sd">        device (torch.device): DEPRECATED</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Compose: A Callable that applies composition of SMILES transforms.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">device_warning</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
     <span class="c1"># Build up composition from optional SMILES to SMILES transformations</span>
     <span class="n">smiles_transforms</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">canonical</span><span class="p">:</span>
@@ -264,7 +268,6 @@
     <span class="n">padding</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">padding_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">padding_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Compose</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Setup a composition of token indexes to token indexes transformations.</span>
 
@@ -284,8 +287,6 @@
 <span class="sd">            must be passed in case of padding.</span>
 <span class="sd">        padding_index (int, optional): index of padding token in vocabulary.</span>
 <span class="sd">            Default to 0.</span>
-<span class="sd">        device (torch.device): device where the tensors are stored.</span>
-<span class="sd">            Defaults to gpu, if available.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Compose: A Callable that applies composition of transforms on</span>
@@ -306,7 +307,7 @@
             <span class="n">LeftPadding</span><span class="p">(</span><span class="n">padding_length</span><span class="o">=</span><span class="n">padding_length</span><span class="p">,</span> <span class="n">padding_index</span><span class="o">=</span><span class="n">padding_index</span><span class="p">)</span>
         <span class="p">]</span>
 
-    <span class="n">encoding_transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ToTensor</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)]</span>
+    <span class="n">encoding_transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ToTensor</span><span class="p">()]</span>
     <span class="k">return</span> <span class="n">Compose</span><span class="p">(</span><span class="n">encoding_transforms</span><span class="p">)</span></div>
 
 

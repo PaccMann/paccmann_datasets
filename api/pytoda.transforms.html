@@ -101,6 +101,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.warnings.html">pytoda.warnings module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.preprocessing.html">pytoda.preprocessing package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.proteins.html">pytoda.proteins package</a></li>
@@ -271,20 +272,16 @@
 
 <dl class="py class">
 <dt id="pytoda.transforms.ToTensor">
-<em class="property">class </em><code class="sig-name descname">ToTensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int16</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ToTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ToTensor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">ToTensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int16</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ToTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ToTensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
 <p>Transform token indexes to torch tensor.</p>
 <dl class="py method">
 <dt id="pytoda.transforms.ToTensor.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int16</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ToTensor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ToTensor.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.int16</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ToTensor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ToTensor.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a token indexes to tensor object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>device</strong> (<em>torch.device</em>) – device where the tensors are stored.
-Defaults to gpu, if available.</p></li>
-<li><p><strong>dtype</strong> (<em>torch.dtype</em>) – data type. Defaults to torch.short.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>dtype</strong> (<em>torch.dtype</em>) – data type. Defaults to torch.short.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -293,20 +290,16 @@ Defaults to gpu, if available.</p></li>
 
 <dl class="py class">
 <dt id="pytoda.transforms.ListToTensor">
-<em class="property">class </em><code class="sig-name descname">ListToTensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.float32</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ListToTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ListToTensor" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">ListToTensor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.float32</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ListToTensor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ListToTensor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
 <p>2D Version of ToTensor.</p>
 <dl class="py method">
 <dt id="pytoda.transforms.ListToTensor.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em>, <em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.float32</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ListToTensor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ListToTensor.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dtype</span><span class="o">=</span><span class="default_value">torch.float32</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ListToTensor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ListToTensor.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a token indexes to tensor object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>device</strong> (<em>torch.device</em>) – device where the tensors are stored.
-Defaults to gpu, if available.</p></li>
-<li><p><strong>dtype</strong> (<em>torch.dtype</em>) – data type. Defaults to torch.float.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>dtype</strong> (<em>torch.dtype</em>) – data type. Defaults to torch.float.</p>
 </dd>
 </dl>
 </dd></dl>

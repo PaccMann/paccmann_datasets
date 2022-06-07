@@ -97,6 +97,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pytoda.files.html">pytoda.files module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.transforms.html">pytoda.transforms module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pytoda.types.html">pytoda.types module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pytoda.warnings.html">pytoda.warnings module</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="pytoda.datasets.html">pytoda.datasets package</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.annotated_dataset.html">pytoda.datasets.annotated_dataset module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pytoda.datasets.base_dataset.html">pytoda.datasets.base_dataset module</a></li>
@@ -296,7 +297,7 @@ behavior is changed to additionally returning key.</p>
 
 <dl class="py function">
 <dt id="pytoda.datasets.utils.utils.pad_item">
-<code class="sig-name descname">pad_item</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">item</span></em>, <em class="sig-param"><span class="n">padding_modes</span></em>, <em class="sig-param"><span class="n">padding_values</span></em>, <em class="sig-param"><span class="n">max_length</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">device(type='cpu')</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/utils/utils.html#pad_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.utils.utils.pad_item" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">pad_item</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">item</span></em>, <em class="sig-param"><span class="n">padding_modes</span></em>, <em class="sig-param"><span class="n">padding_values</span></em>, <em class="sig-param"><span class="n">max_length</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/utils/utils.html#pad_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.utils.utils.pad_item" title="Permalink to this definition">¶</a></dt>
 <dd><p>Padding function for a single item of a batch.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -308,8 +309,6 @@ tensor with a range of values.</p></li>
 <li><p><strong>padding_values</strong> (<em>List</em>) – The values with which to fill the background tensor for padding.
 Can be a constant value or a range depending on the datum to pad in item.</p></li>
 <li><p><strong>max_length</strong> (<em>int</em>) – The maximum length to which the datum should be padded.</p></li>
-<li><p><strong>device</strong> (<em>torch.device</em><em>, </em><em>optional</em>) – Device where the tensors are stored.
-Defaults to gpu, if available.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
