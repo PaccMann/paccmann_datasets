@@ -1,13 +1,23 @@
 """Implementation of ProteinSequenceDataset."""
 import logging
+from typing import List, Optional
 
 import torch
 
 from pytoda.warnings import device_warning
-from typing import List, Optional
+
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from ..proteins.protein_language import ProteinLanguage
-from ..proteins.transforms import SequenceToTokenIndexes
+from ..proteins.transforms import (
+    ExtractFromDict,
+    KeepOnlyUpperCase,
+    LoadActiveSiteAlignmentInfo,
+    ProteinAugmentActiveSiteGuidedNoise,
+    ProteinAugmentFlipActiveSiteSubstrs,
+    ProteinAugmentSwitchBetweenActiveSiteSubstrs,
+    SequenceToTokenIndexes,
+    ToUpperCase,
+)
 from ..transforms import (
     AugmentByReversing,
     Compose,
@@ -15,15 +25,6 @@ from ..transforms import (
     ListToTensor,
     Randomize,
     ToTensor,
-)
-from ..proteins.transforms import (
-    LoadActiveSiteAlignmentInfo,
-    ProteinAugmentFlipActiveSiteSubstrs,
-    ProteinAugmentActiveSiteGuidedNoise,
-    ProteinAugmentSwitchBetweenActiveSiteSubstrs,
-    KeepOnlyUpperCase,
-    ToUpperCase,
-    ExtractFromDict,
 )
 from ._fasta_eager_dataset import _FastaEagerDataset
 from ._fasta_lazy_dataset import _FastaLazyDataset
@@ -132,12 +133,12 @@ class ProteinSequenceDataset(DatasetDelegator):
         padding: bool = True,
         padding_length: int = None,
         add_start_and_stop: bool = False,
-        augment_by_revert: bool = False,        
+        augment_by_revert: bool = False,
         load_active_site_alignment_info: Optional[List[str]] = None,
         protein_augment_flip_active_site_substrs: Optional[float] = None,
         protein_augment_active_site_guided_noise: Optional[List[float]] = None,
         protein_augment_switch_between_active_site_substrs: Optional[float] = None,
-        protein_keep_only_uppercase:bool = False,        
+        protein_keep_only_uppercase: bool = False,
         randomize: bool = False,
         backend: str = 'eager',
         iterate_dataset: bool = False,
@@ -248,48 +249,70 @@ class ProteinSequenceDataset(DatasetDelegator):
                 'Some sequences might get truncated.'
             )
         self.randomize = randomize
-        self.augment_by_revert = augment_by_revert        
+        self.augment_by_revert = augment_by_revert
 
         # Build up cascade of Protein transformations
-        transforms = []        
-        
+        transforms = []
+
         ##### related to active site guided augmentation
         self.load_active_site_alignment_info = load_active_site_alignment_info
-        self.protein_augment_flip_active_site_substrs = protein_augment_flip_active_site_substrs
-        self.protein_augment_active_site_guided_noise = protein_augment_active_site_guided_noise
-        self.protein_augment_switch_between_active_site_substrs = protein_augment_switch_between_active_site_substrs
+        self.protein_augment_flip_active_site_substrs = (
+            protein_augment_flip_active_site_substrs
+        )
+        self.protein_augment_active_site_guided_noise = (
+            protein_augment_active_site_guided_noise
+        )
+        self.protein_augment_switch_between_active_site_substrs = (
+            protein_augment_switch_between_active_site_substrs
+        )
         self.protein_keep_only_uppercase = protein_keep_only_uppercase
 
         if self.load_active_site_alignment_info is not None:
             assert isinstance(self.load_active_site_alignment_info, str)
-            transforms += [LoadActiveSiteAlignmentInfo(self.load_active_site_alignment_info)]
+            transforms += [
+                LoadActiveSiteAlignmentInfo(self.load_active_site_alignment_info)
+            ]
         else:
             transforms += [ExtractFromDict(key='sequence')]
 
         if self.protein_augment_flip_active_site_substrs is not None:
             assert self.load_active_site_alignment_info is not None
             assert isinstance(self.protein_augment_flip_active_site_substrs, float)
-            transforms += [ProteinAugmentFlipActiveSiteSubstrs(p=self.protein_augment_flip_active_site_substrs)]
+            transforms += [
+                ProteinAugmentFlipActiveSiteSubstrs(
+                    p=self.protein_augment_flip_active_site_substrs
+                )
+            ]
 
         if self.protein_augment_active_site_guided_noise is not None:
             assert self.load_active_site_alignment_info is not None
             assert isinstance(self.protein_augment_active_site_guided_noise, list)
             assert 2 == len(protein_augment_active_site_guided_noise)
-            transforms += [ProteinAugmentActiveSiteGuidedNoise(*self.protein_augment_active_site_guided_noise)]
+            transforms += [
+                ProteinAugmentActiveSiteGuidedNoise(
+                    *self.protein_augment_active_site_guided_noise
+                )
+            ]
 
         if self.protein_augment_switch_between_active_site_substrs is not None:
             assert self.load_active_site_alignment_info is not None
-            assert isinstance(self.protein_augment_switch_between_active_site_substrs, float)
-            transforms += [ProteinAugmentSwitchBetweenActiveSiteSubstrs(self.protein_augment_switch_between_active_site_substrs)]
-            
+            assert isinstance(
+                self.protein_augment_switch_between_active_site_substrs, float
+            )
+            transforms += [
+                ProteinAugmentSwitchBetweenActiveSiteSubstrs(
+                    self.protein_augment_switch_between_active_site_substrs
+                )
+            ]
+
         if self.protein_keep_only_uppercase:
             transforms += [KeepOnlyUpperCase()]
-            
-        #TODO: this can be theoretically done always
+
+        # TODO: this can be theoretically done always
         if self.load_active_site_alignment_info is not None:
             transforms += [ToUpperCase()]
 
-        #note - it's important to keep "augment_by_revert" after this section and not before it.
+        # note - it's important to keep "augment_by_revert" after this section and not before it.
         ##########
 
         if self.augment_by_revert:
@@ -333,13 +356,13 @@ class ProteinSequenceDataset(DatasetDelegator):
         Returns:
             torch.Tensor: a torch tensor of token indexes,
                 for the current sample.
-        """      
-        #import ipdb;ipdb.set_trace()  
-        #since multiple identical active sites have different full sequence, passing protein id as well
+        """
+        # import ipdb;ipdb.set_trace()
+        # since multiple identical active sites have different full sequence, passing protein id as well
 
-        assert 1==len(self.dataset.datasets)
+        assert 1 == len(self.dataset.datasets)
         extracted = self.dataset.datasets[0].df.iloc[index]
-        assert extracted.Sequence == self.dataset[index]        
+        assert extracted.Sequence == self.dataset[index]
 
         sample_dict = dict(sequence=extracted.Sequence, protein_id=extracted.name)
         return self.transform(sample_dict)
