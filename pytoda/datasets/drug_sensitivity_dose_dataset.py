@@ -4,8 +4,6 @@ from typing import Callable
 import numpy as np
 import torch
 
-from pytoda.warnings import device_warning
-
 from ..smiles.smiles_language import SMILESTokenizer
 from ..types import DrugSensitivityDoseData, GeneList, Tuple
 from .drug_sensitivity_dataset import DrugSensitivityDataset
@@ -31,8 +29,10 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
         gene_expression_processing_parameters: dict = {},
         gene_expression_dtype: torch.dtype = torch.float,
         gene_expression_kwargs: dict = {},
+        device: torch.device = (
+            torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        ),
         backend: str = 'eager',
-        device: torch.device = None,
         **kwargs,
     ) -> None:
         """
@@ -70,12 +70,13 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
             gene_expression_processing_parameters (dict): transformation
                 parameters for gene expression, e.g. for min-max scaling.
                 Defaults to {}.
+            device (torch.device): device where the tensors are stored.
+                Defaults to gpu, if available.
             backend (str): memory management backend.
                 Defaults to eager, prefer speed over memory consumption.
                 Note that at the moment only the gene expression and the
                 smiles datasets implement both backends. The drug sensitivity
                 data are loaded in memory.
-            device (torch.device): DEPRECATED
             **kwargs: Additional keyword arguments for parent class
                 (DrugSensitivityDataset).
         """
@@ -92,13 +93,13 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
             gene_expression_standardize=gene_expression_standardize,
             gene_expression_min_max=gene_expression_min_max,
             gene_expression_processing_parameters=gene_expression_processing_parameters,
+            device=device,
             backend=backend,
             **kwargs,
         )
 
         self.dose_name = column_names[2]
         self.dose_transform = dose_transform
-        device_warning(device)
 
     def __getitem__(self, index: int) -> DrugSensitivityDoseData:
         """
@@ -120,6 +121,7 @@ class DrugSensitivityDoseDataset(DrugSensitivityDataset):
         dose = torch.tensor(
             [self.dose_transform(self.drug_sensitivity_df.iloc[index][self.dose_name])],
             dtype=self.drug_sensitivity_dtype,
+            device=self.device,
         )
 
         return token_indexes, gene_expression, dose, viability

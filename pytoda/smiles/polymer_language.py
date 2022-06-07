@@ -182,6 +182,7 @@ class PolymerTokenizer(SMILESTokenizer):
         add_start_and_stop=None,
         padding=None,
         padding_length=None,
+        device=None,
     ):
         """
         Helper function to reversibly change the transforms per entity.
@@ -203,6 +204,7 @@ class PolymerTokenizer(SMILESTokenizer):
             if padding_length is not None
             else self.padding_length,
             padding_index=self.padding_index,
+            device=device if device is not None else self.device,
         )
         if add_start_and_stop is not None:
             self._set_token_len_fn(add_start_and_stop)
