@@ -113,9 +113,14 @@ def extract_active_sites_info(
             lower case amino acids and high case amino acids.
 
     Returns:
-        TODO:
-            - UnitTEST all code
-            - push test, push refactor, change style
+        4-Tuple of:
+        aligned_seq (str): The input sequence.
+        non_active_sites (List[str]): A list of strings, one item for each contiguous
+            subsequence NOT belonging to active site.
+        active_sites (List[str]): A list of strings, one item for each contiguous
+            subsequence belonging to active site.
+        all_seqs (List[str]): A list of strings, one item for each contiguous
+            subsequence that either belongs to the active site or not.
     """
 
     non_active_sites = ''
