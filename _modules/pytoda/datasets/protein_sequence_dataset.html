@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.0.2
+                1.1.0
               </div>
             
           
@@ -159,21 +159,33 @@
   <h1>Source code for pytoda.datasets.protein_sequence_dataset</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Implementation of ProteinSequenceDataset.&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">importlib_resources</span> <span class="kn">import</span> <span class="n">files</span>
 
 <span class="kn">from</span> <span class="nn">pytoda.warnings</span> <span class="kn">import</span> <span class="n">device_warning</span>
 
 <span class="kn">from</span> <span class="nn">..proteins.protein_feature_language</span> <span class="kn">import</span> <span class="n">ProteinFeatureLanguage</span>
 <span class="kn">from</span> <span class="nn">..proteins.protein_language</span> <span class="kn">import</span> <span class="n">ProteinLanguage</span>
-<span class="kn">from</span> <span class="nn">..proteins.transforms</span> <span class="kn">import</span> <span class="n">SequenceToTokenIndexes</span>
+<span class="kn">from</span> <span class="nn">..proteins.transforms</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">MutateResidues</span><span class="p">,</span>
+    <span class="n">ProteinAugmentFlipSubstrs</span><span class="p">,</span>
+    <span class="n">ProteinAugmentSwapSubstrs</span><span class="p">,</span>
+    <span class="n">ReplaceByFullProteinSequence</span><span class="p">,</span>
+    <span class="n">SequenceToTokenIndexes</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..transforms</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">AugmentByReversing</span><span class="p">,</span>
     <span class="n">Compose</span><span class="p">,</span>
+    <span class="n">DiscardLowercase</span><span class="p">,</span>
+    <span class="n">ExtractFromDict</span><span class="p">,</span>
     <span class="n">LeftPadding</span><span class="p">,</span>
     <span class="n">ListToTensor</span><span class="p">,</span>
     <span class="n">Randomize</span><span class="p">,</span>
     <span class="n">ToTensor</span><span class="p">,</span>
+    <span class="n">ToUpperCase</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">._fasta_eager_dataset</span> <span class="kn">import</span> <span class="n">_FastaEagerDataset</span>
 <span class="kn">from</span> <span class="nn">._fasta_lazy_dataset</span> <span class="kn">import</span> <span class="n">_FastaLazyDataset</span>
@@ -248,7 +260,15 @@
 <div class="viewcode-block" id="protein_sequence_dataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.protein_sequence_dataset.html#pytoda.datasets.protein_sequence_dataset.protein_sequence_dataset">[docs]</a><span class="k">def</span> <span class="nf">protein_sequence_dataset</span><span class="p">(</span>
     <span class="o">*</span><span class="n">filepaths</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filetype</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KeyDataset</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Return a dataset of protein sequences.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a dataset of protein sequences.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepaths (Iterable[str]): Paths to the files containing the protein sequences.</span>
+<span class="sd">        filetype (str): The filetype of the protein sequences.</span>
+<span class="sd">        backend (str): The backend to use for the dataset.</span>
+<span class="sd">        kwargs: Keyword arguments for the dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># hardcoded factory</span>
         <span class="n">dataset_class</span><span class="p">,</span> <span class="n">valid_keys</span> <span class="o">=</span> <span class="n">SEQUENCE_DATASET_IMPLEMENTATIONS</span><span class="p">[</span><span class="n">filetype</span><span class="p">][</span><span class="n">backend</span><span class="p">]</span>
@@ -268,10 +288,7 @@
 
 
 <div class="viewcode-block" id="ProteinSequenceDataset"><a class="viewcode-back" href="../../../api/pytoda.datasets.protein_sequence_dataset.html#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset">[docs]</a><span class="k">class</span> <span class="nc">ProteinSequenceDataset</span><span class="p">(</span><span class="n">DatasetDelegator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Protein Sequence dataset using a Language to transform sequences.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Protein Sequence dataset using a Language to transform sequences.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="ProteinSequenceDataset.__init__"><a class="viewcode-back" href="../../../api/pytoda.datasets.protein_sequence_dataset.html#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -283,6 +300,8 @@
         <span class="n">padding_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">augment_by_revert</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">sequence_augment</span><span class="p">:</span> <span class="n">Dict</span> <span class="o">=</span> <span class="p">{},</span>
+        <span class="n">protein_keep_only_uppercase</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">randomize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;eager&#39;</span><span class="p">,</span>
         <span class="n">iterate_dataset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -312,6 +331,41 @@
 <span class="sd">                Sequences. Defaults to False.</span>
 <span class="sd">            randomize (bool): perform a true randomization of Protein tokens.</span>
 <span class="sd">                Defaults to False.</span>
+<span class="sd">            sequence_augment (Dict): a dictionary to specify additional sequence</span>
+<span class="sd">                augmentation. Defaults to {}. Items can be:</span>
+<span class="sd">                    `alignment_path`: A path (str) to a `.smi` (or `.tsv`) file</span>
+<span class="sd">                        with alignment information that specifies which residues of the</span>
+<span class="sd">                        sequence are to be used. E.g., to extract active site sequences</span>
+<span class="sd">                        from full proteins. Do not use a header in the file.</span>
+<span class="sd">                        1. column has to be the full protein sequence (use upper</span>
+<span class="sd">                            case only for residues to be used). E.g., ggABCggDEFgg</span>
+<span class="sd">                        2. column has to be the condensed sequence (ABCDEF).</span>
+<span class="sd">                        3. column has to be the protein identifier.</span>
+<span class="sd">                        NOTE: Such a file is *necessary* to apply all augmentation types</span>
+<span class="sd">                        specified in this dictionary (`sequence_augment`).</span>
+<span class="sd">                        NOTE: Unless specified, this defaults to</span>
+<span class="sd">                        `kinase_activesite_alignment.smi`, a file in</span>
+<span class="sd">                        `pytoda.proteins.metadata` that can ONLY be used to</span>
+<span class="sd">                        extract active site sequences of human kinases (based on the</span>
+<span class="sd">                        active site definition in Sheridan et al. (2009, JCIM) and</span>
+<span class="sd">                        Martin &amp; Mukherjee (2012, JCIM).</span>
+<span class="sd">                    `discard_lowercase`: A (bool) specifying whether all lowercase</span>
+<span class="sd">                        characters (residues) in the sequence should be discarded.</span>
+<span class="sd">                        NOTE: This defaults to True.</span>
+<span class="sd">                    `flip_substrings`: A probability (float) to flip each contiguous</span>
+<span class="sd">                        upper-case substring (e.g., an active site substring that lies</span>
+<span class="sd">                        contiguously in the original sequence).</span>
+<span class="sd">                        Defaults to 0.0, i.e., no flipping.</span>
+<span class="sd">                        E.g., ABCDEF could become CBADEF or CBAFED or ABCFED if the</span>
+<span class="sd">                        original sequence is ggABCggDEFgg.</span>
+<span class="sd">                    `swap_substrings`: A probability (float) to swap neighboring</span>
+<span class="sd">                        substrings. Defaults to 0.0, i.e., no swapping.</span>
+<span class="sd">                        E.g., ABCDEF could become DEFABC if the original sequence is</span>
+<span class="sd">                        ggABCggDEFgg.</span>
+<span class="sd">                    `noise`: A 2-Tuple of (float, float) that specifies the probability</span>
+<span class="sd">                        for a random, single-residue mutation inside and outside the</span>
+<span class="sd">                        relevent part. Defaults to (0.0, 0.0), i.e., no noise.</span>
+<span class="sd">                        E.g., with (0.0, 0.5),  ggABCggDEFgg could become hgABCgbDEFgg.</span>
 <span class="sd">            iterate_dataset (bool): whether to go through all items in the dataset</span>
 <span class="sd">                to detect unknown characters, find longest sequence and checks</span>
 <span class="sd">                passed padding length if applicable. Defaults to False.</span>
@@ -338,6 +392,8 @@
 
         <span class="c1"># setup dataset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup_dataset</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cumulative_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">])</span>
+
         <span class="n">DatasetDelegator</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># delegate to self.dataset</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_duplicate_keys</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please remove duplicates from your </span><span class="si">{self.filetype}</span><span class="s1"> file.&#39;</span><span class="p">)</span>
@@ -389,10 +445,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">randomize</span> <span class="o">=</span> <span class="n">randomize</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">augment_by_revert</span> <span class="o">=</span> <span class="n">augment_by_revert</span>
 
-        <span class="c1"># Build up cascade of Protein transformations</span>
-        <span class="n">transforms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Sequence-based augmentation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sequence_augment</span> <span class="o">=</span> <span class="n">sequence_augment</span>
+        <span class="n">transforms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup_sequence_augmentation</span><span class="p">(</span><span class="n">sequence_augment</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">augment_by_revert</span><span class="p">:</span>
             <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">AugmentByReversing</span><span class="p">()]</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">language_transforms</span> <span class="o">=</span> <span class="n">Compose</span><span class="p">(</span><span class="n">transforms</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
 
         <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">SequenceToTokenIndexes</span><span class="p">(</span><span class="n">protein_language</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="p">)]</span>
@@ -421,6 +480,68 @@
             <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">filetype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filetype</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
         <span class="p">)</span>
 
+<div class="viewcode-block" id="ProteinSequenceDataset.setup_sequence_augmentation"><a class="viewcode-back" href="../../../api/pytoda.datasets.protein_sequence_dataset.html#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.setup_sequence_augmentation">[docs]</a>    <span class="k">def</span> <span class="nf">setup_sequence_augmentation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence_augment</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Setup the sequence augmentation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence_augment: A dictionary to specify the sequence augmentation</span>
+<span class="sd">                strategies. For details see the constructor docs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sequence_augment</span><span class="p">,</span> <span class="n">Dict</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Pass sequence_augment as Dict not {type(sequence_augment)}&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Build up cascade of Protein transformations</span>
+        <span class="n">transforms</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># No work to do</span>
+        <span class="k">if</span> <span class="n">sequence_augment</span> <span class="o">==</span> <span class="p">{}:</span>
+            <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ExtractFromDict</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;sequence&#39;</span><span class="p">)]</span>
+            <span class="k">return</span> <span class="n">transforms</span>
+
+        <span class="c1"># Start composing transforms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alignment_path</span> <span class="o">=</span> <span class="n">sequence_augment</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span>
+            <span class="s1">&#39;alignment_path&#39;</span><span class="p">,</span>
+            <span class="n">files</span><span class="p">(</span><span class="s1">&#39;pytoda.proteins.metadata&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span>
+                <span class="s1">&#39;kinase_activesite_alignment.smi&#39;</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ReplaceByFullProteinSequence</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alignment_path</span><span class="p">)]</span>
+
+        <span class="c1"># Flip substrings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flip_substrings</span> <span class="o">=</span> <span class="n">sequence_augment</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;flip_substrings&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ProteinAugmentFlipSubstrs</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flip_substrings</span><span class="p">)]</span>
+
+        <span class="c1"># Swap substrings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">swap_substrings</span> <span class="o">=</span> <span class="n">sequence_augment</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;swap_substrings&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ProteinAugmentSwapSubstrs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">swap_substrings</span><span class="p">)]</span>
+
+        <span class="c1"># Inject noise (single residue mutation)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">noise</span> <span class="o">=</span> <span class="n">sequence_augment</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;noise&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Noise has to be Iterable of length 2 not </span><span class="si">{self.noise}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">MutateResidues</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">noise</span><span class="p">)]</span>
+
+        <span class="c1"># Prune lowercase characters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discard_lowercase</span> <span class="o">=</span> <span class="n">sequence_augment</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;discard_lowercase&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">discard_lowercase</span><span class="p">:</span>
+            <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">DiscardLowercase</span><span class="p">()]</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        In the future this could be removed to distinguish between upper/lowercase</span>
+<span class="sd">        characters but it would necessitate changes in protein language.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Always convert to uppercase</span>
+        <span class="n">transforms</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ToUpperCase</span><span class="p">()]</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sequence_augment</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ignoring sequence_augment item: </span><span class="si">{k}</span><span class="s2">: </span><span class="si">{v}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">transforms</span></div>
+
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates one sample of data.</span>
@@ -432,7 +553,8 @@
 <span class="sd">            torch.Tensor: a torch tensor of token indexes,</span>
 <span class="sd">                for the current sample.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">index</span><span class="p">])</span></div>
+        <span class="n">sample_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="nb">id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">sample_dict</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

@@ -7,7 +7,7 @@ pytoda.transforms module
 .. currentmodule:: pytoda.transforms
 
 .. automodule:: pytoda.transforms
-    :members: AugmentByReversing, Compose, LeftPadding, ListToTensor, Randomize, StartStop, ToTensor, Transform
+    :members: AugmentByReversing, Compose, DiscardLowercase, ExtractFromDict, LeftPadding, ListToTensor, Randomize, StartStop, ToTensor, ToUpperCase, Transform
     :undoc-members:
     :show-inheritance:
     :member-order: bysource
@@ -22,11 +22,14 @@ pytoda.transforms module
 
         AugmentByReversing
         Compose
+        DiscardLowercase
+        ExtractFromDict
         LeftPadding
         ListToTensor
         Randomize
         StartStop
         ToTensor
+        ToUpperCase
         Transform
 
 

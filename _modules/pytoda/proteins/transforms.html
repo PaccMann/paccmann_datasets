@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.0.2
+                1.1.0
               </div>
             
           
@@ -158,8 +158,15 @@
             
   <h1>Source code for pytoda.proteins.transforms</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Amino Acid Sequence transforms.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">..files</span> <span class="kn">import</span> <span class="n">read_smi</span>
 <span class="kn">from</span> <span class="nn">..transforms</span> <span class="kn">import</span> <span class="n">Transform</span>
 <span class="kn">from</span> <span class="nn">..types</span> <span class="kn">import</span> <span class="n">Indexes</span>
+<span class="kn">from</span> <span class="nn">.processing</span> <span class="kn">import</span> <span class="n">REAL_AAS</span>
 <span class="kn">from</span> <span class="nn">.protein_language</span> <span class="kn">import</span> <span class="n">ProteinLanguage</span>
 
 
@@ -186,6 +193,315 @@
 <span class="sd">            Indexes: indexes representation for the Sequence provided.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">sequence_to_token_indexes</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ReplaceByFullProteinSequence"><a class="viewcode-back" href="../../../api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ReplaceByFullProteinSequence">[docs]</a><span class="k">class</span> <span class="nc">ReplaceByFullProteinSequence</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A transform to replace short amino acid sequences with the full protein sequence.</span>
+<span class="sd">    For example, replace active site sequence of a kinase with its full sequence.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ReplaceByFullProteinSequence.__init__"><a class="viewcode-back" href="../../../api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ReplaceByFullProteinSequence.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alignment_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads alignment info with two &quot;classes&quot; (or types) of residues.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            alignment_path (str): path to `.smi` or `.tsv` file which allows to map</span>
+<span class="sd">                between shortened and full, aligned sequences. Do not use a header in</span>
+<span class="sd">                the file.</span>
+
+<span class="sd">                NOTE: By convention, residues in upper case are important and will be</span>
+<span class="sd">                kept and residues in lower case are less important and are (usually)</span>
+<span class="sd">                discarded.</span>
+<span class="sd">                NOTE: The first column has to be the full protein sequence (use upper</span>
+<span class="sd">                case only for residues to be used). E.g., ggABCggDEFgg</span>
+<span class="sd">                NOTE: The second column has to be the condensed sequence (ABCDEF).</span>
+<span class="sd">                NOTE: The third column has to be a protein id (can be duplicated).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">alignment_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">alignment_path</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;alignment_path must be string or Path, not {type(alignment_path)}&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alignment_path</span> <span class="o">=</span> <span class="n">alignment_path</span>
+
+        <span class="n">alignment_info</span> <span class="o">=</span> <span class="n">read_smi</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">alignment_path</span><span class="p">,</span>
+            <span class="n">index_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;full_sequence&#39;</span><span class="p">,</span> <span class="s1">&#39;short_sequence&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="c1"># We use a combination of ID and the shortened sequence as keys to</span>
+        <span class="c1"># enable support if proteins have &gt;1 short sequence.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">id_to_full</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">alignment_info</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">alignment_info</span><span class="p">[</span><span class="s1">&#39;short_sequence&#39;</span><span class="p">],</span>
+                <span class="n">alignment_info</span><span class="p">[</span><span class="s1">&#39;full_sequence&#39;</span><span class="p">],</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id_to_full</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">alignment_info</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Duplicate IDs not allowed in: </span><span class="si">{self.alignment_path}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_dict</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replace the shortened sequence (usually uppercase only) with an aligned</span>
+<span class="sd">        sequence where usually uppercase is for residues of interest and lowercase</span>
+<span class="sd">        for the remaining ones.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sample_dict (Dict): a dictionary with the following keys:</span>
+<span class="sd">                - &#39;id&#39;: the protein id.</span>
+<span class="sd">                - &#39;sequence&#39;: the shortened protein sequence. (E.g., ABCDEF)</span>
+<span class="sd">            NOTE: This has to be a dictionary because otherwise the shortened protein</span>
+<span class="sd">                sequence has to be unique.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: the full protein sequence (e.g., abABChijDEF).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">id_to_full</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{sample_dict[&#39;id&#39;]}</span><span class="s2">_</span><span class="si">{sample_dict[&#39;sequence&#39;]}</span><span class="s2">&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="extract_active_sites_info"><a class="viewcode-back" href="../../../api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.extract_active_sites_info">[docs]</a><span class="k">def</span> <span class="nf">extract_active_sites_info</span><span class="p">(</span>
+    <span class="n">aligned_seq</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Processes and extracts useful information from an aligned protein sequence.</span>
+<span class="sd">    Expects lower case amino acids to be outside of the relevant area (e.g., active site)</span>
+<span class="sd">    and upper case amino acids to be inside it.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        aligned_seq: A string containing the aligned protein sequence including</span>
+<span class="sd">            lower case amino acids and high case amino acids.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        4-Tuple of:</span>
+<span class="sd">        aligned_seq (str): The input sequence.</span>
+<span class="sd">        non_active_sites (List[str]): A list of strings, one item for each contiguous</span>
+<span class="sd">            subsequence NOT belonging to active site.</span>
+<span class="sd">        active_sites (List[str]): A list of strings, one item for each contiguous</span>
+<span class="sd">            subsequence belonging to active site.</span>
+<span class="sd">        all_seqs (List[str]): A list of strings, one item for each contiguous</span>
+<span class="sd">            subsequence that either belongs to the active site or not.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">non_active_sites</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">active_sites</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">prev_was_highcase</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">aligned_seq</span><span class="p">:</span>
+        <span class="n">next_is_highcase</span> <span class="o">=</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span>
+        <span class="k">if</span> <span class="n">next_is_highcase</span> <span class="o">^</span> <span class="n">prev_was_highcase</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">next_is_highcase</span><span class="p">:</span>
+                <span class="n">active_sites</span> <span class="o">+=</span> <span class="s1">&#39;#&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">non_active_sites</span> <span class="o">+=</span> <span class="s1">&#39;#&#39;</span>
+
+        <span class="k">if</span> <span class="n">next_is_highcase</span><span class="p">:</span>
+            <span class="n">active_sites</span> <span class="o">+=</span> <span class="n">c</span>
+            <span class="n">prev_was_highcase</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">non_active_sites</span> <span class="o">+=</span> <span class="n">c</span>
+            <span class="n">prev_was_highcase</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">non_active_sites</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">non_active_sites</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">s</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+    <span class="n">active_sites</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">active_sites</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">s</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">aligned_seq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span><span class="p">:</span>
+        <span class="n">zip_obj</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">active_sites</span><span class="p">,</span> <span class="n">non_active_sites</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">zip_obj</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">non_active_sites</span><span class="p">,</span> <span class="n">active_sites</span><span class="p">)</span>
+
+    <span class="n">all_seqs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">one_tuple</span> <span class="ow">in</span> <span class="n">zip_obj</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">one_tuple</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_sites</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_active_sites</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_sites</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_active_sites</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">all_seqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">active_sites</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_sites</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_active_sites</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_sites</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">non_active_sites</span><span class="p">)</span>
+        <span class="n">all_seqs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">non_active_sites</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">aligned_seq</span><span class="p">,</span> <span class="n">non_active_sites</span><span class="p">,</span> <span class="n">active_sites</span><span class="p">,</span> <span class="n">all_seqs</span></div>
+
+
+<div class="viewcode-block" id="verify_aligned_info"><a class="viewcode-back" href="../../../api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.verify_aligned_info">[docs]</a><span class="k">def</span> <span class="nf">verify_aligned_info</span><span class="p">(</span><span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Verify that the sequence is aligned.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        sequence: An amino acid sequence.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        Exception: If alignment could not be detected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">isinstance</span><span class="p">(</span><span class="n">sequence</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="n">found_lower_case</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">found_upper_case</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sequence</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="o">&gt;=</span> <span class="s1">&#39;A&#39;</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span><span class="p">:</span>
+            <span class="n">found_upper_case</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">c</span> <span class="o">&gt;=</span> <span class="s1">&#39;a&#39;</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="s1">&#39;z&#39;</span><span class="p">:</span>
+            <span class="n">found_lower_case</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">found_lower_case</span> <span class="ow">and</span> <span class="n">found_upper_case</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s1">&#39;Expected aligned residues sequence! Did you forget to use ReplaceByFullProteinSequence?&#39;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ProteinAugmentFlipSubstrs"><a class="viewcode-back" href="../../../api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ProteinAugmentFlipSubstrs">[docs]</a><span class="k">class</span> <span class="nc">ProteinAugmentFlipSubstrs</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Augment a protein sequence by randomly flipping each contiguous subsequence.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ProteinAugmentFlipSubstrs.__init__"><a class="viewcode-back" href="../../../api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ProteinAugmentFlipSubstrs.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            p (float): Probability that reverting occurs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please pass float, not {type(p)}.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the transform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence (str): an aligned sequence (example: abcDEfgHI).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: an aligned sequence with optional flipping (example: abcEDfgHI).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">verify_aligned_info</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="p">(</span>
+            <span class="n">aligned_seq</span><span class="p">,</span>
+            <span class="n">non_active_sites</span><span class="p">,</span>
+            <span class="n">active_sites</span><span class="p">,</span>
+            <span class="n">all_seqs</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">extract_active_sites_info</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+
+        <span class="n">ans</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">substr</span> <span class="ow">in</span> <span class="n">all_seqs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">substr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p</span><span class="p">:</span>
+                    <span class="n">ans</span> <span class="o">+=</span> <span class="n">substr</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ans</span> <span class="o">+=</span> <span class="n">substr</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ans</span> <span class="o">+=</span> <span class="n">substr</span>
+
+        <span class="k">return</span> <span class="n">ans</span></div>
+
+
+<div class="viewcode-block" id="MutateResidues"><a class="viewcode-back" href="../../../api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.MutateResidues">[docs]</a><span class="k">class</span> <span class="nc">MutateResidues</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Augment a protein sequence by injecting (possibly different) noise to residues</span>
+<span class="sd">    inside and outside the relevant part (e.g., active site).</span>
+<span class="sd">    NOTE: Noise means single-residue point mutations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MutateResidues.__init__"><a class="viewcode-back" href="../../../api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.MutateResidues.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mutate_upper</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span> <span class="n">mutate_lower</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            mutate_lower (float): probability for mutating lowercase residues</span>
+<span class="sd">            mutate_upper (float): probability for mutating uppercase residues.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mutate_upper</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Please pass float for mutate_prob_in_active_site, not {type(mutate_upper)}.&#39;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mutate_upper</span> <span class="o">=</span> <span class="n">mutate_upper</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mutate_lower</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;Please pass float for mutate_lower, not {type(mutate_lower)}.&#39;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mutate_lower</span> <span class="o">=</span> <span class="n">mutate_lower</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_aas</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">REAL_AAS</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the transform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence (str): an aligned sequence (example: acDEFg).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: a possibly mutated aligned sequence (example: afDEFg).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># import ipdb;ipdb.set_trace()</span>
+        <span class="n">verify_aligned_info</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="p">(</span>
+            <span class="n">aligned_seq</span><span class="p">,</span>
+            <span class="n">non_active_sites</span><span class="p">,</span>
+            <span class="n">active_sites</span><span class="p">,</span>
+            <span class="n">all_seqs</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">extract_active_sites_info</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+
+        <span class="n">ans</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">curr_sub_seq</span> <span class="ow">in</span> <span class="n">all_seqs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">curr_sub_seq</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">curr_sub_seq</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span>
+                <span class="p">):</span>  <span class="c1"># it&#39;s uppercase, so it&#39;s inside an active site</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutate_upper</span><span class="p">:</span>
+                        <span class="n">ans</span> <span class="o">+=</span> <span class="n">REAL_AAS</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_aas</span><span class="p">)]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ans</span> <span class="o">+=</span> <span class="n">c</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutate_lower</span><span class="p">:</span>
+                        <span class="n">ans</span> <span class="o">+=</span> <span class="n">REAL_AAS</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_aas</span><span class="p">)]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ans</span> <span class="o">+=</span> <span class="n">c</span>
+
+        <span class="k">return</span> <span class="n">ans</span></div>
+
+
+<div class="viewcode-block" id="ProteinAugmentSwapSubstrs"><a class="viewcode-back" href="../../../api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ProteinAugmentSwapSubstrs">[docs]</a><span class="k">class</span> <span class="nc">ProteinAugmentSwapSubstrs</span><span class="p">(</span><span class="n">Transform</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Augment a protein sequence by randomly swapping neighboring subsequences.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ProteinAugmentSwapSubstrs.__init__"><a class="viewcode-back" href="../../../api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ProteinAugmentSwapSubstrs.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            p (float): Probability that any substr switches places with its &quot;neighbour&quot;.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Please pass float, not {type(p)}.&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply the transform.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sequence (str): an aligned sequence (example: abCDefGHi).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: an aligned sequence with swapped substrings (example: abGHefCDi).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">verify_aligned_info</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+        <span class="p">(</span>
+            <span class="n">aligned_seq</span><span class="p">,</span>
+            <span class="n">non_active_sites</span><span class="p">,</span>
+            <span class="n">active_sites</span><span class="p">,</span>
+            <span class="n">all_seqs</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">=</span> <span class="n">extract_active_sites_info</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
+
+        <span class="n">order</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">active_sites</span><span class="p">)))</span>
+
+        <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p</span><span class="p">:</span>
+                <span class="c1"># switch</span>
+                <span class="n">order</span><span class="p">[</span><span class="n">pos</span><span class="p">],</span> <span class="n">order</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">order</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
+
+        <span class="n">curr_active_site_substr_idx</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">ans</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">substr</span> <span class="ow">in</span> <span class="n">all_seqs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">substr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="s1">&#39;Z&#39;</span><span class="p">:</span>
+                <span class="n">curr_active_site_substr_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">ans</span> <span class="o">+=</span> <span class="n">active_sites</span><span class="p">[</span><span class="n">order</span><span class="p">[</span><span class="n">curr_active_site_substr_idx</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ans</span> <span class="o">+=</span> <span class="n">substr</span>
+
+        <span class="k">return</span> <span class="n">ans</span></div>
 </pre></div>
 
            </div>

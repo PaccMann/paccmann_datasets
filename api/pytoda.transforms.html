@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                1.0.2
+                1.1.0
               </div>
             
           
@@ -198,6 +198,12 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#pytoda.transforms.Compose" title="pytoda.transforms.Compose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Compose</span></code></a></p></td>
 <td><p>Composes several transforms together.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.transforms.DiscardLowercase" title="pytoda.transforms.DiscardLowercase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DiscardLowercase</span></code></a></p></td>
+<td><p>Discard lower-case letters (and non-letter characters) from a sequence.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.transforms.ExtractFromDict" title="pytoda.transforms.ExtractFromDict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExtractFromDict</span></code></a></p></td>
+<td><p>Extracts a value from a dictionary based on a key set in the constructor.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.transforms.LeftPadding" title="pytoda.transforms.LeftPadding"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LeftPadding</span></code></a></p></td>
 <td><p>Left pad token indexes.</p></td>
 </tr>
@@ -213,7 +219,10 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.transforms.ToTensor" title="pytoda.transforms.ToTensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToTensor</span></code></a></p></td>
 <td><p>Transform token indexes to torch tensor.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.transforms.ToUpperCase" title="pytoda.transforms.ToUpperCase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ToUpperCase</span></code></a></p></td>
+<td><p>Convert all characters to uppercase.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transform</span></code></a></p></td>
 <td><p>Transform abstract class.</p></td>
 </tr>
 </tbody>
@@ -349,6 +358,42 @@
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.transforms.ExtractFromDict">
+<em class="property">class </em><code class="sig-name descname">ExtractFromDict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ExtractFromDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ExtractFromDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Extracts a value from a dictionary based on a key set in the constructor.</p>
+<dl class="py method">
+<dt id="pytoda.transforms.ExtractFromDict.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#ExtractFromDict.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ExtractFromDict.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The key used to access the dictionary</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.transforms.DiscardLowercase">
+<em class="property">class </em><code class="sig-name descname">DiscardLowercase</code><a class="reference internal" href="../_modules/pytoda/transforms.html#DiscardLowercase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.DiscardLowercase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Discard lower-case letters (and non-letter characters) from a sequence.</p>
+<dl class="py method">
+<dt id="pytoda.transforms.DiscardLowercase.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/transforms.html#DiscardLowercase.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.DiscardLowercase.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.transforms.ToUpperCase">
+<em class="property">class </em><code class="sig-name descname">ToUpperCase</code><a class="reference internal" href="../_modules/pytoda/transforms.html#ToUpperCase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.transforms.ToUpperCase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Convert all characters to uppercase.</p>
 </dd></dl>
 
 </div>

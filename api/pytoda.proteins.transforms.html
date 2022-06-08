@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                1.0.2
+                1.1.0
               </div>
             
           
@@ -202,8 +202,35 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.proteins.transforms.MutateResidues" title="pytoda.proteins.transforms.MutateResidues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MutateResidues</span></code></a></p></td>
+<td><p>Augment a protein sequence by injecting (possibly different) noise to residues inside and outside the relevant part (e.g., active site).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.proteins.transforms.ProteinAugmentFlipSubstrs" title="pytoda.proteins.transforms.ProteinAugmentFlipSubstrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProteinAugmentFlipSubstrs</span></code></a></p></td>
+<td><p>Augment a protein sequence by randomly flipping each contiguous subsequence.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.proteins.transforms.ProteinAugmentSwapSubstrs" title="pytoda.proteins.transforms.ProteinAugmentSwapSubstrs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProteinAugmentSwapSubstrs</span></code></a></p></td>
+<td><p>Augment a protein sequence by randomly swapping neighboring subsequences.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.proteins.transforms.ReplaceByFullProteinSequence" title="pytoda.proteins.transforms.ReplaceByFullProteinSequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReplaceByFullProteinSequence</span></code></a></p></td>
+<td><p>A transform to replace short amino acid sequences with the full protein sequence.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.proteins.transforms.SequenceToTokenIndexes" title="pytoda.proteins.transforms.SequenceToTokenIndexes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SequenceToTokenIndexes</span></code></a></p></td>
 <td><p>Transform Sequence to token indexes using Sequence language.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Functions:</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.proteins.transforms.extract_active_sites_info" title="pytoda.proteins.transforms.extract_active_sites_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_active_sites_info</span></code></a></p></td>
+<td><p>Processes and extracts useful information from an aligned protein sequence.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.proteins.transforms.verify_aligned_info" title="pytoda.proteins.transforms.verify_aligned_info"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify_aligned_info</span></code></a></p></td>
+<td><p>Verify that the sequence is aligned.</p></td>
 </tr>
 </tbody>
 </table>
@@ -222,6 +249,139 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>protein_language</strong> (<a class="reference internal" href="pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage" title="pytoda.proteins.protein_language.ProteinLanguage"><em>ProteinLanguage</em></a>) – a Protein language.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.proteins.transforms.ReplaceByFullProteinSequence">
+<em class="property">class </em><code class="sig-name descname">ReplaceByFullProteinSequence</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alignment_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/transforms.html#ReplaceByFullProteinSequence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.transforms.ReplaceByFullProteinSequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>A transform to replace short amino acid sequences with the full protein sequence.
+For example, replace active site sequence of a kinase with its full sequence.</p>
+<dl class="py method">
+<dt id="pytoda.proteins.transforms.ReplaceByFullProteinSequence.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">alignment_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/transforms.html#ReplaceByFullProteinSequence.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.transforms.ReplaceByFullProteinSequence.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads alignment info with two “classes” (or types) of residues.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>alignment_path</strong> (<em>str</em>) – <p>path to <cite>.smi</cite> or <cite>.tsv</cite> file which allows to map
+between shortened and full, aligned sequences. Do not use a header in
+the file.</p>
+<p>NOTE: By convention, residues in upper case are important and will be
+kept and residues in lower case are less important and are (usually)
+discarded.
+NOTE: The first column has to be the full protein sequence (use upper
+case only for residues to be used). E.g., ggABCggDEFgg
+NOTE: The second column has to be the condensed sequence (ABCDEF).
+NOTE: The third column has to be a protein id (can be duplicated).</p>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="pytoda.proteins.transforms.extract_active_sites_info">
+<code class="sig-name descname">extract_active_sites_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">aligned_seq</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/transforms.html#extract_active_sites_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.transforms.extract_active_sites_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Processes and extracts useful information from an aligned protein sequence.
+Expects lower case amino acids to be outside of the relevant area (e.g., active site)
+and upper case amino acids to be inside it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>aligned_seq</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – A string containing the aligned protein sequence including
+lower case amino acids and high case amino acids.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p>aligned_seq (str): The input sequence.
+non_active_sites (List[str]): A list of strings, one item for each contiguous</p>
+<blockquote>
+<div><p>subsequence NOT belonging to active site.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>active_sites (List[str]): A list of strings, one item for each contiguous</dt><dd><p>subsequence belonging to active site.</p>
+</dd>
+<dt>all_seqs (List[str]): A list of strings, one item for each contiguous</dt><dd><p>subsequence that either belongs to the active site or not.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>4-Tuple of</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pytoda.proteins.transforms.verify_aligned_info">
+<code class="sig-name descname">verify_aligned_info</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequence</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/transforms.html#verify_aligned_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.transforms.verify_aligned_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify that the sequence is aligned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sequence</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – An amino acid sequence.</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>Exception</strong> – If alignment could not be detected.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.proteins.transforms.ProteinAugmentFlipSubstrs">
+<em class="property">class </em><code class="sig-name descname">ProteinAugmentFlipSubstrs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="o">=</span><span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/transforms.html#ProteinAugmentFlipSubstrs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.transforms.ProteinAugmentFlipSubstrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Augment a protein sequence by randomly flipping each contiguous subsequence.</p>
+<dl class="py method">
+<dt id="pytoda.proteins.transforms.ProteinAugmentFlipSubstrs.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="o">=</span><span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/transforms.html#ProteinAugmentFlipSubstrs.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.transforms.ProteinAugmentFlipSubstrs.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>p</strong> (<em>float</em>) – Probability that reverting occurs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.proteins.transforms.MutateResidues">
+<em class="property">class </em><code class="sig-name descname">MutateResidues</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mutate_upper</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">mutate_lower</span><span class="o">=</span><span class="default_value">0.1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/transforms.html#MutateResidues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.transforms.MutateResidues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Augment a protein sequence by injecting (possibly different) noise to residues
+inside and outside the relevant part (e.g., active site).
+NOTE: Noise means single-residue point mutations.</p>
+<dl class="py method">
+<dt id="pytoda.proteins.transforms.MutateResidues.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mutate_upper</span><span class="o">=</span><span class="default_value">0.01</span></em>, <em class="sig-param"><span class="n">mutate_lower</span><span class="o">=</span><span class="default_value">0.1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/transforms.html#MutateResidues.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.transforms.MutateResidues.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mutate_lower</strong> (<em>float</em>) – probability for mutating lowercase residues</p></li>
+<li><p><strong>mutate_upper</strong> (<em>float</em>) – probability for mutating uppercase residues.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pytoda.proteins.transforms.ProteinAugmentSwapSubstrs">
+<em class="property">class </em><code class="sig-name descname">ProteinAugmentSwapSubstrs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="o">=</span><span class="default_value">0.2</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/transforms.html#ProteinAugmentSwapSubstrs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.transforms.ProteinAugmentSwapSubstrs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pytoda.transforms.html#pytoda.transforms.Transform" title="pytoda.transforms.Transform"><code class="xref py py-class docutils literal notranslate"><span class="pre">pytoda.transforms.Transform</span></code></a></p>
+<p>Augment a protein sequence by randomly swapping neighboring subsequences.</p>
+<dl class="py method">
+<dt id="pytoda.proteins.transforms.ProteinAugmentSwapSubstrs.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">p</span><span class="o">=</span><span class="default_value">0.2</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/proteins/transforms.html#ProteinAugmentSwapSubstrs.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.proteins.transforms.ProteinAugmentSwapSubstrs.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>p</strong> (<em>float</em>) – Probability that any substr switches places with its “neighbour”.</p>
 </dd>
 </dl>
 </dd></dl>

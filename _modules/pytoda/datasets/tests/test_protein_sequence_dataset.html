@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.0.2
+                1.1.0
               </div>
             
           
@@ -163,6 +163,8 @@
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">unittest</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">importlib_resources</span> <span class="kn">import</span> <span class="n">files</span>
 <span class="kn">from</span> <span class="nn">torch.utils.data</span> <span class="kn">import</span> <span class="n">DataLoader</span>
 
 <span class="kn">from</span> <span class="nn">pytoda.datasets</span> <span class="kn">import</span> <span class="n">ProteinSequenceDataset</span>
@@ -171,6 +173,18 @@
 <span class="n">SMI_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;EGK	ID3&#39;</span><span class="p">,</span> <span class="s1">&#39;S	ID1&#39;</span><span class="p">,</span> <span class="s1">&#39;FGAAV	ID2&#39;</span><span class="p">,</span> <span class="s1">&#39;NCCS	ID4&#39;</span><span class="p">])</span>
 <span class="n">MORE_SMI_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;KGE	ID5&#39;</span><span class="p">,</span> <span class="s1">&#39;K	ID6&#39;</span><span class="p">,</span> <span class="s1">&#39;SCCN	ID7&#39;</span><span class="p">,</span> <span class="s1">&#39;K	ID8&#39;</span><span class="p">])</span>
 <span class="n">BROKEN_SMI_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;KGE	ID5&#39;</span><span class="p">,</span> <span class="s1">&#39;K	ID6&#39;</span><span class="p">,</span> <span class="s1">&#39;SCfCN	ID7&#39;</span><span class="p">])</span>
+<span class="n">AS_SMI_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="s1">&#39;LGQGTRTNVVKTMLAVMVTEYVEHGPVLVRNLSDV	P29597&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;LGKGTFGKVAKELLTLFVMEYANGGEFVVENMTDL	P31751&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+<span class="n">AS_MORE_SMI_CONTENT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="s1">&#39;IGEGSTGIVAKEMVVMVVMEFLEGGADVIDSLSDF	Q9P286&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;LGKGTFGKVAKELLTLFVMEYANGGEFVVENMTDL	P31749&#39;</span><span class="p">,</span>  <span class="c1"># same AS different protein</span>
+    <span class="p">]</span>
+<span class="p">)</span>
 
 
 <span class="n">FASTA_CONTENT_UNIPROT</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;&quot;&quot;&gt;sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1</span>
@@ -202,6 +216,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">smi_content</span> <span class="o">=</span> <span class="n">SMI_CONTENT</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">smi_other_content</span> <span class="o">=</span> <span class="n">MORE_SMI_CONTENT</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">smi_broken_content</span> <span class="o">=</span> <span class="n">BROKEN_SMI_CONTENT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">as_smi_content</span> <span class="o">=</span> <span class="n">AS_SMI_CONTENT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">as_more_smi_content</span> <span class="o">=</span> <span class="n">AS_MORE_SMI_CONTENT</span>
         <span class="c1"># would fail with FASTA_CONTENT_GENERIC</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fasta_content</span> <span class="o">=</span> <span class="n">FASTA_CONTENT_UNIPROT</span></div>
 
@@ -422,6 +438,190 @@
                         <span class="n">protein_sequence_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">],</span>
                         <span class="n">protein_sequence_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">],</span>
                     <span class="p">],</span>
+                <span class="p">)</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        With sequence augmentation strategies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Test swapping, test noise, test custom file</span>
+        <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_smi_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">a_test_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">TestFileContent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">as_more_smi_content</span><span class="p">)</span> <span class="k">as</span> <span class="n">another_test_file</span><span class="p">:</span>
+
+                <span class="c1"># No *actual* changes</span>
+                <span class="n">protein_sequence_dataset</span> <span class="o">=</span> <span class="n">ProteinSequenceDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">sequence_augment</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;discard_lowercase&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+                <span class="p">)</span>
+                <span class="n">p_to_t</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="o">.</span><span class="n">protein_language</span><span class="o">.</span><span class="n">sequence_to_token_indexes</span>
+                <span class="p">)</span>
+                <span class="n">gts</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">p_to_t</span><span class="p">(</span><span class="s1">&#39;LGQGTRTNVVKTMLAVMVTEYVEHGPVLVRNLSDV&#39;</span><span class="p">),</span>
+                    <span class="n">p_to_t</span><span class="p">(</span><span class="s1">&#39;LGKGTFGKVAKELLTLFVMEYANGGEFVVENMTDL&#39;</span><span class="p">),</span>
+                <span class="p">]</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Converted to full sequence</span>
+                <span class="n">protein_sequence_dataset</span> <span class="o">=</span> <span class="n">ProteinSequenceDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">sequence_augment</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;discard_lowercase&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+                <span class="p">)</span>
+                <span class="n">gts</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">p_to_t</span><span class="p">(</span>
+                        <span class="s1">&#39;ITQLSHLGQGTRTNVYEGRLRVEGSGDPEEGKMDDEDPLVPGRDRGQELRVVLKVLDPSHHDIALAFYETASLMSQVSHTHLAFVHGVCVRGPENIMVTEYVEHGPLDVWLRRERGHVPMAWKMVVAQQLASALSYLENKNLVHGNVCGRNILLARLGLAEGTSPFIKLSDPGVGLGALSREERVERIPWLAPECLPGGANSLSTAMDKWGFGATLLEICFDGEAPLQSRSPSEKEHFYQRQHRLPEPSCPQLATLTSQCLTYEPTQRPSFRTILRDLTR&#39;</span>
+                    <span class="p">),</span>
+                    <span class="n">p_to_t</span><span class="p">(</span>
+                        <span class="s1">&#39;FEYLKLLGKGTFGKVILVKEKATGRYYAMKILKKEVIVAKDEVAHTLTENRVLQNSRHPFLTALKYSFQTHDRLCFVMEYANGGELFFHLSRERVFSEDRARFYGAEIVSALDYLHSEKNVVYRDLKLENLMLDKDGHIKITDFGLCKEGIKDGATMKTFCGTPEYLAPEVLEDNDYGRAVDWWGLGVVMYEMMCGRLPFYNQDHEKLFELILMEEIRFPRTLGPEAKSLLSGLLKKDPKQRLGGGSEDAKEIMQHRFF&#39;</span>
+                    <span class="p">),</span>
+                <span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Flip substrings</span>
+                <span class="n">protein_sequence_dataset</span> <span class="o">=</span> <span class="n">ProteinSequenceDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">sequence_augment</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s1">&#39;discard_lowercase&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s1">&#39;flip_substrings&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
+                <span class="n">gts</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">p_to_t</span><span class="p">(</span><span class="s1">&#39;VNTRTGQGLVKTMALVPGHEVYETVMVVLNRLDSV&#39;</span><span class="p">),</span>
+                    <span class="n">p_to_t</span><span class="p">(</span><span class="s1">&#39;VKGFTGKGLAKELTLLEGGNAYEMVFFVVNEMDTL&#39;</span><span class="p">),</span>
+                <span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Swap substrings</span>
+                <span class="n">protein_sequence_dataset</span> <span class="o">=</span> <span class="n">ProteinSequenceDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">sequence_augment</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s1">&#39;discard_lowercase&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s1">&#39;swap_substrings&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
+                <span class="n">gts</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">p_to_t</span><span class="p">(</span><span class="s1">&#39;VKTMLAVMVTEYVEHGPVLVRNLSDVLGQGTRTNV&#39;</span><span class="p">),</span>
+                    <span class="n">p_to_t</span><span class="p">(</span><span class="s1">&#39;AKELLTLFVMEYANGGEFVVENMTDLLGKGTFGKV&#39;</span><span class="p">),</span>
+                <span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Add noise (on active site)</span>
+                <span class="n">protein_sequence_dataset</span> <span class="o">=</span> <span class="n">ProteinSequenceDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">sequence_augment</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s1">&#39;discard_lowercase&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s1">&#39;swap_substrings&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                        <span class="s1">&#39;noise&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
+                <span class="n">gts</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">p_to_t</span><span class="p">(</span><span class="s1">&#39;VKMMLQEPVPWCVGNMHKNCKNLSDVDGQGTRAQY&#39;</span><span class="p">),</span>
+                    <span class="n">p_to_t</span><span class="p">(</span><span class="s1">&#39;AGEHWTSFVMDFANGQKPCVCNMTDDDGHAHFVKV&#39;</span><span class="p">),</span>
+                <span class="p">]</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Add noise (outside active site)</span>
+                <span class="n">protein_sequence_dataset</span> <span class="o">=</span> <span class="n">ProteinSequenceDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">sequence_augment</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s1">&#39;discard_lowercase&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s1">&#39;noise&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
+                <span class="n">gts</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">p_to_t</span><span class="p">(</span>
+                        <span class="s1">&#39;ITWLSQLGQGTRTNVYEGRLRVEGSGDIEEGKMDDEDKLVMGRDRGQELRFVLKVLDPSHHDIPLAFYETASLMSQVSHTHLAFVHGVCVPGIENIMVTEYVEHGPLDVWLRAERGHVPTAWKMVAAQQLASALSKLENKNLVHGNVCGRNILLARLGLAEITSPFIKLSDPGVQLGALSRWERVERIPWLAPECLPNGANSTSTAADKWGFGRTLLEICFDGEAPLQSRSPSEKEWFYQRYRRLPEPSPPQLATLTWQFLKYAPTIRPSFRTSLRDRQR&#39;</span>
+                    <span class="p">),</span>
+                    <span class="n">p_to_t</span><span class="p">(</span>
+                        <span class="s1">&#39;FEWLKQLGKGTFGKVILVKEKATGRYYAMKILKKEVIVAHDEVWHTLHENRVLQNSRHPFLTALKRSPQTHDRLCFVMEYANGGELFFHLSRERPFIEDRARFYGAYIVSALDYLASEKNVVTRDLKLENLMYDKDGHKKITDFGLCKEGIKDNATMKTFCGTPEYLAPEVLEDNDYQRAVDWWWLGVVMYEMMCGRLPFNNQDHTKLFALILMEERRFPRTLGPEAKSLLSGLLKKDPWQRLGYRSEDAKEPMQHRFF&#39;</span>
+                    <span class="p">),</span>
+                <span class="p">]</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+
+                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Test passing a file</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">files</span><span class="p">(</span><span class="s1">&#39;pytoda.proteins.metadata&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span>
+                    <span class="s1">&#39;kinase_activesite_alignment.smi&#39;</span>
+                <span class="p">)</span>
+                <span class="n">protein_sequence_dataset</span> <span class="o">=</span> <span class="n">ProteinSequenceDataset</span><span class="p">(</span>
+                    <span class="n">a_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">another_test_file</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span>
+                    <span class="n">padding</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">add_start_and_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">sequence_augment</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s1">&#39;alignment_path&#39;</span><span class="p">:</span> <span class="n">path</span><span class="p">,</span>
+                        <span class="s1">&#39;discard_lowercase&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s1">&#39;flip_substrings&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
+                <span class="n">gts</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">p_to_t</span><span class="p">(</span><span class="s1">&#39;VNTRTGQGLVKTMALVPGHEVYETVMVVLNRLDSV&#39;</span><span class="p">),</span>
+                    <span class="n">p_to_t</span><span class="p">(</span><span class="s1">&#39;VKGFTGKGLAKELTLLEGGNAYEMVFFVVNEMDTL&#39;</span><span class="p">),</span>
+                <span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span>
+                    <span class="n">protein_sequence_dataset</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">gts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
                 <span class="p">)</span></div>
 
 <div class="viewcode-block" id="TestProteinSequenceDatasetEagerBackend.test_data_loader"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_protein_sequence_dataset.html#pytoda.datasets.tests.test_protein_sequence_dataset.TestProteinSequenceDatasetEagerBackend.test_data_loader">[docs]</a>    <span class="k">def</span> <span class="nf">test_data_loader</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -530,7 +730,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">smi_content</span> <span class="o">=</span> <span class="n">SMI_CONTENT</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">smi_other_content</span> <span class="o">=</span> <span class="n">MORE_SMI_CONTENT</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">smi_broken_content</span> <span class="o">=</span> <span class="n">BROKEN_SMI_CONTENT</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fasta_content</span> <span class="o">=</span> <span class="n">FASTA_CONTENT_GENERIC</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fasta_content</span> <span class="o">=</span> <span class="n">FASTA_CONTENT_GENERIC</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">as_smi_content</span> <span class="o">=</span> <span class="n">AS_SMI_CONTENT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">as_more_smi_content</span> <span class="o">=</span> <span class="n">AS_MORE_SMI_CONTENT</span></div>
 
 <div class="viewcode-block" id="TestProteinSequenceDatasetLazyBackend.test___len__fasta"><a class="viewcode-back" href="../../../../api/pytoda.datasets.tests.test_protein_sequence_dataset.html#pytoda.datasets.tests.test_protein_sequence_dataset.TestProteinSequenceDatasetLazyBackend.test___len__fasta">[docs]</a>    <span class="k">def</span> <span class="nf">test___len__fasta</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Test __len__.&quot;&quot;&quot;</span>

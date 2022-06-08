@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.0.2
+                1.1.0
               </div>
             
           
@@ -164,6 +164,7 @@
  | <a href="#A"><strong>A</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#D"><strong>D</strong></a>
+ | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
@@ -200,6 +201,8 @@
 </li>
         <li><a href="api/pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.ConcatKeyDataset.__init__">(ConcatKeyDataset method)</a>
 </li>
+        <li><a href="api/pytoda.transforms.html#pytoda.transforms.DiscardLowercase.__init__">(DiscardLowercase method)</a>
+</li>
         <li><a href="api/pytoda.datasets.distributional_dataset.html#pytoda.datasets.distributional_dataset.DistributionalDataset.__init__">(DistributionalDataset method)</a>
 </li>
         <li><a href="api/pytoda.datasets.drug_affinity_dataset.html#pytoda.datasets.drug_affinity_dataset.DrugAffinityDataset.__init__">(DrugAffinityDataset method)</a>
@@ -208,11 +211,15 @@
 </li>
         <li><a href="api/pytoda.datasets.drug_sensitivity_dose_dataset.html#pytoda.datasets.drug_sensitivity_dose_dataset.DrugSensitivityDoseDataset.__init__">(DrugSensitivityDoseDataset method)</a>
 </li>
+        <li><a href="api/pytoda.transforms.html#pytoda.transforms.ExtractFromDict.__init__">(ExtractFromDict method)</a>
+</li>
         <li><a href="api/pytoda.datasets.gene_expression_dataset.html#pytoda.datasets.gene_expression_dataset.GeneExpressionDataset.__init__">(GeneExpressionDataset method)</a>
 </li>
         <li><a href="api/pytoda.transforms.html#pytoda.transforms.LeftPadding.__init__">(LeftPadding method)</a>
 </li>
         <li><a href="api/pytoda.transforms.html#pytoda.transforms.ListToTensor.__init__">(ListToTensor method)</a>
+</li>
+        <li><a href="api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.MutateResidues.__init__">(MutateResidues method)</a>
 </li>
         <li><a href="api/pytoda.datasets.set_matching_dataset.html#pytoda.datasets.set_matching_dataset.PairedSetMatchingDataset.__init__">(PairedSetMatchingDataset method)</a>
 </li>
@@ -221,6 +228,10 @@
         <li><a href="api/pytoda.smiles.polymer_language.html#pytoda.smiles.polymer_language.PolymerTokenizer.__init__">(PolymerTokenizer method)</a>
 </li>
         <li><a href="api/pytoda.datasets.polymer_dataset.html#pytoda.datasets.polymer_dataset.PolymerTokenizerDataset.__init__">(PolymerTokenizerDataset method)</a>
+</li>
+        <li><a href="api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ProteinAugmentFlipSubstrs.__init__">(ProteinAugmentFlipSubstrs method)</a>
+</li>
+        <li><a href="api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ProteinAugmentSwapSubstrs.__init__">(ProteinAugmentSwapSubstrs method)</a>
 </li>
         <li><a href="api/pytoda.proteins.protein_feature_language.html#pytoda.proteins.protein_feature_language.ProteinFeatureLanguage.__init__">(ProteinFeatureLanguage method)</a>
 </li>
@@ -231,6 +242,8 @@
         <li><a href="api/pytoda.datasets.protein_sequence_dataset.html#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.__init__">(ProteinSequenceDataset method)</a>
 </li>
         <li><a href="api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.RemoveIsomery.__init__">(RemoveIsomery method)</a>
+</li>
+        <li><a href="api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ReplaceByFullProteinSequence.__init__">(ReplaceByFullProteinSequence method)</a>
 </li>
         <li><a href="api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SELFIESLanguage.__init__">(SELFIESLanguage method)</a>
 </li>
@@ -359,13 +372,15 @@
       </ul></li>
       <li><a href="api/pytoda.types.html#pytoda.types.delegate_kwargs">delegate_kwargs() (in module pytoda.types)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.Delegating">Delegating (class in pytoda.datasets.tests.test_base_dataset)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/pytoda.warnings.html#pytoda.warnings.device_warning">device_warning() (in module pytoda.warnings)</a>
 </li>
       <li><a href="api/pytoda.datasets.tests.test_base_dataset.html#pytoda.datasets.tests.test_base_dataset.TestBaseDatasets.dims">dims (TestBaseDatasets attribute)</a>
+</li>
+      <li><a href="api/pytoda.transforms.html#pytoda.transforms.DiscardLowercase">DiscardLowercase (class in pytoda.transforms)</a>
 </li>
       <li><a href="api/pytoda.datasets.distributional_dataset.html#pytoda.datasets.distributional_dataset.DistributionalDataset">DistributionalDataset (class in pytoda.datasets.distributional_dataset)</a>
 </li>
@@ -381,6 +396,18 @@
         <li><a href="api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.dump">(SMILESLanguage static method)</a>
 </li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="E">E</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.extract_active_sites_info">extract_active_sites_info() (in module pytoda.proteins.transforms)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/pytoda.transforms.html#pytoda.transforms.ExtractFromDict">ExtractFromDict (class in pytoda.transforms)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -475,8 +502,6 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/pytoda.proteins.processing.html#pytoda.proteins.processing.HUMAN_KINASE_ALIGNMENT_VOCAB">HUMAN_KINASE_ALIGNMENT_VOCAB (in module pytoda.proteins.processing)</a>
-</li>
       <li><a href="api/pytoda.datasets.set_matching_dataset.html#pytoda.datasets.set_matching_dataset.hungarian_assignment">hungarian_assignment() (in module pytoda.datasets.set_matching_dataset)</a>
 </li>
   </ul></td>
@@ -701,6 +726,10 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.MutateResidues">MutateResidues (class in pytoda.proteins.transforms)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="N">N</h2>
@@ -733,6 +762,10 @@
       <li><a href="api/pytoda.datasets.polymer_dataset.html#pytoda.datasets.polymer_dataset.PolymerTokenizerDataset">PolymerTokenizerDataset (class in pytoda.datasets.polymer_dataset)</a>
 </li>
       <li><a href="api/pytoda.datasets.protein_sequence_dataset.html#pytoda.datasets.protein_sequence_dataset.protein_sequence_dataset">protein_sequence_dataset() (in module pytoda.datasets.protein_sequence_dataset)</a>
+</li>
+      <li><a href="api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ProteinAugmentFlipSubstrs">ProteinAugmentFlipSubstrs (class in pytoda.proteins.transforms)</a>
+</li>
+      <li><a href="api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ProteinAugmentSwapSubstrs">ProteinAugmentSwapSubstrs (class in pytoda.proteins.transforms)</a>
 </li>
       <li><a href="api/pytoda.proteins.protein_feature_language.html#pytoda.proteins.protein_feature_language.ProteinFeatureLanguage">ProteinFeatureLanguage (class in pytoda.proteins.protein_feature_language)</a>
 </li>
@@ -1263,11 +1296,15 @@
 </li>
       <li><a href="api/pytoda.files.html#pytoda.files.read_smi">read_smi() (in module pytoda.files)</a>
 </li>
+      <li><a href="api/pytoda.proteins.processing.html#pytoda.proteins.processing.REAL_AAS">REAL_AAS (in module pytoda.proteins.processing)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/pytoda.preprocessing.crawlers.html#pytoda.preprocessing.crawlers.remove_pubchem_smiles">remove_pubchem_smiles() (in module pytoda.preprocessing.crawlers)</a>
 </li>
       <li><a href="api/pytoda.smiles.transforms.html#pytoda.smiles.transforms.RemoveIsomery">RemoveIsomery (class in pytoda.smiles.transforms)</a>
+</li>
+      <li><a href="api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.ReplaceByFullProteinSequence">ReplaceByFullProteinSequence (class in pytoda.proteins.transforms)</a>
 </li>
       <li><a href="api/pytoda.smiles.polymer_language.html#pytoda.smiles.polymer_language.PolymerTokenizer.reset_initial_transforms">reset_initial_transforms() (PolymerTokenizer method)</a>
 
@@ -1352,6 +1389,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.setup_dict">setup_dict() (ProteinLanguage method)</a>
+</li>
+      <li><a href="api/pytoda.datasets.protein_sequence_dataset.html#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.setup_sequence_augmentation">setup_sequence_augmentation() (ProteinSequenceDataset method)</a>
 </li>
       <li><a href="api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.setup_vocab">setup_vocab() (SMILESLanguage method)</a>
 </li>
@@ -1727,6 +1766,8 @@
 </li>
       <li><a href="api/pytoda.transforms.html#pytoda.transforms.ToTensor">ToTensor (class in pytoda.transforms)</a>
 </li>
+      <li><a href="api/pytoda.transforms.html#pytoda.transforms.ToUpperCase">ToUpperCase (class in pytoda.transforms)</a>
+</li>
       <li><a href="api/pytoda.datasets.utils.wrappers.html#pytoda.datasets.utils.wrappers.WrapperCDist.training">training (WrapperCDist attribute)</a>
 
       <ul>
@@ -1758,6 +1799,10 @@
 
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/pytoda.proteins.transforms.html#pytoda.proteins.transforms.verify_aligned_info">verify_aligned_info() (in module pytoda.proteins.transforms)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/pytoda.smiles.smiles_language.html#pytoda.smiles.smiles_language.SMILESLanguage.vocab_files_names">vocab_files_names (SMILESLanguage attribute)</a>
 </li>

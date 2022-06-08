@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                1.0.2
+                1.1.0
               </div>
             
           
@@ -236,20 +236,28 @@
 <code class="sig-name descname">protein_sequence_dataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filepaths</span></em>, <em class="sig-param"><span class="n">filetype</span></em>, <em class="sig-param"><span class="n">backend</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/protein_sequence_dataset.html#protein_sequence_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.protein_sequence_dataset.protein_sequence_dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dataset of protein sequences.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.KeyDataset" title="pytoda.datasets.base_dataset.KeyDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyDataset</span></code></a></p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepaths</strong> (<em>Iterable</em><em>[</em><em>str</em><em>]</em>) – Paths to the files containing the protein sequences.</p></li>
+<li><p><strong>filetype</strong> (<em>str</em>) – The filetype of the protein sequences.</p></li>
+<li><p><strong>backend</strong> (<em>str</em>) – The backend to use for the dataset.</p></li>
+<li><p><strong>kwargs</strong> – Keyword arguments for the dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pytoda.datasets.base_dataset.html#pytoda.datasets.base_dataset.KeyDataset" title="pytoda.datasets.base_dataset.KeyDataset"><code class="xref py py-class docutils literal notranslate"><span class="pre">KeyDataset</span></code></a></p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
 <dt id="pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset">
-<em class="property">class </em><code class="sig-name descname">ProteinSequenceDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filepaths</span></em>, <em class="sig-param"><span class="n">filetype</span><span class="o">=</span><span class="default_value">'.smi'</span></em>, <em class="sig-param"><span class="n">protein_language</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">amino_acid_dict</span><span class="o">=</span><span class="default_value">'iupac'</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">padding_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">augment_by_revert</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">randomize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'eager'</span></em>, <em class="sig-param"><span class="n">iterate_dataset</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'protein-sequences'</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/protein_sequence_dataset.html#ProteinSequenceDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">ProteinSequenceDataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filepaths</span></em>, <em class="sig-param"><span class="n">filetype</span><span class="o">=</span><span class="default_value">'.smi'</span></em>, <em class="sig-param"><span class="n">protein_language</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">amino_acid_dict</span><span class="o">=</span><span class="default_value">'iupac'</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">padding_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">augment_by_revert</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sequence_augment</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">protein_keep_only_uppercase</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">randomize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'eager'</span></em>, <em class="sig-param"><span class="n">iterate_dataset</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'protein-sequences'</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/protein_sequence_dataset.html#ProteinSequenceDataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Generic</span></code>[<code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.utils.data.dataset.T_co</span></code>]</p>
 <p>Protein Sequence dataset using a Language to transform sequences.</p>
 <dl class="py method">
 <dt id="pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.__init__">
-<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filepaths</span></em>, <em class="sig-param"><span class="n">filetype</span><span class="o">=</span><span class="default_value">'.smi'</span></em>, <em class="sig-param"><span class="n">protein_language</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">amino_acid_dict</span><span class="o">=</span><span class="default_value">'iupac'</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">padding_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">augment_by_revert</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">randomize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'eager'</span></em>, <em class="sig-param"><span class="n">iterate_dataset</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'protein-sequences'</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/protein_sequence_dataset.html#ProteinSequenceDataset.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">filepaths</span></em>, <em class="sig-param"><span class="n">filetype</span><span class="o">=</span><span class="default_value">'.smi'</span></em>, <em class="sig-param"><span class="n">protein_language</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">amino_acid_dict</span><span class="o">=</span><span class="default_value">'iupac'</span></em>, <em class="sig-param"><span class="n">padding</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">padding_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">add_start_and_stop</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">augment_by_revert</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sequence_augment</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">protein_keep_only_uppercase</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">randomize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">backend</span><span class="o">=</span><span class="default_value">'eager'</span></em>, <em class="sig-param"><span class="n">iterate_dataset</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'protein-sequences'</span></em>, <em class="sig-param"><span class="n">device</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/protein_sequence_dataset.html#ProteinSequenceDataset.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize a Protein Sequence dataset.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -272,6 +280,50 @@ Defaults to False.</p></li>
 Sequences. Defaults to False.</p></li>
 <li><p><strong>randomize</strong> (<em>bool</em>) – perform a true randomization of Protein tokens.
 Defaults to False.</p></li>
+<li><p><strong>sequence_augment</strong> (<em>Dict</em>) – <p>a dictionary to specify additional sequence
+augmentation. Defaults to {}. Items can be:</p>
+<blockquote>
+<div><dl>
+<dt><cite>alignment_path</cite>: A path (str) to a <cite>.smi</cite> (or <cite>.tsv</cite>) file</dt><dd><p>with alignment information that specifies which residues of the
+sequence are to be used. E.g., to extract active site sequences
+from full proteins. Do not use a header in the file.
+1. column has to be the full protein sequence (use upper</p>
+<blockquote>
+<div><p>case only for residues to be used). E.g., ggABCggDEFgg</p>
+</div></blockquote>
+<ol class="arabic simple" start="2">
+<li><p>column has to be the condensed sequence (ABCDEF).</p></li>
+</ol>
+<p>3. column has to be the protein identifier.
+NOTE: Such a file is <em>necessary</em> to apply all augmentation types
+specified in this dictionary (<cite>sequence_augment</cite>).
+NOTE: Unless specified, this defaults to
+<cite>kinase_activesite_alignment.smi</cite>, a file in
+<cite>pytoda.proteins.metadata</cite> that can ONLY be used to
+extract active site sequences of human kinases (based on the
+active site definition in Sheridan et al. (2009, JCIM) and
+Martin &amp; Mukherjee (2012, JCIM).</p>
+</dd>
+<dt><cite>discard_lowercase</cite>: A (bool) specifying whether all lowercase</dt><dd><p>characters (residues) in the sequence should be discarded.
+NOTE: This defaults to True.</p>
+</dd>
+<dt><cite>flip_substrings</cite>: A probability (float) to flip each contiguous</dt><dd><p>upper-case substring (e.g., an active site substring that lies
+contiguously in the original sequence).
+Defaults to 0.0, i.e., no flipping.
+E.g., ABCDEF could become CBADEF or CBAFED or ABCFED if the
+original sequence is ggABCggDEFgg.</p>
+</dd>
+<dt><cite>swap_substrings</cite>: A probability (float) to swap neighboring</dt><dd><p>substrings. Defaults to 0.0, i.e., no swapping.
+E.g., ABCDEF could become DEFABC if the original sequence is
+ggABCggDEFgg.</p>
+</dd>
+<dt><cite>noise</cite>: A 2-Tuple of (float, float) that specifies the probability</dt><dd><p>for a random, single-residue mutation inside and outside the
+relevent part. Defaults to (0.0, 0.0), i.e., no noise.
+E.g., with (0.0, 0.5),  ggABCggDEFgg could become hgABCgbDEFgg.</p>
+</dd>
+</dl>
+</div></blockquote>
+</p></li>
 <li><p><strong>iterate_dataset</strong> (<em>bool</em>) – whether to go through all items in the dataset
 to detect unknown characters, find longest sequence and checks
 passed padding length if applicable. Defaults to False.</p></li>
@@ -281,6 +333,18 @@ Defaults to eager, prefer speed over memory consumption.</p></li>
 <li><p><strong>device</strong> (<em>torch.device</em>) – DEPRECATED</p></li>
 <li><p><strong>kwargs</strong> (<em>dict</em>) – additional arguments for dataset constructor.</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.setup_sequence_augmentation">
+<code class="sig-name descname">setup_sequence_augmentation</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sequence_augment</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/datasets/protein_sequence_dataset.html#ProteinSequenceDataset.setup_sequence_augmentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.datasets.protein_sequence_dataset.ProteinSequenceDataset.setup_sequence_augmentation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup the sequence augmentation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>sequence_augment</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>) – A dictionary to specify the sequence augmentation
+strategies. For details see the constructor docs.</p>
 </dd>
 </dl>
 </dd></dl>

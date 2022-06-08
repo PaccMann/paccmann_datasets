@@ -7,7 +7,7 @@ pytoda.proteins.processing module
 .. currentmodule:: pytoda.proteins.processing
 
 .. automodule:: pytoda.proteins.processing
-    :members: AA_FEAT, AA_PROPERTIES_NUM, BLOSUM62, BLOSUM62_NORM, HUMAN_KINASE_ALIGNMENT_VOCAB, IUPAC_CODES, IUPAC_VOCAB, UNIREP_VOCAB
+    :members: AA_FEAT, AA_PROPERTIES_NUM, BLOSUM62, BLOSUM62_NORM, HUMAN_KINASE_ALIGNMENT_VOCAB, IUPAC_CODES, IUPAC_VOCAB, REAL_AAS, UNIREP_VOCAB
     :undoc-members:
     :show-inheritance:
     :member-order: bysource

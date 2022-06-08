@@ -7,7 +7,7 @@ pytoda.proteins.transforms module
 .. currentmodule:: pytoda.proteins.transforms
 
 .. automodule:: pytoda.proteins.transforms
-    :members: SequenceToTokenIndexes
+    :members: MutateResidues, ProteinAugmentFlipSubstrs, ProteinAugmentSwapSubstrs, REAL_AAS, ReplaceByFullProteinSequence, SequenceToTokenIndexes, extract_active_sites_info, verify_aligned_info
     :undoc-members:
     :show-inheritance:
     :member-order: bysource
@@ -20,7 +20,19 @@ pytoda.proteins.transforms module
     .. autosummary::
         :nosignatures:
 
+        MutateResidues
+        ProteinAugmentFlipSubstrs
+        ProteinAugmentSwapSubstrs
+        ReplaceByFullProteinSequence
         SequenceToTokenIndexes
+
+    Functions:
+
+    .. autosummary::
+        :nosignatures:
+
+        extract_active_sites_info
+        verify_aligned_info
 
 
 
