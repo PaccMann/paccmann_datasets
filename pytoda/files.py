@@ -45,8 +45,7 @@ def read_smi(
 
     Args:
         filepath (str): path to a .smi file.
-        chunk_size (int): size of the chunk. Defaults to None, a.k.a. no
-            chunking.
+        chunk_size (int): size of the chunk. Defaults to None, a.k.a. no chunking.
         index_col (int): Data column used for indexing, defaults to 1.
         names (Sequence[str]): User-assigned names given to the columns.
         header (int): Row number to use as column names. Defaults to None.

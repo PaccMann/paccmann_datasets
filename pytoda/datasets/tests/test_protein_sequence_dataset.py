@@ -3,9 +3,10 @@ import os
 import random
 import time
 import unittest
+
 import numpy as np
-from torch.utils.data import DataLoader
 from importlib_resources import files
+from torch.utils.data import DataLoader
 
 from pytoda.datasets import ProteinSequenceDataset
 from pytoda.tests.utils import TestFileContent

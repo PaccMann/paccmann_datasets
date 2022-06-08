@@ -1,14 +1,14 @@
 """Amino Acid Sequence transforms."""
-from typing import Dict, Tuple, List, Union
 from pathlib import PosixPath
-import numpy as np
-import torch
+from typing import Dict, List, Tuple, Union
 
+import numpy as np
+
+from ..files import read_smi
 from ..transforms import Transform
 from ..types import Indexes
-from .protein_language import ProteinLanguage
-from ..files import read_smi
 from .processing import REAL_AAS
+from .protein_language import ProteinLanguage
 
 
 class SequenceToTokenIndexes(Transform):

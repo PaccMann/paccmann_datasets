@@ -1,33 +1,32 @@
 """Implementation of ProteinSequenceDataset."""
 import logging
-from typing import List, Optional, Dict, Iterable
-from importlib_resources import as_file, files
-import torch
-from bisect import bisect_right
+from typing import Dict, Iterable
+
 import numpy as np
+import torch
+from importlib_resources import files
 
 from pytoda.warnings import device_warning
 
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from ..proteins.protein_language import ProteinLanguage
-
 from ..proteins.transforms import (
-    ReplaceByFullProteinSequence,
-    ProteinAugmentNoise,
     ProteinAugmentFlipSubstrs,
+    ProteinAugmentNoise,
     ProteinAugmentSwapSubstrs,
+    ReplaceByFullProteinSequence,
     SequenceToTokenIndexes,
 )
 from ..transforms import (
     AugmentByReversing,
     Compose,
+    DiscardLowercase,
+    ExtractFromDict,
     LeftPadding,
     ListToTensor,
     Randomize,
     ToTensor,
-    ExtractFromDict,
     ToUpperCase,
-    DiscardLowercase,
 )
 from ._fasta_eager_dataset import _FastaEagerDataset
 from ._fasta_lazy_dataset import _FastaLazyDataset
