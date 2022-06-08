@@ -2,7 +2,7 @@
 import logging
 import random
 from copy import deepcopy
-from typing import Any
+from typing import Any, Dict
 
 import numpy as np
 import torch
@@ -279,3 +279,72 @@ class Compose(Transform):
             return False
         else:
             return all([a == b for a, b in zip(self.transforms, other.transforms)])
+
+
+class ExtractFromDict(Transform):
+    """Extracts a value from a dictionary based on a key set in the constructor."""
+
+    def __init__(self, key: str) -> None:
+        """
+        Args:
+            key: The key used to access the dictionary
+        """
+        self.key = key
+
+    def __call__(self, sample_dict: Dict[str, str]) -> str:
+        """
+        Extract value from a str-str-dictionary.
+
+        Args:
+            sample_dict: A dictionary containing the key set in constructor.
+
+        Returns:
+            The extracted string.
+        """
+        assert self.key in sample_dict, f'Key {self.key} not found in sample_dict'
+        return sample_dict[self.key]
+
+
+class DiscardLowercase(Transform):
+    """Discard lower-case letters (and non-letter characters) from a sequence."""
+
+    def __init__(
+        self,
+    ) -> None:
+        """ """
+        pass
+
+    def __call__(self, sequence: str) -> str:
+        """
+        Apply the transform.
+
+        Args:
+            sequence (str):
+
+        Returns:
+            str:
+        """
+        ans = ''.join([x for x in sequence if (x >= 'A') and (x <= 'Z')])
+        return ans
+
+
+class ToUpperCase(Transform):
+    """Convert all characters to uppercase."""
+
+    def __init__(
+        self,
+    ) -> None:
+        pass
+
+    def __call__(self, sequence: str) -> str:
+        """
+        Apply the transform.
+
+        Args:
+            sequence (str): A sequence.
+
+        Returns:
+            str: A sequence in uppercase.
+        """
+        ans = sequence.upper()
+        return ans

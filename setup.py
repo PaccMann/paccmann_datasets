@@ -68,7 +68,8 @@ setup(
             'ATTRIBUTION',
             'README.md',
             'tokenizer/*',
-        ]
+        ],
+        'pytoda.proteins.metadata': ['kinase_activesite_alignment.smi'],
     },
     scripts=scripts,
 )

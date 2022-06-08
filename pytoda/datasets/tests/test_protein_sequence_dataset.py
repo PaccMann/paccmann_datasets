@@ -4,6 +4,8 @@ import random
 import time
 import unittest
 
+import numpy as np
+from importlib_resources import files
 from torch.utils.data import DataLoader
 
 from pytoda.datasets import ProteinSequenceDataset
@@ -12,6 +14,18 @@ from pytoda.tests.utils import TestFileContent
 SMI_CONTENT = os.linesep.join(['EGK	ID3', 'S	ID1', 'FGAAV	ID2', 'NCCS	ID4'])
 MORE_SMI_CONTENT = os.linesep.join(['KGE	ID5', 'K	ID6', 'SCCN	ID7', 'K	ID8'])
 BROKEN_SMI_CONTENT = os.linesep.join(['KGE	ID5', 'K	ID6', 'SCfCN	ID7'])
+AS_SMI_CONTENT = os.linesep.join(
+    [
+        'LGQGTRTNVVKTMLAVMVTEYVEHGPVLVRNLSDV	P29597',
+        'LGKGTFGKVAKELLTLFVMEYANGGEFVVENMTDL	P31751',
+    ]
+)
+AS_MORE_SMI_CONTENT = os.linesep.join(
+    [
+        'IGEGSTGIVAKEMVVMVVMEFLEGGADVIDSLSDF	Q9P286',
+        'LGKGTFGKVAKELLTLFVMEYANGGEFVVENMTDL	P31749',  # same AS different protein
+    ]
+)
 
 
 FASTA_CONTENT_UNIPROT = r""">sp|Q6GZX0|005R_FRG3G Uncharacterized protein 005R OS=Frog virus 3 (isolate Goorha) OX=654924 GN=FV3-005R PE=4 SV=1
@@ -43,6 +57,8 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
         self.smi_content = SMI_CONTENT
         self.smi_other_content = MORE_SMI_CONTENT
         self.smi_broken_content = BROKEN_SMI_CONTENT
+        self.as_smi_content = AS_SMI_CONTENT
+        self.as_more_smi_content = AS_MORE_SMI_CONTENT
         # would fail with FASTA_CONTENT_GENERIC
         self.fasta_content = FASTA_CONTENT_UNIPROT
 
@@ -265,6 +281,190 @@ class TestProteinSequenceDatasetEagerBackend(unittest.TestCase):
                     ],
                 )
 
+        """
+        With sequence augmentation strategies
+        """
+        # TODO: Test swapping, test noise, test custom file
+        with TestFileContent(self.as_smi_content) as a_test_file:
+            with TestFileContent(self.as_more_smi_content) as another_test_file:
+
+                # No *actual* changes
+                protein_sequence_dataset = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    padding=False,
+                    add_start_and_stop=False,
+                    backend=self.backend,
+                    sequence_augment={'discard_lowercase': True},
+                )
+                p_to_t = (
+                    protein_sequence_dataset.protein_language.sequence_to_token_indexes
+                )
+                gts = [
+                    p_to_t('LGQGTRTNVVKTMLAVMVTEYVEHGPVLVRNLSDV'),
+                    p_to_t('LGKGTFGKVAKELLTLFVMEYANGGEFVVENMTDL'),
+                ]
+
+                self.assertListEqual(
+                    protein_sequence_dataset[0].numpy().flatten().tolist(), gts[0]
+                )
+                self.assertListEqual(
+                    protein_sequence_dataset[3].numpy().flatten().tolist(), gts[1]
+                )
+
+                # Converted to full sequence
+                protein_sequence_dataset = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    padding=False,
+                    add_start_and_stop=False,
+                    backend=self.backend,
+                    sequence_augment={'discard_lowercase': False},
+                )
+                gts = [
+                    p_to_t(
+                        'ITQLSHLGQGTRTNVYEGRLRVEGSGDPEEGKMDDEDPLVPGRDRGQELRVVLKVLDPSHHDIALAFYETASLMSQVSHTHLAFVHGVCVRGPENIMVTEYVEHGPLDVWLRRERGHVPMAWKMVVAQQLASALSYLENKNLVHGNVCGRNILLARLGLAEGTSPFIKLSDPGVGLGALSREERVERIPWLAPECLPGGANSLSTAMDKWGFGATLLEICFDGEAPLQSRSPSEKEHFYQRQHRLPEPSCPQLATLTSQCLTYEPTQRPSFRTILRDLTR'
+                    ),
+                    p_to_t(
+                        'FEYLKLLGKGTFGKVILVKEKATGRYYAMKILKKEVIVAKDEVAHTLTENRVLQNSRHPFLTALKYSFQTHDRLCFVMEYANGGELFFHLSRERVFSEDRARFYGAEIVSALDYLHSEKNVVYRDLKLENLMLDKDGHIKITDFGLCKEGIKDGATMKTFCGTPEYLAPEVLEDNDYGRAVDWWGLGVVMYEMMCGRLPFYNQDHEKLFELILMEEIRFPRTLGPEAKSLLSGLLKKDPKQRLGGGSEDAKEIMQHRFF'
+                    ),
+                ]
+                self.assertListEqual(
+                    protein_sequence_dataset[0].numpy().flatten().tolist(), gts[0]
+                )
+                self.assertListEqual(
+                    protein_sequence_dataset[3].numpy().flatten().tolist(), gts[1]
+                )
+
+                # Flip substrings
+                protein_sequence_dataset = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    padding=False,
+                    add_start_and_stop=False,
+                    backend=self.backend,
+                    sequence_augment={
+                        'discard_lowercase': True,
+                        'flip_substrings': 1.0,
+                    },
+                )
+                gts = [
+                    p_to_t('VNTRTGQGLVKTMALVPGHEVYETVMVVLNRLDSV'),
+                    p_to_t('VKGFTGKGLAKELTLLEGGNAYEMVFFVVNEMDTL'),
+                ]
+                self.assertListEqual(
+                    protein_sequence_dataset[0].numpy().flatten().tolist(), gts[0]
+                )
+                self.assertListEqual(
+                    protein_sequence_dataset[3].numpy().flatten().tolist(), gts[1]
+                )
+
+                # Swap substrings
+                protein_sequence_dataset = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    padding=False,
+                    add_start_and_stop=False,
+                    backend=self.backend,
+                    sequence_augment={
+                        'discard_lowercase': True,
+                        'swap_substrings': 1.0,
+                    },
+                )
+                gts = [
+                    p_to_t('VKTMLAVMVTEYVEHGPVLVRNLSDVLGQGTRTNV'),
+                    p_to_t('AKELLTLFVMEYANGGEFVVENMTDLLGKGTFGKV'),
+                ]
+                self.assertListEqual(
+                    protein_sequence_dataset[0].numpy().flatten().tolist(), gts[0]
+                )
+                self.assertListEqual(
+                    protein_sequence_dataset[3].numpy().flatten().tolist(), gts[1]
+                )
+
+                # Add noise (on active site)
+                protein_sequence_dataset = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    padding=False,
+                    add_start_and_stop=False,
+                    backend=self.backend,
+                    sequence_augment={
+                        'discard_lowercase': True,
+                        'swap_substrings': 1.0,
+                        'noise': (0.5, 0.0),
+                    },
+                )
+                gts = [
+                    p_to_t('VKMMLQEPVPWCVGNMHKNCKNLSDVDGQGTRAQY'),
+                    p_to_t('AGEHWTSFVMDFANGQKPCVCNMTDDDGHAHFVKV'),
+                ]
+                np.random.seed(42)
+                self.assertListEqual(
+                    protein_sequence_dataset[0].numpy().flatten().tolist(), gts[0]
+                )
+                np.random.seed(42)
+                self.assertListEqual(
+                    protein_sequence_dataset[3].numpy().flatten().tolist(), gts[1]
+                )
+
+                # Add noise (outside active site)
+                protein_sequence_dataset = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    padding=False,
+                    add_start_and_stop=False,
+                    backend=self.backend,
+                    sequence_augment={
+                        'discard_lowercase': False,
+                        'noise': (0.0, 0.1),
+                    },
+                )
+                gts = [
+                    p_to_t(
+                        'ITWLSQLGQGTRTNVYEGRLRVEGSGDIEEGKMDDEDKLVMGRDRGQELRFVLKVLDPSHHDIPLAFYETASLMSQVSHTHLAFVHGVCVPGIENIMVTEYVEHGPLDVWLRAERGHVPTAWKMVAAQQLASALSKLENKNLVHGNVCGRNILLARLGLAEITSPFIKLSDPGVQLGALSRWERVERIPWLAPECLPNGANSTSTAADKWGFGRTLLEICFDGEAPLQSRSPSEKEWFYQRYRRLPEPSPPQLATLTWQFLKYAPTIRPSFRTSLRDRQR'
+                    ),
+                    p_to_t(
+                        'FEWLKQLGKGTFGKVILVKEKATGRYYAMKILKKEVIVAHDEVWHTLHENRVLQNSRHPFLTALKRSPQTHDRLCFVMEYANGGELFFHLSRERPFIEDRARFYGAYIVSALDYLASEKNVVTRDLKLENLMYDKDGHKKITDFGLCKEGIKDNATMKTFCGTPEYLAPEVLEDNDYQRAVDWWWLGVVMYEMMCGRLPFNNQDHTKLFALILMEERRFPRTLGPEAKSLLSGLLKKDPWQRLGYRSEDAKEPMQHRFF'
+                    ),
+                ]
+                np.random.seed(42)
+                self.assertListEqual(
+                    protein_sequence_dataset[0].numpy().flatten().tolist(), gts[0]
+                )
+
+                np.random.seed(42)
+                self.assertListEqual(
+                    protein_sequence_dataset[3].numpy().flatten().tolist(), gts[1]
+                )
+
+                # Test passing a file
+                path = files('pytoda.proteins.metadata').joinpath(
+                    'kinase_activesite_alignment.smi'
+                )
+                protein_sequence_dataset = ProteinSequenceDataset(
+                    a_test_file.filename,
+                    another_test_file.filename,
+                    padding=False,
+                    add_start_and_stop=False,
+                    backend=self.backend,
+                    sequence_augment={
+                        'alignment_path': path,
+                        'discard_lowercase': True,
+                        'flip_substrings': 1.0,
+                    },
+                )
+                gts = [
+                    p_to_t('VNTRTGQGLVKTMALVPGHEVYETVMVVLNRLDSV'),
+                    p_to_t('VKGFTGKGLAKELTLLEGGNAYEMVFFVVNEMDTL'),
+                ]
+                self.assertListEqual(
+                    protein_sequence_dataset[0].numpy().flatten().tolist(), gts[0]
+                )
+                self.assertListEqual(
+                    protein_sequence_dataset[3].numpy().flatten().tolist(), gts[1]
+                )
+
     def test_data_loader(self) -> None:
         """Test data_loader."""
         with TestFileContent(self.smi_content) as a_test_file:
@@ -372,6 +572,8 @@ class TestProteinSequenceDatasetLazyBackend(
         self.smi_other_content = MORE_SMI_CONTENT
         self.smi_broken_content = BROKEN_SMI_CONTENT
         self.fasta_content = FASTA_CONTENT_GENERIC
+        self.as_smi_content = AS_SMI_CONTENT
+        self.as_more_smi_content = AS_MORE_SMI_CONTENT
 
     def test___len__fasta(self) -> None:
         """Test __len__."""
