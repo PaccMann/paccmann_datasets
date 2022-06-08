@@ -1,5 +1,5 @@
 """Amino Acid Sequence transforms."""
-from pathlib import PosixPath
+from pathlib import Path
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
@@ -42,7 +42,7 @@ class ReplaceByFullProteinSequence(Transform):
     For example, replace active site sequence of a kinase with its full sequence.
     """
 
-    def __init__(self, alignment_path: Union[str, PosixPath]) -> None:
+    def __init__(self, alignment_path: Union[str, Path]) -> None:
         """
         Loads alignment info with two "classes" (or types) of residues.
 
@@ -60,11 +60,9 @@ class ReplaceByFullProteinSequence(Transform):
                 NOTE: The third column has to be a protein id (can be duplicated).
         """
 
-        if not (
-            isinstance(alignment_path, str) or isinstance(alignment_path, PosixPath)
-        ):
+        if not (isinstance(alignment_path, str) or isinstance(alignment_path, Path)):
             raise TypeError(
-                f"alignment_path must be string or PosixPath, not {type(alignment_path)}"
+                f"alignment_path must be string or Path, not {type(alignment_path)}"
             )
         self.alignment_path = alignment_path
 

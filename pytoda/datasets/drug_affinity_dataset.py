@@ -1,5 +1,5 @@
 """Implementation of DrugAffinityDataset."""
-from typing import Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, Tuple
 
 import pandas as pd
 import torch
@@ -47,13 +47,7 @@ class DrugAffinityDataset(Dataset):
         protein_padding_length: int = None,
         protein_add_start_and_stop: bool = False,
         protein_augment_by_revert: bool = False,
-        load_active_site_alignment_info: Optional[List[str]] = None,
-        protein_augment_flip_active_site_substrs: Optional[float] = None,
-        protein_augment_active_site_guided_noise: Optional[List[float]] = None,
-        protein_augment_switch_between_active_site_substrs: Optional[
-            List[float]
-        ] = None,
-        protein_keep_only_uppercase: bool = False,
+        protein_sequence_augment: Dict = {},
         protein_randomize: bool = False,
         iterate_dataset: bool = True,
         backend: str = 'eager',
@@ -117,6 +111,9 @@ class DrugAffinityDataset(Dataset):
                 indexes. Defaults to False.
             protein_augment_by_revert (bool): augment data by reverting the
                 sequence. Defaults to False.
+            protein_sequence_augment (Dict): a dictionary to specify additional
+                sequence augmentation. Defaults to {}.
+                NOTE: For details please see `ProteinSequenceDataset`.
             protein_randomize (bool): perform a randomization of the protein
                 sequence tokens. Defaults to False.
             protein_vocab_file (str): Optional .json to load vocabulary. Tries
@@ -178,11 +175,7 @@ class DrugAffinityDataset(Dataset):
             padding_length=protein_padding_length,
             add_start_and_stop=protein_add_start_and_stop,
             augment_by_revert=protein_augment_by_revert,
-            load_active_site_alignment_info=load_active_site_alignment_info,
-            protein_augment_flip_active_site_substrs=protein_augment_flip_active_site_substrs,
-            protein_augment_active_site_guided_noise=protein_augment_active_site_guided_noise,
-            protein_augment_switch_between_active_site_substrs=protein_augment_switch_between_active_site_substrs,
-            protein_keep_only_uppercase=protein_keep_only_uppercase,
+            sequence_augment=protein_sequence_augment,
             randomize=protein_randomize,
             iterate_dataset=iterate_dataset,
         )
