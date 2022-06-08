@@ -1,13 +1,14 @@
 """Amino Acid Sequence transforms."""
-from typing import Dict
-
+from typing import Dict, Tuple, List, Union
+from pathlib import PosixPath
 import numpy as np
 import torch
 
-from ..datasets._smi_eager_dataset import _SmiEagerDataset
 from ..transforms import Transform
 from ..types import Indexes
 from .protein_language import ProteinLanguage
+from ..files import read_smi
+from .processing import REAL_AAS
 
 
 class SequenceToTokenIndexes(Transform):
@@ -35,87 +36,92 @@ class SequenceToTokenIndexes(Transform):
         return self.protein_language.sequence_to_token_indexes(smiles)
 
 
-#### active site alignment info and related augmentation
-
-
-class ExtractFromDict(Transform):
-    def __init__(self, key) -> None:
-        self.key = key
-
-    def __call__(self, sample_dict: Dict) -> str:
-        assert self.key in sample_dict
-        ans = sample_dict[self.key]
-        return ans
-
-
-class LoadActiveSiteAlignmentInfo(Transform):
-    """Loads active site alignment info.
-    residues outside the active site are lower case and residues inside the active site are upper case
+class ReplaceByFullProteinSequence(Transform):
+    """
+    A transform to replace short amino acid sequences with the full protein sequence.
+    For example, replace active site sequence of a kinase with its full sequence.
     """
 
-    def __init__(self, active_site_alignment_info_smi: str) -> None:
+    def __init__(self, alignment_path: Union[str, PosixPath]) -> None:
         """
-        An op to replace the active site sequence with an aligned sequence.
+        Loads alignment info with two "classes" (or types) of residues.
 
         Args:
-            load_active_site_alignment_info:str - smi file path which allows to maps between active site sequence and aligned sequence.
-            first column (0) is expected to contain "active_site_seq" - example content: LGKGTFGKVAKELLTLFVMEYANGGEFVVENMTDL
-            second column (1) is expected to be named "aligned_protein_seq" - example content: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysfqthdrlcFVMEYANGGElfFhlsrervfsedrarfygaeivsaldylhseknVVyrdlklENlMldkdghikiTDfgLckegikdgatmktfcgtpeylapevledndygravdwwglgvvmyemmcgrlpfynqdheklfelilmeeirfprtlgpeaksllsgllkkdpkqrlgggsedakeimqhrff
-                lower case residues are outside the active site, upper case residues are inside the active site
+            alignment_path (str): path to `.smi` or `.tsv` file which allows to map
+                between shortened and full, aligned sequences. Do not use a header in
+                the file.
+
+                NOTE: By convention, residues in upper case are important and will be
+                kept and residues in lower case are less important and are (usually)
+                discarded.
+                NOTE: The first column has to be the full protein sequence (use upper
+                case only for residues to be used). E.g., ggABCggDEFgg
+                NOTE: The second column has to be the condensed sequence (ABCDEF).
+                NOTE: The third column has to be a protein id (can be duplicated).
         """
-        assert isinstance(active_site_alignment_info_smi, str)
-        self.active_site_alignment_info_smi = active_site_alignment_info_smi
 
-        #### some protein_ids have more than one defined active site, which is why I'm doing the following:
+        if not (
+            isinstance(alignment_path, str) or isinstance(alignment_path, PosixPath)
+        ):
+            raise TypeError(
+                f"alignment_path must be string or PosixPath, not {type(alignment_path)}"
+            )
+        self.alignment_path = alignment_path
 
-        self.active_sites_alignment_info_tbl = _SmiEagerDataset(
-            self.active_site_alignment_info_smi,
-            index_col=1,
-            name='aligned_protein_seq',
-            names=['aligned_protein_seq', 'active_site_seq', 'protein_id'],
+        alignment_info = read_smi(
+            self.alignment_path,
+            index_col=None,
+            header=None,
+            names=['full_sequence', 'short_sequence', 'id'],
         )
-
-        # TODO: currently it captures ~twice the memory that is really needed...
-        self.active_sites_alignment_info_tbl_to_name = _SmiEagerDataset(
-            self.active_site_alignment_info_smi,
-            index_col=2,
-            name='aligned_protein_seq',
-            names=['aligned_protein_seq', 'active_site_seq', 'protein_id'],
+        # We use a combination of ID and the shortened sequence as keys to
+        # enable support if proteins have >1 short sequence.
+        self.id_to_full = dict(
+            zip(
+                alignment_info['id'] + '_' + alignment_info['short_sequence'],
+                alignment_info['full_sequence'],
+            )
         )
+        if len(self.id_to_full) < len(alignment_info):
+            raise ValueError(f'Duplicate IDs not allowed in: {self.alignment_path}')
 
     def __call__(self, sample_dict: Dict) -> str:
         """
-        Example expected input: LGKGTFGKVAKELLTLFVMEYANGGEFVVENMTDL
-        Example expected output: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysfqthdrlcFVMEYANGGElfFhlsrervfsedrarfygaeivsaldylhseknVVyrdlklENlMldkdghikiTDfgLckegikdgatmktfcgtpeylapevledndygravdwwglgvvmyemmcgrlpfynqdheklfelilmeeirfprtlgpeaksllsgllkkdpkqrlgggsedakeimqhrff
+        Replace the shortened sequence with an aligned sequence.
 
-        in the output: lower case residues are outside the active site, upper case residues are inside the active site
+        Args:
+            sample_dict (Dict): a dictionary with the following keys:
+                - 'id': the protein id
+                - 'sequence': the shortened protein sequence. (E.g., ABCDEF)
+            NOTE: This has to be a dictionary because otherwise the shortened protein
+                sequence has to be unique.
+
+        Returns:
+            str: the full protein sequence (e.g., abABChijDEF).
         """
-        seq = sample_dict['sequence']
-        aligned_seq = self.active_sites_alignment_info_tbl.get_item_from_key(seq)
-        if not isinstance(aligned_seq, str):
-            # import ipdb;ipdb.set_trace()
-            protein_id = sample_dict['protein_id']
-            extracted = self.active_sites_alignment_info_tbl_to_name.get_item_from_key(
-                protein_id
-            )
-            if not isinstance(extracted, str):
-                print(
-                    f'warning! found multiple active site entries for {protein_id}, using first'
-                )
-                extracted = extracted[0]
-            aligned_seq = extracted
-            # aligned_seq = aligned_seq[0]
-        return aligned_seq
+        return self.id_to_full[f"{sample_dict['id']}_{sample_dict['sequence']}"]
 
 
-def extract_active_sites_info(aligned_seq: str):
-    '''
-    processes and extracts useful information from an aligned active site sequence,
-    expects low case amino acids to be outside of the active site and high case amino acids to be inside it
-    '''
+def extract_active_sites_info(
+    aligned_seq: str,
+) -> Tuple[str, List[str], List[str], List[str]]:
+    """
+    Processes and extracts useful information from an aligned protein sequence.
+    Expects lower case amino acids to be outside of the relevant area (e.g., active site)
+    and upper case amino acids to be inside it.
+
+    Args:
+        aligned_seq: A string containing the aligned protein sequence including
+            lower case amino acids and high case amino acids.
+
+    Returns:
+        TODO:
+            - UnitTEST all code
+            - push test, push refactor, change style
+    """
+
     non_active_sites = ''
     active_sites = ''
-    # total_len = len(aligned_seq)
     prev_was_highcase = False
     for c in aligned_seq:
         next_is_highcase = c <= 'Z'
@@ -132,8 +138,8 @@ def extract_active_sites_info(aligned_seq: str):
             non_active_sites += c
             prev_was_highcase = False
 
-    non_active_sites = [_ for _ in non_active_sites.split('#') if _ != '']
-    active_sites = [_ for _ in active_sites.split('#') if _ != '']
+    non_active_sites = [s for s in non_active_sites.split('#') if s != '']
+    active_sites = [s for s in active_sites.split('#') if s != '']
 
     if aligned_seq[0] <= 'Z':
         zip_obj = zip(active_sites, non_active_sites)
@@ -152,7 +158,16 @@ def extract_active_sites_info(aligned_seq: str):
     return aligned_seq, non_active_sites, active_sites, all_seqs
 
 
-def verify_aligned_info(sequence: str):
+def verify_aligned_info(sequence: str) -> None:
+    """
+    Verify that the sequence is aligned.
+
+    Args:
+        sequence: An amino acid sequence.
+
+    Raises:
+        Exception: If alignment could not be detected.
+    """
     isinstance(sequence, str)
     found_lower_case = False
     found_upper_case = False
@@ -163,34 +178,32 @@ def verify_aligned_info(sequence: str):
             found_lower_case = True
     if not (found_lower_case and found_upper_case):
         raise Exception(
-            'Expected aligned residues sequence! Did you forget to use LoadActiveSiteAlignmentInfo?'
+            'Expected aligned residues sequence! Did you forget to use ReplaceByFullProteinSequence?'
         )
 
 
-class ProteinAugmentFlipActiveSiteSubstrs(Transform):
-    """Augment a kinase active-site sequence by randomly flipping each individual contiguous"""
+class ProteinAugmentFlipSubstrs(Transform):
+    """Augment a protein sequence by randomly flipping each contiguous subsequence."""
 
     def __init__(self, p: float = 0.5) -> None:
         """
         Args:
             p (float): Probability that reverting occurs.
-
         """
         if not isinstance(p, float):
             raise TypeError(f'Please pass float, not {type(p)}.')
-        self.p = np.clip(p, 0.0, 1.0)
+        self._p = np.clip(p, 0.0, 1.0)
 
     def __call__(self, sequence: str) -> str:
         """
         Apply the transform.
 
         Args:
-            sequence (str): an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
+            sequence (str): an aligned sequence (example: abcDEfgHI).
 
         Returns:
-            str: an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
+            str: an aligned sequence with optional flipping (example: abcEDfgHI).
         """
-        # import ipdb;ipdb.set_trace()
         verify_aligned_info(sequence)
         (
             aligned_seq,
@@ -202,7 +215,7 @@ class ProteinAugmentFlipActiveSiteSubstrs(Transform):
         ans = ''
         for substr in all_seqs:
             if substr[0] <= 'Z':
-                if np.random.rand() < self.p:
+                if np.random.rand() < self._p:
                     ans += substr[::-1]
                 else:
                     ans += substr
@@ -212,44 +225,42 @@ class ProteinAugmentFlipActiveSiteSubstrs(Transform):
         return ans
 
 
-G_AMINO_ACIDS = 'ACDEFGHIKLMNPQRSTVWY'
+class ProteinAugmentNoise(Transform):
+    """
+    Augment a protein sequence by injecting (possibly different) noise to residues
+    inside and outside the relevant part (e.g., active site).
+    NOTE: Noise means single-residue point mutations.
+    """
 
-
-class ProteinAugmentActiveSiteGuidedNoise(Transform):
-    """Augment a kinase active-site sequence by injecting (possibly different) noise to residues inside and outside an active site"""
-
-    def __init__(
-        self,
-        mutate_prob_in_active_site=0.01,
-        mutate_prob_outside_active_site=0.1,
-    ) -> None:
+    def __init__(self, mutate_upper: float = 0.01, mutate_lower: float = 0.1) -> None:
         """
         Args:
-            mutate_prob_in_active_site:float - probability for mutating a residue INSIDE the active site
-            mutate_prob_outside_active_site - probability for mutating a residue OUTSIDE the active site
+            mutate_lower (float): probability for mutating lowercase residues
+            mutate_upper (float): probability for mutating uppercase residues.
         """
 
-        if not isinstance(mutate_prob_in_active_site, float):
+        if not isinstance(mutate_upper, float):
             raise TypeError(
-                f'Please pass float for mutate_prob_in_active_site, not {type(mutate_prob_in_active_site)}.'
+                f'Please pass float for mutate_prob_in_active_site, not {type(mutate_upper)}.'
             )
-        self.mutate_prob_in_active_site = mutate_prob_in_active_site
+        self.mutate_upper = mutate_upper
 
-        if not isinstance(mutate_prob_outside_active_site, float):
+        if not isinstance(mutate_lower, float):
             raise TypeError(
-                f'Please pass float for mutate_prob_outside_active_site, not {type(mutate_prob_outside_active_site)}.'
+                f'Please pass float for mutate_lower, not {type(mutate_lower)}.'
             )
-        self.mutate_prob_outside_active_site = mutate_prob_outside_active_site
+        self.mutate_lower = mutate_lower
+        self.num_aas = len(REAL_AAS)
 
     def __call__(self, sequence: str) -> str:
         """
         Apply the transform.
 
         Args:
-            sequence (str): an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
+            sequence (str): an aligned sequence (example: acDEFg).
 
         Returns:
-            str: an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
+            str: a possibly mutated aligned sequence (example: afDEFg).
         """
         # import ipdb;ipdb.set_trace()
         verify_aligned_info(sequence)
@@ -260,49 +271,47 @@ class ProteinAugmentActiveSiteGuidedNoise(Transform):
             all_seqs,
         ) = extract_active_sites_info(sequence)
 
-        amino_acids_num = len(G_AMINO_ACIDS)
-
         ans = ''
         for curr_sub_seq in all_seqs:
             for c in curr_sub_seq:
                 if (
                     curr_sub_seq[0] <= 'Z'
                 ):  # it's uppercase, so it's inside an active site
-                    if np.random.rand() < self.mutate_prob_in_active_site:
-                        ans += G_AMINO_ACIDS[np.random.randint(amino_acids_num)]
+                    if np.random.rand() < self.mutate_upper:
+                        ans += REAL_AAS[np.random.randint(self.num_aas)]
                     else:
                         ans += c
                 else:
-                    if np.random.rand() < self.mutate_prob_outside_active_site:
-                        ans += G_AMINO_ACIDS[np.random.randint(amino_acids_num)].lower()
+                    if np.random.rand() < self.mutate_lower:
+                        ans += REAL_AAS[np.random.randint(self.num_aas)].lower()
                     else:
                         ans += c
 
         return ans
 
 
-class ProteinAugmentSwitchBetweenActiveSiteSubstrs(Transform):
-    """Augment a kinase active-site sequence by randomly flipping each individual contiguous"""
+class ProteinAugmentSwapSubstrs(Transform):
+    """Augment a protein sequence by randomly swapping neighboring subsequences."""
 
     def __init__(self, p: float = 0.2) -> None:
         """
         Args:
-            p (float): Probability that any substr switches places with its "neighbour"
+            p (float): Probability that any substr switches places with its "neighbour".
 
         """
         if not isinstance(p, float):
             raise TypeError(f'Please pass float, not {type(p)}.')
-        self.p = np.clip(p, 0.0, 1.0)
+        self._p = np.clip(p, 0.0, 1.0)
 
     def __call__(self, sequence: str) -> str:
         """
         Apply the transform.
 
         Args:
-            sequence (str): an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
+            sequence (str): an aligned sequence (example: abCDefGHi).
 
         Returns:
-            str: an active-site aligned sequence (example: feylklLGKGTFGKVilvkekatgryyAmKilkkevivakdevahtltEnrvLqnsrhpfLTaLkysf)
+            str: an aligned sequence with swapped substrings (example: abGHefCDi).
         """
         verify_aligned_info(sequence)
         (
@@ -315,7 +324,7 @@ class ProteinAugmentSwitchBetweenActiveSiteSubstrs(Transform):
         order = list(range(len(active_sites)))
 
         for pos in range(len(order) - 1):
-            if np.random.rand() < self.p:
+            if np.random.rand() < self._p:
                 # switch
                 order[pos], order[pos + 1] = order[pos + 1], order[pos]
 
@@ -328,50 +337,4 @@ class ProteinAugmentSwitchBetweenActiveSiteSubstrs(Transform):
             else:
                 ans += substr
 
-        return ans
-
-
-class KeepOnlyUpperCase(Transform):
-    """Keeps only upper-case letters and discards the rest"""
-
-    def __init__(
-        self,
-    ) -> None:
-        """ """
-        pass
-
-    def __call__(self, sequence: str) -> str:
-        """
-        Apply the transform.
-
-        Args:
-            sequence (str):
-
-        Returns:
-            str:
-        """
-        ans = ''.join([x for x in sequence if (x >= 'A') and (x <= 'Z')])
-        return ans
-
-
-class ToUpperCase(Transform):
-    """convert all characters to uppercase"""
-
-    def __init__(
-        self,
-    ) -> None:
-        """ """
-        pass
-
-    def __call__(self, sequence: str) -> str:
-        """
-        Apply the transform.
-
-        Args:
-            sequence (str):
-
-        Returns:
-            str:
-        """
-        ans = sequence.upper()
         return ans

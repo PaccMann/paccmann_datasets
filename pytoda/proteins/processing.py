@@ -140,6 +140,8 @@ HUMAN_KINASE_ALIGNMENT_VOCAB = OrderedDict(
     ]
 )
 
+REAL_AAS = list(filter(lambda x: x.isalpha(), HUMAN_KINASE_ALIGNMENT_VOCAB.keys()))
+
 """
 Polarity, Charge, Hydophobicity, Aromaticity, Ionizability, StartStop
 Nonpolar = -1, Polar = 1
@@ -211,15 +213,9 @@ AA_FEAT = OrderedDict(
         ('U', (168.07, 150.05, 5.47, 10.28, 0, 3.9, 52, 0)),  # Selenocyteine
         ('V', (117.15, 99.13, 2.32, 9.62, 0, 5.96, 97, 0)),
         ('W', (204.23, 186.22, 2.83, 9.39, 0, 5.89, 84, 0)),
-        (
-            'X',
-            (136.74, 118.73, 2.06, 9.00, 2.51, 5.74, 21.86, 0),
-        ),  # mean AA (Unknown)
+        ('X', (136.74, 118.73, 2.06, 9.00, 2.51, 5.74, 21.86, 0)),  # mean AA (Unknown)
         ('Y', (181.19, 163.18, 2.2, 9.11, 10.07, 5.66, 49, 0)),
-        (
-            'Z',
-            (146.64, 128.625, 2.18, 9.4, 2.125, 4.435, -5, 0),
-        ),  # mean of E, Q
+        ('Z', (146.64, 128.625, 2.18, 9.4, 2.125, 4.435, -5, 0)),  # mean of E, Q
         ('<PAD>', (0, 0, 0, 0, 0, 0, 0, 0)),
         ('<START>', (0, 0, 0, 0, 0, 0, 0, 1)),
         ('<STOP>', (0, 0, 0, 0, 0, 0, 0, -1)),

@@ -1,22 +1,22 @@
 """Implementation of ProteinSequenceDataset."""
 import logging
-from typing import List, Optional
-
+from typing import List, Optional, Dict, Iterable
+from importlib_resources import as_file, files
 import torch
+from bisect import bisect_right
+import numpy as np
 
 from pytoda.warnings import device_warning
 
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from ..proteins.protein_language import ProteinLanguage
+
 from ..proteins.transforms import (
-    ExtractFromDict,
-    KeepOnlyUpperCase,
-    LoadActiveSiteAlignmentInfo,
-    ProteinAugmentActiveSiteGuidedNoise,
-    ProteinAugmentFlipActiveSiteSubstrs,
-    ProteinAugmentSwitchBetweenActiveSiteSubstrs,
+    ReplaceByFullProteinSequence,
+    ProteinAugmentNoise,
+    ProteinAugmentFlipSubstrs,
+    ProteinAugmentSwapSubstrs,
     SequenceToTokenIndexes,
-    ToUpperCase,
 )
 from ..transforms import (
     AugmentByReversing,
@@ -25,6 +25,9 @@ from ..transforms import (
     ListToTensor,
     Randomize,
     ToTensor,
+    ExtractFromDict,
+    ToUpperCase,
+    DiscardLowercase,
 )
 from ._fasta_eager_dataset import _FastaEagerDataset
 from ._fasta_lazy_dataset import _FastaLazyDataset
@@ -99,7 +102,15 @@ SEQUENCE_DATASET_IMPLEMENTATIONS = {  # get class and acceptable keywords
 def protein_sequence_dataset(
     *filepaths: str, filetype: str, backend: str, **kwargs
 ) -> KeyDataset:
-    """Return a dataset of protein sequences."""
+    """
+    Return a dataset of protein sequences.
+
+    Args:
+        filepaths (Iterable[str]): Paths to the files containing the protein sequences.
+        filetype (str): The filetype of the protein sequences.
+        backend (str): The backend to use for the dataset.
+        kwargs: Keyword arguments for the dataset.
+    """
     try:
         # hardcoded factory
         dataset_class, valid_keys = SEQUENCE_DATASET_IMPLEMENTATIONS[filetype][backend]
@@ -119,10 +130,7 @@ def protein_sequence_dataset(
 
 
 class ProteinSequenceDataset(DatasetDelegator):
-    """
-    Protein Sequence dataset using a Language to transform sequences.
-
-    """
+    """Protein Sequence dataset using a Language to transform sequences."""
 
     def __init__(
         self,
@@ -134,10 +142,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         padding_length: int = None,
         add_start_and_stop: bool = False,
         augment_by_revert: bool = False,
-        load_active_site_alignment_info: Optional[List[str]] = None,
-        protein_augment_flip_active_site_substrs: Optional[float] = None,
-        protein_augment_active_site_guided_noise: Optional[List[float]] = None,
-        protein_augment_switch_between_active_site_substrs: Optional[float] = None,
+        sequence_augment: Dict = {},
         protein_keep_only_uppercase: bool = False,
         randomize: bool = False,
         backend: str = 'eager',
@@ -168,12 +173,40 @@ class ProteinSequenceDataset(DatasetDelegator):
                 Sequences. Defaults to False.
             randomize (bool): perform a true randomization of Protein tokens.
                 Defaults to False.
-            load_active_site_alignment_info (Optional[str]): load active site alignment info (for example - converts and active site like LGKGTFGKVAKELLTLFVMEYVNGGEFIVENMTDL into fdylklLGKGTFGKVilvrekasgkyyAmKilkkeviiakdeva...)
-            protein_augment_flip_active_site_substrs Optional[float]: randomly flips with the given probability each consecutive active site substring
-            protein_augment_active_site_guided_noise Optional[List[float]]: injects (optionally different) noise into residues inside and outside the active site.
-                expects the list to contain two float values - [MUTATION_PROBABILITY_INSIDE_ACTIVE_SITE, MUTATION_PROBABILITY_OUTSIDE_ACTIVE_SITE]
-            protein_augment_switch_between_active_site_substrs Optional[float]: randomly switches places between neighbour active site substrings
-            protein_keep_only_uppercase (bool): default=False, keep only uppercase letters and discard all the rest
+            sequence_augment (Dict): a dictionary to specify additional sequence
+                augmentation. Defaults to {}. Items can be:
+                    `alignment_path`: A path (str) to a `.smi` (or `.tsv`) file
+                        with alignment information that specifies which residues of the
+                        sequence are to be used. E.g., to extract active site sequences
+                        from full proteins. Do not use a header in the file.
+                        1. column has to be the full protein sequence (use upper
+                            case only for residues to be used). E.g., ggABCggDEFgg
+                        2. column has to be the condensed sequence (ABCDEF).
+                        3. column has to be the protein identifier.
+                        NOTE: Such a file is *necessary* to apply all augmentation types
+                        specified in this dictionary (`sequence_augment`).
+                        NOTE: Unless specified, this defaults to
+                        `kinase_activesite_alignment.smi`, a file in
+                        `pytoda.proteins.metadata` that can ONLY be used to
+                        extract active site sequences of human kinases (based on the
+                        active site definition in Sheridan et al. (2009, JCIM) and
+                        Martin & Mukherjee (2012, JCIM).
+                    `discard_lowercase`: A (bool) specifying whether all lowercase
+                        characters (residues) in the sequence should be discarded.
+                        NOTE: This defaults to True.
+                    `flip_substrings`: A probability (float) to flip each substring
+                        (e.g., an active site substring that lies contiguously in the
+                        original sequence). Defaults to 0.0, i.e., no flipping.
+                        E.g., ABCDEF could become CBADEF or CBAFED or ABCFED if the
+                        original sequence is ggABCggDEFgg.
+                    `swap_substrings`: A probability (float) to swap neighboring
+                        substrings. Defaults to 0.0, i.e., no swapping.
+                        E.g., ABCDEF could become DEFABC if the original sequence is
+                        ggABCggDEFgg.
+                    `noise`: A 2-Tuple of (float, float) that specifies the probability
+                        for a random, single-residue mutation inside and outside the
+                        relevent part. Defaults to (0.0, 0.0), i.e., no noise.
+                        E.g., with (0.0, 0.5),  ggABCggDEFgg could become hgABCgbDEFgg.
             iterate_dataset (bool): whether to go through all items in the dataset
                 to detect unknown characters, find longest sequence and checks
                 passed padding length if applicable. Defaults to False.
@@ -200,6 +233,8 @@ class ProteinSequenceDataset(DatasetDelegator):
 
         # setup dataset
         self._setup_dataset(**kwargs)
+        self.cumulative_sizes = np.cumsum([0] + [len(s) for s in self.datasets])
+
         DatasetDelegator.__init__(self)  # delegate to self.dataset
         if self.has_duplicate_keys:
             raise KeyError(f'Please remove duplicates from your {self.filetype} file.')
@@ -251,69 +286,9 @@ class ProteinSequenceDataset(DatasetDelegator):
         self.randomize = randomize
         self.augment_by_revert = augment_by_revert
 
-        # Build up cascade of Protein transformations
-        transforms = []
-
-        ##### related to active site guided augmentation
-        self.load_active_site_alignment_info = load_active_site_alignment_info
-        self.protein_augment_flip_active_site_substrs = (
-            protein_augment_flip_active_site_substrs
-        )
-        self.protein_augment_active_site_guided_noise = (
-            protein_augment_active_site_guided_noise
-        )
-        self.protein_augment_switch_between_active_site_substrs = (
-            protein_augment_switch_between_active_site_substrs
-        )
-        self.protein_keep_only_uppercase = protein_keep_only_uppercase
-
-        if self.load_active_site_alignment_info is not None:
-            assert isinstance(self.load_active_site_alignment_info, str)
-            transforms += [
-                LoadActiveSiteAlignmentInfo(self.load_active_site_alignment_info)
-            ]
-        else:
-            transforms += [ExtractFromDict(key='sequence')]
-
-        if self.protein_augment_flip_active_site_substrs is not None:
-            assert self.load_active_site_alignment_info is not None
-            assert isinstance(self.protein_augment_flip_active_site_substrs, float)
-            transforms += [
-                ProteinAugmentFlipActiveSiteSubstrs(
-                    p=self.protein_augment_flip_active_site_substrs
-                )
-            ]
-
-        if self.protein_augment_active_site_guided_noise is not None:
-            assert self.load_active_site_alignment_info is not None
-            assert isinstance(self.protein_augment_active_site_guided_noise, list)
-            assert 2 == len(protein_augment_active_site_guided_noise)
-            transforms += [
-                ProteinAugmentActiveSiteGuidedNoise(
-                    *self.protein_augment_active_site_guided_noise
-                )
-            ]
-
-        if self.protein_augment_switch_between_active_site_substrs is not None:
-            assert self.load_active_site_alignment_info is not None
-            assert isinstance(
-                self.protein_augment_switch_between_active_site_substrs, float
-            )
-            transforms += [
-                ProteinAugmentSwitchBetweenActiveSiteSubstrs(
-                    self.protein_augment_switch_between_active_site_substrs
-                )
-            ]
-
-        if self.protein_keep_only_uppercase:
-            transforms += [KeepOnlyUpperCase()]
-
-        # TODO: this can be theoretically done always
-        if self.load_active_site_alignment_info is not None:
-            transforms += [ToUpperCase()]
-
-        # note - it's important to keep "augment_by_revert" after this section and not before it.
-        ##########
+        # Sequence-based augmentation
+        self.sequence_augment = sequence_augment
+        transforms = self.setup_sequence_augmentation(sequence_augment)
 
         if self.augment_by_revert:
             transforms += [AugmentByReversing()]
@@ -346,6 +321,68 @@ class ProteinSequenceDataset(DatasetDelegator):
             *self.filepaths, filetype=self.filetype, backend=self.backend, **kwargs
         )
 
+    def setup_sequence_augmentation(self, sequence_augment: Dict):
+        """
+        Setup the sequence augmentation.
+
+        Args:
+            sequence_augment: A dictionary to specify the sequence augmentation
+                strategies. For details see the constructor docs.
+        """
+        if not isinstance(sequence_augment, Dict):
+            raise TypeError(
+                f"Pass sequence_augment as Dict not {type(sequence_augment)}"
+            )
+
+        # Build up cascade of Protein transformations
+        transforms = []
+
+        # No work to do
+        if sequence_augment == {}:
+            transforms += [ExtractFromDict(key='sequence')]
+            return transforms
+
+        # Start composing transforms
+        self.alignment_path = sequence_augment.pop(
+            'alignment_path',
+            files('pytoda.proteins.metadata').joinpath(
+                'kinase_activesite_alignment.smi'
+            ),
+        )
+
+        transforms += [ReplaceByFullProteinSequence(self.alignment_path)]
+
+        # Flip substrings
+        self.flip_substrings = sequence_augment.pop('flip_substrings', 0.0)
+        transforms += [ProteinAugmentFlipSubstrs(p=self.flip_substrings)]
+
+        # Swap substrings
+        self.swap_substrings = sequence_augment.pop('swap_substrings', 0.0)
+        transforms += [ProteinAugmentSwapSubstrs(self.swap_substrings)]
+
+        # Inject noise (single residue mutation)
+        self.noise = sequence_augment.pop('noise', (0.0, 0.0))
+        if not isinstance(self.noise, Iterable) or len(self.noise) != 2:
+            raise TypeError(f'Noise has to be Iterable of length 2 not {self.noise}')
+        transforms += [ProteinAugmentNoise(*self.noise)]
+
+        # Prune lowercase characters
+        self.discard_lowercase = sequence_augment.pop('discard_lowercase', True)
+        if self.discard_lowercase:
+            transforms += [DiscardLowercase()]
+
+        """
+        In the future this could be removed to distinguish between upper/lowercase
+        characters but it would necessitate changes in protein language.
+        """
+        # Always convert to uppercase
+        transforms += [ToUpperCase()]
+
+        for k, v in sequence_augment.items():
+            logger.warning(f"Ignoring sequence_augment item: {k}: {v}.")
+
+        return transforms
+
     def __getitem__(self, index: int) -> torch.Tensor:
         """
         Generates one sample of data.
@@ -357,12 +394,5 @@ class ProteinSequenceDataset(DatasetDelegator):
             torch.Tensor: a torch tensor of token indexes,
                 for the current sample.
         """
-        # import ipdb;ipdb.set_trace()
-        # since multiple identical active sites have different full sequence, passing protein id as well
-
-        assert 1 == len(self.dataset.datasets)
-        extracted = self.dataset.datasets[0].df.iloc[index]
-        assert extracted.Sequence == self.dataset[index]
-
-        sample_dict = dict(sequence=extracted.Sequence, protein_id=extracted.name)
+        sample_dict = dict(sequence=self.dataset[index], id=self.dataset.get_key(index))
         return self.transform(sample_dict)
