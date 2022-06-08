@@ -85,11 +85,13 @@ class ReplaceByFullProteinSequence(Transform):
 
     def __call__(self, sample_dict: Dict) -> str:
         """
-        Replace the shortened sequence with an aligned sequence.
+        Replace the shortened sequence (usually uppercase only) with an aligned
+        sequence where usually uppercase is for residues of interest and lowercase
+        for the remaining ones.
 
         Args:
             sample_dict (Dict): a dictionary with the following keys:
-                - 'id': the protein id
+                - 'id': the protein id.
                 - 'sequence': the shortened protein sequence. (E.g., ABCDEF)
             NOTE: This has to be a dictionary because otherwise the shortened protein
                 sequence has to be unique.
@@ -228,7 +230,7 @@ class ProteinAugmentFlipSubstrs(Transform):
         return ans
 
 
-class ProteinAugmentNoise(Transform):
+class MutateResidues(Transform):
     """
     Augment a protein sequence by injecting (possibly different) noise to residues
     inside and outside the relevant part (e.g., active site).

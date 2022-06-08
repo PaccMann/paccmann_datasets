@@ -11,8 +11,8 @@ from pytoda.warnings import device_warning
 from ..proteins.protein_feature_language import ProteinFeatureLanguage
 from ..proteins.protein_language import ProteinLanguage
 from ..proteins.transforms import (
+    MutateResidues,
     ProteinAugmentFlipSubstrs,
-    ProteinAugmentNoise,
     ProteinAugmentSwapSubstrs,
     ReplaceByFullProteinSequence,
     SequenceToTokenIndexes,
@@ -193,9 +193,10 @@ class ProteinSequenceDataset(DatasetDelegator):
                     `discard_lowercase`: A (bool) specifying whether all lowercase
                         characters (residues) in the sequence should be discarded.
                         NOTE: This defaults to True.
-                    `flip_substrings`: A probability (float) to flip each substring
-                        (e.g., an active site substring that lies contiguously in the
-                        original sequence). Defaults to 0.0, i.e., no flipping.
+                    `flip_substrings`: A probability (float) to flip each contiguous
+                        upper-case substring (e.g., an active site substring that lies
+                        contiguously in the original sequence).
+                        Defaults to 0.0, i.e., no flipping.
                         E.g., ABCDEF could become CBADEF or CBAFED or ABCFED if the
                         original sequence is ggABCggDEFgg.
                     `swap_substrings`: A probability (float) to swap neighboring
@@ -363,7 +364,7 @@ class ProteinSequenceDataset(DatasetDelegator):
         self.noise = sequence_augment.pop('noise', (0.0, 0.0))
         if not isinstance(self.noise, Iterable) or len(self.noise) != 2:
             raise TypeError(f'Noise has to be Iterable of length 2 not {self.noise}')
-        transforms += [ProteinAugmentNoise(*self.noise)]
+        transforms += [MutateResidues(*self.noise)]
 
         # Prune lowercase characters
         self.discard_lowercase = sequence_augment.pop('discard_lowercase', True)
