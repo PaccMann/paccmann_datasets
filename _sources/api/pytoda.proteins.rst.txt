@@ -24,6 +24,7 @@ pytoda.proteins package
     .. toctree::
        :maxdepth: 1
 
+       pytoda.proteins.metadata
        pytoda.proteins.tests
 
 
