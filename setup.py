@@ -44,7 +44,7 @@ setup(
         'torch>=1.4.0',
         'diskcache',
         'dill>=0.3.3',
-        'selfies>=2.0.0',
+        'selfies>=2.1.1',
         'upfp',
         'SmilesPE>=0.0.3',
         'pyfaidx',
