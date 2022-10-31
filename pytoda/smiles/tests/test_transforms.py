@@ -5,7 +5,13 @@ import numpy as np
 import torch
 
 from pytoda.smiles.smiles_language import SMILESTokenizer
-from pytoda.smiles.transforms import AugmentTensor, Kekulize, NotKekulize, RemoveIsomery
+from pytoda.smiles.transforms import (
+    AugmentTensor,
+    Kekulize,
+    NotKekulize,
+    RemoveIsomery,
+    Selfies,
+)
 
 
 class TestTransforms(unittest.TestCase):
@@ -192,6 +198,21 @@ class TestTransforms(unittest.TestCase):
                 value=smiles_language.padding_index,
             )
             self.assertSequenceEqual(augmented[ind].tolist(), ground_truth.tolist())
+
+    def test_selfies(self) -> None:
+        """Test SELFIES."""
+
+        selfie = Selfies()
+
+        for smiles, ground_truth in [
+            ('c1cnoc1', '[C][C][=N][O][C][=Ring1][Branch1]'),
+            ('[O-][n+]1ccccc1S', '[O-1][N+1][=C][C][=C][C][=C][Ring1][=Branch1][S]'),
+            (
+                'c1snnc1-c1ccccn1',
+                '[C][S][N][=N][C][=Ring1][Branch1][C][=C][C][=C][C][=N][Ring1][=Branch1]',
+            ),
+        ]:
+            self.assertEqual(selfie(smiles), ground_truth)
 
 
 if __name__ == '__main__':
