@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.1.1
+                1.1.2
               </div>
             
           
@@ -164,7 +164,13 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 
 <span class="kn">from</span> <span class="nn">pytoda.smiles.smiles_language</span> <span class="kn">import</span> <span class="n">SMILESTokenizer</span>
-<span class="kn">from</span> <span class="nn">pytoda.smiles.transforms</span> <span class="kn">import</span> <span class="n">AugmentTensor</span><span class="p">,</span> <span class="n">Kekulize</span><span class="p">,</span> <span class="n">NotKekulize</span><span class="p">,</span> <span class="n">RemoveIsomery</span>
+<span class="kn">from</span> <span class="nn">pytoda.smiles.transforms</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AugmentTensor</span><span class="p">,</span>
+    <span class="n">Kekulize</span><span class="p">,</span>
+    <span class="n">NotKekulize</span><span class="p">,</span>
+    <span class="n">RemoveIsomery</span><span class="p">,</span>
+    <span class="n">Selfies</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="TestTransforms"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_transforms.html#pytoda.smiles.tests.test_transforms.TestTransforms">[docs]</a><span class="k">class</span> <span class="nc">TestTransforms</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
@@ -350,7 +356,22 @@
                 <span class="n">pad</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">ground_truth</span><span class="p">)),</span>
                 <span class="n">value</span><span class="o">=</span><span class="n">smiles_language</span><span class="o">.</span><span class="n">padding_index</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">assertSequenceEqual</span><span class="p">(</span><span class="n">augmented</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">ground_truth</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertSequenceEqual</span><span class="p">(</span><span class="n">augmented</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="n">ground_truth</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+<div class="viewcode-block" id="TestTransforms.test_selfies"><a class="viewcode-back" href="../../../../api/pytoda.smiles.tests.test_transforms.html#pytoda.smiles.tests.test_transforms.TestTransforms.test_selfies">[docs]</a>    <span class="k">def</span> <span class="nf">test_selfies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Test SELFIES.&quot;&quot;&quot;</span>
+
+        <span class="n">selfie</span> <span class="o">=</span> <span class="n">Selfies</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s1">&#39;c1cnoc1&#39;</span><span class="p">,</span> <span class="s1">&#39;[C][C][=N][O][C][=Ring1][Branch1]&#39;</span><span class="p">),</span>
+            <span class="p">(</span><span class="s1">&#39;[O-][n+]1ccccc1S&#39;</span><span class="p">,</span> <span class="s1">&#39;[O-1][N+1][=C][C][=C][C][=C][Ring1][=Branch1][S]&#39;</span><span class="p">),</span>
+            <span class="p">(</span>
+                <span class="s1">&#39;c1snnc1-c1ccccn1&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;[C][S][N][=N][C][=Ring1][Branch1][C][=C][C][=C][C][=N][Ring1][=Branch1]&#39;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">selfie</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span></div></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
