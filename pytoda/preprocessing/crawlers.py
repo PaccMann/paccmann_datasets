@@ -3,8 +3,7 @@ import urllib
 import urllib.request as urllib_request
 from itertools import filterfalse
 from typing import Iterable, List, Tuple, Union
-from urllib.error import HTTPError
-
+from urllib.error import HTTPError, URLError
 import pubchempy as pcp
 from pubchempy import BadRequestError, PubChemHTTPError
 from unidecode import unidecode
@@ -180,23 +179,20 @@ def query_pubchem(smiles: str) -> Tuple[bool, int]:
         raise TypeError(f'Please pass str, not {type(smiles)}')
     try:
         result = pcp.get_compounds(smiles, 'smiles')[0]
+        return (False, -1) if result.cid is None else (True, result.cid)
     except BadRequestError:
         logger.warning(f'Skipping SMILES. BadRequestError with: {smiles}')
-        return (False, -2)
     except HTTPError:
         logger.warning(f'Skipping SMILES. HTTPError with: {smiles}')
-        return (False, -2)
     except TimeoutError:
         logger.warning(f'Skipping SMILES. TimeoutError with: {smiles}')
-        return (False, -2)
     except ConnectionResetError:
         logger.warning(f'Skipping SMILES. ConnectionResetError with: {smiles}')
-        return (False, -2)
     except PubChemHTTPError:
         logger.warning(f'Skipping SMILES, server busy. with: {smiles}')
-        return (False, -2)
-
-    return (False, -1) if result.cid is None else (True, result.cid)
+    except URLError:
+        logger.error(f"Skipping SMILES, Network unreachable {smiles}")
+    return (False, -2)
 
 
 def is_pubchem(smiles: str) -> bool:
