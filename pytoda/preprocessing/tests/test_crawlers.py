@@ -4,8 +4,8 @@ import unittest
 from pytoda.preprocessing.crawlers import (  # query_pubchem,; remove_pubchem_smiles,
     get_smiles_from_pubchem,
     get_smiles_from_zinc,
-    remove_pubchem_smiles,
     query_pubchem,
+    remove_pubchem_smiles,
 )
 
 

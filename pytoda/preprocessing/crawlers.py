@@ -4,6 +4,7 @@ import urllib.request as urllib_request
 from itertools import filterfalse
 from typing import Iterable, List, Tuple, Union
 from urllib.error import HTTPError, URLError
+
 import pubchempy as pcp
 from pubchempy import BadRequestError, PubChemHTTPError
 from unidecode import unidecode
