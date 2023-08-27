@@ -4,8 +4,8 @@
 [![build](https://github.com/PaccMann/paccmann_datasets/workflows/build/badge.svg)](https://github.com/PaccMann/paccmann_datasets/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Downloads](https://pepy.tech/badge/pytoda)](https://pepy.tech/project/pytoda)
-[![Downloads](https://pepy.tech/badge/pytoda/month)](https://pepy.tech/project/pytoda)
+[![Downloads](https://static.pepy.tech/badge/pytoda)](https://pepy.tech/project/pytoda)
+[![Downloads](https://static.pepy.tech/badge/pytoda/month)](https://pepy.tech/project/pytoda)
 [![GitHub Super-Linter](https://github.com/PaccMann/paccmann_datasets/workflows/style/badge.svg)](https://github.com/marketplace/actions/super-linter)
 
 ## Overview
