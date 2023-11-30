@@ -68,7 +68,11 @@ def compose_smiles_transforms(
     else:
         if remove_bonddir or remove_chirality:
             smiles_transforms += [
-                RemoveIsomery(bonddir=remove_bonddir, chirality=remove_chirality)
+                RemoveIsomery(
+                    bonddir=remove_bonddir,
+                    chirality=remove_chirality,
+                    sanitize=sanitize,
+                )
             ]
         if kekulize:
             smiles_transforms += [
@@ -274,7 +278,6 @@ class Kekulize(Transform):
     """Transform SMILES to Kekule version."""
 
     def __init__(self, all_bonds_explicit=False, all_hs_explicit=False, sanitize=True):
-
         # NOTE: Explicit bonds or Hs without Kekulization is not supported
         self.all_bonds_explicit = all_bonds_explicit
         self.all_hs_explicit = all_hs_explicit
@@ -486,7 +489,6 @@ class AugmentTensor(Transform):
         """
         # Infer the padding type to ensure returning tensor of same shape.
         if self.smiles_language.padding_index in smiles_numerical.flatten():
-
             padding = True
             left_padding = any(
                 [
@@ -516,7 +518,6 @@ class AugmentTensor(Transform):
         # if it violates the padding
         augmented = []
         for smiles in smiles_numerical:
-
             lenx = seq_len + 1
             while lenx > seq_len:
                 augmented_smiles = self.__call__(smiles)

@@ -168,7 +168,7 @@ class SMILESTokenizerDataset(DatasetDelegator):
                 logger.error('Looking great, no problems found!')
             else:
                 logger.error(
-                    'To get rid of this, adapt the smiles_language *offline*, feed it'
+                    'To get rid of this, adapt the smiles_language *offline*, feed it '
                     'ready for intended usage, and adapt the constructor args to be '
                     'identical with their equivalents in the language object'
                 )
