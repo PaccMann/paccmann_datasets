@@ -48,18 +48,6 @@ pip install -r dev_requirements.txt
 pip install --user --no-use-pep517 -e .
 ```
 
-### Note on `rdkit` vs `rdkit-pypi`
-
-NOTE: The conda env ships with the [*official*](https://github.com/rdkit/rdkit) `rdkit`
-implementation. But the `pip` installation overwrites the rdkit package with the
-community-contributed [PyPI package](https://pypi.org/project/rdkit-pypi/#history)
-called `rdkit-pypi`.
-This is intentional because `pytoda` is distributed via PyPI too and most users will
-thus depend on `rdkit-pypi`. Keep in mind that `rdkit-pypi` might contain bugs or
-be outdated wrt `rdkit`. If developers experience issues with `rdkit-pypi`,
-they can temporarily uninstall `rdkit-pypi` and will then fall back on using
-the proper `rdkit` package.
-
 ## Examples
 
 For some examples on how to use `pytoda` see [here](./examples)
