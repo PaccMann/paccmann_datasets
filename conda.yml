@@ -1,9 +1,6 @@
 name: pytoda
-channels:
-  - https://conda.anaconda.org/rdkit
 dependencies:
-  - rdkit=2019.03.1
-  - python>=3.7,<3.8
+  - python>=3.8
   - pip>=19.1,<20.3
   - pip:
     - -r file:requirements.txt
