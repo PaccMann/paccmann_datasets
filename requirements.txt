@@ -11,4 +11,4 @@ pyfaidx>=0.6.0
 PubChemPy>=1.0.4
 importlib_resources>=5.2.2
 Unidecode>=1.1.2
-rdkit-pypi>=2021.9.3
+rdkit
