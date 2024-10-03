@@ -7,7 +7,7 @@ on:
       - 'gh_pages'
 jobs:
   conda-tests:
-    name: Test with conda (${{ matrix.os }})
+    name: Test with conda (${{ matrix.os }}) Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
@@ -20,6 +20,7 @@ jobs:
           - os: windows-latest
             pip_cache_path: ~\AppData\Local\pip\Cache
             experimental: true
+        python-version: [3.7, 3.8, 3.9, 3.10, 3.11]
     defaults:
       run:
         shell: bash -l {0}  # For conda
