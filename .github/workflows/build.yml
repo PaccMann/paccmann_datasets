@@ -17,7 +17,7 @@ jobs:
           - os: ubuntu-latest
             pip_cache_path: ~/.cache/pip
             experimental: false
-        python-version: [3.7, 3.8, 3.9, 3.10, 3.11]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
     defaults:
       run:
         shell: bash -l {0}  # For conda
