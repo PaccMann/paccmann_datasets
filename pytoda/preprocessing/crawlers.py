@@ -128,9 +128,7 @@ def get_smiles_from_pubchem(
             path = '{}/{}/{}/{}/{}/{}'.format(
                 PUBCHEM_START, query_type, drug, PUBCHEM_MID, option, PUBCHEM_END
             )
-            smiles = (
-                urllib_request.urlopen(path).read().decode('UTF-8').replace('\n', '')
-            )
+            smiles = urllib_request.urlopen(path).read().decode('UTF-8').split()[0]
             if not kekulize:
                 smiles = Chem.MolToSmiles(Chem.MolFromSmiles(smiles, sanitize=sanitize))
             return smiles

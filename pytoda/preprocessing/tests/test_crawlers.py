@@ -1,4 +1,5 @@
 """Testing Crawlers."""
+
 import unittest
 
 from pytoda.preprocessing.crawlers import (  # query_pubchem,; remove_pubchem_smiles,
@@ -31,7 +32,7 @@ class TestCrawlers(unittest.TestCase):
         self.assertEqual(smiles, ground_truth)
 
     def test_get_smiles_from_pubchem(self) -> None:
-        """Test get_smiles_from_zinc"""
+        """Test get_smiles_from_pubchem"""
 
         for sanitize in [True, False]:
 
@@ -82,6 +83,14 @@ class TestCrawlers(unittest.TestCase):
                     drug, use_isomeric=False, kekulize=False, sanitize=sanitize
                 )
                 self.assertEqual(smiles, ground_truth)
+
+        # Test molecule where landing page has several entries
+        gt_smiles = (
+            'CC12C(C(CC(O1)N3C4=CC=CC=C4C5=C6C(=C7C8=CC=CC=C8N2C7=C53)CNC6=O)NC)OC'
+        )
+        drug = 'Staurosporine'
+        smiles = get_smiles_from_pubchem(drug, use_isomeric=False, kekulize=True)
+        self.assertEqual(smiles, gt_smiles)
 
     def test_query_pubchem(self) -> None:
         """Test query_pubchem"""
