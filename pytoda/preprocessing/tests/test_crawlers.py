@@ -2,9 +2,8 @@
 
 import unittest
 
-from pytoda.preprocessing.crawlers import (  # query_pubchem,; remove_pubchem_smiles,
+from pytoda.preprocessing.crawlers import (
     get_smiles_from_pubchem,
-    get_smiles_from_zinc,
     query_pubchem,
     remove_pubchem_smiles,
 )
@@ -12,24 +11,6 @@ from pytoda.preprocessing.crawlers import (  # query_pubchem,; remove_pubchem_sm
 
 class TestCrawlers(unittest.TestCase):
     """Testing Crawlsers."""
-
-    def test_get_smiles_from_zinc(self) -> None:
-        """Test get_smiles_from_zinc"""
-
-        # # ZINC is down since quite some time, hence we skip these tests
-        return True
-
-        # Test text mode
-        drug = 'Aspirin'
-        ground_truth = 'CC(=O)Oc1ccccc1C(=O)O'
-        smiles = get_smiles_from_zinc(drug)
-        self.assertEqual(smiles, ground_truth)
-
-        # Test ZINC ID mode
-        zinc_id = 53
-        ground_truth = 'CC(=O)Oc1ccccc1C(=O)O'
-        smiles = get_smiles_from_zinc(zinc_id)
-        self.assertEqual(smiles, ground_truth)
 
     def test_get_smiles_from_pubchem(self) -> None:
         """Test get_smiles_from_pubchem"""
@@ -94,8 +75,6 @@ class TestCrawlers(unittest.TestCase):
 
     def test_query_pubchem(self) -> None:
         """Test query_pubchem"""
-        # pass
-        # Disabled due to bug in pubchem api
         smiles_list = [
             'O1C=CC=NC(=O)C1=O',
             'CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1',
@@ -107,9 +86,6 @@ class TestCrawlers(unittest.TestCase):
 
     def test_remove_pubchem_smiles(self) -> None:
         """Test remove_pubchem_smiles"""
-        # pass
-
-        # Disabled due to bug in pubchem api
         smiles_list = [
             'O1C=CC=NC(=O)C1=O',
             'CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1',
