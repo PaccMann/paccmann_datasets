@@ -7,7 +7,7 @@ on:
       - 'gh_pages'
 jobs:
   conda-tests:
-    name: Test with conda (${{ matrix.os }})
+    name: Test with conda (${{ matrix.os }}) Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
@@ -17,9 +17,7 @@ jobs:
           - os: ubuntu-latest
             pip_cache_path: ~/.cache/pip
             experimental: false
-          - os: windows-latest
-            pip_cache_path: ~\AppData\Local\pip\Cache
-            experimental: true
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
     defaults:
       run:
         shell: bash -l {0}  # For conda
@@ -35,19 +33,20 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/conda_pkgs_dir  # from: conda-incubator/setup-miniconda@v2
-          key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
+          key: ${{ runner.os }}-conda-${{ matrix.python-version }}-${{ env.CACHE_NUMBER }}-${{
             hashFiles('conda.yml') }}
 
       - name: Cache pip
         uses: actions/cache@v2
         with:
           path: ${{ matrix.pip_cache_path }}
-          key: ${{ runner.os }}-pip--${{ env.CACHE_NUMBER }}-${{
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ env.CACHE_NUMBER }}-${{
             hashFiles('requirements.txt') }}
 
       - name: Conda environment setup
         uses: conda-incubator/setup-miniconda@v2
         with:
+          python-version: ${{ matrix.python-version }}
           activate-environment: pytoda
           environment-file: conda.yml
           auto-activate-base: false
@@ -72,7 +71,7 @@ jobs:
         if: always()
         with:
           status: ${{ job.status }}
-          text: "CI Build ${{ matrix.os }}"
+          text: "CI Build ${{ matrix.os }} Python ${{ matrix.python-version}}"
           author_name: ${{ github.actor }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
