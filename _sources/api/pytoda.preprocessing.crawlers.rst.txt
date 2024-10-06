@@ -7,7 +7,7 @@ pytoda.preprocessing.crawlers module
 .. currentmodule:: pytoda.preprocessing.crawlers
 
 .. automodule:: pytoda.preprocessing.crawlers
-    :members: PUBCHEM_END, PUBCHEM_MID, PUBCHEM_START, ZINC_DRUG_SEARCH_ROOT, ZINC_ID_SEARCH_ROOT, get_smiles_from_pubchem, get_smiles_from_zinc, is_pubchem, query_pubchem, remove_pubchem_smiles
+    :members: PUBCHEM_END, PUBCHEM_MID, PUBCHEM_START, get_smiles_from_pubchem, is_pubchem, query_pubchem, remove_pubchem_smiles
     :undoc-members:
     :show-inheritance:
     :member-order: bysource
@@ -21,7 +21,6 @@ pytoda.preprocessing.crawlers module
         :nosignatures:
 
         get_smiles_from_pubchem
-        get_smiles_from_zinc
         is_pubchem
         query_pubchem
         remove_pubchem_smiles

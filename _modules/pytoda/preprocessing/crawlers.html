@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.1.5
+                1.1.6
               </div>
             
           
@@ -158,7 +158,6 @@
             
   <h1>Source code for pytoda.preprocessing.crawlers</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">urllib</span>
 <span class="kn">import</span> <span class="nn">urllib.request</span> <span class="k">as</span> <span class="nn">urllib_request</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">filterfalse</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
@@ -172,64 +171,9 @@
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
-<span class="n">ZINC_DRUG_SEARCH_ROOT</span> <span class="o">=</span> <span class="s1">&#39;http://zinc.docking.org/substances/search/?q=&#39;</span>
-<span class="n">ZINC_ID_SEARCH_ROOT</span> <span class="o">=</span> <span class="s1">&#39;http://zinc.docking.org/substances/&#39;</span>
-
 <span class="n">PUBCHEM_START</span> <span class="o">=</span> <span class="s1">&#39;https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound&#39;</span>
 <span class="n">PUBCHEM_MID</span> <span class="o">=</span> <span class="s1">&#39;property&#39;</span>
 <span class="n">PUBCHEM_END</span> <span class="o">=</span> <span class="s1">&#39;TXT&#39;</span>
-
-
-<div class="viewcode-block" id="get_smiles_from_zinc"><a class="viewcode-back" href="../../../api/pytoda.preprocessing.crawlers.html#pytoda.preprocessing.crawlers.get_smiles_from_zinc">[docs]</a><span class="k">def</span> <span class="nf">get_smiles_from_zinc</span><span class="p">(</span><span class="n">drug</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Uses the ZINC databases to retrieve the SMILES of a ZINC ID (int) or a drug</span>
-<span class="sd">    name (str).</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        drug (Union[str, int]): a string with a drug name or an int of a ZINC</span>
-<span class="sd">            ID.</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        smiles (str): The SMILES string of the drug name or ZINC ID.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;Please insert drug of type {{str, int}}, given was {type(drug)}&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{drug}</span><span class="s1">).&#39;</span>
-        <span class="p">)</span>
-
-    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
-
-        <span class="c1"># Parse name, then retrieve ZINC ID from it</span>
-        <span class="n">stripped_drug</span> <span class="o">=</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;%20&#39;</span><span class="p">)</span>
-        <span class="n">zinc_ids</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">drug_url</span> <span class="o">=</span> <span class="n">urllib_request</span><span class="o">.</span><span class="n">pathname2url</span><span class="p">(</span><span class="n">stripped_drug</span><span class="p">)</span>
-            <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ZINC_DRUG_SEARCH_ROOT</span><span class="p">,</span> <span class="n">drug_url</span><span class="p">)</span>
-            <span class="n">response</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
-                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                <span class="k">if</span> <span class="s1">&#39;href=&quot;/substances/ZINC&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-                    <span class="n">zinc_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
-            <span class="n">zinc_id</span> <span class="o">=</span> <span class="n">zinc_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="k">except</span> <span class="n">HTTPError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Did not find any result for drug: </span><span class="si">{drug}</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
-
-    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="n">zinc_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span>
-
-    <span class="n">zinc_id_url</span> <span class="o">=</span> <span class="n">ZINC_ID_SEARCH_ROOT</span> <span class="o">+</span> <span class="n">zinc_id</span>
-    <span class="n">id_response</span> <span class="o">=</span> <span class="n">urllib_request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">zinc_id_url</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">id_line</span> <span class="ow">in</span> <span class="n">id_response</span><span class="p">:</span>
-        <span class="n">id_line</span> <span class="o">=</span> <span class="n">id_line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="k">if</span> <span class="s1">&#39;id=&quot;substance-smiles-field&quot; readonly value=&#39;</span> <span class="ow">in</span> <span class="n">id_line</span><span class="p">:</span>
-            <span class="n">smiles</span> <span class="o">=</span> <span class="n">id_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-
-    <span class="k">return</span> <span class="n">smiles</span></div>
 
 
 <div class="viewcode-block" id="get_smiles_from_pubchem"><a class="viewcode-back" href="../../../api/pytoda.preprocessing.crawlers.html#pytoda.preprocessing.crawlers.get_smiles_from_pubchem">[docs]</a><span class="k">def</span> <span class="nf">get_smiles_from_pubchem</span><span class="p">(</span>
@@ -281,15 +225,13 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">drug</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">drug</span> <span class="o">=</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">drug</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;%20&#39;</span><span class="p">)</span>
 
-    <span class="c1"># Search ZINC for compound name</span>
+    <span class="c1"># Search in PubChem for compound name</span>
     <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">PUBCHEM_START</span><span class="p">,</span> <span class="n">query_type</span><span class="p">,</span> <span class="n">drug</span><span class="p">,</span> <span class="n">PUBCHEM_MID</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">PUBCHEM_END</span>
             <span class="p">)</span>
-            <span class="n">smiles</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">urllib_request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">smiles</span> <span class="o">=</span> <span class="n">urllib_request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">kekulize</span><span class="p">:</span>
                 <span class="n">smiles</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span><span class="p">))</span>
             <span class="k">return</span> <span class="n">smiles</span>

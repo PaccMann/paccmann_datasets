@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                1.1.5
+                1.1.6
               </div>
             
           
@@ -201,16 +201,13 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.get_smiles_from_pubchem" title="pytoda.preprocessing.crawlers.get_smiles_from_pubchem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_smiles_from_pubchem</span></code></a></p></td>
 <td><p>Uses the PubChem database to retrieve the SMILES of a drug name given as string (default) or a PubChem ID.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.get_smiles_from_zinc" title="pytoda.preprocessing.crawlers.get_smiles_from_zinc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_smiles_from_zinc</span></code></a></p></td>
-<td><p>Uses the ZINC databases to retrieve the SMILES of a ZINC ID (int) or a drug name (str).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.is_pubchem" title="pytoda.preprocessing.crawlers.is_pubchem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_pubchem</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.is_pubchem" title="pytoda.preprocessing.crawlers.is_pubchem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_pubchem</span></code></a></p></td>
 <td><p>Whether a given SMILES in PubChem.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.query_pubchem" title="pytoda.preprocessing.crawlers.query_pubchem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">query_pubchem</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.query_pubchem" title="pytoda.preprocessing.crawlers.query_pubchem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">query_pubchem</span></code></a></p></td>
 <td><p>Queries pubchem for a given SMILES.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.remove_pubchem_smiles" title="pytoda.preprocessing.crawlers.remove_pubchem_smiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_pubchem_smiles</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pytoda.preprocessing.crawlers.remove_pubchem_smiles" title="pytoda.preprocessing.crawlers.remove_pubchem_smiles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_pubchem_smiles</span></code></a></p></td>
 <td><p>Function for removing PubChem molecules from an iterable of smiles.</p></td>
 </tr>
 </tbody>
@@ -218,25 +215,6 @@
 </div>
 <div class="section" id="reference">
 <h2>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h2>
-<dl class="py function">
-<dt id="pytoda.preprocessing.crawlers.get_smiles_from_zinc">
-<code class="sig-name descname">get_smiles_from_zinc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">drug</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/crawlers.html#get_smiles_from_zinc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.crawlers.get_smiles_from_zinc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Uses the ZINC databases to retrieve the SMILES of a ZINC ID (int) or a drug
-name (str).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>drug</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>int</em><em>]</em>) – a string with a drug name or an int of a ZINC
-ID.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The SMILES string of the drug name or ZINC ID.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>smiles (str)</p>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py function">
 <dt id="pytoda.preprocessing.crawlers.get_smiles_from_pubchem">
 <code class="sig-name descname">get_smiles_from_pubchem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">drug</span></em>, <em class="sig-param"><span class="n">query_type</span><span class="o">=</span><span class="default_value">'name'</span></em>, <em class="sig-param"><span class="n">use_isomeric</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">kekulize</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sanitize</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pytoda/preprocessing/crawlers.html#get_smiles_from_pubchem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pytoda.preprocessing.crawlers.get_smiles_from_pubchem" title="Permalink to this definition">¶</a></dt>
