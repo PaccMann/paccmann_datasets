@@ -10,6 +10,11 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
+      - name: Clean up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
       - uses: actions/checkout@v1
       - uses: conda-incubator/setup-miniconda@v2
         with:
