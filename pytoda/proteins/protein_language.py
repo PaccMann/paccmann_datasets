@@ -1,4 +1,5 @@
 """Protein language handling."""
+
 import logging
 from typing import Iterator
 
@@ -20,12 +21,12 @@ class ProteinLanguage(object):
     utilities to manipulate it.
     """
 
-    unknown_token = '<UNK>'
+    unknown_token = "<UNK>"
 
     def __init__(
         self,
-        name: str = 'protein-language',
-        amino_acid_dict: str = 'iupac',
+        name: str = "protein-language",
+        amino_acid_dict: str = "iupac",
         tokenizer: Tokenizer = list,
         add_start_and_stop: bool = True,
     ) -> None:
@@ -47,11 +48,11 @@ class ProteinLanguage(object):
         self.dict = amino_acid_dict
         self.add_start_and_stop = add_start_and_stop
 
-        if self.dict == 'iupac':
+        if self.dict == "iupac":
             self.token_to_index = IUPAC_VOCAB
-        elif self.dict == 'unirep':
+        elif self.dict == "unirep":
             self.token_to_index = UNIREP_VOCAB
-        elif self.dict == 'human-kinase-alignment':
+        elif self.dict == "human-kinase-alignment":
             self.token_to_index = HUMAN_KINASE_ALIGNMENT_VOCAB
         else:
             raise ValueError(
@@ -68,36 +69,32 @@ class ProteinLanguage(object):
         """
         # Setup dictionary
         self.sequence_tokens = [
-            index for token, index in self.token_to_index.items() if '<' not in token
+            index for token, index in self.token_to_index.items() if "<" not in token
         ]
         self.number_of_tokens = len(self.token_to_index)
         self.index_to_token = {
             index: token for token, index in self.token_to_index.items()
         }
 
-        if self.add_start_and_stop:
-            self.max_token_sequence_length = 2
-            self._get_total_number_of_tokens_fn = lambda tokens: len(tokens) + 2
-            self._finalize_token_indexes_fn = lambda token_indexes: (
-                [self.token_to_index['<START>']]
-                + token_indexes
-                + [self.token_to_index['<STOP>']]
-            )
-        else:
-            self.max_token_sequence_length = 0
-            self._get_total_number_of_tokens_fn = len
-            self._finalize_token_indexes_fn = lambda token_indexes: token_indexes
+        self.max_token_sequence_length = 2 if self.add_start_and_stop else 0
+        self.padding_index = self.token_to_index["<PAD>"]
+        self.start_index = self.token_to_index["<START>"]
+        self.stop_index = self.token_to_index["<STOP>"]
 
-        self.padding_index = self.token_to_index['<PAD>']
-        self.start_index = self.token_to_index['<START>']
-        self.stop_index = self.token_to_index['<STOP>']
+    def _get_total_number_of_tokens(self, tokens) -> int:
+        return len(tokens) + 2 if self.add_start_and_stop else len(tokens)
+
+    def _finalize_token_indexes(self, token_indexes):
+        if self.add_start_and_stop:
+            return [self.start_index] + token_indexes + [self.stop_index]
+        return token_indexes
 
     def __len__(self) -> int:
         """Number of characters the language knows."""
         return self.number_of_tokens
 
     @staticmethod
-    def load(filepath: str) -> 'ProteinLanguage':
+    def load(filepath: str) -> "ProteinLanguage":
         """
         Static method to load a ProteinLanguage object.
 
@@ -108,20 +105,20 @@ class ProteinLanguage(object):
             ProteinLanguage: the loaded Protein language object.
         """
         try:
-            with open(filepath, 'rb') as f:
+            with open(filepath, "rb") as f:
                 protein_language = dill.load(f)
         except TypeError:
             # Necessary to load python3.7 pickled objects with >=3.8
             # For details see: https://github.com/uqfoundation/dill/pull/406
-            storage = dill._dill._reverse_typemap['CodeType']
-            dill._dill._reverse_typemap['CodeType'] = dill._dill._create_code
-            with open(filepath, 'rb') as f:
+            storage = dill._dill._reverse_typemap["CodeType"]
+            dill._dill._reverse_typemap["CodeType"] = dill._dill._create_code
+            with open(filepath, "rb") as f:
                 protein_language = dill.load(f)
-            dill._dill._reverse_typemap['CodeType'] = storage
+            dill._dill._reverse_typemap["CodeType"] = storage
         return protein_language
 
     @staticmethod
-    def dump(protein_language: 'ProteinLanguage', filepath: str):
+    def dump(protein_language: "ProteinLanguage", filepath: str):
         """
         Static method to save a Protein_language object to disk.
 
@@ -129,7 +126,7 @@ class ProteinLanguage(object):
             protein_language (ProteinLanguage): a ProteinLanguage object.
             filepath (str): path where to dump the ProteinLanguage.
         """
-        with open(filepath, 'wb') as f:
+        with open(filepath, "wb") as f:
             dill.dump(protein_language, f)
 
     def save(self, filepath: str):
@@ -151,14 +148,14 @@ class ProteinLanguage(object):
         Args:
             tokens (Tokens): tokens considered.
         """
-        total_number_of_tokens = self._get_total_number_of_tokens_fn(tokens)
+        total_number_of_tokens = self._get_total_number_of_tokens(tokens)
         if total_number_of_tokens > self.max_token_sequence_length:
             self.max_token_sequence_length = total_number_of_tokens
 
     def add_file(
         self,
         filepath: str,
-        file_type: str = '.smi',
+        file_type: str = ".smi",
         index_col: int = 1,
         chunk_size: int = 100000,
     ) -> None:
@@ -175,30 +172,30 @@ class ProteinLanguage(object):
             index_col (int): Data column used for indexing, defaults to 1, does
                 not apply to fasta files.
         """
-        if file_type not in ['.csv', '.smi', '.fasta', '.fasta.gz']:
+        if file_type not in [".csv", ".smi", ".fasta", ".fasta.gz"]:
             raise ValueError(
                 "Please provide file of type {'.smi', '.csv', '.fasta','.fasta.gz'}"
             )
 
-        if file_type == '.csv' or file_type == '.smi':
+        if file_type == ".csv" or file_type == ".smi":
             try:
                 for chunk in read_smi(
                     filepath,
                     chunk_size=chunk_size,
                     index_col=index_col,
-                    names=['Sequence'],
+                    names=["Sequence"],
                 ):
-                    for sequence in chunk['Sequence']:
+                    for sequence in chunk["Sequence"]:
                         self.add_sequence(sequence)
             except Exception:
                 raise KeyError(
                     ".smi file needs to have 2 columns, index needs to be in "
                     f"column ({index_col}), sequences in the other."
                 )
-        elif file_type == '.fasta':
+        elif file_type == ".fasta":
             database = parse_fasta(filepath, gzipped=False)
             for item in database:
-                self.add_sequence(item['sequence'])
+                self.add_sequence(item["sequence"])
 
     def add_sequence(self, sequence: str) -> None:
         """
@@ -223,7 +220,7 @@ class ProteinLanguage(object):
         for token in self.tokenizer(sequence):
             if token not in self.token_to_index:
                 logger.error(
-                    'Replacing unknown token %s with %r', token, self.unknown_token
+                    "Replacing unknown token %s with %r", token, self.unknown_token
                 )
                 token = self.unknown_token
             yield self.token_to_index[token]
@@ -239,7 +236,7 @@ class ProteinLanguage(object):
         Returns:
             Indexes: indexes representation for the AAS provided.
         """
-        return self._finalize_token_indexes_fn(
+        return self._finalize_token_indexes(
             list(self.sequence_to_token_indexes_generator(sequence))
         )
 
@@ -253,9 +250,9 @@ class ProteinLanguage(object):
         Returns:
             str: an amino acid sequence representation.
         """
-        return ''.join(
+        return "".join(
             [
-                self.index_to_token.get(token_index, '')
+                self.index_to_token.get(token_index, "")
                 for token_index in token_indexes
                 if token_index in self.sequence_tokens
             ]
