@@ -1,2 +1,2 @@
-name = 'pytoda'
-__version__ = '1.1.6'
+name = "pytoda"
+__version__ = "1.1.7"
