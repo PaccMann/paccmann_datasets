@@ -17,7 +17,7 @@ jobs:
           - os: ubuntu-latest
             pip_cache_path: ~/.cache/pip
             experimental: false
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12"]
     defaults:
       run:
         shell: bash -l {0}  # For conda
@@ -30,14 +30,14 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Cache conda
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ~/conda_pkgs_dir  # from: conda-incubator/setup-miniconda@v2
           key: ${{ runner.os }}-conda-${{ matrix.python-version }}-${{ env.CACHE_NUMBER }}-${{
             hashFiles('conda.yml') }}
 
       - name: Cache pip
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: ${{ matrix.pip_cache_path }}
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ env.CACHE_NUMBER }}-${{
