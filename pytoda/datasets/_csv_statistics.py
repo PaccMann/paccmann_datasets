@@ -1,4 +1,5 @@
 """Abstract implementation of _CsvStatistics."""
+
 import copy
 from functools import reduce
 
@@ -36,13 +37,11 @@ class _CsvStatistics:
         self.min_max_scaler = MinMaxScaler()
         self.standardizer = StandardScaler()
         self.kwargs = copy.deepcopy(kwargs)
-        self.kwargs['dtype'] = pandas_dtype
+        self.kwargs["dtype"] = pandas_dtype
 
         self.preprocess_df = (
             # may be applied to many chunks, so logic is determined once here
-            self._reindex
-            if self.initial_feature_list
-            else self._id
+            self._reindex if self.initial_feature_list else self._id
         )
         self.setup_datasource()
 
@@ -54,7 +53,7 @@ class _CsvStatistics:
 
     def _reindex(self, df: pd.DataFrame) -> pd.DataFrame:
         """Ensure given order of features, creating NaN columns for missing."""
-        return df.reindex(columns=self.initial_feature_list, fill_value=np.NaN)
+        return df.reindex(columns=self.initial_feature_list, fill_value=np.nan)
 
     def _id(self, df: pd.DataFrame) -> pd.DataFrame:
         return df
