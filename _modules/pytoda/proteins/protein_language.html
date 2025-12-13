@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.1.6
+                1.1.7
               </div>
             
           
@@ -158,6 +158,7 @@
             
   <h1>Source code for pytoda.proteins.protein_language</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;Protein language handling.&quot;&quot;&quot;</span>
+
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Iterator</span>
 
@@ -179,12 +180,12 @@
 <span class="sd">    utilities to manipulate it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">unknown_token</span> <span class="o">=</span> <span class="s1">&#39;&lt;UNK&gt;&#39;</span>
+    <span class="n">unknown_token</span> <span class="o">=</span> <span class="s2">&quot;&lt;UNK&gt;&quot;</span>
 
 <div class="viewcode-block" id="ProteinLanguage.__init__"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;protein-language&#39;</span><span class="p">,</span>
-        <span class="n">amino_acid_dict</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;iupac&#39;</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;protein-language&quot;</span><span class="p">,</span>
+        <span class="n">amino_acid_dict</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;iupac&quot;</span><span class="p">,</span>
         <span class="n">tokenizer</span><span class="p">:</span> <span class="n">Tokenizer</span> <span class="o">=</span> <span class="nb">list</span><span class="p">,</span>
         <span class="n">add_start_and_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -206,11 +207,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="n">amino_acid_dict</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span> <span class="o">=</span> <span class="n">add_start_and_stop</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">==</span> <span class="s1">&#39;iupac&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">==</span> <span class="s2">&quot;iupac&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">IUPAC_VOCAB</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">==</span> <span class="s1">&#39;unirep&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">==</span> <span class="s2">&quot;unirep&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">UNIREP_VOCAB</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">==</span> <span class="s1">&#39;human-kinase-alignment&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">==</span> <span class="s2">&quot;human-kinase-alignment&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span> <span class="o">=</span> <span class="n">HUMAN_KINASE_ALIGNMENT_VOCAB</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -227,36 +228,32 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Setup dictionary</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sequence_tokens</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">index</span> <span class="k">for</span> <span class="n">token</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s1">&#39;&lt;&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">token</span>
+            <span class="n">index</span> <span class="k">for</span> <span class="n">token</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="s2">&quot;&lt;&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">token</span>
         <span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span> <span class="o">=</span> <span class="p">{</span>
             <span class="n">index</span><span class="p">:</span> <span class="n">token</span> <span class="k">for</span> <span class="n">token</span><span class="p">,</span> <span class="n">index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">=</span> <span class="mi">2</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">tokens</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_token_indexes_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">token_indexes</span><span class="p">:</span> <span class="p">(</span>
-                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">]]</span>
-                <span class="o">+</span> <span class="n">token_indexes</span>
-                <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">]]</span>
-            <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens_fn</span> <span class="o">=</span> <span class="nb">len</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_token_indexes_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">token_indexes</span><span class="p">:</span> <span class="n">token_indexes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s2">&quot;&lt;PAD&gt;&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s2">&quot;&lt;START&gt;&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s2">&quot;&lt;STOP&gt;&quot;</span><span class="p">]</span></div>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">padding_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;PAD&gt;&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;START&gt;&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="s1">&#39;&lt;STOP&gt;&#39;</span><span class="p">]</span></div>
+    <span class="k">def</span> <span class="nf">_get_total_number_of_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_finalize_token_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_indexes</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_start_and_stop</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start_index</span><span class="p">]</span> <span class="o">+</span> <span class="n">token_indexes</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">stop_index</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">token_indexes</span>
 
     <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Number of characters the language knows.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_tokens</span>
 
 <div class="viewcode-block" id="ProteinLanguage.load"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.load">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;ProteinLanguage&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ProteinLanguage&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Static method to load a ProteinLanguage object.</span>
 
@@ -267,20 +264,20 @@
 <span class="sd">            ProteinLanguage: the loaded Protein language object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">protein_language</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="c1"># Necessary to load python3.7 pickled objects with &gt;=3.8</span>
             <span class="c1"># For details see: https://github.com/uqfoundation/dill/pull/406</span>
-            <span class="n">storage</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_reverse_typemap</span><span class="p">[</span><span class="s1">&#39;CodeType&#39;</span><span class="p">]</span>
-            <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_reverse_typemap</span><span class="p">[</span><span class="s1">&#39;CodeType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_create_code</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">storage</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_reverse_typemap</span><span class="p">[</span><span class="s2">&quot;CodeType&quot;</span><span class="p">]</span>
+            <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_reverse_typemap</span><span class="p">[</span><span class="s2">&quot;CodeType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_create_code</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">protein_language</span> <span class="o">=</span> <span class="n">dill</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-            <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_reverse_typemap</span><span class="p">[</span><span class="s1">&#39;CodeType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">storage</span>
+            <span class="n">dill</span><span class="o">.</span><span class="n">_dill</span><span class="o">.</span><span class="n">_reverse_typemap</span><span class="p">[</span><span class="s2">&quot;CodeType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">storage</span>
         <span class="k">return</span> <span class="n">protein_language</span></div>
 
 <div class="viewcode-block" id="ProteinLanguage.dump"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.dump">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="n">protein_language</span><span class="p">:</span> <span class="s1">&#39;ProteinLanguage&#39;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="n">protein_language</span><span class="p">:</span> <span class="s2">&quot;ProteinLanguage&quot;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Static method to save a Protein_language object to disk.</span>
 
@@ -288,7 +285,7 @@
 <span class="sd">            protein_language (ProteinLanguage): a ProteinLanguage object.</span>
 <span class="sd">            filepath (str): path where to dump the ProteinLanguage.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">dill</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">protein_language</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProteinLanguage.save"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
@@ -310,14 +307,14 @@
 <span class="sd">        Args:</span>
 <span class="sd">            tokens (Tokens): tokens considered.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">total_number_of_tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens_fn</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="n">total_number_of_tokens</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_total_number_of_tokens</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">total_number_of_tokens</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">max_token_sequence_length</span> <span class="o">=</span> <span class="n">total_number_of_tokens</span>
 
 <div class="viewcode-block" id="ProteinLanguage.add_file"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.add_file">[docs]</a>    <span class="k">def</span> <span class="nf">add_file</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">file_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;.smi&#39;</span><span class="p">,</span>
+        <span class="n">file_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;.smi&quot;</span><span class="p">,</span>
         <span class="n">index_col</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100000</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -334,30 +331,30 @@
 <span class="sd">            index_col (int): Data column used for indexing, defaults to 1, does</span>
 <span class="sd">                not apply to fasta files.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">file_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.smi&#39;</span><span class="p">,</span> <span class="s1">&#39;.fasta&#39;</span><span class="p">,</span> <span class="s1">&#39;.fasta.gz&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">file_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.csv&quot;</span><span class="p">,</span> <span class="s2">&quot;.smi&quot;</span><span class="p">,</span> <span class="s2">&quot;.fasta&quot;</span><span class="p">,</span> <span class="s2">&quot;.fasta.gz&quot;</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">&quot;Please provide file of type {&#39;.smi&#39;, &#39;.csv&#39;, &#39;.fasta&#39;,&#39;.fasta.gz&#39;}&quot;</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;.csv&#39;</span> <span class="ow">or</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;.smi&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s2">&quot;.csv&quot;</span> <span class="ow">or</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s2">&quot;.smi&quot;</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">read_smi</span><span class="p">(</span>
                     <span class="n">filepath</span><span class="p">,</span>
                     <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
                     <span class="n">index_col</span><span class="o">=</span><span class="n">index_col</span><span class="p">,</span>
-                    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Sequence&#39;</span><span class="p">],</span>
+                    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Sequence&quot;</span><span class="p">],</span>
                 <span class="p">):</span>
-                    <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="n">chunk</span><span class="p">[</span><span class="s1">&#39;Sequence&#39;</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">sequence</span> <span class="ow">in</span> <span class="n">chunk</span><span class="p">[</span><span class="s2">&quot;Sequence&quot;</span><span class="p">]:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">sequence</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
                     <span class="s2">&quot;.smi file needs to have 2 columns, index needs to be in &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;column (</span><span class="si">{index_col}</span><span class="s2">), sequences in the other.&quot;</span>
                 <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s1">&#39;.fasta&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">file_type</span> <span class="o">==</span> <span class="s2">&quot;.fasta&quot;</span><span class="p">:</span>
             <span class="n">database</span> <span class="o">=</span> <span class="n">parse_fasta</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">gzipped</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">database</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;sequence&#39;</span><span class="p">])</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_sequence</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;sequence&quot;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="ProteinLanguage.add_sequence"><a class="viewcode-back" href="../../../api/pytoda.proteins.protein_language.html#pytoda.proteins.protein_language.ProteinLanguage.add_sequence">[docs]</a>    <span class="k">def</span> <span class="nf">add_sequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -382,7 +379,7 @@
         <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">(</span><span class="n">sequence</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                    <span class="s1">&#39;Replacing unknown token </span><span class="si">%s</span><span class="s1"> with </span><span class="si">%r</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span>
+                    <span class="s2">&quot;Replacing unknown token </span><span class="si">%s</span><span class="s2"> with </span><span class="si">%r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span>
                 <span class="p">)</span>
                 <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unknown_token</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_to_index</span><span class="p">[</span><span class="n">token</span><span class="p">]</span></div>
@@ -398,7 +395,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            Indexes: indexes representation for the AAS provided.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_token_indexes_fn</span><span class="p">(</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_finalize_token_indexes</span><span class="p">(</span>
             <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sequence_to_token_indexes_generator</span><span class="p">(</span><span class="n">sequence</span><span class="p">))</span>
         <span class="p">)</span></div>
 
@@ -412,9 +409,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            str: an amino acid sequence representation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token_index</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">index_to_token</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">token_index</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">token_index</span> <span class="ow">in</span> <span class="n">token_indexes</span>
                 <span class="k">if</span> <span class="n">token_index</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sequence_tokens</span>
             <span class="p">]</span>

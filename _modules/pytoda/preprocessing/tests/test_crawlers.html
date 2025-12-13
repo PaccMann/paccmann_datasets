@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.1.6
+                1.1.7
               </div>
             
           
@@ -175,10 +175,9 @@
         <span class="sd">&quot;&quot;&quot;Test get_smiles_from_pubchem&quot;&quot;&quot;</span>
 
         <span class="k">for</span> <span class="n">sanitize</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">]:</span>
-
             <span class="c1"># Test text mode</span>
-            <span class="n">ground_truth</span> <span class="o">=</span> <span class="s1">&#39;C1=CC(=CC=C1/C=C/C(=O)C2=C(C=C(C=C2)O)O)O&#39;</span>
-            <span class="k">for</span> <span class="n">query</span><span class="p">,</span> <span class="n">drug</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;cid&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;isoliquiritigenin&#39;</span><span class="p">,</span> <span class="mi">638278</span><span class="p">]):</span>
+            <span class="n">ground_truth</span> <span class="o">=</span> <span class="s2">&quot;C1=CC(=CC=C1/C=C/C(=O)C2=C(C=C(C=C2)O)O)O&quot;</span>
+            <span class="k">for</span> <span class="n">query</span><span class="p">,</span> <span class="n">drug</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;cid&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;isoliquiritigenin&quot;</span><span class="p">,</span> <span class="mi">638278</span><span class="p">]):</span>
                 <span class="n">smiles</span> <span class="o">=</span> <span class="n">get_smiles_from_pubchem</span><span class="p">(</span>
                     <span class="n">drug</span><span class="p">,</span>
                     <span class="n">use_isomeric</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -188,8 +187,8 @@
                 <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">)</span>
 
-            <span class="n">ground_truth</span> <span class="o">=</span> <span class="s1">&#39;C1=CC(=CC=C1C=CC(=O)C2=C(C=C(C=C2)O)O)O&#39;</span>
-            <span class="k">for</span> <span class="n">query</span><span class="p">,</span> <span class="n">drug</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;cid&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;isoliquiritigenin&#39;</span><span class="p">,</span> <span class="mi">638278</span><span class="p">]):</span>
+            <span class="n">ground_truth</span> <span class="o">=</span> <span class="s2">&quot;C1=CC(=CC=C1C=CC(=O)C2=C(C=C(C=C2)O)O)O&quot;</span>
+            <span class="k">for</span> <span class="n">query</span><span class="p">,</span> <span class="n">drug</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;cid&quot;</span><span class="p">],</span> <span class="p">[</span><span class="s2">&quot;isoliquiritigenin&quot;</span><span class="p">,</span> <span class="mi">638278</span><span class="p">]):</span>
                 <span class="n">smiles</span> <span class="o">=</span> <span class="n">get_smiles_from_pubchem</span><span class="p">(</span>
                     <span class="n">drug</span><span class="p">,</span>
                     <span class="n">use_isomeric</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -198,9 +197,9 @@
                     <span class="n">query_type</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="c1"># mac-os irreproducible stochastic failure on ubuntu</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="p">[</span><span class="n">ground_truth</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">assertIn</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="p">[</span><span class="n">ground_truth</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">])</span>
 
-            <span class="n">drug</span> <span class="o">=</span> <span class="s1">&#39;isoliquiritigenin&#39;</span>
+            <span class="n">drug</span> <span class="o">=</span> <span class="s2">&quot;isoliquiritigenin&quot;</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">sanitize</span><span class="p">:</span>
                 <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
                     <span class="n">get_smiles_from_pubchem</span><span class="p">(</span>
@@ -211,14 +210,14 @@
                         <span class="n">drug</span><span class="p">,</span> <span class="n">use_isomeric</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kekulize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
                     <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">ground_truth</span> <span class="o">=</span> <span class="s1">&#39;O=C(/C=C/c1ccc(O)cc1)c1ccc(O)cc1O&#39;</span>
+                <span class="n">ground_truth</span> <span class="o">=</span> <span class="s2">&quot;O=C(/C=C/c1ccc(O)cc1)c1ccc(O)cc1O&quot;</span>
 
                 <span class="n">smiles</span> <span class="o">=</span> <span class="n">get_smiles_from_pubchem</span><span class="p">(</span>
                     <span class="n">drug</span><span class="p">,</span> <span class="n">use_isomeric</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kekulize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
                 <span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">)</span>
 
-                <span class="n">ground_truth</span> <span class="o">=</span> <span class="s1">&#39;O=C(C=Cc1ccc(O)cc1)c1ccc(O)cc1O&#39;</span>
+                <span class="n">ground_truth</span> <span class="o">=</span> <span class="s2">&quot;O=C(C=Cc1ccc(O)cc1)c1ccc(O)cc1O&quot;</span>
                 <span class="n">smiles</span> <span class="o">=</span> <span class="n">get_smiles_from_pubchem</span><span class="p">(</span>
                     <span class="n">drug</span><span class="p">,</span> <span class="n">use_isomeric</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kekulize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="n">sanitize</span>
                 <span class="p">)</span>
@@ -226,35 +225,39 @@
 
         <span class="c1"># Test molecule where landing page has several entries</span>
         <span class="n">gt_smiles</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="s1">&#39;CC12C(C(CC(O1)N3C4=CC=CC=C4C5=C6C(=C7C8=CC=CC=C8N2C7=C53)CNC6=O)NC)OC&#39;</span>
+            <span class="s2">&quot;CC12C(C(CC(O1)N3C4=CC=CC=C4C5=C6C(=C7C8=CC=CC=C8N2C7=C53)CNC6=O)NC)OC&quot;</span>
         <span class="p">)</span>
-        <span class="n">drug</span> <span class="o">=</span> <span class="s1">&#39;Staurosporine&#39;</span>
+        <span class="n">drug</span> <span class="o">=</span> <span class="s2">&quot;Staurosporine&quot;</span>
         <span class="n">smiles</span> <span class="o">=</span> <span class="n">get_smiles_from_pubchem</span><span class="p">(</span><span class="n">drug</span><span class="p">,</span> <span class="n">use_isomeric</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kekulize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">gt_smiles</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TestCrawlers.test_query_pubchem"><a class="viewcode-back" href="../../../../api/pytoda.preprocessing.tests.test_crawlers.html#pytoda.preprocessing.tests.test_crawlers.TestCrawlers.test_query_pubchem">[docs]</a>    <span class="k">def</span> <span class="nf">test_query_pubchem</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Test query_pubchem&quot;&quot;&quot;</span>
         <span class="n">smiles_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s1">&#39;O1C=CC=NC(=O)C1=O&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;Clc1ccccc2ccnc12&#39;</span><span class="p">,</span>
+            <span class="c1"># &quot;O1C=CC=NC(=O)C1=O&quot;,</span>
+            <span class="s2">&quot;CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Clc1ccccc2ccnc12&quot;</span><span class="p">,</span>
         <span class="p">]</span>
-        <span class="n">ground_truths</span> <span class="o">=</span> <span class="p">[(</span><span class="kc">True</span><span class="p">,</span> <span class="mi">67945516</span><span class="p">),</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+        <span class="n">ground_truths</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="c1"># (True, 67945516),</span>
+            <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">),</span>
+            <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+        <span class="p">]</span>
         <span class="k">for</span> <span class="n">gt</span><span class="p">,</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ground_truths</span><span class="p">,</span> <span class="n">smiles_list</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">assertTupleEqual</span><span class="p">(</span><span class="n">query_pubchem</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">gt</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TestCrawlers.test_remove_pubchem_smiles"><a class="viewcode-back" href="../../../../api/pytoda.preprocessing.tests.test_crawlers.html#pytoda.preprocessing.tests.test_crawlers.TestCrawlers.test_remove_pubchem_smiles">[docs]</a>    <span class="k">def</span> <span class="nf">test_remove_pubchem_smiles</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Test remove_pubchem_smiles&quot;&quot;&quot;</span>
         <span class="n">smiles_list</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s1">&#39;O1C=CC=NC(=O)C1=O&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;Clc1ccccc2ccnc12&#39;</span><span class="p">,</span>
+            <span class="s2">&quot;O1C=CC=NC(=O)C1=O&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Clc1ccccc2ccnc12&quot;</span><span class="p">,</span>
         <span class="p">]</span>
-        <span class="n">ground_truth</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1&#39;</span><span class="p">,</span> <span class="s1">&#39;Clc1ccccc2ccnc12&#39;</span><span class="p">]</span>
+        <span class="n">ground_truth</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CC(N)S(O)(=O)C(C)CC(C(C)C)c1cc(F)cc(F)c1&quot;</span><span class="p">,</span> <span class="s2">&quot;Clc1ccccc2ccnc12&quot;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assertListEqual</span><span class="p">(</span><span class="n">remove_pubchem_smiles</span><span class="p">(</span><span class="n">smiles_list</span><span class="p">),</span> <span class="n">ground_truth</span><span class="p">)</span></div></div>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
     <span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
 </pre></div>
 
